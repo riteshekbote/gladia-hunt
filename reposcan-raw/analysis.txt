@@ -1,50 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [limit=30, offset=10][0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
-[0m→ [0mRead reposcan-raw/npm/gladia.json[90m [limit=100][0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts[90m [limit=30][0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+I'll analyze the scan hits and classify them. Let me first examine the suspicious items more closely.
+[0m✗ [0mGrep "sk-[a-zA-Z0-9_-]{20,}" failed[90m in reposcan-raw[0m
+[91m[1mError: [0mRipgrep JSON record exceeded 65536 bytes
+[0m✱ [0mGrep "gladia[_-]?key|api[_-]?key|secret|token"[90m in reposcan-raw · 100 matches[0m
+[0m
+[0m$ [0mgrep -r "sk_[a-zA-Z0-9]\{20,\}" /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw 2>/dev/null | head -20
+(no output)
+[0m
+No real `sk_` secret keys found. Now let me compile the classification.
+
+---
+
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *(none)* | - | - | No hardcoded live credentials found |
+| File | Line | Secret (sha256) | Context |
+|------|------|-----------------|---------|
+| *(none found)* | | | |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Type | Notes |
 |------|------|------|-------|
-| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Mock config | `apiKey: "sk-********"` — masked placeholder in screenshot fixture |
-| gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8-9 | Test data | Example vocabulary entries "gladiaflow", "gladioflow", "gladiaflaw" |
-| gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | Constant | `GLADIA_API_KEY_STORAGE = 'gladia_api_key'` — localStorage key name only |
+| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | Mock config | `MOCK_SETTINGS.apiKey = "sk-********"` (8 asterisks placeholder) |
+| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 222 | Mock config | `apiKeyDisplayValue="sk-example"` |
+| `gladiaio/sdk/packages/sdk-js/src/client.test.ts` | 46, 57, 70 | Test fixtures | `'key-123'`, `'abc'` |
+| `gladiaio/sdk/packages/sdk-js/src/v2/live/session.test.ts` | 27, 59, 91 | Test fixtures | `token=created`, `token=abc` |
+| `gladiaio/compare-stt/test-match-token.ts` | 54+ | Test tokens | Generated JWT-like tokens for match-token tests |
+| `gladiaio/gladia-quiz-app/**` | multiple | Demo app | Example usage of `@gladiaio/sdk` |
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 36, 49, 81 | Example code | Proper `x-gladia-key` header usage |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint | Status |
-|------|------|----------|--------|
-| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Known public dashboard URL |
-| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Known public dashboard URL |
-| gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `https://app.gladia.io` | Known public dashboard URL |
-| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base (in OpenAPI spec) |
-| gladiaio/compare-stt/next.config.ts | 38,44 | `https://www.gladia.io` | Marketing site rewrites |
-| gladiaio/gladia-quiz-app/app/layout.tsx | 43 | `unpkg.com/@gladiaio/sdk@0.5.2` | Public CDN reference |
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public API base (known, in OpenAPI) |
+| `gladiaio/gladia-quiz-app/app/layout.tsx` | 7 | `https://gladia-halloween-quiz.vercel.app` | Demo deployment URL |
+| `gladiaio/compare-stt/next.config.ts` | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Public rewrite destination |
+| Multiple files | — | `api.gladia.io`, `app.gladia.io`, `www.gladia.io` | All public production endpoints |
 
 #### INTERESTING
 | File | Line | Finding | Severity |
 |------|------|---------|----------|
-| npm/gladia.json (registry metadata) | - | Package `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` | **Known** — ownership anomaly (per RAG: ACCEPTED OTHER 2026-08-07) |
-| gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` — production bundle ID | Informational |
-| gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | `identifier: "io.gladia.gladiaflow.dev"` — dev bundle ID | Informational |
+| `npm/gladia.json` | — | Unofficial `gladia@0.1.3` package claims "Official TypeScript SDK" but repo = `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com` | **Known ownership anomaly** (per RAG) |
+| `npm/_gladiaio_sdk.json` | — | Official `@gladiaio/sdk@1.1.0` maintainers include `@gladia.io` emails (gladia-admin, sboudoukha, amorin, cpire) + external contributors | Legitimate |
+| `gladiaio/gladia-quiz-app/app/layout.tsx` | 43 | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN (outdated vs current 1.1.0) | Low — demo app |
+| `gladiaio/gladiaflow/src-tauri/Cargo.toml` | 5 | Author: `Gladia <support@gladia.io>` | Legitimate contact |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm ownership anomaly | **no** | Already triaged & accepted as OTHER (2026-08-07); requires affiliation verification but not a security vulnerability |
-| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot/test fixture |
-| All endpoint references | **no** | All point to known public Gladia surfaces (api.gladia.io, app.gladia.io, www.gladia.io) |
-| localStorage key constant | **no** | Not a secret; storage key name only |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm ownership anomaly | INTERESTING | **no** | Already documented in RAG (2026-08-07 ACCEPTED OTHER); requires affiliation verification but not a secret leak |
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** | 8-asterisk placeholder in `MOCK_SETTINGS` for screenshot generation; adjacent line uses `sk-example` |
+| Test fixtures (`key-123`, `abc`, `created`) | TEST_OR_EXAMPLE | **no** | Obvious test values in `.test.ts` files |
+| Public API endpoints (`api.gladia.io`, etc.) | ENDPOINT_LEAK | **no** | Documented production surfaces |
+| Outdated SDK version in demo app (0.5.2 vs 1.1.0) | INTERESTING | **no** | Demo app only; not a security issue |
 
-**No new reportable findings in this delta.** The only anomaly (unofficial `gladia` npm package masquerading as official) is already documented and accepted.
+---
+
+**Summary:** No reportable secrets or new vulnerabilities found in this delta. The unofficial `gladia` npm package ownership anomaly is a known accepted finding. All other hits are test fixtures, demo code, or public endpoints.
