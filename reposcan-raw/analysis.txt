@@ -1,72 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/npm/gladia.json
-[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx
-Now I have a clear picture. Let me classify all findings:
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
 
----
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+[0m
+[0m$ [0mcat reposcan-raw/npm/gladia.json | jq '.versions["0.1.3"] | {name, version, description, repository, maintainers, author}'
+{
+  "name": "gladia",
+  "version": "0.1.3",
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+  },
+  "maintainers": [
+    {
+      "name": "softwarecitadel",
+      "email": "softwarecitadel@gmail.com"
+    }
+  ],
+  "author": {
+    "name": "Alexis Bouchez"
+  }
+}
+[0m
+Now I have a clear picture. Let me classify all the findings:
 
-### **REAL_SECRET**
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none found)* | | | No live credentials detected in scan |
-
----
-
-### **TEST_OR_EXAMPLE**
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot gallery mock data |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 222 | `apiKeyDisplayValue="sk-example"` — explicit example value in demo frame |
-| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 34 | localStorage key storage for user-provided API key (demo app) |
-| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 70,74 | Demo usage of official @gladiaio/sdk with user-supplied key |
-| reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | localStorage key constant for demo app |
-| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test provider slugs including "gladia" |
-| reposcan-raw/gladiaio/gladia-quiz-app/package.json | 24 | Dependency on @gladiaio/sdk^0.6.0 (demo app) |
-| reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json | 11 | Lockfile entry for @gladiaio/sdk |
-
----
-
-### **ENDPOINT_LEAK**
-| File | Line | Endpoint / Reference |
-|------|------|---------------------|
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` (public API base) |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage (documented auth scheme) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` (public dashboard) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public key management) |
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | Redirects to `https://www.gladia.io/compare-stt-apis` (marketing) |
-| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | `NEXT_PUBLIC_SITE_ORIGIN = "https://www.gladia.io"` |
-| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 87 | Link to `https://www.gladia.io` |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72,107 | Links to gladia.io legal pages |
-| reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 43 | Unpkg CDN reference to @gladiaio/sdk@0.5.2 |
-| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | Link to `https://app.gladia.io` for key signup |
-
----
-
-### **INTERESTING**
-| File | Line | Finding |
-|------|------|---------|
-| reposcan-raw/npm/gladia.json | 1 (entire pkg) | **Ownership anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK for Gladia" in description but README title says "Unofficial TypeScript SDK"; repo = `alexisbouchez/gladia.ts` (personal account); maintainer = `softwarecitadel@gmail.com` — **not affiliated with gladiaio org** |
-| reposcan-raw/npm/_gladiaio_sdk.json | 1 (entire pkg) | Official @gladiaio/sdk@1.1.0 published by gladia-admin/gladia.io maintainers — correct ownership |
-| reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 7 | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app')` — deploy preview URL |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` — Tauri bundle ID (official pattern) |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — official authorship |
-
----
-
-### **VERDICT LIST**
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| npm `gladia@0.1.3` ownership anomaly | **yes** | Package impersonates official SDK; personal repo + maintainer; potential supply-chain confusion / typosquatting vector |
-| All TEST_OR_EXAMPLE hits | no | Demo/sample code, mock data, user-input flows — no secrets |
-| All ENDPOINT_LEAK hits | no | Public documented endpoints (api.gladia.io, app.gladia.io, www.gladia.io) |
-| @gladiaio/sdk (official) | no | Legitimate package, correct ownership |
-| gladiaflow Tauri bundle IDs | no | Official naming convention |
-
----
-
-**Only one reportable candidate**: the **npm `gladia@0.1.3` ownership anomaly** — an unofficial package masquerading as the official SDK on the public registry.
+1. **npm `gladia` package (0.1.3)** - INTERESTING: Claims "Official TypeScript SDK for Gladia" but repository is alexisbouchez/gladia.ts (personal GitHub account), maintainer is softwarecitadel@gmail.com. This may
