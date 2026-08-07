@@ -225,9 +225,15 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add leads reports knowledge inventory state_*.json || true
-          git diff --cached --quiet || git commit -m "analyst cycle $(date -u +'%Y-%m-%d-%H-%M')"
-          git pull --rebase || true
-          git push || true
+          if ! git diff --cached --quiet; then
+            git commit -m "analyst cycle $(date -u +'%Y-%m-%d-%H-%M')"
+          fi
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin main && break
+            echo "commit push attempt $i failed, retrying in 20s..."
+            sleep 20
+          done
+          git log --oneline -1
 
       - name: Dispatch reposcan (once per cycle)
         run: |
