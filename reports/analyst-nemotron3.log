@@ -105,3 +105,688 @@ testability: PASSIVE
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with credential-exposed headers; WebSocket token-in-URL design; no auth on spec endpoint; high business value (core transcription API)
 [RISK] app.gladia.io: 60 reason: Dashboard behind auth but return-to cookie handling unverified; noindex/nofollow limits exposure; HSTS preload strong; lower direct API surface
 [RISK] sdk: 45 reason: Official SDKs generated from public spec; npm/PyPI packages legitimate; third-party `gladia` pkg on personal repo is ownership anomaly but not Gladia code
+===== ANALYST nemotron3 2026-08-07 18:51:57 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mdate -u +"%Y-%m-%d %H:%M:%S UTC"
+2026-08-07 18:46:55 UTC
+[0m
+[0m$ [0mcurl -s -I "https://api.gladia.io/openapi.json" | head -20
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Fri, 07 Aug 2026 18:46:59 GMT
+etag: W/"1e8cb-0RdEjnE4kFhmcshqeTCTKHaPBns"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 125131
+[0m
+[0m$ [0mcurl -s -X OPTIONS -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" -D - -o /dev/null "https://api.gladia.io/v2/transcription"
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+date: Fri, 07 Aug 2026 18:47:03 GMT
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://api.gladia.io/v1/models"
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Fri, 07 Aug 2026 18:47:28 GMT
+etag: W/"212-s0iHEFtreI3/OOiywOhHSQz1f2E"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 530
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/v1/models"
+{"data":[{"id":"gladia/solaria-1","name":"Gladia: Solaria 1","created":1730000000,"input_modalities":["audio"],"output_modalities":["text","transcription"],"context_length":0,"max_output_length":0,"pricing":{"prompt":"0","completion":"0","request":"0.000055"},"supported_sampling_parameters":[],"supported_features":[],"description":"Enterprise speech-to-text model supporting 100+ languages with sub-300ms latency. Async and real-time transcription.","is_ready":true,"datacenters":[{"country_code":"FR"},{"country_code":"US"}]}]}
+[0m
+[0m$ [0mcurl -s "https://app.gladia.io/signin?redirect_to=https%3A%2F%2Fevil.example.com" | grep -i "action\|redirect" | head -10
+})(window,document,'script','dataLayer','GTM-N7XJQJG');</script></head><body><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7XJQJG" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><div class="h-full lg:flex bg-bg-primary"><main class="basis-1/2 flex flex-col items-center h-full overflow-y-auto"><form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post"><div class="flex flex-col gap-4"><a href="https://gladia.io" target="_blank" rel="noopener noreferrer"><svg width="127" height="32" viewBox="0 0 127 32" xmlns="http://www.w3.org/2000/svg" class="place-self-start"><path d="M16.5283 20.7373C18.5682 20.7373 20.5247 21.5482 21.9678 22.9912L27.5586 29.4883H24.3018C23.4579 29.4883 22.6544 29.1249 22.0967 28.4902L17.4658 23.2168V32H14.3633V23.4062L9.90039 28.4893C9.34393 29.1225 8.54027 29.4873 7.69531 29.4873H4.43652L10.0303 22.9893C11.4734 21.5463 13.4308 20.7354 15.4707 20.7354H16.5283V20.7373ZM9.00977 10.0332C10.4528 11.4762 11.2637 13.4329 11.2637 15.4727V16.5303C11.2636 18.57 10.4529 20.5267 9.00977 21.9697L2.51172 27.5596V24.3027L2.51074 24.3018C2.51074 23.458 2.87507 22.6543 3.50977 22.0967L8.7832 17.4668H0V14.3643H8.59375L3.51172 9.90234C2.87704 9.34597 2.51179 8.54221 2.51172 7.69727V4.4375L9.00977 10.0332ZM29.4863 7.69434C29.4863 8.53815 29.123 9.34176 28.4883 9.89941L23.2148 14.5293H32V17.6318H23.4062L28.4883 22.0947C29.1217 22.651 29.4862 23.454 29.4863 24.2988V27.5586L22.9893 21.9648C21.5462 20.5218 20.7354 18.5652 20.7354 16.5254V15.4678C20.7354 13.428 21.5461 11.4714 22.9893 10.0283L29.4863 4.4375V7.69434ZM17.6328 8.59082L22.0957 3.50879C22.6522 2.87535 23.4557 2.51074 24.3008 2.51074H27.5596L21.9658 9.00781C20.5227 10.4509 18.5654 11.2617 16.5254 11.2617H15.4678L15.4668 11.2627C13.4268 11.2627 11.4695 10.4518 10.0264 9.00879L4.43652 2.51172H7.69336C8.53715 2.51176 9.34078 2.87613 9.89844 3.51074L14.5303 8.7832V0H17.6328V8.59082Z" fill="currentColor"></path><path d="M49.5654 5.73193C50.7102 5.73193 51.7808 5.90018 52.7773 6.23682C53.7807 6.56677 54.6769 7.03888 55.4648 7.65186C56.2526 8.26443 56.8991 8.99201 57.4043 9.8335C57.9159 10.675 58.2493 11.6048 58.4043 12.6216H54.5859C54.4313 12.0762 54.2023 11.5837 53.8994 11.146C53.5962 10.7084 53.2287 10.3385 52.7979 10.0356C52.367 9.72604 51.8822 9.4934 51.3438 9.33838C50.8119 9.17662 50.2359 9.09621 49.6162 9.09619C48.4984 9.09619 47.4983 9.3752 46.6162 9.93408C45.7341 10.493 45.037 11.3149 44.5254 12.3989C44.0205 13.4763 43.7676 14.7896 43.7676 16.3384C43.7676 17.9006 44.0135 19.2241 44.5049 20.3081C45.0033 21.3921 45.6901 22.2174 46.5654 22.7827C47.4408 23.3416 48.4548 23.6206 49.6064 23.6206C50.6836 23.6206 51.6165 23.409 52.4043 22.9849C53.192 22.5603 53.7985 21.9713 54.2227 21.2173C54.6252 20.5127 54.8368 19.7079 54.8633 18.8032H49.9795V15.8735H58.5557V26.7017H55.8682L55.5957 24.2778H55.4844C54.757 25.1463 53.9189 25.8165 52.9697 26.2876C52.0204 26.7523 50.8922 26.9848 49.5859 26.9849C47.6869 26.9849 46.0163 26.5568 44.5752 25.7017C43.1412 24.8395 42.02 23.6179 41.2119 22.0356C40.4037 20.4463 40 18.5601 40 16.3784C40 14.7085 40.2429 13.2168 40.7275 11.9038C41.2125 10.5909 41.8883 9.47587 42.7568 8.56006C43.6258 7.63779 44.6395 6.93769 45.7979 6.45947C46.9559 5.97486 48.2119 5.73194 49.5654 5.73193ZM75.3955 10.9849C76.3046 10.9849 77.0518 11.1401 77.6377 11.4497C78.2236 11.753 78.6888 12.1194 79.0322 12.5503C79.3753 12.9744 79.6416 13.3752 79.8301 13.7524H79.9814V11.187H83.6484V26.7017H80.0527V24.2573H79.8301C79.6416 24.6346 79.3687 25.0353 79.0117 25.4595C78.6548 25.8768 78.1835 26.2336 77.5977 26.5298C77.0121 26.8263 76.2746 26.9751 75.3857 26.9751C74.1669 26.9751 73.0755 26.6621 72.1123 26.0356C71.1495 25.4095 70.389 24.4999 69.8301 23.3081C69.2712 22.1159 68.9912 20.6678 68.9912 18.9644C68.9913 17.2405 69.2742 15.786 69.8398 14.6011C70.4123 13.4093 71.1837 12.5097 72.1533 11.9038C73.1229 11.2909 74.2038 10.9849 75.3955 10.9849ZM101.28 26.7017H97.6846V24.2573H97.4619C97.2731 24.6346 97.0005 25.0353 96.6436 25.4595C96.2869 25.8769 95.8154 26.2336 95.2295 26.5298C94.6436 26.8263 93.9064 26.9751 93.0176 26.9751C91.7986 26.975 90.7078 26.662 89.7451 26.0356C88.7823 25.4095 88.0205 24.4999 87.4619 23.3081C86.9031 22.116 86.624 20.6677 86.624 18.9644C86.6241 17.2404 86.907 15.7861 87.4727 14.6011C88.0451 13.4093 88.8153 12.5097 89.7852 11.9038C90.7548 11.2908 91.8365 10.9849 93.0283 10.9849C93.9373 10.9849 94.6846 11.1401 95.2705 11.4497C95.8559 11.7529 96.3207 12.1195 96.6641 12.5503C97.0074 12.9743 97.2731 13.3753 97.4619 13.7524H97.6143V6.01514H101.28V26.7017ZM117.792 10.9849C118.701 10.9849 119.449 11.14 120.035 11.4497C120.621 11.7529 121.085 12.1195 121.429 12.5503C121.772 12.9744 122.038 13.3753 122.227 13.7524H122.378V11.187H126.045V26.7017H122.449V24.2573H122.227C122.038 24.6346 121.765 25.0353 121.408 25.4595C121.052 25.8769 120.58 26.2336 119.994 26.5298C119.408 26.8263 118.671 26.9751 117.782 26.9751C116.563 26.9751 115.472 26.662 114.51 26.0356C113.547 25.4095 112.785 24.4999 112.227 23.3081C111.668 22.116 111.389 20.6677 111.389 18.9644C111.389 17.2406 111.671 15.786 112.236 14.6011C112.809 13.4093 113.58 12.5097 114.55 11.9038C115.519 11.2909 116.6 10.9849 117.792 10.9849ZM65.4023 22.2573C65.4023 22.8364 65.4899 23.2506 65.665 23.4995C65.8399 23.7487 66.1495 23.8674 66.5938 23.854C66.8362 23.8472 67.0184 23.8333 67.1396 23.813C67.2676 23.786 67.3824 23.7589 67.4834 23.7319L68.0889 26.5005C67.8735 26.5676 67.6041 26.6312 67.2812 26.6919C66.9648 26.7523 66.5737 26.7897 66.1094 26.8032C64.6278 26.8437 63.5303 26.5334 62.8164 25.8735C62.1029 25.2136 61.7461 24.2065 61.7461 22.853V6.01514H65.4023V22.2573ZM108.549 26.7017H104.893V11.187H108.549V26.7017ZM76.4053 13.9849C75.5909 13.9849 74.9106 14.1975 74.3652 14.6216C73.8197 15.0457 73.4087 15.6313 73.1328 16.3784C72.8565 17.1258 72.7188 17.982 72.7188 18.9448C72.7188 19.9143 72.8566 20.7797 73.1328 21.5405C73.4154 22.2946 73.8297 22.8906 74.375 23.3286C74.9271 23.7595 75.604 23.975 76.4053 23.9751C77.1797 23.9751 77.8403 23.7659 78.3857 23.3481C78.931 22.924 79.345 22.3346 79.6279 21.5806C79.9105 20.8266 80.0527 19.9479 80.0527 18.9448C80.0527 17.9416 79.9105 17.0692 79.6279 16.3286C79.3517 15.588 78.9409 15.0117 78.3955 14.6011C77.8569 14.1905 77.1931 13.9849 76.4053 13.9849ZM94.0381 13.9849C93.2232 13.9849 92.5425 14.1974 91.9971 14.6216C91.452 15.0456 91.0418 15.6315 90.7656 16.3784C90.4897 17.1258 90.3516 17.982 90.3516 18.9448C90.3516 19.9143 90.4897 20.7797 90.7656 21.5405C91.0486 22.2945 91.4625 22.8906 92.0078 23.3286C92.56 23.7595 93.2367 23.9751 94.0381 23.9751C94.8125 23.9751 95.4722 23.7659 96.0176 23.3481C96.563 22.924 96.9771 22.3347 97.2598 21.5806C97.5427 20.8266 97.6845 19.948 97.6846 18.9448C97.6846 17.9415 97.5427 17.0692 97.2598 16.3286C96.9839 15.588 96.5731 15.0117 96.0273 14.6011C95.4887 14.1905 94.8259 13.9849 94.0381 13.9849ZM118.803 13.9849C117.988 13.9849 117.307 14.1974 116.762 14.6216C116.216 15.0457 115.806 15.6313 115.529 16.3784C115.253 17.1258 115.116 17.982 115.116 18.9448C115.116 19.9143 115.253 20.7797 115.529 21.5405C115.812 22.2946 116.227 22.8906 116.772 23.3286C117.325 23.7594 118.001 23.9751 118.803 23.9751C119.577 23.9751 120.237 23.7659 120.782 23.3481C121.328 22.924 121.742 22.3347 122.024 21.5806C122.307 20.8266 122.449 19.9479 122.449 18.9448C122.449 17.9416 122.307 17.0692 122.024 16.3286C121.749 15.588 121.338 15.0117 120.792 14.6011C120.253 14.1905 119.59 13.9849 118.803 13.9849ZM106.73 5.01514C107.316 5.01514 107.815 5.2104 108.226 5.60107C108.643 5.98461 108.851 6.45241 108.852 7.00439C108.852 7.55017 108.643 8.01829 108.226 8.40869C107.815 8.79269 107.316 8.98486 106.73 8.98486C106.152 8.98482 105.654 8.79259 105.236 8.40869C104.819 8.01829 104.609 7.55017 104.609 7.00439C104.609 6.45241 104.819 5.98461 105.236 5.60107C105.654 5.21051 106.152 5.01518 106.73 5.01514Z" fill="currentColor"></path></svg></a><h1 class="text-display-xs font-semibold">Sign in to your account</h1></div><div class="flex flex-col gap-5"><input hidden="" autoComplete="email" name="email"/><div class="group flex flex-col gap-1.5" data-rac="" data-required="true"><label class="inline-flex gap-1 text-sm text-text-secondary font-medium cursor-default w-fit" id="react-aria-_R_2alalH1_" for="react-aria-_R_2alal_">Email</label><div role="presentation" class="relative py-2 px-3 text-sm inset-ring-1 rounded-md bg-bg-primary flex items-center gap-2 shadow-xs overflow-hidden disabled:bg-bg-disabled inset-ring-border-secondary hover:inset-ring-border-secondary_hover" data-rac=""><input type="email" required="" autoComplete="email" placeholder="Enter your email" tabindex="0" id="react-aria-_R_2alal_" aria-labelledby="react-aria-_R_2alalH1_" aria-describedby="react-aria-_R_2alalH3_ react-aria-_R_2alalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/></div></div><div class="flex flex-col gap-2"><input hidden="" autoComplete="current-password" name="password"/><div class="group flex flex-col gap-1.5" data-rac="" data-required="true"><label class="inline-flex gap-1 text-sm text-text-secondary font-medium cursor-default w-fit" id="react-aria-_R_9ilalH1_" for="react-aria-_R_9ilal_">Password</label><div role="presentation" class="relative py-2 px-3 text-sm inset-ring-1 rounded-md bg-bg-primary flex items-center gap-2 shadow-xs overflow-hidden disabled:bg-bg-disabled inset-ring-border-secondary hover:inset-ring-border-secondary_hover" data-rac=""><input type="password" required="" autoComplete="current-password" placeholder="••••••••" tabindex="0" id="react-aria-_R_9ilal_" aria-labelledby="react-aria-_R_9ilalH1_" aria-describedby="react-aria-_R_9ilalH3_ react-aria-_R_9ilalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/></div></div><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0 underline place-self-start" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_2ilal_">Forgot password</button></div></div><div class="flex flex-col gap-4 justify-stretch"><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap bg-button-primary-bg text-button-primary-fg inset-ring-1 inset-ring-white/12 hover:bg-button-primary-bg_hover hover:text-button-primary-fg_hover py-[.625rem] px-4 gap-1.5 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67]" data-rac="" type="submit" value="email-password" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_clal_" name="intent">Sign in</button><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-text-primary hover:text-text-primary_hover bg-bg-primary hover:bg-bg-primary_hover inset-ring-1 inset-ring-border-primary py-[.625rem] px-4 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] gap-3" data-rac="" type="submit" value="google" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_klal_" name="intent"><svg class="stroke-current inline self-center size-6 stroke-[2]"><use href="/assets/sprite-DbMwWnV7.svg#SocialGoogleColorBrand"></use></svg><span>Sign in with Google</span></button></div><p class="place-self-center"><span class="text-sm text-text-tertiary">Don’t have an account? </span><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_llal_">Sign up</button></p></form></main><div class="hidden basis-1/2 lg:block bg-[url(/assets/images/auth-background.webp)] bg-cover bg-no-repeat bg-center"></div></div><script nonce="06aa691c6551ce00576fcfd448241b3f">window.ENV = {"MODE":"production","APP_BASE_URL":"https://app.gladia.io","GA_USER_ID":null,"GOOGLE_TAG_MANAGER_ID":"GTM-N7XJQJG"}</script><script nonce="06aa691c6551ce00576fcfd448241b3f">((storageKey, restoreKey) => {
+      "hasAction": true,
+      "hasClientAction": false,
+      "hasAction": false,
+      "hasClientAction": false,
+      "hasAction": true,
+      "hasClientAction": false,
+      "hasAction": false,
+      "hasClientAction": false,
+      "hasAction": false,
+[0m
+[0m$ [0mnpm view gladia@0.1.3 --json 2>/dev/null | head -50
+{
+  "_id": "gladia@0.1.3",
+  "_rev": "4-d0214ef116ff0426b738c29cf2a97cf1",
+  "name": "gladia",
+  "dist-tags": {
+    "latest": "0.1.3"
+  },
+  "versions": [
+    "0.1.0",
+    "0.1.1",
+    "0.1.2",
+    "0.1.3"
+  ],
+  "time": {
+    "created": "2025-03-28T17:20:09.872Z",
+    "modified": "2025-04-07T13:46:48.993Z",
+    "0.1.0": "2025-03-28T17:20:10.148Z",
+    "0.1.1": "2025-03-28T17:35:57.688Z",
+    "0.1.2": "2025-04-07T13:42:54.763Z",
+    "0.1.3": "2025-04-07T13:46:48.823Z"
+  },
+  "bugs": {
+    "url": "https://github.com/alexisbouchez/gladia.ts/issues"
+  },
+  "author": "Alexis Bouchez",
+  "license": "MIT",
+  "homepage": "https://github.com/alexisbouchez/gladia.ts#readme",
+  "keywords": [
+    "gladia",
+    "speech-to-text",
+    "transcription",
+    "audio",
+    "video",
+    "ai",
+    "typescript",
+    "sdk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+  },
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "maintainers": [
+    "softwarecitadel <softwarecitadel@gmail.com>"
+  ],
+  "readmeFilename": "README.md",
+  "version": "0.1.3",
+  "main": "dist/index.js",
+  "module": "dist/gladia.esm.js",
+  "types": "dist/index.d.ts",
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.paths | keys[]' | sort
+"/audio/text/audio-transcription"
+"/v1/history"
+"/v1/models"
+"/v2/live"
+"/v2/live/{id}"
+"/v2/live/{id}/file"
+"/v2/pre-recorded"
+"/v2/pre-recorded/{id}"
+"/v2/pre-recorded/{id}/file"
+"/v2/transcription"
+"/v2/transcription/{id}"
+"/v2/transcription/{id}/file"
+"/v2/upload"
+"/video/text/video-transcription"
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.components.securitySchemes'
+{
+  "x_gladia_key": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "x-gladia-key",
+    "description": "Your personal Gladia API key"
+  }
+}
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.paths[] | .[] | select(.security != null) | .security'
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[
+  {
+    "x_gladia_key": []
+  }
+]
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.paths["/v1/models"]'
+{
+  "get": {
+    "operationId": "ModelsController_list_v1",
+    "parameters": [],
+    "responses": {
+      "200": {
+        "description": "List of available models"
+      }
+    },
+    "summary": "List Gladia's available transcription models as per OpenRouter integration spec",
+    "tags": [
+      "OpenRouter"
+    ]
+  }
+}
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.paths["/v2/live"]'
+{
+  "post": {
+    "operationId": "StreamingController_initStreamingSession_v2",
+    "parameters": [
+      {
+        "name": "region",
+        "required": false,
+        "in": "query",
+        "description": "The region used to process the audio.",
+        "schema": {
+          "$ref": "#/components/schemas/StreamingSupportedRegions"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/StreamingRequest"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "The live job has been initiated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/InitStreamingResponse"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Something is wrong with the request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BadRequestErrorResponse"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "You don't have the permissions to initiate a new live job",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+            }
+          }
+        }
+      },
+      "422": {
+        "description": "The parameters you gave are incorrect",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UnprocessableEntityErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "x_gladia_key": []
+      }
+    ],
+    "summary": "Initiate a new live job",
+    "tags": [
+      "Live V2"
+    ]
+  },
+  "get": {
+    "operationId": "StreamingController_getStreamingJobs_v2",
+    "parameters": [
+      {
+        "name": "offset",
+        "required": false,
+        "in": "query",
+        "description": "The starting point for pagination. A value of 0 starts from the first item.",
+        "schema": {
+          "minimum": 0,
+          "default": 0,
+          "type": "integer"
+        }
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "in": "query",
+        "description": "The maximum number of items to return. Useful for pagination and controlling data payload size.",
+        "schema": {
+          "minimum": 1,
+          "default": 20,
+          "type": "integer"
+        }
+      },
+      {
+        "name": "date",
+        "required": false,
+        "in": "query",
+        "description": "Filter items relevant to a specific date in ISO format (YYYY-MM-DD).",
+        "schema": {
+          "format": "date-time",
+          "example": "2026-08-07",
+          "type": "string"
+        }
+      },
+      {
+        "name": "before_date",
+        "required": false,
+        "in": "query",
+        "description": "Include items that occurred before the specified date in ISO format.",
+        "schema": {
+          "format": "date-time",
+          "example": "2026-08-07T08:24:49.099Z",
+          "type": "string"
+        }
+      },
+      {
+        "name": "after_date",
+        "required": false,
+        "in": "query",
+        "description": "Filter for items after the specified date. Use with `before_date` for a range. Date in ISO format.",
+        "schema": {
+          "format": "date-time",
+          "example": "2026-08-07T08:24:49.099Z",
+          "type": "string"
+        }
+      },
+      {
+        "name": "status",
+        "required": false,
+        "in": "query",
+        "description": "Filter the list based on item status. Accepts multiple values from the predefined list.",
+        "schema": {
+          "example": [
+            "done"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "done",
+              "error"
+            ]
+          }
+        }
+      },
+      {
+        "name": "custom_metadata",
+        "required": false,
+        "in": "query",
+        "schema": {
+          "additionalProperties": true,
+          "example": {
+            "user": "John Doe"
+          },
+          "type": "object"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "A list of live jobs matching the parameters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ListStreamingResponse"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "You don't have the permissions to access live jobs",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UnauthorizedErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "x_gladia_key": []
+      }
+    ],
+    "summary": "Get live jobs based on query parameters",
+    "tags": [
+      "Live V2"
+    ]
+  }
+}
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" | jq '.components.schemas.InitStreamingResponse'
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Id of the job",
+      "format": "uuid",
+      "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Creation date",
+      "format": "date-time",
+      "example": "2023-12-28T09:04:17.210Z"
+    },
+    "url": {
+      "type": "string",
+      "description": "The websocket url to connect to for sending audio data. The url will contain the temporary token to authenticate the session.",
+      "example": "wss://api.gladia.io/v2/live?token=4a39145c-2844-4557-8f34-34883f7be7d9",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "url"
+  ]
+}
+[0m
+[0m$ [0mcurl -s -X POST -H "Content-Type: application/json" -d '{}' "https://api.gladia.io/v2/live"
+{"statusCode":401,"timestamp":"2026-08-07T18:48:55.354Z","path":"/v2/live","message":"no gladia key provided","request_id":"G-d8cc6c86"}
+[0m
+[0m$ [0mfor path in /health /metrics /debug /admin /v1/ /internal /actuator /info; do echo "=== $path ==="; curl -s -o /dev/null -w "%{http_code}" "https://api.gladia.io$path"; echo; done
+=== /health ===
+200
+=== /metrics ===
+404
+=== /debug ===
+404
+=== /admin ===
+404
+=== /v1/ ===
+404
+=== /internal ===
+404
+=== /actuator ===
+404
+=== /info ===
+404
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/health"
+{"health":"OK"}
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://app.gladia.io/" -H "Cookie: return-to=eyJ1cmwiOiJodHRwczovL2V2aWwuY29tIn0%3D"
+HTTP/2 302 
+date: Fri, 07 Aug 2026 18:49:12 GMT
+location: /signin
+set-cookie: __sid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax
+set-cookie: return-to=eyJ1cmwiOiIvIn0%3D; Max-Age=60; Path=/; HttpOnly; Secure; SameSite=Lax
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-request-id: 42e99c6a-44df-4a40-8dca-5dc47f526e25
+x-robots-tag: noindex, nofollow
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://app.gladia.io/dashboard" -H "Cookie: return-to=eyJ1cmwiOiJodHRwczovL2V2aWwuY29tIn0%3D"
+HTTP/2 200 
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-4d9702694ee9e5ac333a988adc115618' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+date: Fri, 07 Aug 2026 18:49:18 GMT
+expires: 0
+pragma: no-cache
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-request-id: eb002bba-c60e-4e10-a1ab-bb2c54104820
+x-robots-tag: noindex, nofollow
+[0m
+[0m$ [0mcat << 'EOF'
+=== STEP 1 — DELTA ===
+[NEW] api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+[NEW] api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+[NEW] api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+[NEW] api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+[NEW] api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+[NEW] app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+[NEW] app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+[NEW] app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+[NEW] npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+[CHANGED] app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+=== STEP 2 — PRIORITIZE ===
+[PRIO] api.gladia.io, 8.9, attack_surface=9 business_value=9 tech_exposure=8 gate_ease=10 cloud_surface=8 freshness=9
+[PRIO] app.gladia.io, 6.8, attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=8
+[PRIO] npm @gladiaio/sdk, 5.2, attack_surface=5 business_value=6 tech_exposure=5 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] PyPI gladiaio-sdk, 4.8, attack_surface=4 business_value=6 tech_exposure=4 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] npm gladia (typosquat candidate), 4.5, attack_surface=4 business_value=5 tech_exposure=4 gate_ease=9 cloud_surface=2 freshness=5
+
+=== STEP 3 — HYPOTHESES ===
+[HYP] Undocumented /health endpoint on api.gladia.io leaks runtime status
+class: MISCONFIG
+asset: api.gladia.io
+confidence: 80
+reasoning: /health returns 200 {"health":"OK"} but is absent from OpenAPI spec (14 documented paths); health endpoints often expose version, build info, dependency status in other environments
+evidence_needed: Compare /health response across environments; check if verbose mode exists via query params (e.g., ?full=true, ?format=json)
+verify_steps: PROBE: GET https://api.gladia.io/health (already 200); GET https://api.gladia.io/health?full=true; GET https://api.gladia.io/health?format=json; HEAD https://api.gladia.io/actuator/health (Spring Boot pattern)
+impact: Information disclosure — aids reconnaissance, may reveal version/internal state; severity Low-Medium
+testability: PASSIVE
+
+[HYP] WebSocket auth token in URL query parameter leaks via Referer/logs
+class: AUTH
+asset: api.gladia.io
+confidence: 75
+reasoning: OpenAPI spec shows InitStreamingResponse.url = "wss://api.gladia.io/v2/live?token=<uuid>"; tokens in URLs leak via browser history, Referer headers on WS upgrade, server/proxy logs; token is bearer-equivalent for live session
+evidence_needed: Confirm token is long-lived/session-scoped; check Referrer-Policy on WS handshake response; verify token rotation/invalidation on disconnect
+verify_steps: AUTH_HELPED: POST https://api.gladia.io/v2/live -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{}' → observe response.url token format; initiate WS connection and inspect upgrade request headers for Referer; check if token works after session close
+impact: Token theft enables unauthorized live transcription sessions, access to real-time audio stream; severity High
+testability: AUTH_HELPED
+
+[HYP] npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 70
+reasoning: Package description claims "Official TypeScript SDK for Gladia" but repository=github.com/alexisbouchez/gladia.ts (personal account), maintainer=softwarecitadel@gmail.com; official SDK is @gladiaio/sdk from gladiaio/sdk monorepo; users may install wrong package
+evidence_needed: Verify if alexisbouchez/softwarecitadel is affiliated with Gladia; check package code for malicious behavior; compare API surface with official SDK
+verify_steps: RAG: Read github.com/alexisbouchez/gladia.ts source; diff against @gladiaio/sdk; check install scripts, network calls, data exfiltration; HUMAN: Contact Gladia security to confirm ownership
+impact: Supply chain risk — developers may install impersonated SDK leading to credential theft or malicious code execution; severity Medium-High
+testability: RAG
+
+=== STEP 4 — SELF-CRITIQUE ===
+[PARKED] return-to cookie JWT parsing without signature verification: Server rejects tampered cookie and resets to default; no open redirect observed; confidence < 40 after validation
+[FINAL] 1) WebSocket auth token in URL query parameter leaks via Referer/logs (api.gladia.io, 75, AUTH) 2) Undocumented /health endpoint on api.gladia.io leaks runtime status (api.gladia.io, 80, MISCONFIG) 3) npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace (npm registry, 70, OTHER)
+
+=== STEP 5 — NEXT ACTION ===
+[NEXT] PROBE: GET https://api.gladia.io/health?full=true — check for verbose health output
+
+=== STEP 6 — LEARNING ===
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+[LEARN] ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+[LEARN] ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+
+=== STEP 7 — RISK SCORE ===
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with credential-exposed headers; WebSocket token-in-URL design; undocumented /health endpoint; no auth on spec endpoint; high business value (core transcription API)
+[RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action but no open redirect; HSTS preload strong; Google-only OAuth limits attack surface
+[RISK] sdk: 40 reason: Official SDKs (@gladiaio/sdk, gladiaio-sdk) generated from public spec; third-party gladia@0.1.3 is ownership anomaly but not Gladia code; no malicious behavior observed in package metadata
+EOF
+=== STEP 1 — DELTA ===
+[NEW] api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+[NEW] api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+[NEW] api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+[NEW] api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+[NEW] api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+[NEW] app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+[NEW] app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+[NEW] app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+[NEW] npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+[CHANGED] app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+=== STEP 2 — PRIORITIZE ===
+[PRIO] api.gladia.io, 8.9, attack_surface=9 business_value=9 tech_exposure=8 gate_ease=10 cloud_surface=8 freshness=9
+[PRIO] app.gladia.io, 6.8, attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=8
+[PRIO] npm @gladiaio/sdk, 5.2, attack_surface=5 business_value=6 tech_exposure=5 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] PyPI gladiaio-sdk, 4.8, attack_surface=4 business_value=6 tech_exposure=4 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] npm gladia (typosquat candidate), 4.5, attack_surface=4 business_value=5 tech_exposure=4 gate_ease=9 cloud_surface=2 freshness=5
+
+=== STEP 3 — HYPOTHESES ===
+[HYP] Undocumented /health endpoint on api.gladia.io leaks runtime status
+class: MISCONFIG
+asset: api.gladia.io
+confidence: 80
+reasoning: /health returns 200 {"health":"OK"} but is absent from OpenAPI spec (14 documented paths); health endpoints often expose version, build info, dependency status in other environments
+evidence_needed: Compare /health response across environments; check if verbose mode exists via query params (e.g., ?full=true, ?format=json)
+verify_steps: PROBE: GET https://api.gladia.io/health (already 200); GET https://api.gladia.io/health?full=true; GET https://api.gladia.io/health?format=json; HEAD https://api.gladia.io/actuator/health (Spring Boot pattern)
+impact: Information disclosure — aids reconnaissance, may reveal version/internal state; severity Low-Medium
+testability: PASSIVE
+
+[HYP] WebSocket auth token in URL query parameter leaks via Referer/logs
+class: AUTH
+asset: api.gladia.io
+confidence: 75
+reasoning: OpenAPI spec shows InitStreamingResponse.url = "wss://api.gladia.io/v2/live?token=<uuid>"; tokens in URLs leak via browser history, Referer headers on WS upgrade, server/proxy logs; token is bearer-equivalent for live session
+evidence_needed: Confirm token is long-lived/session-scoped; check Referrer-Policy on WS handshake response; verify token rotation/invalidation on disconnect
+verify_steps: AUTH_HELPED: POST https://api.gladia.io/v2/live -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{}' → observe response.url token format; initiate WS connection and inspect upgrade request headers for Referer; check if token works after session close
+impact: Token theft enables unauthorized live transcription sessions, access to real-time audio stream; severity High
+testability: AUTH_HELPED
+
+[HYP] npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 70
+reasoning: Package description claims "Official TypeScript SDK for Gladia" but repository=github.com/alexisbouchez/gladia.ts (personal account), maintainer=softwarecitadel@gmail.com; official SDK is @gladiaio/sdk from gladiaio/sdk monorepo; users may install wrong package
+evidence_needed: Verify if alexisbouchez/softwarecitadel is affiliated with Gladia; check package code for malicious behavior; compare API surface with official SDK
+verify_steps: RAG: Read github.com/alexisbouchez/gladia.ts source; diff against @gladiaio/sdk; check install scripts, network calls, data exfiltration; HUMAN: Contact Gladia security to confirm ownership
+impact: Supply chain risk — developers may install impersonated SDK leading to credential theft or malicious code execution; severity Medium-High
+testability: RAG
+
+=== STEP 4 — SELF-CRITIQUE ===
+[PARKED] return-to cookie JWT parsing without signature verification: Server rejects tampered cookie and resets to default; no open redirect observed; confidence < 40 after validation
+[FINAL] 1) WebSocket auth token in URL query parameter leaks via Referer/logs (api.gladia.io, 75, AUTH) 2) Undocumented /health endpoint on api.gladia.io leaks runtime status (api.gladia.io, 80, MISCONFIG) 3) npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace (npm registry, 70, OTHER)
+
+=== STEP 5 — NEXT ACTION ===
+[NEXT] PROBE: GET https://api.gladia.io/health?full=true — check for verbose health output
+
+=== STEP 6 — LEARNING ===
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+[LEARN] ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+[LEARN] ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+
+=== STEP 7 — RISK SCORE ===
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with credential-exposed headers; WebSocket token-in-URL design; undocumented /health endpoint; no auth on spec endpoint; high business value (core transcription API)
+[RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action but no open redirect; HSTS preload strong; Google-only OAuth limits attack surface
+[RISK] sdk: 40 reason: Official SDKs (@gladiaio/sdk, gladiaio-sdk) generated from public spec; third-party gladia@0.1.3 is ownership anomaly but not Gladia code; no malicious behavior observed in package metadata
+[0m
+Now I have all the data needed. Let me produce the structured output.
+Done. All 8 steps completed with validated findings.

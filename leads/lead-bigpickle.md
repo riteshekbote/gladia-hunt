@@ -46,3 +46,31 @@ testability: PASSIVE
 [RISK] api.gladia.io: 45 | public OpenAPI (14 paths), uniform key gate, CORS * without credentials (low), audio_url/video_url SSRF surface gated behind keys, request-id headers leak nothing sensitive
 [RISK] app.gladia.io: 40 | Google-only OAuth, reachable redirect_to param with unvalidated post-auth behavior, cookies correctly flagged (HttpOnly/Secure/SameSite=Lax)
 [RISK] sdk: 50 | `gladia` npm package actively claims "Official" while unofficial (impersonation active); official @gladiaio/sdk metadata clean; tarball of `gladia` benign so far
+## 2026-08-07 18:48:44 UTC [api] (model bigpickle)
+[HYP] SSRF via audio_url/video_url server-side fetch
+class: SSRF
+asset: api.gladia.io /v2/pre-recorded, /v2/transcription, /v2/upload (audio_url/video_url params per OpenAPI)
+confidence: 65
+reasoning: Official SDK's create/createUntyped forward audio_url to POST /v2/pre-recorded with no scheme/allowlist check (client-side uploadFile restriction only); /v1/models proves unauthenticated responses exist, so key-gated fetch logic is plausible; datacenters FR/US suggest regional internal nets + metadata service reachable.
+evidence_needed: fetch of internal address (169.254.169.254, internal host) reflected via error text/timing/duration on a key-gated request
+verify_steps: AUTH_HELPED — POST /v2/pre-recorded `{"audio_url":"http://<canary>"}` then `http://169.254.169.254/latest/meta-data/`; compare error/duration for reachability signal; key-gated, needs program/trial key
+impact: cloud-metadata/internal-network read → High (key-gated)
+testability: AUTH_HELPED
+[HYP] Post-auth open redirect via redirect_to
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 52
+reasoning: redirect_to reflected URL-encoded into the POST form action server-side (verified GET), not stripped/allowlisted client-side; now applies to email/password login path too, widening the trigger surface.
+evidence_needed: after a real session, final Location for cross-origin redirect_to (https://evil.example.com, //evil.example.com)
+verify_steps: AUTH_HELPED — complete sign-in (session), then submit intent=email-password|google with redirect_to=https://evil.example.com and observe post-auth Location; test `//` and domain-prefix variants
+impact: phishing / OAuth-flow manipulation → Low-Med (High only if reused as OAuth redirect_uri)
+testability: AUTH_HELPED
+[HYP] Impersonation/name-squat `gladia` npm package
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 78
+reasoning: Registry description "Official TypeScript SDK for Gladia" vs packaged README "Unofficial"; maintainer softwarecitadel (personal gmail), repo alexisbouchez/gladia.ts, published 2025-03-28 before @gladiaio/sdk (2025-09-09); tarball code benign (baseUrl api.gladia.io only).
+evidence_needed: none — metadata verified; report as supply-chain hygiene/impersonation (Medium)
+verify_steps: PASSIVE — already done (registry metadata + tarball); document description-vs-README contradiction, maintainer mismatch, publish-date ordering
+impact: developers installing `gladia` get unofficial code; future account/repo hijack → supply-chain compromise; Medium
+testability: PASSIVE
