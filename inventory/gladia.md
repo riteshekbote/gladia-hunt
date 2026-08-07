@@ -105,3 +105,5 @@
 - NEW api.gladia.io: /v1/models public payload confirms datacenters [{FR},{US}] + per-request pricing 0.000055 — cloud egress regions for SSRF targeting; `created:1730000000` is static
 - NEW PyPI: gladiaio-sdk latest = 1.0.5 (version not previously recorded)
 - CHANGED api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401 "no gladia key provided") — no unauthenticated history/upload exposure
+
+## 2026-08-07 23:14:52 UTC

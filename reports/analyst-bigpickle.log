@@ -5022,3 +5022,127 @@ STEP 7 — RISK SCORE:
 - [RISK] api.gladia.io: 55 — large key-gated surface (SSRF-capable audio_url/callback fetch+POST, /v1/history query-injection candidate, NestJS fingerprint) but every high-impact path sits behind x-gladia-key; public items (/v1/models, /health, /openapi.json) benign and stable; SSRF would jump to High with a key
 - [RISK] app.gladia.io: 35 — SPA shell /dashboard 200 unauth, redirect_to reflected into form action (post-auth honoring unverified), unsigned return-to cookie; JS-bundle enumeration negative this cycle; no confirmed high-severity flaw, moderate phishing surface
 - [RISK] sdk: 40 — confirmed name-squat gladia@0.1.3 on `latest` (reportable) plus official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5; tarballs benign, PyPI twin question closed, residual risk from maintainer sprawl
+===== ANALYST bigpickle 2026-08-07 23:14:52 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sS -o /dev/null -w "openapi size=%{size_download} code=%{http_code} ct=%{content_type}\n" https://api.gladia.io/openapi.json; sleep 1; curl -sS https://api.gladia.io/v1/models | head -c 600; echo
+openapi size=125131 code=200 ct=application/json; charset=utf-8
+{"data":[{"id":"gladia/solaria-1","name":"Gladia: Solaria 1","created":1730000000,"input_modalities":["audio"],"output_modalities":["text","transcription"],"context_length":0,"max_output_length":0,"pricing":{"prompt":"0","completion":"0","request":"0.000055"},"supported_sampling_parameters":[],"supported_features":[],"description":"Enterprise speech-to-text model supporting 100+ languages with sub-300ms latency. Async and real-time transcription.","is_ready":true,"datacenters":[{"country_code":"FR"},{"country_code":"US"}]}]}
+[0m
+[0m$ [0msleep 1; curl -sS -o /dev/null -w "app.gladia.io/signin code=%{http_code} loc=%{redirect_url}\n" "https://app.gladia.io/signin?redirect_to=https%3A%2F%2Fevil.example.com"; sleep 1; curl -sS -I https://www.gladia.io 2>&1 | head -n 12
+app.gladia.io/signin code=200 loc=
+HTTP/2 200 
+accept-ranges: bytes
+access-control-allow-origin: *
+age: 25927
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline
+content-type: text/html; charset=utf-8
+date: Fri, 07 Aug 2026 23:08:05 GMT
+etag: "e30a33ecb990206e64469c65c325a1b8"
+last-modified: Fri, 07 Aug 2026 15:55:57 GMT
+server: Vercel
+strict-transport-security: max-age=63072000
+[0m
+[0m$ [0msleep 1; curl -sS "https://api.gladia.io/health"; echo; sleep 1; curl -sS -o /dev/null -w "v2/live POST code=%{http_code} body: " -X POST https://api.gladia.io/v2/live; curl -sS -X POST https://api.gladia.io/v2/live; echo
+{"health":"OK"}
+v2/live POST code=401 body: {"statusCode":401,"timestamp":"2026-08-07T23:08:12.636Z","path":"/v2/live","message":"no gladia key provided","request_id":"G-4757575e"}
+[0m
+[0m$ [0msleep 1; curl -sS https://registry.npmjs.org/gladia | python3 -c "import sys,json; d=json.load(sys.stdin); print('gladia latest:', d.get('dist-tags',{}).get('latest'), '| maintainers:', [m.get('name') for m in d.get('maintainers',[])], '| repo:', d.get('repository'))" 2>&1; sleep 1; curl -sS https://registry.npmjs.org/@gladiaio%2Fsdk | python3 -c "import sys,json; d=json.load(sys.stdin); print('@gladiaio/sdk latest:', d.get('dist-tags',{}).get('latest'))" 2>&1
+gladia latest: 0.1.3 | maintainers: ['softwarecitadel'] | repo: {'type': 'git', 'url': 'git+https://github.com/alexisbouchez/gladia.ts.git'}
+@gladiaio/sdk latest: 1.1.0
+[0m
+[0m$ [0msleep 1; curl -sS https://api.gladia.io/openapi.json -o /tmp/opencode/oa.json; python3 -c "
+import json
+d=json.load(open('/tmp/opencode/oa.json'))
+paths=list(d.get('paths',{}).keys())
+print('paths(%d):'%len(paths))
+for p in sorted(paths): print(' ',p)
+print('servers:', d.get('servers'))
+print('schemes in audio_url:', json.dumps(d['paths'].get('/v2/pre-recorded',{}).get('post',{}).get('requestBody',{}))[:200])
+"
+paths(14):
+  /audio/text/audio-transcription
+  /v1/history
+  /v1/models
+  /v2/live
+  /v2/live/{id}
+  /v2/live/{id}/file
+  /v2/pre-recorded
+  /v2/pre-recorded/{id}
+  /v2/pre-recorded/{id}/file
+  /v2/transcription
+  /v2/transcription/{id}
+  /v2/transcription/{id}/file
+  /v2/upload
+  /video/text/video-transcription
+servers: [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+schemes in audio_url: {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/InitTranscriptionRequest"}}}}
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oa.json'))
+sch=d['components']['schemas']
+print('CallbackConfigDto:', json.dumps(sch.get('CallbackConfigDto')))
+print('InitTranscriptionRequest audio_url:', json.dumps(sch['InitTranscriptionRequest']['properties'].get('audio_url')))
+"
+CallbackConfigDto: {"type": "object", "properties": {"url": {"type": "string", "description": "The URL to be called with the result of the transcription", "example": "https://callback.example", "format": "uri"}, "method": {"description": "The HTTP method to be used. Allowed values are `POST` or `PUT` (default: `POST`)", "example": "POST", "default": "POST", "allOf": [{"$ref": "#/components/schemas/CallbackMethodEnum"}]}}, "required": ["url"]}
+InitTranscriptionRequest audio_url: {"type": "string", "description": "URL to a Gladia file or to an external audio or video file", "example": "https://files.gladia.io/example/audio-transcription/split_infinity.wav", "format": "uri"}
+[0m
+STEP 1 — DELTA
+NO_DELTA — fresh probes 23:08Z confirm full surface frozen: /openapi.json 125131B / 14 paths unchanged, CallbackConfigDto.url & audio_url still `format:uri` no scheme allowlist, /v1/models unchanged (FR/US, 0.000055), /health `{"health":"OK"}`, POST /v2/live 401 NestJS body unchanged, app.gladia.io/signin?redirect_to=200, npm `gladia`@0.1.3 (softwarecitadel / alexisbouchez/gladia.ts) and @gladiaio/sdk 1.1.0 unchanged.
+
+STEP 2 — PRIORITIZE
+[PRIO] api.gladia.io POST /v2/pre-recorded (audio_url + callback SSRF fetch): 6.6 = attack7 business9 tech6 gate2 cloud9 fresh5
+[PRIO] app.gladia.io /signin (OAuth redirect_to reflection): 6.1 = attack6 business8 tech7 gate7 cloud1 fresh4
+[PRIO] npm registry `gladia`@0.1.3: 5.5 = attack5 business7 tech4 gate10 cloud1 fresh3
+
+STEP 3 — HYPOTHESES
+[HYP] SSRF via audio_url server-side fetch + callback_url outbound POST
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, callback_config) + legacy /video|/audio/text/*
+confidence: 72
+reasoning: live spec re-verified this cycle — audio_url accepted verbatim (`format:uri`, no allowlist), CallbackConfigDto.url same; /v1/models confirms FR/US cloud egress; jobs return status/error_message/duration = measurable reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254 / internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback":true,"callback_config":{"url":"http://169.254.169.254:80/"}}; compare error/timing.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] Name-squat `gladia` npm package is unofficial / hijack risk
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 80
+reasoning: registry description "Official TypeScript SDK for Gladia" vs packaged README "Unofficial"; maintainer softwarecitadel (personal gmail), repo alexisbouchez/gladia.ts; both pre-date @gladiaio/sdk (2025-09-09); re-confirmed live 23:08Z, tarball benign.
+evidence_needed: none — metadata verified; affiliation check via Gladia disclosure channel pending.
+verify_steps: PASSIVE — done (registry metadata + publish times + repo field re-confirmed 23:08Z)
+impact: developers installing `gladia` run unofficial code; repo/account hijack → supply-chain compromise; Medium
+testability: PASSIVE
+
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: live re-probe 23:08Z — /signin?redirect_to=... returns 200, param reflected URL-encoded into form action (all variants: https://, //, bare-host, confusing-subdomain); return-to cookie is unsigned base64url JSON {"url":"/"} confirming server-driven redirect concept; distinct from REJECTED cookie-tampering vector.
+evidence_needed: final post-auth HTTP 302 Location resolving to external host after Google sign-in with redirect_to set; or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+All 3 survive (confidence ≥40, classes not on REJECTED list, concrete verify_steps).
+[PARKED] /v1/history query-param deep-parsing injection (BUSLOGIC, conf 48): deprioritized vs standing key blocker — key-gated, marginal ROI, confidence near floor; retained in leads.
+[FINAL] 1) SSRF audio_url/callback (72, High impact) 2) `gladia` npm impersonation (80, Medium) 3) redirect_to post-auth OATH (60, Medium/High-if-redirect_uri).
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: request program-provided or personal trial `x-gladia-key` (sole standing blocker); then POST https://api.gladia.io/v2/pre-recorded {"audio_url":"http://169.254.169.254/latest/meta-data/"} vs {"audio_url":"http://<attacker-canary>"}, compare status/error_message/duration; repeat video_url on /video/text/video-transcription, then callback_config to internal port. Passive surface saturated and frozen — the key is the only gate remaining.
+
+STEP 6 — LEARNING
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:08Z byte-identical to 22:22Z (openapi 125131B/14 paths, /v1/models, /health, /v2/live 401, CORS, x-powered-by differential) — no drift, nothing new to report.
+[LEARN] ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk 1.1.0 metadata static 23:08Z — supply-chain surface unchanged.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: live spec still shows audio_url + CallbackConfigDto.url as `format:uri` with no scheme allowlist — SSRF-by-design fetch surface persists (re-verified 23:08Z).
+
+STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 82 — public OpenAPI (14 paths/125KB), CORS wildcard + x-gladia-key permitted cross-origin (no creds), x-powered-by Express preflight fingerprint, WS token in URL query, undocumented /health, audio_url/callback SSRF-by-design (key-gated), single-key auth model
+[RISK] app.gladia.io: 52 — Google-only OAuth limits bypass; /dashboard 200 SPA w/o auth (client-side enforcement); redirect_to form-action reflection post-auth unverified; strict CSP; return-to signed-reset (REJECTED)
+[RISK] sdk: 45 — official @gladiaio/sdk 1.1.0 + gladiaio-sdk PyPI clean; `gladia`@0.1.3 impersonation anomaly sole reportable candidate; gladia-quiz-app pins old @gladiaio/sdk@0.5.2
