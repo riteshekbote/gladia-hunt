@@ -285,3 +285,4 @@ verify_steps: PASSIVE — already done (registry metadata + tarball inspection);
 impact: developers installing `gladia` get unofficial code; account/repo hijack later → supply-chain compromise; Medium
 testability: PASSIVE
 [NEXT] HUMAN: with a program-provided or personal trial `x-gladia-key`, POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://<attacker-canary>"}` then `{"audio_url":"http://169.254.169.254/latest/meta-data/"}`; compare job error_code/status/timing for reachability signal; then repeat via https://api.gladia.io/video/text/video-transcription `video_url` to test the legacy fetch path.
+## 2026-08-07 20:52:55 UTC [app] (model laguna)

@@ -80,3 +80,9 @@
 ## 2026-08-07 19:22:34 UTC
 
 ## 2026-08-07 20:00:21 UTC
+
+## 2026-08-07 20:55:09 UTC
+- NEW api.gladia.io: CORS wildcard returns static `*` (not reflecting request Origin) — contradicts prior hypothesis of Origin reflection
+- NEW api.gladia.io: GET /v1/models w/ Origin:evil.test → ACAO:* (wildcard, not echo), expose-headers list, no credentials → CORS origin-reflection dead; wildcard confirmed on GET not just preflight
+- NEW app.gladia.io: /signin re-probed 200; redirect_to still reflected into form action (surface stable)
+- CHANGED reposcan 20:02/20:06: 0 new hits; compare-stt providers.ts hardcodes model name "Solaria-3" (marketing-facing, low); gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg (maintenance debt)
