@@ -1,87 +1,41 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt -name "*.json" -path "*/reposcan-raw/*" | head -20
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/gladia.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/_gladiaio_sdk.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-quiz-app/components.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-quiz-app/package.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-quiz-app/tsconfig.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-quiz-app/.eslintrc.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/package-lock.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/package.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/tsconfig.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/tsconfig.node.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/src-tauri/capabilities/default.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/compare-stt/package-lock.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/compare-stt/package.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/compare-stt/tsconfig.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-samples/typescript/package-lock.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-samples/typescript/package.json
-/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-samples/typescript/tsconfig.json
-[0m
-[0m✱ [0mGrep "(sk-|api[_-]?key|secret|token|password)\s*[:=]\s*["'][^"']{8,}"[90m in reposcan-raw · 100 matches[0m
-[0m✱ [0mGrep "(gladia[_-]?key|api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{16,}"[90m in reposcan-raw/gladiaio · 10 matches[0m
-[0m✱ [0mGrep "gladia[_-]?key\s*[:=]\s*["'][^"']{16,}"[90m in reposcan-raw/gladiaio · 0 matches[0m
 [0m→ [0mRead reposcan-raw/npm/gladia.json
-[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json[90m [limit=100][0m
-[0m✱ [0mGrep "(api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{16,}"[90m in reposcan-raw/gladiaio/sdk · 0 matches[0m
-[0m✱ [0mGrep "(sk-|gladia[_-]?key|api[_-]?key)\s*[:=]\s*["'][^"']{20,}"[90m in reposcan-raw/gladiaio · 0 matches[0m
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
 [0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-Now I have a complete picture. Let me compile the classification.
+| Category | File | Line | Evidence | Classification |
+|----------|------|------|----------|----------------|
+| **REAL_SECRET** | *(none)* | — | No hardcoded live credentials found | — |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` const | Mock screenshot data |
+| | gladiaflow/src/screenshots/Gallery.tsx | 168 | `apiKeyDisplayValue="****************"` | Mock masked display |
+| | gladiaflow/src/screenshots/Gallery.tsx | 222 | `apiKeyDisplayValue="sk-example"` | Mock example value |
+| | gladia-quiz-app/lib/gladia-client.ts | 1,5,10 | `localStorage.getItem('gladia_api_key')` | User-provided key storage (no hardcoded secret) |
+| | compare-stt/src/lib/providers/gladia.ts | 20 | `process.env.GLADIA_API_KEY` | Proper env var usage |
+| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | **Public production API** |
+| | gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `href="https://app.gladia.io"` | **Public dashboard** |
+| | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **Public dashboard** |
+| | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **Public dashboard** |
+| | compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` | **Public marketing** |
+| **INTERESTING** | npm/gladia.json (registry metadata) | — | Package `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` | **Known impersonation anomaly** (previously accepted) |
+| | npm/_gladiaio_sdk.json | — | Official `@gladiaio/sdk@1.1.0` from gladiaio org, 6 Gladia-affiliated maintainers | Legitimate official SDK |
+| | gladia-quiz-app/package.json | 24 | `@gladiaio/sdk: "^0.6.0"` but loads v0.5.2 from unpkg CDN | Version drift (CDN vs pkg) |
+| | gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` | Official desktop app (Tauri/Rust) |
+| | compare-stt/src/lib/providers/gladia.ts | 36,49,81 | Direct `x-gladia-key` header usage against public API | Expected SDK-less integration |
 
 ---
 
-### REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *(none found)* | — | — | No hardcoded live credentials detected in any scanned repo |
+### SHORT VERDICT LIST
 
-### TEST_OR_EXAMPLE
-| File | Line | Type | Notes |
-|------|------|------|-------|
-| `gladiaio/docs/snippets/get-transcription-result.mdx` | 24 | Placeholder | `api_key="YOUR_GLADIA_API_KEY"` |
-| `gladiaio/sdk/packages/sdk-python/README.md` | 32,42,71,175 | Placeholder | `api_key="your-api-key"` |
-| `gladiaio/docs/chapters/live-stt/quickstart.mdx` | 88 | Placeholder | `api_key="<YOUR_GLADIA_API_KEY>"` |
-| `gladiaio/sdk/packages/sdk-python/tests/test_client.py` | 34,44,78,84 | Test fixture | `api_key="base-key"`, `"override-key"`, etc. |
-| `gladiaio/docs/chapters/pre-recorded-stt/quickstart.mdx` | 60,94,148,198 | Placeholder | `api_key="YOUR_GLADIA_API_KEY"` |
-| `gladiaio/docs/chapters/migrations/from-deepgram.mdx` | 54,72 | Placeholder | Deepgram + Gladia placeholder keys |
-| `gladiaio/docs/chapters/migrations/from-assembly.mdx` | 54,81 | Placeholder | AssemblyAI + Gladia placeholder keys |
-| `gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/python.md` | 34,50 | Placeholder | `api_key="YOUR_KEY"` |
-| `gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md` | 94 | Placeholder | `api_key="your-api-key"` |
-| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17,222 | Mock data | `apiKey: "sk-********"`, `apiKeyDisplayValue="sk-example"` |
-| `gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts` | 21,27,34 | Test fixture | `"gladiaflow"` strings |
-| `gladiaio/gladiaflow/src/lib/customVocabulary.ts` | 8-9 | Example data | `"gladiaflow"` vocabulary term |
-| `gladiaio/vercel-ai/**/*.test.ts` | multiple | Test fixtures | `test-secret`, `mock.jwt.token`, `secret123`, etc. |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm ownership anomaly | **no** | Already **ACCEPTED OTHER** 2026-08-07 (known, tracked, requires affiliation verification only) |
+| Hardcoded `sk-********` in gladiaflow screenshots | **no** | `TEST_OR_EXAMPLE` — masked placeholder in `MOCK_SETTINGS` for screenshot generation |
+| API endpoints in source (`api.gladia.io`, `app.gladia.io`) | **no** | `ENDPOINT_LEAK` but all are **public production URLs** (in scope, not internal) |
+| `@gladiaio/sdk` version drift in gladia-quiz-app | **no** | `INTERESTING` only — CDN unpkg v0.5.2 vs package.json ^0.6.0, no security impact |
+| compare-stt direct API usage with `x-gladia-key` | **no** | `INTERESTING` only — legitimate integration pattern, uses env var for key |
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public API base (expected) |
-| `gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{id}` | Public dashboard URL |
-| `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
-| `gladiaio/gladia-quiz-app/app/layout.tsx` | 43 | `https://unpkg.com/@gladiaio/sdk@0.5.2` | Public CDN |
-| `gladiaio/compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/compare-stt-apis` | Public marketing site |
-| *Numerous files* | — | `api.gladia.io`, `app.gladia.io`, `www.gladia.io` | All public production endpoints |
-
-### INTERESTING
-| File | Line | Finding | Severity |
-|------|------|---------|----------|
-| `reposcan-raw/npm/gladia.json` | (full) | **Ownership anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK for Gladia" but `repository.url=git+https://github.com/alexisbouchez/gladia.ts` (personal account), maintainer `softwarecitadel@gmail.com`. Official SDK is `@gladiaio/sdk` from `gladiaio/sdk` monorepo. | **HIGH** — impersonation/confusion risk |
-| `reposcan-raw/gladiaio/vercel-ai/` | (entire repo) | Appears to be a fork/mirror of Vercel's AI SDK (not Gladia-owned code). Contains extensive test fixtures with mock secrets. | LOW — third-party code in org |
-| `gladiaio/gladia-quiz-app/package.json` | 24 | Uses `@gladiaio/sdk@^0.6.0` (current latest 1.1.0) — version lag in sample app | LOW — maintenance drift |
-
----
-
-### VERDICT
-
-| Candidate | Category | REPORT_CANDIDATE | Rationale |
-|-----------|----------|------------------|-----------|
-| `gladia@0.1.3` npm package ownership anomaly | INTERESTING | **YES** | Package masquerades as official SDK; personal repo + unaffiliated maintainer; typo-squatting/confusion vector. Report via program disclosure channel for npm takedown/ownership verification. |
-| Hardcoded secrets in scanned repos | REAL_SECRET | NO | None found — all hits are placeholders, test fixtures, or mocked screenshot data. |
-| Public endpoint references | ENDPOINT_LEAK | NO | All endpoints are legitimate production surfaces (api.gladia.io, app.gladia.io, www.gladia.io). |
-| Test/example fixtures | TEST_OR_EXAMPLE | NO | Expected in SDK docs, tests, and sample apps. |
-| `vercel-ai` repo in org | INTERESTING | NO | Third-party fork, not Gladia IP; contains only test fixtures. |
+**No new reportable candidates in this delta.** All findings are either previously accepted, test/mock data, or public surface references.
