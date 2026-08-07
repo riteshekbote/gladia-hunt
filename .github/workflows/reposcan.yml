@@ -24,14 +24,20 @@ jobs:
 
       - name: Install OpenCode
         run: |
-          for i in 1 2 3; do
-            if curl -fsSL https://opencode.ai/install | bash; then
-              break
-            fi
-            echo "install attempt $i failed, retrying in 15s..."
-            sleep 15
-          done
-          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
+          if command -v opencode >/dev/null 2>&1; then
+            opencode --version
+            exit 0
+          fi
+          npm install -g opencode-ai 2>/dev/null || npm install -g --prefix "$HOME/.npm-global" opencode-ai 2>/dev/null || true
+          if ! command -v opencode >/dev/null 2>&1; then
+            for i in 1 2 3; do
+              curl -fsSL https://opencode.ai/install | bash && break
+              echo "opencode.ai installer attempt $i failed, retrying in 15s..."
+              sleep 15
+            done
+          fi
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
           opencode --version
 
 
@@ -215,7 +221,7 @@ jobs:
 
       - name: Model deep-dive on hits
         run: |
-          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
           cat > scan-prompt.txt << 'PROMPT_START'
           You are triaging a static scan of public repos from the gladiaio/ GitHub
           org (official Gladia org - SDK repos are MEDIUM priority in the program
