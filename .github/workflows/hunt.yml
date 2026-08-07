@@ -1,0 +1,228 @@
+name: Senior Hunter - Analyst Pipeline (gladia)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  analyst:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: hunt-${{ matrix.model.name }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - { id: opencode/big-pickle, name: bigpickle }
+          - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+          - { id: opencode/longcat-2.0-free, name: longcat }
+          - { id: opencode/ling-3.0-flash-free, name: ling3 }
+          - { id: opencode/laguna-s-2.1-free, name: laguna }
+
+    env:
+      MODEL_ID: ${{ matrix.model.id }}
+      MODEL_NAME: ${{ matrix.model.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenCode
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          opencode --version
+
+      - name: Prepare context (RAG + state + inventory + last cycle)
+        run: |
+          mkdir -p knowledge inventory leads reports
+          [ -f knowledge/index.md ] || echo "# Knowledge Base (seed)" > knowledge/index.md
+          [ -f state_${MODEL_NAME}.json ] || echo '{"phase":"RECON","target":"api"}' > state_${MODEL_NAME}.json
+          TARGET=$(python3 -c "import json;print(json.load(open('state_${MODEL_NAME}.json')).get('target','api'))")
+          echo "TARGET=$TARGET" >> $GITHUB_ENV
+          echo "TARGET_NEXT=$(python3 -c "import json;t=json.load(open('state_${MODEL_NAME}.json')).get('target','api');print({'api':'app','app':'sdk','sdk':'api'}[t])")" >> $GITHUB_ENV
+          {
+            echo "=== KNOWLEDGE BASE ==="
+            cat knowledge/index.md
+            echo "=== MY STATE ==="
+            cat state_${MODEL_NAME}.json
+            echo "=== MY LAST LEADS (tail) ==="
+            tail -60 leads/lead-${MODEL_NAME}.md 2>/dev/null || echo none
+            echo "=== AGGREGATED HYPOTHESES (tail) ==="
+            tail -40 reports/hypotheses.md 2>/dev/null || echo none
+            echo "=== INVENTORY gladia ==="
+            tail -50 inventory/gladia.md 2>/dev/null || echo none
+          } > ctx.txt
+
+      - name: Analyst run (8-step methodology)
+        run: |
+          cat ctx.txt > analyst-prompt.txt
+          cat >> analyst-prompt.txt << 'PROMPT_EOF'
+          You are a senior bug bounty hunter ANALYST for the Gladia program. Scope:
+          api.gladia.io (HIGHEST), app.gladia.io (HIGH), official SDKs on npm/PyPI
+          (@gladiaio/sdk, gladiaio-sdk) (MEDIUM), gladia.io (LOW). OUT OF SCOPE:
+          all other *.gladia.io subdomains, third-party services, social engineering,
+          physical security, DoS/DDoS, non-Gladia assets, physical access, and any
+          automated-scanner output without manual validation. Your job is NOT to
+          invent vulnerabilities. Run these 8 steps and output ONLY the structured blocks.
+
+          STEP 1 — DELTA: Compare the inventory + knowledge + your last leads against the current known surface. List only NEW or CHANGED surface items as [NEW]/[CHANGED] (one line each). If nothing is new, state "NO_DELTA".
+
+          STEP 2 — PRIORITIZE: Score the top new assets (or top existing if no delta) on 6 axes 0-10: attack_surface, business_value, tech_exposure (GraphQL/OAuth/JWT/upload/admin/uncommon stacks), gate_ease (10 = no auth needed), cloud_surface (cloud APIs/storage/metadata), freshness. priority = 0.25*attack + 0.25*business + 0.15*tech + 0.15*gate + 0.10*cloud + 0.10*fresh. Emit [PRIO] lines: asset, score, axis breakdown.
+
+          STEP 3 — HYPOTHESES: For the top 3 prioritized assets emit max 1 hypothesis each, strictly this schema:
+          [HYP] <title>
+          class: <IDOR|SSRF|AUTH|XSS|BUSLOGIC|MISCONFIG|OATH|OTHER>
+          asset: <host/endpoint>
+          confidence: <0-100>
+          reasoning: <facts only, 2-3 lines>
+          evidence_needed: <what proves it>
+          verify_steps: <passive-first concrete HTTP requests, or AUTH_HELPED:...>
+          impact: <what attacker gets + severity>
+          testability: <PASSIVE|AUTH_HELPED|HUMAN_ONLY>
+
+          STEP 4 — SELF-CRITIQUE: Re-read your own hypotheses. Drop any that: confidence < 40, or class on the knowledge REJECTED list, or no concrete verify_steps. For dropped ones emit [PARKED] <title>: <why dropped>. Emit [FINAL] with the surviving hypotheses re-ranked (top first).
+
+          STEP 5 — NEXT ACTION: Choose exactly one and emit [NEXT] <PROBE|SCAN|RAG|HUMAN>: <one concrete action, with the exact endpoint/request if PROBE, or the authorized-token test if HUMAN>.
+
+          STEP 6 — LEARNING: Emit [LEARN] lines for any class newly proven dead or alive (one line each, format: REJECTED/ACCEPTED <class> @ <asset>: <reason>).
+
+          STEP 7 — RISK SCORE: Emit [RISK] api.gladia.io: <0-100> reason | app.gladia.io: <0-100> reason | sdk: <0-100> reason (overall exposure of the program surface, not exploit status).
+
+          RULES: facts vs hypotheses strictly separated; no endpoint-map-only output; no class on the REJECTED list; never mention secrets in full (hash them with sha256sum); all claims must trace to the context provided or your own read-only probes; passive-first only (≤1 rps, GET/HEAD); any scanner output requires manual validation before it becomes a lead.
+          PROMPT_EOF
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          timeout 18m opencode run --model "$MODEL_ID" < analyst-prompt.txt > analyst-out.txt 2>&1 || true
+          cp analyst-out.txt analyst-${MODEL_NAME}.out
+          grep -E '^\[(NEW|CHANGED|PRIO|HYP|PARKED|FINAL|NEXT|LEARN|RISK)\]|^class:|^confidence:|^asset:|^impact:|^testability:|^verify_steps:|^reasoning:|^evidence_needed:' analyst-out.txt > lead.txt || true
+          {
+            echo "## $(date -u +'%Y-%m-%d %H:%M:%S UTC') [$TARGET] (model ${MODEL_NAME})"
+            cat lead.txt
+          } > lead_${MODEL_NAME}.txt
+          echo "lead bytes: $(wc -c < lead.txt) | raw bytes: $(wc -c < analyst-out.txt)"
+
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyst-${{ matrix.model.name }}
+          path: |
+            lead_${{ matrix.model.name }}.txt
+            analyst-${{ matrix.model.name }}.out
+            ctx.txt
+          if-no-files-found: warn
+
+  aggregate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: analyst
+    concurrency:
+      group: hunt-aggregate
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all model artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: art
+          merge-multiple: true
+
+      - name: Merge + rank + inventory + knowledge update (single committer)
+        run: |
+          mkdir -p leads reports knowledge inventory
+          for f in art/lead_*.txt; do
+            [ -f "$f" ] || continue
+            cat "$f" >> leads/lead-$(basename "$f" | sed -E 's/lead_([a-z0-9]+)\.txt/\1/').md
+          done
+          python3 << 'PY_EOF'
+          import re, glob, json, os, datetime
+          stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+          # per-model structured files for the aggregator
+          for f in glob.glob('art/lead_*.txt'):
+              base = os.path.basename(f)
+              model = re.sub(r'^lead_([a-z0-9]+)\.txt$', r'\1', base)
+              open(f'reports/hypotheses-{model}.txt', 'w').write(open(f).read())
+          all_h = []
+          for f in glob.glob('reports/hypotheses-*.txt'):
+              text = open(f).read()
+              m = re.search(r'^\[HYP\] (.*)$', text, re.M)
+              if not m: continue
+              title = m.group(1).strip()
+              c = re.search(r'^confidence:\s*(\d+)', text, re.M)
+              a = re.search(r'^asset:\s*(\S+)', text, re.M)
+              all_h.append((int(c.group(1)) if c else 0, a.group(1) if a else '?', title, f))
+          all_h.sort(reverse=True)
+          with open('reports/hypotheses.md', 'a') as out:
+              out.write(f"\n## RANKED HYPOTHESES {stamp}\n")
+              seen = set()
+              for conf, asset, title, f in all_h[:8]:
+                  key = title.lower()[:60]
+                  if key in seen: continue
+                  seen.add(key)
+                  out.write(f"- [{conf}] {asset}: {title} (from {f})\n")
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  n = re.search(r'^\[NEXT\] (.*)$', open(f).read(), re.M)
+                  if n: out.write(f"- NEXT({os.path.basename(f)}): {n.group(1).strip()[:160]}\n")
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):
+                      out.write(f"- LEARN: {l.strip()[:160]}\n")
+          # knowledge append (dedupe)
+          kpath = 'knowledge/index.md'
+          ktext = open(kpath).read()
+          with open(kpath, 'a') as k:
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):
+                      line = f"- {stamp[:10]} {l.strip()}"
+                      if line not in ktext:
+                          k.write(line + "\n")
+          # inventory update
+          inv = 'inventory/gladia.md'
+          with open(inv, 'a') as io:
+              io.write(f"\n## {stamp}\n")
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[(NEW|CHANGED)\] (.*)$', open(f).read(), re.M):
+                      io.write(f"- {l[0]} {l[1].strip()[:200]}\n")
+          # state advance per model (approximate: each model got its own target)
+          for sp in glob.glob('state_*.json'):
+              try:
+                  st = json.load(open(sp))
+              except Exception:
+                  st = {}
+              phases = ['RECON','SURFACE','HYPOTHESIS','POC']
+              if st.get('phase') in phases:
+                  st['phase'] = phases[min(phases.index(st['phase'])+1, 3)]
+              json.dump(st, open(sp, 'w'))
+          # archive raw logs
+          for f in glob.glob('art/analyst-*.out'):
+              model = re.search(r'art/analyst-([a-z0-9]+)\.out$', f)
+              if model:
+                  with open(f'reports/analyst-{model.group(1)}.log', 'a') as lg:
+                      lg.write(f"===== ANALYST {model.group(1)} {stamp} =====\n")
+                      lg.write(open(f, errors='ignore').read())
+          print('merged', len(all_h), 'hypotheses')
+          PY_EOF
+
+      - name: Commit (single push, no race)
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add leads reports knowledge inventory state_*.json || true
+          git diff --cached --quiet || git commit -m "analyst cycle $(date -u +'%Y-%m-%d-%H-%M')"
+          git pull --rebase || true
+          git push || true
+
+      - name: Dispatch reposcan (once per cycle)
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/reposcan.yml/dispatches" \
+            -d '{"ref":"main"}' || true

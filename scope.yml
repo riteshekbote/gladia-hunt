@@ -1,0 +1,50 @@
+programs:
+  gladia:
+    name: Gladia Bug Bounty
+    disclosure_policy: TBD - operator-provided program scope (update once public channel confirmed)
+    assets:
+      - name: api.gladia.io
+        priority: Highest
+      - name: app.gladia.io
+        priority: High
+      - name: Official SDKs (npm @gladiaio/sdk, PyPI gladiaio-sdk)
+        priority: Medium
+      - name: gladia.io
+        priority: Low
+    out_of_scope:
+      - "All other *.gladia.io subdomains"
+      - "Third-party services (Intercom, Stripe dashboard, Google Workspace)"
+      - "Social engineering or phishing attacks on staff"
+      - "Physical security"
+      - "Denial of Service (DoS/DDoS)"
+      - "Assets not owned or operated by Gladia"
+      - "Vulnerabilities requiring physical access"
+      - "Reports from automated scanners without manual validation"
+    github_orgs:
+      - gladiaio
+    npm_packages:
+      - "@gladiaio/sdk"
+      - "gladia"
+    pypi_packages:
+      - "gladiaio-sdk"
+    known_surface:
+      - "https://api.gladia.io/openapi.json  (OpenAPI spec consumed by the SDK code generator)"
+
+rules:
+  # Operator-defined program scope. Passive-first, human-validated only.
+  passive_first: true          # GET/HEAD reads first; no invasive testing without program approval
+  max_requests_per_second: 1   # never hammer
+  no_doom: true                # no DoS/DDoS, no resource-exhaustion tests
+  no_account_creation: true    # no mass signups on app.gladia.io without program approval
+  no_data_modification: true   # no writes, deletes, state changes on live infra
+  no_pre_disclosure: true      # never disclose before program response
+  manual_validation_required: true  # scanner output alone is REJECTED per scope; every finding must be manually validated
+  redact_secrets_in_commits: true   # commit sha256 of secrets, never raw values
+
+# Multi-model ensemble: every hunt run picks a rotation of the 5 models.
+models:
+  - { id: opencode/big-pickle, name: bigpickle }
+  - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+  - { id: opencode/longcat-2.0-free, name: longcat }
+  - { id: opencode/ling-3.0-flash-free, name: ling3 }
+  - { id: opencode/laguna-s-2.1-free, name: laguna }

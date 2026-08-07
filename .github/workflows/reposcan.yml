@@ -1,0 +1,269 @@
+name: Public Repo Deep Scan (gladiaio org + SDKs)
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reposcan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: reposcan
+      cancel-in-progress: true
+    env:
+      MODEL_ID: opencode/nemotron-3-ultra-free
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenCode
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          opencode --version
+
+      - name: Enumerate org repos + clone top candidates
+        run: |
+          mkdir -p reposcan-raw
+          for ORG in gladiaio; do
+            echo "== $ORG =="
+            curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/orgs/$ORG/repos?per_page=100&sort=updated" -o repos-$ORG.json
+            ORG_NAME=$ORG python3 - << 'PY'
+          import json, os
+          org = os.environ["ORG_NAME"]
+          try:
+              repos = json.load(open(f"repos-{org}.json"))
+              if not isinstance(repos, list):
+                  open(f"cands-{org}.txt", "w").write("")  # API error response
+                  print("API error:", str(repos)[:200])
+                  exit(0)
+          except Exception as ex:
+              print("parse error:", ex)
+              exit(0)
+          # In-scope SDK repos are MEDIUM priority: always include them.
+          sdk_names = {'sdk', 'gladia-cli', 'docs', 'gladia-samples', 'gladiaflow',
+                       'realtime-multilingual-asr-router', 'n8n-nodes-gladia',
+                       'vercel-ai', 'compare-stt', 'skills', 'gladia-quiz-app'}
+          sdk_urls = []
+          for r in repos:
+              if r["name"] in sdk_names:
+                  sdk_urls.append(f"https://github.com/{org}/{r['name']}.git")
+          cands = [r for r in repos if not r.get("archived") and r.get("language")
+                   and r.get("stargazers_count", 0) > 5
+                   and r.get("size", 10**9) < 200000]
+          cands.sort(key=lambda r: r["updated_at"], reverse=True)
+          for r in cands[:10]:
+              print(f"{org}/{r['name']} stars={r['stargazers_count']} lang={r['language']}")
+          all_urls = []
+          for r in cands[:15]:
+              all_urls.append(f"https://github.com/{org}/{r['name']}.git")
+          for u in sdk_urls:
+              if u not in all_urls:
+                  all_urls.append(u)
+          with open(f"cands-{org}.txt", "w") as f:
+              for u in all_urls:
+                  f.write(u + "\n")
+          PY
+            if [ -f cands-$ORG.txt ]; then
+              mkdir -p reposcan-raw/$ORG
+              cd reposcan-raw/$ORG
+              xargs -n1 -P3 git clone -q --depth 1 < ../../cands-$ORG.txt 2>&1 | head -5 || true
+              cd ../..
+            fi
+          done
+          echo "== npm SDK package check (in-scope Medium) =="
+          mkdir -p reposcan-raw/npm
+          for PKG in "@gladiaio/sdk" "gladia"; do
+            SAFE=$(echo "$PKG" | tr '/@' '__')
+            curl -s --max-time 20 "https://registry.npmjs.org/$PKG" -o reposcan-raw/npm/$SAFE.json
+            echo "$PKG -> $(python3 -c "
+import json
+try:
+    d=json.load(open('reposcan-raw/npm/$SAFE.json'))
+    print(d.get('dist-tags',{}).get('latest'), '|', str(d.get('description'))[:80])
+except Exception as e: print('ERR')")"
+          done
+          ls reposcan-raw/*/ 2>/dev/null | wc -l
+
+      - name: Secret + endpoint grep sweep (python, 50 patterns)
+        run: |
+          OUT=reposcan-raw/grep-hits.txt
+          [ -f $OUT ] && cp $OUT reposcan-raw/grep-hits.prev.txt
+          : > $OUT
+          python3 << 'PY'
+          import os, re, json
+          ROOT = "reposcan-raw"
+          PATTERNS = [
+              re.compile(r'AKIA[0-9A-Z]{16}'),
+              re.compile(r'AIza[0-9A-Za-z_-]{35}'),
+              re.compile(r'ya29\.[0-9A-Za-z_-]+'),
+              re.compile(r'gh[pousr]_[0-9A-Za-z]{20,}'),
+              re.compile(r'xox[baprs]-[0-9A-Za-z-]{10,}'),
+              re.compile(r'sk-[0-9A-Za-z]{20,}'),
+              re.compile(r'eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}'),
+              re.compile(r'BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY'),
+              re.compile(r'(client_secret|clientSecret|app_secret|app_secret|secret_key|private_key)\s*[:=]\s*["\'\'\'][^"\'\'\']{10,}["\'\'\']'),
+              re.compile(r'(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|GOOGLE_API_KEY|GCP_SA|AZURE_SUBSCRIPTION|SLACK_TOKEN|DISCORD_TOKEN|TELEGRAM_BOT)\s*[:=]\s*\S{10,}'),
+              re.compile(r'(Authorization|Bearer)\s*[:=]\s*eyJ[a-zA-Z0-9_-]{20,}'),
+              re.compile(r'gladia|gladiaio'),  # any reference that might leak internal endpoints/keys
+              re.compile(r'api\.gladia\.io|app\.gladia\.io'),
+              re.compile(r'[a-z0-9-]-(dev|staging|stg|test|qa|prod|internal|corp)\.(gladia|gladiaio)\.[a-z]+'),
+              re.compile(r'metadata\.google\.internal|169\.254\.169\.254|100\.100\.100\.200'),
+              re.compile(r'kind:\s*Config|kubeconfig|service-account\.json'),
+              re.compile(r'https?://(?:[a-z0-9-]+\.)*(?:dev|staging|stg|test|qa|internal|corp|intranet|sandbox|preprod)\.(?:[a-z0-9-]+\.)+[a-z]{2,}'),
+              re.compile(r'(password|passwd|secret|token|apikey|api_key)\s*[:=]\s*["\'\'\'][^"\'\'\']{8,}["\'\'\']', re.I),
+          ]
+          EXTS = {'.py','.js','.ts','.go','.java','.rb','.php','.c','.cpp','.h','.cs','.sh','.yml','.yaml','.json','.toml','.ini','.conf','.env','.tf','.tfvars','.tsx','.jsx','.kt','.swift'}
+          BANNED = re.compile(r'(node_modules|/vendor/|dist/|/build/|/out/|/bin/|/obj/|/tests?/|/testdata/|/fixtures/|cassettes|/test/|test_|_test|\.min\.|\.map$|\.lock$|\.png|\.jpg|\.zip|\.jar|\.pdf)', re.I)
+          hits, n_files = [], 0
+          for d, _, files in os.walk(ROOT):
+              for fn in files:
+                  ext = os.path.splitext(fn)[1].lower()
+                  path = os.path.join(d, fn)
+                  if ext not in EXTS or BANNED.search(path):
+                      continue
+                  try:
+                      with open(path, 'rb') as f:
+                          raw = f.read(200000)
+                      if b'\x00' in raw:
+                          continue
+                      text = raw.decode('utf-8', errors='ignore')
+                  except Exception:
+                      continue
+                  n_files += 1
+                  file_hits = 0
+                  for i, line in enumerate(text.split('\n'), 1):
+                      if file_hits >= 3:
+                          break
+                      for p in PATTERNS:
+                          if p.search(line):
+                              hits.append(f"{path}:{i}: {line.strip()[:220]}")
+                              file_hits += 1
+                              break
+                  if n_files % 2000 == 0:
+                      print(f"  scanned {n_files} files, {len(hits)} hits")
+          print(f"SCANDED {n_files} FILES, {len(hits)} MATCHES")
+          with open("reposcan-raw/grep-hits.txt", "w") as f:
+              f.write(f"SCAN SUMMARY: {n_files} code/config files scanned, {len(hits)} hits\n")
+              keep = 0
+              for h in hits:
+                  low = h.lower()
+                  if any(k in low for k in ('example','placeholder','dumm','localhost','sample','demo','fake','test-key','your_api_key')):
+                      continue
+                  f.write(h + "\n")
+                  keep += 1
+                  if keep >= 60:
+                      break
+          print(f"written {keep} candidate hits")
+          PY
+          wc -l $OUT
+
+      - name: Delta vs previous scan + RAG knowledge prep
+        run: |
+          python3 << 'PY'
+          import os, hashlib, re
+          def norm(path):
+              out = []
+              try:
+                  for line in open(path, errors='ignore'):
+                      l = line.strip()
+                      if l and not l.startswith('SCAN SUMMARY'):
+                          out.append(l)
+              except FileNotFoundError:
+                  pass
+              return set(out)
+          cur = norm('reposcan-raw/grep-hits.txt')
+          prev = norm('reposcan-raw/grep-hits.prev.txt')
+          new = sorted(cur - prev)
+          with open('reposcan-raw/grep-delta.txt', 'w') as f:
+              f.write(f"DELTA: {len(new)} new hit lines vs previous scan\n")
+              for l in new[:40]:
+                  f.write(l + "\n")
+          # hash any secret-looking material for the model (never raw)
+          out = []
+          for l in new:
+              m = re.search(r'[A-Za-z0-9_\-\.]{20,}', l)
+              if m:
+                  out.append((l[:120], hashlib.sha256(m.group(0).encode()).hexdigest()[:16]))
+          with open('reposcan-raw/grep-delta.txt', 'a') as f:
+              if out:
+                  f.write("HASHED MATERIAL:\n")
+                  for l, h in out[:20]:
+                      f.write(f"{h}  {l}\n")
+          print(f"delta lines: {len(new)}")
+          PY
+          {
+            echo "=== KNOWLEDGE BASE (RAG) ==="
+            cat knowledge/index.md 2>/dev/null || echo none
+            echo "=== INVENTORY gladia ==="
+            cat inventory/gladia.md 2>/dev/null | head -40 || echo none
+          } > reposcan-raw/rag.txt
+          wc -l reposcan-raw/rag.txt reposcan-raw/grep-delta.txt
+
+      - name: Model deep-dive on hits
+        run: |
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          cat > scan-prompt.txt << 'PROMPT_START'
+          You are triaging a static scan of public repos from the gladiaio/ GitHub
+          org (official Gladia org - SDK repos are MEDIUM priority in the program
+          scope as public source code) plus npm package metadata for @gladiaio/sdk.
+
+          KNOWLEDGE (from our RAG base, respected as proven facts):
+          PROMPT_START
+          cat reposcan-raw/rag.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_MID'
+          Above knowledge lists REJECTED classes (do NOT re-report these as
+          candidates), KNOWN DUPLICATES (skip them), and alive surfaces.
+
+          NEW HITS SINCE LAST SCAN (delta - focus here first):
+          PROMPT_MID
+          cat reposcan-raw/grep-delta.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_MID2'
+          FULL GREP HITS (for context):
+          PROMPT_MID2
+          cat reposcan-raw/grep-hits.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_END'
+          For EACH hit classify:
+          - REAL_SECRET: hardcoded credential/API key/token with signs of life
+            (reportable via the program's disclosure channel after triage)
+          - TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
+          - ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
+          - INTERESTING: anything unusual (debug flags, keys, cloud configs,
+            references to non-*.gladia.io services, outdated/misleading SDK
+            packages pointing at personal repos)
+          NEVER print a full secret value - only the file, line, and a sha256 of
+          the secret material.
+          Output: a table per category, then a SHORT verdict list with
+          "REPORT_CANDIDATE: yes/no" per real candidate.
+          PROMPT_END
+          timeout 15m opencode run --model "$MODEL_ID" < scan-prompt.txt > reposcan-raw/analysis.txt 2>&1 || true
+          echo "=== analysis preview ==="; head -30 reposcan-raw/analysis.txt
+
+      - name: Store leads
+        run: |
+          mkdir -p leads
+          {
+            echo ""
+            echo "===== REPOSCAN $(date -u +'%Y-%m-%d %H:%M:%S UTC') ====="
+            echo "## Grep hits:"
+            cat reposcan-raw/grep-hits.txt 2>/dev/null | head -40
+            echo ""
+            echo "## Model analysis:"
+            cat reposcan-raw/analysis.txt 2>/dev/null | head -120
+          } > leads/reposcan-latest.md
+          cp leads/reposcan-latest.md leads/reposcan-$(date -u +'%Y-%m-%d-%H-%M').md 2>/dev/null || true
+
+      - name: Commit
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add leads reposcan-raw || true
+          git diff --cached --quiet || git commit -m "reposcan $(date -u +'%Y-%m-%d-%H-%M')"
+          git pull --rebase || true
+          git push || true

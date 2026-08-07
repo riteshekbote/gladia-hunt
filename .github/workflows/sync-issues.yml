@@ -1,0 +1,44 @@
+name: Sync Leads to GitHub Issues
+
+on:
+  workflow_run:
+    workflows: ["Senior Hunter - Analyst Pipeline (gladia)"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: sync-issues
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyGithub
+        run: pip install PyGithub
+
+      - name: Sync leads to issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          LEAD_GLOB: "leads/lead-*.md"
+          TARGET_NAME: gladia
+        run: python scripts/sync-issues.py
+
+      - name: Summary
+        run: |
+          echo "### Issue Sync" >> $GITHUB_STEP_SUMMARY
+          echo "- Repo: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
