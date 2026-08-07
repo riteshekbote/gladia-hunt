@@ -326,3 +326,49 @@ testability: PASSIVE
 [RISK] api.gladia.io: 82 — public OpenAPI (14 paths), CORS wildcard + x-gladia-key permitted cross-origin (no creds), x-powered-by Express fingerprint, websocket token in URL query, /health undocumented, audio_url/video_url SSRF surface, single key-gated auth model
 [RISK] app.gladia.io: 52 — Google-only OAuth limits bypass; /dashboard 200 SPA w/o auth (client-side enforcement); return-to cookie signed-reset (REJECTED); CSP strict present; redirect_to form-action reflection unverified post-auth
 [RISK] sdk: 45 — official @gladiaio/sdk 1.1.0 + gladiaio-sdk PyPI clean; npm `gladia`@0.1.3 impersonation anomaly (personal repo, pre-dates official package) remains sole reportable supply-chain candidate; gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg
+## 2026-08-07 22:27:25 UTC [app] (model laguna)
+[PRIO] api.gladia.io: 8.4 — a9/b10/tech8/gate7/cloud7/fresh7 — OpenAPI (14 paths public), CORS * + x-gladia-key permitted cross-origin (no cred), x-powered-by: Express on preflight only, audio_url/callback_url/video_url with format:uri & no scheme allowlist (SSRF surface), ws token in URL query, /health undocumented 200
+[PRIO] app.gladia.io: 6.9 — a7/b8/tech6/gate8/cloud2/fresh8 — /dashboard 200 SPA w/o auth (client-side enforcement); redirect_to reflected into POST form action for all host-confusion classes; Google OAuth self-service; strict CSP; return-to cookie unsigned base64url (REJECTED as open redirect via cookie tampering)
+[PRIO] npm gladia@0.1.3: 5.95 — a5/b6/tech6/gate10/cloud2/fresh6 — "Official TypeScript SDK" claim vs personal repo alexisbouchez/gladia.ts + personal maintainer email; pubdate 2025-03-28 precedes @gladiaio/sdk 1.1.0
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io /v2/pre-recorded, /video/text/video-transcription, /v2/upload
+confidence: 75
+reasoning: OpenAPI schema (live probed 2026-08-07 22:22 UTC) confirms InitTranscriptionRequest.audio_url, video_url, and CallbackConfigDto.url all typed as format:uri with no scheme-pattern/allowlist; description explicitly says "external audio or video file"; legacy /audio/text/audio-transcription and /video/text/video-transcription paths add a second fetch surface; all are key-gated (401 unauthenticated) but CORS * permits x-gladia-key cross-origin, enabling credentialed SSRF from any origin.
+evidence_needed: With x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://169.254.169.254/latest/meta-data/"} and capture error_code/status/timing vs. a benign-control URL; repeat via /video/text/video-transcription video_url; compare error_code/timing for reachability signal.
+verify_steps: AUTH_HELPED — POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<KEY>" -d '{"audio_url":"http://<attacker-canary>"}' then -d '{"audio_url":"http://169.254.169.254/latest/meta-data/"}'; repeat via POST /video/text/video-transcription {"video_url":"http://169.254.169.254/latest/meta-data/"}; compare error_code/timing.
+impact: Cloud metadata read (169.254.169.254), internal-network SSRF, potential credential exfiltration from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] Post-auth open redirect via redirect_to in signin form action
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 45
+reasoning: Live-probed 2026-08-07 22:22 UTC: /signin?redirect_to=https://evil.example.com returns HTML with form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" (server-side reflection into POST action attribute) for both email/password and Google OAuth intent buttons; unsigned return-to cookie {"url":"/"} confirms server-driven redirect concept; return-to cookie tampering alone does NOT trigger redirect (server resets) — REJECTED as cookie-tamper vector.
+evidence_needed: Complete Google OAuth sign-in with ?redirect_to=https://evil.example.com (and //evil.example.com, https://app.gladia.io.evil.example.com) and capture the final post-auth 302 Location to confirm external redirect; test if redirect_to is reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — with a verified Google SSO session, GET /signin?redirect_to=https://evil.example.com, click "Sign in with Google", complete OAuth, capture final 302 Location + Set-Cookie; repeat with //evil.example.com and https://app.gladia.io.evil.example.com variants; attempt redirect_to-as-redirect_uri injection.
+impact: Post-auth phishing redirect to attacker-controlled host; OAuth code/state theft if redirect_uri injectable → Low-Med (High only if redirect_uri proven injectable)
+testability: AUTH_HELPED
+[HYP] npm gladia@0.1.3 impersonation / supply-chain confusion
+class: OTHER
+asset: npm registry `gladia` package (v0.1.3, dist-tag latest)
+confidence: 80
+reasoning: Live npm view 2026-08-07 22:22 UTC confirms: package `gladia`@0.1.3 description "Official TypeScript SDK for Gladia — State-of-the-art Speech to Text API"; repository git+https://github.com/alexisbouchez/gladia.ts.git (personal GitHub account alexisbouchez, not org gladiaio); maintainer = softwarecitadel@gmail.com (personal email); published 2025-03-28, predates official @gladiaio/sdk@1.1.0 (2025-09-09); README states "Unofficial" — contradiction with registry description.
+evidence_needed: npm registry metadata (already obtained); tarball inspection confirms baseUrl = api.gladia.io only (no malicious endpoints); package is a typo-squat / impersonation target for `npm install gladia`.
+verify_steps: PASSIVE — npm view gladia@0.1.3 version description repository.url maintainer.email time.modified; npm view @gladiaio/sdk version description repository.url; document description-vs-README contradiction and maintainer mismatch.
+impact: Developers installing `gladia` (typo-squat or mistaken belief in "official") receive unofficial code from a personal account; future account/repo hijack → supply-chain compromise; Medium (high if account compromised).
+testability: PASSIVE
+[FINAL] (re-ranked top→bottom)
+[NEXT] RAG: Read gladiaio/sdk monorepo (packages/sdk-js, packages/sdk-python, packages/generator) and gladia-samples to trace how audio_url → POST /v2/pre-recorded and callback_url/callback_config.url → InitTranscriptionRequest flow, confirming no client-side SSRF guard (scheme host allowlist, metadata-blocklist, redirect-follow limit) exists in the SDK or sample code; this strengthens the SSRF hypothesis before requesting a program-provided x-gladia-key for live verification.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/transcription → x-powered-by: Express present, ACAO:*, Access-Control-Allow-Headers: x-gladia-key (2026-08-07 22:22 UTC — surface unchanged from 21:46 UTC)
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: live-probed GET /v2/transcription → 401 no gladia key provided, x-powered-by absent (preflight-only fingerprint confirmed, 2026-08-07 22:22 UTC)
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125KB, CORS *) exposes InitTranscriptionRequest.audio_url as format:uri with no scheme allowlist + deprecated callback_url + CallbackConfigDto.url (format:uri, no allowlist) — confirms SSRF-by-design surface
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 {"health":"OK"}; /health?full=true returns identical payload — no verbose disclosure via query param (REJECTED as verbose-leak vector, ACCEPTED as undocumented endpoint)
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator (all REJECTED, surface dead)
+[LEARN] ACCEPTED AUTH @ api.gladia.io: POST /v2/live → 401 key-gated; POST /v2/live/init → 404 "Cannot POST" — WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>, no alternative init endpoint
+[LEARN] ACCEPTED OATH @ app.gladia.io: live-probed /signin?redirect_to=https://evil.example.com → form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" — server-side reflection into POST form action (confirmed for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only) — post-auth Location unverified (AUTH_HELPED)
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED as redirect vector, confirmed via prior + current probe)
+[LEARN] ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable (description "Official TypeScript SDK", repo alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — impersonation anomaly confirmed live 2026-08-07 22:22 UTC
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: 14 OpenAPI paths stable (no new endpoints since 21:46 UTC); /v1/models public (security: not set), all other v2 paths key-gated (401)
+[RISK] api.gladia.io: 82 — public OpenAPI (14 paths incl. /v1/models), CORS wildcard + x-gladia-key cross-origin (no cred), x-powered-by Express fingerprint on preflight, audio_url/video_url/callback_url SSRF surface (format:uri, no scheme allowlist), ws token in URL query, /health undocumented, NestJS-on-Express backend
+[RISK] app.gladia.io: 53 — Google OAuth-only (no self-service bypass), /dashboard 200 SPA w/o auth (client-side), redirect_to reflected into form action (AUTH_HELPED for post-auth confirmation), CSP strict present, return-to cookie unsigned but server-resets on tamper (REJECTED as redirect vector), no SSRF/callback surface
+[RISK] sdk: 45 — official @gladiaio/sdk@1.1.0 (npm) + gladiaio-sdk@1.0.5 (PyPI) clean; npm gladia@0.1.3 impersonation anomaly (personal repo, pre-dates official package, "Official" claim vs "Unofficial" README) sole reportable supply-chain candidate; gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg (maintenance debt)
