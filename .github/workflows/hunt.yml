@@ -36,9 +36,16 @@ jobs:
 
       - name: Install OpenCode
         run: |
-          curl -fsSL https://opencode.ai/install | bash
+          for i in 1 2 3; do
+            if curl -fsSL https://opencode.ai/install | bash; then
+              break
+            fi
+            echo "install attempt $i failed, retrying in 15s..."
+            sleep 15
+          done
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
           opencode --version
+
 
       - name: Prepare context (RAG + state + inventory + last cycle)
         run: |
@@ -122,6 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: analyst
+    if: always()
     concurrency:
       group: hunt-aggregate
       cancel-in-progress: false
@@ -130,6 +138,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all model artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           path: art
@@ -176,7 +185,8 @@ jobs:
                       out.write(f"- LEARN: {l.strip()[:160]}\n")
           # knowledge append (dedupe)
           kpath = 'knowledge/index.md'
-          ktext = open(kpath).read()
+          os.makedirs('knowledge', exist_ok=True)
+          ktext = open(kpath).read() if os.path.exists(kpath) else ''
           with open(kpath, 'a') as k:
               for f in glob.glob('reports/hypotheses-*.txt'):
                   for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):

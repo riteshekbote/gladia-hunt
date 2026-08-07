@@ -24,9 +24,16 @@ jobs:
 
       - name: Install OpenCode
         run: |
-          curl -fsSL https://opencode.ai/install | bash
+          for i in 1 2 3; do
+            if curl -fsSL https://opencode.ai/install | bash; then
+              break
+            fi
+            echo "install attempt $i failed, retrying in 15s..."
+            sleep 15
+          done
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
           opencode --version
+
 
       - name: Enumerate org repos + clone top candidates
         run: |
@@ -83,11 +90,11 @@ jobs:
             SAFE=$(echo "$PKG" | tr '/@' '__')
             curl -s --max-time 20 "https://registry.npmjs.org/$PKG" -o reposcan-raw/npm/$SAFE.json
             echo "$PKG -> $(python3 -c "
-import json
-try:
-    d=json.load(open('reposcan-raw/npm/$SAFE.json'))
-    print(d.get('dist-tags',{}).get('latest'), '|', str(d.get('description'))[:80])
-except Exception as e: print('ERR')")"
+            import json
+            try:
+                d=json.load(open('reposcan-raw/npm/$SAFE.json'))
+                print(d.get('dist-tags',{}).get('latest'), '|', str(d.get('description'))[:80])
+            except Exception as e: print('ERR')")"
           done
           ls reposcan-raw/*/ 2>/dev/null | wc -l
 
