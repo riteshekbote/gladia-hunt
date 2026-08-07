@@ -107,3 +107,5 @@
 - CHANGED api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401 "no gladia key provided") — no unauthenticated history/upload exposure
 
 ## 2026-08-07 23:14:52 UTC
+
+## 2026-08-07 23:50:17 UTC
