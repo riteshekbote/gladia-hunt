@@ -274,3 +274,4 @@ testability: RAG
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; Express backend; high business value; potential SSRF via audio_url/video_url/callback_url
 [RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action but Google-only OAuth limits exploitability; HSTS preload strong; CSP restrictive
 [RISK] sdk: 40 reason: Official SDKs generated from public spec; third-party gladia@0.1.3 is ownership anomaly but not Gladia code; no malicious behavior observed in package metadata
+## 2026-08-07 21:48:25 UTC [app] (model nemotron3)

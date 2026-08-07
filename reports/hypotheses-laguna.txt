@@ -1,1 +1,40 @@
-## 2026-08-07 20:52:55 UTC [app] (model laguna)
+## 2026-08-07 21:48:40 UTC [app] (model laguna)
+[PRIO] api.gladia.io: 8.4 — a9/b10/tech8/gate7/cloud7/fresh7 — OpenAPI+14 paths public, CORS wildcard, Express fingerprint, ws token in URL query, audio_url fetch SSRF surface
+[PRIO] app.gladia.io: 7.1 — a7/b9/tech6/gate8/cloud2/fresh8 — /dashboard 200 w/o auth (SPA), Google OAuth self-service, redirect_to reflected across all variant classes w/o allowlist
+[PRIO] npm `gladia`@0.1.3: 5.95 — a5/b6/tech6/gate10/cloud2/fresh6 — "Official" claim vs personal repo/maintainer; pubdate precedes @gladiaio/sdk
+[HYP] Post-OAuth open redirect via redirect_to without host allowlist
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 52
+reasoning: Live-confirmed: redirect_to is reflected URL-encoded into the OAuth form action for https://evil, //evil, bare-host, confusing-subdomain (app.gladia.io.evil), and path-only variants — server-side reflection with no visible host allowlist; return-to cookie unsigned base64url JSON confirms server-driven redirect concept.
+evidence_needed: Final post-auth HTTP 302 Location resolving to external host after completing sign-in with ?redirect_to=https://evil.example.com.
+verify_steps: AUTH_HELPED — complete Google OAuth sign-in with ?redirect_to=https://evil.example.com, //evil.example.com, and https://app.gladia.io.evil.example.com/ variants; capture post-auth Location + Set-Cookie; test redirect_to reuse as OAuth redirect_uri injection.
+impact: Post-auth phishing redirect to attacker host; OAuth code/state theft if redirect_uri injectable → Medium (High only if redirect_uri proven injectable).
+testability: AUTH_HELPED
+[HYP] SSRF via audio_url/video_url server-side fetch
+class: SSRF
+asset: api.gladia.io /v2/pre-recorded, /v2/upload, /video/text/video-transcription
+confidence: 72
+reasoning: OpenAPI spec (sampled /openapi.json, live 200) shows audio_url accepted verbatim with no client-side validation; SDK RAG confirms is_url only in upload helper, not transcription path; legacy /video|/audio/* endpoints add a second fetch path.
+evidence_needed: 169.254.169.254 or internal-host fetch reflected via error_code/status/timing on a key-gated request.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat via /video/text/video-transcription video_url to compare legacy-path behavior; compare error_code/timing.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated).
+testability: AUTH_HELPED
+[HYP] Framework fingerprint via x-powered-by: Express on CORS preflight only
+class: MISCONFIG
+asset: api.gladia.io (OPTIONS responses)
+confidence: 90
+reasoning: Live-verified this round: OPTIONS /v2/transcription with Origin returns x-powered-by: Express (204); GET /v2/transcription returns 401 with no x-powered-by — confirmed backend-specific header leakage on preflight only, enabling targeted Node/Express CVE scanning alongside CORS wildcard + exposed trace headers.
+evidence_needed: x-powered-by: Express in OPTIONS response, absent in GET response (both observed live).
+verify_steps: PROBE: `curl -sS -D - -o /dev/null -X OPTIONS -H "Origin: https://evil.test" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/transcription` vs `curl -sS -D - -o /dev/null https://api.gladia.io/v2/transcription`; diff header sets.
+impact: Aids reconnaissance → known CVE targeting; Low.
+testability: PASSIVE
+[PARKED] IDOR on transcription file download /{id}/file: confidence 50 < live-verify; spec does not expose ownership-binding logic; no key available → remain PARKED (already retained as such, no action).
+[FINAL] (re-ranked top→bottom)
+[NEXT] HUMAN: with an authorized/verified session (Google SSO or program-supplied trial key), GET /signin?redirect_to=https://evil.example.com then complete OAuth, capture final post-auth 302 Location & Set-Cookie to determine if redirect_to is honored to an external host; test //evil.example.com and https://app.gladia.io.evil.example.com/ variants; attempt redirect_to-as-redirect_uri injection to escalate to OAuth state/code theft.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: live-probed /v2/transcription OPTIONS → `x-powered-by: Express` present; GET 401 → `x-powered-by` absent — confirmed preflight-only fingerprint differential (freshness 2026-08-07 21:46 UTC).
+[LEARN] ACCEPTED OATH @ app.gladia.io: redirect_to reflected into form action for protocol-relative (`//evil`), bare-host, confusing-subdomain (`app.gladia.io.evil`), and path-only variants — no host allowlist enforced on reflection (post-auth honoring remains AUTH_HELPED/unverified).
+[LEARN] CONFIRMED @ api.gladia.io: /openapi.json (200, 125KB, CORS *) publicly exposes full v2 surface incl. audio_url field accepted verbatim — confirms SSRF fetch-by-design path (freshly sampled).
+[RISK] api.gladia.io: 82 — public OpenAPI (14 paths), CORS wildcard + x-gladia-key permitted cross-origin (no creds), x-powered-by Express fingerprint, websocket token in URL query, /health undocumented, audio_url/video_url SSRF surface, single key-gated auth model
+[RISK] app.gladia.io: 52 — Google-only OAuth limits bypass; /dashboard 200 SPA w/o auth (client-side enforcement); return-to cookie signed-reset (REJECTED); CSP strict present; redirect_to form-action reflection unverified post-auth
+[RISK] sdk: 45 — official @gladiaio/sdk 1.1.0 + gladiaio-sdk PyPI clean; npm `gladia`@0.1.3 impersonation anomaly (personal repo, pre-dates official package) remains sole reportable supply-chain candidate; gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg

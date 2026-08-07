@@ -282,3 +282,48 @@ verify_steps: AUTH_HELPED — complete sign-in then submit redirect_to=https://e
 impact: phishing/OAuth-flow manipulation → Low-Med
 testability: AUTH_HELPED
 [NEXT] HUMAN: request a program-provided or personal trial `x-gladia-key`, then POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` vs `{"audio_url":"http://<attacker-canary>"}` and compare `status`/`error_message`/duration; repeat with `video_url` on /video/text/video-transcription, then with `{"callback":{"url":"http://169.254.169.254:80/"}}` to probe the outbound POST surface.
+## 2026-08-07 21:47:22 UTC [api] (model bigpickle)
+[NEW] api.gladia.io: OpenAPI /v1/history declares `custom_metadata` as OBJECT-typed query param (additionalProperties:true) + `status`/`kind` as multi-value array params + date filters — key-gated query-parsing surface not previously itemized (re-probed 21:46Z)
+[NEW] api.gladia.io: CallbackConfigDto.url spec is `format: uri` only — no scheme enum/pattern/allowlist; client-side SSRF guard absent at schema level (confirmed this cycle)
+[NEW] api.gladia.io: /v1/models public payload confirms datacenters [{FR},{US}] + per-request pricing 0.000055 — cloud egress regions for SSRF targeting; `created:1730000000` is static
+[NEW] PyPI: gladiaio-sdk latest = 1.0.5 (version not previously recorded)
+[CHANGED] api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401 "no gladia key provided") — no unauthenticated history/upload exposure
+[PRIO] api.gladia.io POST /v2/pre-recorded (audio_url + callback/callback_config) — 7.2 (attack 8, business 9, tech 6, gate 3, cloud 9, fresh 7)
+[PRIO] npm registry `gladia` 0.1.3 (dist-tag latest) — 5.9 (attack 5, business 8, tech 4, gate 9, cloud 2, fresh 5)
+[PRIO] api.gladia.io GET /v1/history (object/array query params) — 5.5 (attack 6, business 6, tech 7, gate 3, cloud 4, fresh 6)
+[HYP] SSRF via audio_url server-side fetch + callback_url outbound POST
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, callback/callback_config), legacy /audio|/video/text/*
+confidence: 72
+reasoning: CallbackConfigDto.url is format:uri with no scheme/allowlist (spec re-read this cycle); /v1/models confirms egress regions FR/US (cloud-hosted); docs warn "callback_url not localhost" implying internal targets reachable; jobs return status/error_message/duration = measurable reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254 or internal host reflected in error_message/status/duration; or callback POST observed hitting an internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: (1) POST /v2/pre-recorded {"audio_url":"http://<attacker-canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}, compare status/error_message/duration; (2) same via /video/text/video-transcription video_url; (3) POST {"callback":{"url":"http://169.254.169.254:80/"}}; include localhost/file:// variants.
+impact: cloud-metadata + internal-network read, internal POST via callback → High (key-gated)
+testability: AUTH_HELPED
+[HYP] Name-squat `gladia` npm package is unofficial
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 80
+reasoning: registry description "Official TypeScript SDK for Gladia" vs packaged README "Unofficial"; maintainer softwarecitadel (personal gmail), repo alexisbouchez/gladia.ts; published 2025-04-07 pre-dating @gladiaio/sdk (2025-09-09); verified passive, tarball benign.
+evidence_needed: none — metadata verified
+verify_steps: PASSIVE — done (registry metadata + publish times + repo field re-confirmed)
+impact: developers installing `gladia` run unofficial code; future repo/account hijack → supply-chain compromise; Medium
+testability: PASSIVE
+[HYP] Query-param parsing injection on /v1/history
+class: BUSLOGIC
+asset: api.gladia.io GET /v1/history (custom_metadata, status/kind arrays, date filters)
+confidence: 48
+reasoning: spec declares custom_metadata as object (additionalProperties:true) and status/kind as arrays in the QUERY STRING — non-native, server must parse via JSON/querystring; NestJS-style deep-parse foot-gun; date filters are string->Date coercion points.
+evidence_needed: with a key, injection string in custom_metadata/status/date yields 500, altered filter results, or timing skew.
+verify_steps: AUTH_HELPED — GET /v1/history?custom_metadata[__proto__][x]=1 and ?custom_metadata[$ne]=null and ?date[gt]=... ; observe 400/500 vs baseline; compare result set with legit filters.
+impact: filter bypass / prototype pollution on own-tenant query → Low-Med (key-gated)
+testability: AUTH_HELPED
+[FINAL] 1. npm `gladia` impersonation (80, PASSIVE, ready to report) 2. SSRF via audio_url/callback (72, AUTH_HELPED, active POC target) 3. /v1/history query-param injection (48, AUTH_HELPED)
+[NEXT] HUMAN: request a program-provided or personal trial `x-gladia-key`; then POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` vs `{"audio_url":"http://<attacker-canary>"}`, compare `status`/`error_message`/duration; then repeat with `video_url` on /video/text/video-transcription, then `{"callback":{"url":"http://169.254.169.254:80/"}}` to probe outbound POST. Local SDK RAG is not possible (reposcan-raw/gladiaio/sdk empty stub) — the key is the only gate.
+[LEARN] ACCEPTED AUTH @ api.gladia.io: /v1/history and /v2/upload confirmed key-gated (401) — no unauthenticated history/upload path
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI map stable at 14 paths (re-check 21:46Z) — no new endpoints since 20:55
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: 401 error body {statusCode,timestamp,path,message,request_id} is NestJS HttpException shape → backend is NestJS-on-Express, not plain Express
+[LEARN] ACCEPTED OTHER @ npm registry: PyPI gladiaio-sdk latest 1.0.5; npm @gladiaio/sdk 1.1.0 unchanged — supply-chain surface static
+[RISK] api.gladia.io: 55 — large key-gated attack surface (SSRF-capable audio_url/callback fetch+POST, /v1/history query-injection candidate, NestJS fingerprinting) but every high-impact path sits behind x-gladia-key; public items (/v1/models, /health, /openapi.json) benign; SSRF would be High if a key is obtained
+[RISK] app.gladia.io: 35 — SPA shell serving /dashboard unauthenticated, redirect_to reflected into form action (open redirect unconfirmed, server-side auth on APIs), unsigned return-to cookie; no confirmed high-severity flaw, moderate phishing surface
+[RISK] sdk: 40 — confirmed name-squat gladia@0.1.3 on `latest` tag (reportable ownership anomaly) plus official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5; tarballs benign, residual supply-chain risk from maintainer sprawl
