@@ -145,3 +145,45 @@ testability: RAG
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with credential-exposed headers; WebSocket token-in-URL design; undocumented /health endpoint; no auth on spec endpoint; high business value (core transcription API)
 [RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action but no open redirect; HSTS preload strong; Google-only OAuth limits attack surface
 [RISK] sdk: 40 reason: Official SDKs (@gladiaio/sdk, gladiaio-sdk) generated from public spec; third-party gladia@0.1.3 is ownership anomaly but not Gladia code; no malicious behavior observed in package metadata
+## 2026-08-07 19:17:08 UTC [app] (model nemotron3)
+[PRIO] api.gladia.io, 8.5, attack_surface=9 business_value=9 tech_exposure=8 gate_ease=10 cloud_surface=8 freshness=8
+[PRIO] app.gladia.io, 6.3, attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[PRIO] npm @gladiaio/sdk, 5.0, attack_surface=5 business_value=6 tech_exposure=5 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] PyPI gladiaio-sdk, 4.7, attack_surface=4 business_value=6 tech_exposure=4 gate_ease=8 cloud_surface=3 freshness=6
+[PRIO] npm gladia (typosquat candidate), 4.3, attack_surface=4 business_value=5 tech_exposure=4 gate_ease=9 cloud_surface=2 freshness=5
+[HYP] SSRF via audio_url/video_url server-side fetch
+class: SSRF
+asset: api.gladia.io
+confidence: 65
+reasoning: OpenAPI shows transcription endpoints accept audio_url/video_url parameters; server likely fetches these URLs server-side; no SSRF protections documented in spec; v2/live init may also accept URL inputs
+evidence_needed: Confirm server-side fetch behavior; test with internal metadata URLs (169.254.169.254), localhost, private CIDRs; check for redirect following
+verify_steps: RAG: read gladiaio/sdk packages/sdk-js + packages/sdk-python + generator and gladia-samples to confirm how audio_url/video_url flows into api.gladia.io; PROBE: POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/"}' (AUTH_HELPED)
+impact: Cloud metadata access, internal service enumeration, potential data exfiltration; severity High
+testability: AUTH_HELPED
+[HYP] CORS wildcard reflects arbitrary origin enabling cross-origin API reads
+class: MISCONFIG
+asset: api.gladia.io
+confidence: 75
+reasoning: Preflight shows access-control-allow-origin: * with allow-headers: x-gladia-key but NO access-control-allow-credentials; wildcard reflects request Origin header value per prior probe; allows unauthenticated cross-origin reads of public endpoints (/v1/models, /openapi.json, /health)
+evidence_needed: Confirm Origin reflection on credentialed endpoints; verify no credential leakage via wildcard
+verify_steps: PROBE: curl -H "Origin: https://evil.test" -D - -o /dev/null https://api.gladia.io/v1/models — confirm access-control-allow-origin reflects https://evil.test; PROBE: curl -H "Origin: https://evil.test" -H "x-gladia-key: test" -D - -o /dev/null https://api.gladia.io/v2/transcription — observe 401 but check CORS headers
+impact: Data exposure from public endpoints; aids reconnaissance; severity Low-Medium
+testability: PASSIVE
+[HYP] npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 70
+reasoning: Package description claims "Official TypeScript SDK for Gladia" but repository=github.com/alexisbouchez/gladia.ts (personal account), maintainer=softwarecitadel@gmail.com; official SDK is @gladiaio/sdk from gladiaio/sdk monorepo; users may install wrong package
+evidence_needed: Verify if alexisbouchez/softwarecitadel is affiliated with Gladia; check package code for malicious behavior; compare API surface with official SDK
+verify_steps: RAG: Read github.com/alexisbouchez/gladia.ts source; diff against @gladiaio/sdk; check install scripts, network calls, data exfiltration; HUMAN: Contact Gladia security to confirm ownership
+impact: Supply chain risk — developers may install impersonated SDK leading to credential theft or malicious code execution; severity Medium-High
+testability: RAG
+[FINAL] 1) SSRF via audio_url/video_url server-side fetch (api.gladia.io, 65, SSRF) 2) CORS wildcard reflects arbitrary origin enabling cross-origin API reads (api.gladia.io, 75, MISCONFIG) 3) npm package gladia@0.1.3 typosquats official @gladiaio/sdk namespace (npm registry, 70, OTHER)
+[NEXT] RAG: Read gladiaio/sdk (packages/sdk-js + packages/sdk-python + generator) and gladia-samples to confirm how audio_url/video_url flows into api.gladia.io (any client-side validation, SSRF protections documented)
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+[LEARN] ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+[LEARN] ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with credential-exposed headers; WebSocket token-in-URL design; undocumented /health endpoint; no auth on spec endpoint; high business value (core transcription API); potential SSRF via audio_url/video_url
+[RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action but no open redirect; HSTS preload strong; Google-only OAuth limits attack surface
+[RISK] sdk: 40 reason: Official SDKs (@gladiaio/sdk, gladiaio-sdk) generated from public spec; third-party gladia@0.1.3 is ownership anomaly but not Gladia code; no malicious behavior observed in package metadata
