@@ -103,3 +103,32 @@ verify_steps: PASSIVE — already done (registry metadata + tarball inspection);
 impact: developers installing `gladia` get unofficial code; account/repo hijack later → supply-chain compromise; Medium
 testability: PASSIVE
 [NEXT] HUMAN: with a program-provided or personal trial `x-gladia-key`, POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://<attacker-canary>"}` then `{"audio_url":"http://169.254.169.254/latest/meta-data/"}`; compare job error_code/status/timing for reachability signal; then repeat via https://api.gladia.io/video/text/video-transcription `video_url` to test the legacy fetch path.
+## 2026-08-07 20:00:00 UTC [api] (model bigpickle)
+[HYP] SSRF via audio_url fetch + callback_url outbound POST
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, callback/callback_config), legacy /audio|/video/text/*
+confidence: 72
+reasoning: Spec exposes audio_url + CallbackConfigDto.url with no scheme/allowlist in schema; official SDK forwards audio_url verbatim and docs confirm external-URL fetch by design; docs troubleshooting tells users "callback_url not localhost", implying internal targets considered reachable unless server-side-blocked; jobs return status/error_message/timing giving a measurable reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254 or internal host reflected in error_message/status/duration; or callback POST observed hitting an internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: (1) POST /v2/pre-recorded {"audio_url":"http://<attacker-canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}, compare error_message/status/duration; (2) same via /video/text/video-transcription video_url (legacy path); (3) POST with {"callback":{"url":"http://169.254.169.254:80/"}} to test outbound POST surface; include localhost/file:// variants.
+impact: cloud-metadata + internal-network read (and internal POST via callback) from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] Impersonation/name-squat `gladia` npm package
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 80
+reasoning: registry description "Official TypeScript SDK for Gladia" vs packaged README "Unofficial"; maintainer softwarecitadel (personal gmail), repo alexisbouchez/gladia.ts; 0.1.3 published 2025-04-07, pre-dating @gladiaio/sdk (2025-09-09); re-verified this session; tarball code benign.
+evidence_needed: none — metadata verified
+verify_steps: PASSIVE — done (registry metadata + publish times + repo field)
+impact: developers installing `gladia` run unofficial code; future account/repo hijack → supply-chain compromise; Medium
+testability: PASSIVE
+[HYP] Post-auth open redirect via redirect_to
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 55
+reasoning: redirect_to reflected server-side into form action (verified GET) across email/password and Google paths; unsigned return-to cookie proves server-driven redirect; post-auth final Location unobserved.
+evidence_needed: with a real session, final Location for cross-origin variants (https://evil.example.com, //evil.example.com)
+verify_steps: AUTH_HELPED — complete sign-in then submit redirect_to=https://evil.example.com; capture post-auth Location; escalate only if reused as OAuth redirect_uri
+impact: phishing/OAuth-flow manipulation → Low-Med
+testability: AUTH_HELPED
+[NEXT] HUMAN: request a program-provided or personal trial `x-gladia-key`, then POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` vs `{"audio_url":"http://<attacker-canary>"}` and compare `status`/`error_message`/duration; repeat with `video_url` on /video/text/video-transcription, then with `{"callback":{"url":"http://169.254.169.254:80/"}}` to probe the outbound POST surface.

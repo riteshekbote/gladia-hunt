@@ -78,3 +78,5 @@
 - CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
 
 ## 2026-08-07 19:22:34 UTC
+
+## 2026-08-07 20:00:21 UTC

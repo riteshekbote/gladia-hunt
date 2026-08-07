@@ -1381,3 +1381,1095 @@ testability: PASSIVE
 - [RISK] api.gladia.io: 48 | SSRF fetch surface confirmed as designed + key-gated, legacy /audio|/video/* adds second fetch path, uniform key gate, CORS * without credentials (low), public OpenAPI + bare /health leak minor
 - [RISK] app.gladia.io: 40 | Google-only OAuth, reachable redirect_to with unvalidated post-auth behavior (unproven), cookies correctly flagged (HttpOnly/Secure/SameSite=Lax)
 - [RISK] sdk: 50 | `gladia` npm package actively claims "Official" while unofficial (impersonation active); official @gladiaio/sdk metadata clean; `gladia` tarball benign so far
+===== ANALYST bigpickle 2026-08-07 20:00:21 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sS -D - -o /dev/null https://api.gladia.io/health ; sleep 1; curl -sS -D - -o /dev/null https://api.gladia.io/openapi.json | head -40
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Fri, 07 Aug 2026 19:57:55 GMT
+etag: W/"f-zkBsEbirArjpKvVbiSV3QbfXWrg"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 15
+
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Fri, 07 Aug 2026 19:57:57 GMT
+etag: W/"1e8cb-BPKMD00JKzQ/ewmJBoqswVp6h50"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 125131
+[0m
+[0m$ [0mcurl -sS https://api.gladia.io/openapi.json -o /tmp/opencode/oapi.json; python3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+paths=sorted(d.get('paths',{}).keys())
+print('paths:',len(paths))
+for p in paths: print(' ',p)
+print('servers:',d.get('servers'))
+"
+paths: 14
+  /audio/text/audio-transcription
+  /v1/history
+  /v1/models
+  /v2/live
+  /v2/live/{id}
+  /v2/live/{id}/file
+  /v2/pre-recorded
+  /v2/pre-recorded/{id}
+  /v2/pre-recorded/{id}/file
+  /v2/transcription
+  /v2/transcription/{id}
+  /v2/transcription/{id}/file
+  /v2/upload
+  /video/text/video-transcription
+servers: [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+[0m
+[0m$ [0mcurl -sS https://registry.npmjs.org/gladia | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+t=d.get('dist-tags',{})
+latest=t.get('latest')
+v=d.get('versions',{}).get(latest,{})
+print('gladia latest:',latest)
+print(' desc:',v.get('description'))
+print(' repo:',v.get('repository'))
+print(' maintainers:',[m.get('name') for m in d.get('maintainers',[])])
+print(' time.latest:',d.get('time',{}).get(latest))
+"; sleep 1; curl -sS https://registry.npmjs.org/@gladiaio/sdk | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+t=d.get('dist-tags',{})
+latest=t.get('latest')
+v=d.get('versions',{}).get(latest,{})
+print('@gladiaio/sdk latest:',latest)
+print(' desc:',v.get('description'))
+print(' repo:',v.get('repository'))
+print(' maintainers:',[m.get('name') for m in d.get('maintainers',[])])
+"
+gladia latest: 0.1.3
+ desc: Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+ repo: {'type': 'git', 'url': 'git+https://github.com/alexisbouchez/gladia.ts.git'}
+ maintainers: ['softwarecitadel']
+ time.latest: 2025-04-07T13:46:48.823Z
+@gladiaio/sdk latest: 1.1.0
+ desc: Gladia JavaScript/TypeScript SDK
+ repo: {'type': 'git', 'url': 'git+https://github.com/gladiaio/sdk.git'}
+ maintainers: ['clement-gladia', 'gladia-admin', 'commarla', 'hugo_gladia', 'tnesztler', 'amorin_gladia', 'thibautlb', 'remigladia', 'acorbeau-gladia', 'jqueguiner', 'hpapier.ext.gladia', 'clafaye', 'opopops', 'bot-npmjs-gladiaio', 'rpiotaix', 'yoannkygladia', 'cpire']
+[0m
+[0m$ [0mcurl -sS https://registry.npmjs.org/gladia | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('versions:',list(d.get('versions',{}).keys()))
+print('time map:')
+for k,v in d.get('time',{}).items():
+    if k not in ('created','modified'): print(' ',k,v)
+print('modified:',d.get('time',{}).get('modified'))
+"; sleep 1; curl -sS "https://api.github.com/orgs/gladiaio/repos?per_page=100" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    print('repos:',len(d))
+    for r in sorted(d,key=lambda x:x['pushed_at'],reverse=True)[:12]:
+        print(' ',r['name'],'| pushed:',r['pushed_at'],'| public:',r.get('visibility'))
+else: print(d)
+"
+versions: ['0.1.0', '0.1.1', '0.1.2', '0.1.3']
+time map:
+  0.1.0 2025-03-28T17:20:10.148Z
+  0.1.1 2025-03-28T17:35:57.688Z
+  0.1.2 2025-04-07T13:42:54.763Z
+  0.1.3 2025-04-07T13:46:48.823Z
+modified: 2025-04-07T13:46:48.993Z
+repos: 19
+  skills | pushed: 2026-08-07T06:20:06Z | public: public
+  docs | pushed: 2026-08-06T10:24:55Z | public: public
+  gladia-samples | pushed: 2026-08-05T14:43:22Z | public: public
+  vercel-ai | pushed: 2026-08-05T11:29:58Z | public: public
+  gladiaflow | pushed: 2026-08-04T14:00:25Z | public: public
+  compare-stt | pushed: 2026-08-04T12:19:28Z | public: public
+  n8n-nodes-gladia | pushed: 2026-08-04T03:09:21Z | public: public
+  cloudnative-pg | pushed: 2026-07-25T03:29:04Z | public: public
+  sdk | pushed: 2026-07-23T20:47:55Z | public: public
+  normalization | pushed: 2026-07-14T16:16:56Z | public: public
+  gladia-cli | pushed: 2026-07-10T17:27:25Z | public: public
+  transformers | pushed: 2026-06-10T13:09:35Z | public: public
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('name:',d.get('full_name'))
+print('desc:',d.get('description'))
+print('created:',d.get('created_at'))
+print('language:',d.get('language'))
+print('topics:',d.get('topics'))
+print('default_branch:',d.get('default_branch'))
+"
+name: gladiaio/skills
+desc: Official AI agent skills from Gladia for integrating speech-to-text transcription into your applications
+created: 2026-05-27T13:36:29Z
+language: None
+topics: ['agent', 'gladia', 'skills', 'speech-to-text', 'stt', 'transcritpion']
+default_branch: main
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"; sleep 1; curl -sS "https://raw.githubusercontent.com/gladiaio/skills/main/README.md" | head -60
+dir .claude-plugin
+file .commitlintrc.yml
+dir .cursor
+dir .github
+file .gitignore
+file CLAUDE.md
+file CONTRIBUTING.md
+file LICENSE
+file README.md
+dir plugins
+file skills-lock.json
+# Gladia Skills
+
+Official AI agent skills from the Gladia team for integrating speech-to-text transcription into your applications.
+
+## Installation
+
+### Claude Code
+
+Add the marketplace and install the plugin:
+
+```
+/plugin marketplace add gladiaio/skills
+/plugin install gladia
+```
+
+### Cursor
+
+1. Open Cursor Settings (Cmd+Shift+J / Ctrl+Shift+J)
+2. Navigate to **Rules, Skills, Subagents** → **Rules** → **Add Rule** → **Import from GitHub**
+3. Enter: `https://github.com/gladiaio/skills.git`
+
+Skills are automatically discovered and used by the agent based on context. When you ask questions about Gladia transcription, the agent will select the relevant skill.
+
+### Any Agent (via skills CLI)
+
+```bash
+npx skills add gladiaio/skills
+```
+
+## Available Skills
+
+All skills default to **SDK-based integration** (`@gladiaio/sdk` for JS/TS, `gladiaio-sdk` for Python). Raw REST/WebSocket is only used as a fallback when the SDK cannot satisfy the requirement.
+
+| Skill                                 | When it activates                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **gladia-pre-recorded-transcription** | Batch processing audio files, file uploads, URL transcription, diarization, PII redaction, subtitles   |
+| **gladia-live-transcription**         | Real-time streaming, WebSocket sessions, voice agents, meeting recorders, call centers                 |
+| **gladia-audio-intelligence**         | Feature-specific setup for diarization, translation, NER, PII redaction, subtitles, summarization      |
+| **gladia-sdk-integration**            | Installing/configuring the JS/TS or Python SDK, client setup, error handling, SDK vs raw API decisions |
+| **gladia-troubleshooting**            | Errors, common gotchas, performance issues, format problems, billing questions                         |
+| **gladia-documentation-auto**         | General-purpose fallback — comprehensive reference auto-synced from docs.gladia.io                     |
+
+## How It Works
+
+Skills are **not** slash commands — they are automatically discovered from the `description` field in each skill's frontmatter. When you ask your AI agent a question related to Gladia, it matches your query against skill descriptions and loads the relevant skill(s).
+
+## Keeping Skills Up to Date
+
+The `gladia-documentation-auto` skill is automatically synced from [docs.gladia.io](https://docs.gladia.io) via a daily GitHub Actions workflow. When the documentation changes, a PR is opened to update the skill content.
+
+To update skills in your project:
+
+```bash
+npx skills update
+```
+
+## Resources
+
+- [Gladia Documentation](https://docs.gladia.io)
+- [Support Center](https://support.gladia.io)
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/plugins" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"
+dir gladia
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/plugins/gladia" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"
+dir .claude-plugin
+file README.md
+dir skills
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/plugins/gladia/skills" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"
+dir gladia-audio-intelligence
+dir gladia-documentation-auto
+dir gladia-live-transcription
+dir gladia-pre-recorded-transcription
+dir gladia-sdk-integration
+dir gladia-troubleshooting
+dir gladia-using-cli
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/plugins/gladia/skills/gladia-pre-recorded-transcription" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"
+file SKILL.md
+dir references
+[0m
+[0m$ [0mcurl -sS "https://raw.githubusercontent.com/gladiaio/skills/main/plugins/gladia/skills/gladia-pre-recorded-transcription/SKILL.md" | grep -iE "audio_url|video_url|http|fetch|url" | head -30
+description: Transcribe pre-recorded audio files or URLs with Gladia. Use when the user needs batch/async transcription, speaker diarization, subtitles (SRT/VTT), PII redaction, translation, NER, summarization, chapterization, audio-to-LLM, or any audio intelligence on pre-recorded content. Always prefer the official SDK; fall back to raw REST only when SDK cannot satisfy the requirement.
+- Existing audio/video files or URLs (including social/video links)
+Audio input can be a local file path, HTTP(S) URL, social/video URL, or binary file object. For full input types, see [gladia-sdk-integration](../gladia-sdk-integration/SKILL.md#audio-input-types).
+1. **Upload** (if local file): `POST /v2/upload` with multipart form data → get `audio_url`
+2. **Create job**: `POST /v2/pre-recorded` with `audio_url` and config → get `id`
+| `callback_url`    | Async webhook delivery                      |
+- [Pre-recorded quickstart](https://docs.gladia.io/chapters/pre-recorded-stt/quickstart)
+- [Audio intelligence overview](https://docs.gladia.io/chapters/pre-recorded-stt/audio-intelligence)
+- [API reference: init](https://docs.gladia.io/api-reference/v2/pre-recorded/init)
+[0m
+[0m$ [0mcurl -sS "https://raw.githubusercontent.com/gladiaio/skills/main/plugins/gladia/skills/gladia-troubleshooting/SKILL.md" | grep -iE "error|invalid|url|audio_url" | head -40
+description: Diagnose and fix common Gladia API issues. Use when the user encounters errors (401, 403, 429), unexpected behavior, poor transcription quality, billing confusion, audio format problems, WebSocket disconnections, polling failures, or asks about limits and rate limiting. SDK-first diagnostics — many issues are solved by migrating to the official SDK.
+- User encounters errors (401, 403, 429, invalid format, timeout) when calling the Gladia API
+## Authentication Errors
+- **Cause**: Invalid or missing API key
+**Problem**: Pre-recorded files over 135 minutes may fail without a clear error message.
+**Fix (raw WebSocket)**: Reconnect to the **same WebSocket URL** to resume the session. Do NOT call `/v2/live` again.
+**Fix**: Always explicitly call `session.stopRecording()` (or `session.stop_recording()` in Python) when done. Implement cleanup in error handlers.
+### "Invalid audio format" error
+- For pre-recorded: format is auto-detected from the file; this error is live-specific
+1. Verify `callback_url` is publicly reachable (not localhost)
+- [ ] Error responses are handled (SDK throws typed errors; raw API returns `status`, `error_message`)
+- [API reference (error codes)](https://docs.gladia.io/api-reference)
+[0m
+[0m$ [0mcurl -sS "https://api.github.com/repos/gladiaio/skills/contents/plugins/gladia/skills/gladia-documentation-auto" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    for i in d: print(i['type'], i['name'])
+else: print(d)
+"
+file SKILL.md
+[0m
+[0m$ [0mcurl -sS "https://raw.githubusercontent.com/gladiaio/skills/main/plugins/gladia/skills/gladia-documentation-auto/SKILL.md" | grep -iE "callback_url|localhost|169.254|metadata|internal|private" | head -20
+metadata:
+metadata:
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+# find callback_url in schemas/components
+s=json.dumps(d)
+import re
+print('callback_url occurrences in spec:', s.count('callback_url'))
+for name,comp in d.get('components',{}).get('schemas',{}).items():
+    if 'callback' in name.lower():
+        print('schema:',name)
+        print(json.dumps(comp,indent=1)[:600])
+"
+callback_url occurrences in spec: 2
+schema: CallbackMethodEnum
+{
+ "type": "string",
+ "enum": [
+  "POST",
+  "PUT"
+ ],
+ "description": "The HTTP method to be used. Allowed values are `POST` or `PUT` (default: `POST`)"
+}
+schema: CallbackConfigDto
+{
+ "type": "object",
+ "properties": {
+  "url": {
+   "type": "string",
+   "description": "The URL to be called with the result of the transcription",
+   "example": "https://callback.example",
+   "format": "uri"
+  },
+  "method": {
+   "description": "The HTTP method to be used. Allowed values are `POST` or `PUT` (default: `POST`)",
+   "example": "POST",
+   "default": "POST",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/CallbackMethodEnum"
+    }
+   ]
+  }
+ },
+ "required": [
+  "url"
+ ]
+}
+schema: CallbackTranscriptionSuccessPayload
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "description": "Type of event",
+   "enum": [
+    "transcription.success"
+   ],
+   "example": "transcription.success",
+   "default": "transcription.success"
+  },
+  "payload": {
+   "description": "Result of the transcription",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/TranscriptionResultDTO"
+    }
+   ]
+  },
+  "custom_metadata": {
+   "type": "object",
+   "description"
+schema: CallbackTranscriptionErrorPayload
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "description": "Type of event",
+   "enum": [
+    "transcription.error"
+   ],
+   "example": "transcription.error",
+   "default": "transcription.error"
+  },
+  "error": {
+   "description": "The error that occurred during the transcription",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/ErrorDTO"
+    }
+   ]
+  },
+  "custom_metadata": {
+   "type": "object",
+   "description":
+schema: CallbackConfig
+{
+ "type": "object",
+ "properties": {
+  "url": {
+   "type": "string",
+   "description": "URL on which we will do a `POST` request with configured messages",
+   "example": "https://callback.example",
+   "format": "uri"
+  },
+  "receive_partial_transcripts": {
+   "type": "boolean",
+   "description": "If true, partial transcript will be sent to the defined callback.",
+   "default": false
+  },
+  "receive_final_transcripts": {
+   "type": "boolean",
+   "description": "If true, final transcript will be sent to the defined callback.",
+   "default": true
+  },
+  "receive_speech_events": {
+   "type": "boo
+schema: CallbackLiveAudioChunkAckMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.audio_chunk"
+   ],
+   "example": "live.audio_chunk",
+   "default": "live.audio_chunk"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/AudioChunkAckMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveEndRecordingMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.end_recording"
+   ],
+   "example": "live.end_recording",
+   "default": "live.end_recording"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/EndRecordingMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveEndSessionMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.end_session"
+   ],
+   "example": "live.end_session",
+   "default": "live.end_session"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/EndSessionMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveTranslationMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.translation"
+   ],
+   "example": "live.translation",
+   "default": "live.translation"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/TranslationMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveNamedEntityRecognitionMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.named_entity_recognition"
+   ],
+   "example": "live.named_entity_recognition",
+   "default": "live.named_entity_recognition"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/NamedEntityRecognitionMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "pa
+schema: CallbackLivePostChapterizationMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.post_chapterization"
+   ],
+   "example": "live.post_chapterization",
+   "default": "live.post_chapterization"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/PostChapterizationMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLivePostFinalTranscriptMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.post_final_transcript"
+   ],
+   "example": "live.post_final_transcript",
+   "default": "live.post_final_transcript"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/PostFinalTranscriptMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLivePostSummarizationMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.post_summarization"
+   ],
+   "example": "live.post_summarization",
+   "default": "live.post_summarization"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/PostSummarizationMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLivePostTranscriptMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.post_transcript"
+   ],
+   "example": "live.post_transcript",
+   "default": "live.post_transcript"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/PostTranscriptMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveSentimentAnalysisMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.sentiment_analysis"
+   ],
+   "example": "live.sentiment_analysis",
+   "default": "live.sentiment_analysis"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/SentimentAnalysisMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveStartRecordingMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.start_recording"
+   ],
+   "example": "live.start_recording",
+   "default": "live.start_recording"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/StartRecordingMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveStartSessionMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.start_session"
+   ],
+   "example": "live.start_session",
+   "default": "live.start_session"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/StartSessionMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveStopRecordingAckMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.stop_recording"
+   ],
+   "example": "live.stop_recording",
+   "default": "live.stop_recording"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/StopRecordingAckMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveTranscriptMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.transcript"
+   ],
+   "example": "live.transcript",
+   "default": "live.transcript"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/TranscriptMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveSpeechStartMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.speech_start"
+   ],
+   "example": "live.speech_start",
+   "default": "live.speech_start"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/SpeechStartMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+schema: CallbackLiveSpeechEndMessage
+{
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "description": "Id of the job",
+   "format": "uuid",
+   "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+  },
+  "event": {
+   "type": "string",
+   "enum": [
+    "live.speech_end"
+   ],
+   "example": "live.speech_end",
+   "default": "live.speech_end"
+  },
+  "payload": {
+   "description": "The live message payload as sent to the WebSocket",
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/SpeechEndMessage"
+    }
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "event",
+  "payload"
+ ]
+}
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+op=d['paths']['/v2/pre-recorded']['post']
+print('params:',[p.get('name') for p in op.get('parameters',[])])
+print('reqBody schema:',op['requestBody']['content']['application/json']['schema'])
+" 2>/dev/null | head -20; python3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+s=d['components']['schemas']
+for name in ('PreRecordedTranscriptionConfig','InitRequest','AudioUrlInput','VideoUrlInput','UploadUrlInput'):
+    if name in s: print(name, json.dumps(s[name]).replace(' ','')[:400])
+"
+params: []
+reqBody schema: {'$ref': '#/components/schemas/InitTranscriptionRequest'}
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+s=d['components']['schemas']
+for name in ('InitTranscriptionRequest','AudioUrlInput','VideoUrlInput','UploadUrlInput'):
+    print(name, json.dumps(s.get(name)).replace(' ','')[:500]); print()
+"
+InitTranscriptionRequest {"type":"object","properties":{"custom_vocabulary":{"type":"boolean","description":"**[Beta]**Canbeeitherbooleantoenablecustom_vocabularyforthisaudiooranarraywithspecificvocabularylisttofeedthetranscriptionmodelwith","default":false},"custom_vocabulary_config":{"description":"**[Beta]**Customvocabularyconfiguration,if`custom_vocabulary`isenabled","allOf":[{"$ref":"#/components/schemas/CustomVocabularyConfigDTO"}]},"callback_url":{"type":"string","description":"**[Deprecated]**Use`callback`/`call
+
+AudioUrlInput null
+
+VideoUrlInput null
+
+UploadUrlInput null
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+s=d['components']['schemas']
+for name in s:
+    if name in ('AudioInputDto','VideoInputDto') or 'audio_input' in name.lower() or name.lower().startswith('audioinput'):
+        print(name, json.dumps(s[name]).replace(' ','')[:400]); print()
+" ; python3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+s=d['components']['schemas']
+# find schemas with a url property
+for name,sch in s.items():
+    props=sch.get('properties',{})
+    if isinstance(props,dict) and 'url' in props and sch.get('type')=='object':
+        print(name, '-> has url prop; props:', list(props.keys())[:8])
+" | head -20
+CallbackConfigDto -> has url prop; props: ['url', 'method']
+CallbackConfig -> has url prop; props: ['url', 'receive_partial_transcripts', 'receive_final_transcripts', 'receive_speech_events', 'receive_pre_processing_events', 'receive_realtime_processing_events', 'receive_post_processing_events', 'receive_acknowledgments']
+InitStreamingResponse -> has url prop; props: ['id', 'created_at', 'url']
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/oapi.json'))
+s=d['components']['schemas']
+r=s['InitTranscriptionRequest']
+print('props:', list(r['properties'].keys()))
+for k in ('audio','video'):
+    v=r['properties'].get(k)
+    print(k, '->', json.dumps(v).replace(' ','')[:300])
+"
+props: ['custom_vocabulary', 'custom_vocabulary_config', 'callback_url', 'callback', 'callback_config', 'subtitles', 'subtitles_config', 'diarization', 'diarization_config', 'translation', 'translation_config', 'summarization', 'summarization_config', 'named_entity_recognition', 'custom_spelling', 'custom_spelling_config', 'sentiment_analysis', 'audio_to_llm', 'audio_to_llm_config', 'pii_redaction', 'pii_redaction_config', 'custom_metadata', 'sentences', 'punctuation_enhanced', 'language_config', 'audio_url']
+audio -> null
+video -> null
+[0m
+STEP 1 — DELTA
+- [NEW] gladiaio/skills: official AI-agent skills repo (Claude/Cursor/`npx skills add gladiaio/skills`), created 2026-05-27, pushed 2026-08-07; auto-installs agent skills; new official-surface asset in scope (SDK/Medium tier)
+- [NEW] api.gladia.io OpenAPI: `callback`/`callback_config` (CallbackConfigDto {url, method POST|PUT}) documented — server performs outbound POST/PUT to attacker-supplied URL on job completion (pre-recorded + live); `callback_url` field is deprecated but still present on InitTranscriptionRequest
+- [NEW] api.gladia.io OpenAPI: InitTranscriptionRequest has direct `audio_url` property; spec declares no scheme/allowlist validation
+- [CHANGED] npm `gladia` publish dates corrected: 0.1.0/0.1.1 = 2025-03-28, 0.1.2/0.1.3 = 2025-04-07 (KB said 0.1.3 was 2025-03-28); still pre-dates @gladiaio/sdk (2025-09-09), impersonation finding stands
+- [NEW] gladia skills troubleshooting doc: "Verify `callback_url` is publicly reachable (not localhost)" — internal-target restriction is a known concern; whether server-side blocking exists is unverified
+- [NEW] raw API failure surface: skills docs state jobs return `status` + `error_message` — usable as the SSRF reachability/timing signal
+
+STEP 2 — PRIORITIZE
+- [PRIO] api.gladia.io /v2/pre-recorded+callback: attack 8, business 8, tech 7, gate 2, cloud 9, fresh 6 → priority 6.85
+- [PRIO] npm `gladia` impersonation: attack 3, business 6, tech 5, gate 10, cloud 2, fresh 5 → priority 5.20
+- [PRIO] app.gladia.io /signin redirect_to: attack 5, business 7, tech 6, gate 4, cloud 2, fresh 4 → priority 5.10
+
+STEP 3 — HYPOTHESES
+[HYP] SSRF via audio_url fetch + callback_url outbound POST
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, callback/callback_config), legacy /audio|/video/text/*
+confidence: 72
+reasoning: Spec exposes audio_url + CallbackConfigDto.url with no scheme/allowlist in schema; official SDK forwards audio_url verbatim and docs confirm external-URL fetch by design; docs troubleshooting tells users "callback_url not localhost", implying internal targets considered reachable unless server-side-blocked; jobs return status/error_message/timing giving a measurable reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254 or internal host reflected in error_message/status/duration; or callback POST observed hitting an internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: (1) POST /v2/pre-recorded {"audio_url":"http://<attacker-canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}, compare error_message/status/duration; (2) same via /video/text/video-transcription video_url (legacy path); (3) POST with {"callback":{"url":"http://169.254.169.254:80/"}} to test outbound POST surface; include localhost/file:// variants.
+impact: cloud-metadata + internal-network read (and internal POST via callback) from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] Impersonation/name-squat `gladia` npm package
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 80
+reasoning: registry description "Official TypeScript SDK for Gladia" vs packaged README "Unofficial"; maintainer softwarecitadel (personal gmail), repo alexisbouchez/gladia.ts; 0.1.3 published 2025-04-07, pre-dating @gladiaio/sdk (2025-09-09); re-verified this session; tarball code benign.
+evidence_needed: none — metadata verified
+verify_steps: PASSIVE — done (registry metadata + publish times + repo field)
+impact: developers installing `gladia` run unofficial code; future account/repo hijack → supply-chain compromise; Medium
+testability: PASSIVE
+[HYP] Post-auth open redirect via redirect_to
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 55
+reasoning: redirect_to reflected server-side into form action (verified GET) across email/password and Google paths; unsigned return-to cookie proves server-driven redirect; post-auth final Location unobserved.
+evidence_needed: with a real session, final Location for cross-origin variants (https://evil.example.com, //evil.example.com)
+verify_steps: AUTH_HELPED — complete sign-in then submit redirect_to=https://evil.example.com; capture post-auth Location; escalate only if reused as OAuth redirect_uri
+impact: phishing/OAuth-flow manipulation → Low-Med
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- None dropped: all ≥40 confidence, none on REJECTED class list, all have concrete verify_steps.
+- [FINAL] 1. SSRF audio_url/callback_url (72)  2. `gladia` npm impersonation (80)  3. redirect_to open redirect (55)
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: request a program-provided or personal trial `x-gladia-key`, then POST https://api.gladia.io/v2/pre-recorded `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` vs `{"audio_url":"http://<attacker-canary>"}` and compare `status`/`error_message`/duration; repeat with `video_url` on /video/text/video-transcription, then with `{"callback":{"url":"http://169.254.169.254:80/"}}` to probe the outbound POST surface.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: `callback`/`callback_config` outbound POST/PUT to attacker-supplied URL is documented (OpenAPI CallbackConfigDto), part of the SSRF surface — not a vuln by itself
+- [LEARN] ACCEPTED OTHER @ gladiaio/skills: new official agent-skills repo auto-synced from docs.gladia.io; adds agent-install supply-chain surface within scope
+
+STEP 7 — RISK SCORE
+- [RISK] api.gladia.io: 45 | two server-side fetch surfaces (audio_url inbound, callback outbound) are real but key-gated; OpenAPI + /health remain public; no credential-supported CORS
+- [RISK] app.gladia.io: 40 | redirect_to reflection confirmed server-side, post-auth behavior still unverified; cookie hygiene correct
+- [RISK] sdk: 52 | active `gladia` impersonation on npm (official claim + unofficial code) plus new gladiaio/skills agent-install surface
