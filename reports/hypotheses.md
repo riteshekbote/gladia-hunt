@@ -255,3 +255,21 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-
+
+## RANKED HYPOTHESES 2026-08-08 04:03:29 UTC
+- [85] npm: Artifact-level package impersonation + WebSocket API-key leakage in npm `gladia`@0.1.3 (from reports/hypotheses-laguna.txt)
+- [85] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize the `gladia`@0.1.3 report writeup with this cycle's delta — (a) source repo alexisbouchez/gladia.ts + user account now 404 (orphaned, disclosure p
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via the official `gladia.io/bug-bounty-report` form (evidence: tarball sha256 3b23ec7d..., README "Unofficial" vs packag
+- NEXT(hypotheses-laguna.txt): HUMAN: phase is POC, target is app. The reflection surface for `redirect_to` on app.gladia.io `/signin` is confirmed unauthenticated (04:01 UTC), but post-auth 
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 02:50 UTC across protocol-relative //evil, bare-host, app.gladia.io.evil confusin
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50→04:01 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powe
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 04:01 UTC (OPTIONS /v2/transcription 204 xpb
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: GET /v2/transcription (no key) → 401 NestJS HttpException shape confirmed fresh 04:01 UTC (timestamp 2026-08-08T04:01:14.742
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 04:01 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/model
+- LEARN: CONFIRMED OTHER @ npm `gladia`@0.1.3: orphaned impersonation re-verified 04:01 UTC — `npm view` 4 versions [0.1.0–0.1.3], latest=0.1.3; GitHub API + web `alexis
+- LEARN: ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthe

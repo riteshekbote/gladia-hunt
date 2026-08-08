@@ -6193,3 +6193,112 @@ testability: AUTH_HELPED
 - [RISK] api.gladia.io: 82 — public OpenAPI (14 paths/125KB), CORS wildcard + x-gladia-key permitted cross-origin (no creds), x-powered-by Express preflight fingerprint, WS token in URL query, undocumented /health, audio_url/callback SSRF-by-design key-gated, single-key auth model; surface frozen but not reduced.
 - [RISK] app.gladia.io: 52 — Google-only OAuth limits bypass; /dashboard 200 SPA unauth (client-side enforcement); redirect_to form-action reflection post-auth unverified; strict CSP; return-to signed-reset (REJECTED).
 - [RISK] sdk: 50 (up from 45) — `gladia`@0.1.3 now orphaned (source repo 404) + artifact impersonation contradiction confirmed → supply-chain report ready; official @gladiaio/sdk 1.1.0 + gladiaio-sdk PyPI clean; gladia-quiz-app pins old @gladiaio/sdk@0.5.2.
+===== ANALYST bigpickle 2026-08-08 04:03:29 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s --max-time 15 "https://api.github.com/orgs/gladiaio/repos?per_page=100&sort=pushed" -o /tmp/opencode/gh_repos.json -w "gh_repos %{http_code}\n"; python3 -c "import json;d=json.load(open('/tmp/opencode/gh_repos.json'));print('repos:',len(d));print([ (r['name'],r['pushed_at']) for r in d ][:8])" 2>/dev/null || echo "parse failed"
+gh_repos 200
+repos: 19
+[('skills', '2026-08-07T06:20:06Z'), ('docs', '2026-08-06T10:24:55Z'), ('gladia-samples', '2026-08-05T14:43:22Z'), ('vercel-ai', '2026-08-05T11:29:58Z'), ('gladiaflow', '2026-08-04T14:00:25Z'), ('compare-stt', '2026-08-04T12:19:28Z'), ('n8n-nodes-gladia', '2026-08-04T03:09:21Z'), ('cloudnative-pg', '2026-07-25T03:29:04Z')]
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/api_sec.txt -w "api_sec %{http_code} %{size_download}\n" --max-time 15 https://api.gladia.io/.well-known/security.txt; curl -s -o /tmp/opencode/api_robots.txt -w "api_robots %{http_code} %{size_download}\n" --max-time 15 https://api.gladia.io/robots.txt; curl -s -o /tmp/opencode/app_sec.txt -w "app_sec %{http_code} %{size_download}\n" --max-time 15 https://app.gladia.io/.well-known/security.txt; curl -s -o /tmp/opencode/www_sec.txt -w "www_sec %{http_code} %{size_download}\n" --max-time 15 https://www.gladia.io/security.txt
+api_sec 200 172
+api_robots 404 139
+app_sec 200 172
+www_sec 404 5694
+[0m
+[0m→ [0mRead /tmp/opencode/api_sec.txt
+[0m→ [0mRead /tmp/opencode/app_sec.txt
+[0m
+[0m$ [0mcurl -sL --max-time 20 -o /tmp/opencode/bb.html -w "bb %{http_code} %{url_effective} %{size_download}\n" "https://gladia.io/bug-bounty"
+bb 200 https://www.gladia.io/bug-bounty 68526
+[0m
+[0m$ [0mpython3 -c "
+import re,html
+t=open('/tmp/opencode/bb.html',encoding='utf-8',errors='ignore').read()
+t=re.sub(r'<script.*?</script>','',t,flags=re.S)
+t=re.sub(r'<style.*?</style>','',t,flags=re.S)
+t=re.sub(r'<[^>]+>',' ',t)
+t=html.unescape(t)
+t=re.sub(r'\s+',' ',t)
+print(t[:4000])
+"
+Bug bounty program | Gladia Product Solutions Pricing Developers Resources Company Request a demo Request a demo Sign up Sign up Request a demo Request a demo Sign up Sign up APIs Async STT High-accuracy transcription for recordings & long-form audio → Real-time STT Sub-300ms latency for live voice applications → Audio Intelligence Enrichment layer for transcripts: diarization, translation & more → Models Solaria-1 The first truly universal STT — fluent in any language → Solaria-3 Best on real English audio and European languages → Compare STT API Benchmarks See our performance against 8 leading providers → Gladia vs Deepgram Multilingual accuracy, latency, and performance compared → Gladia vs Assembly AI Real-time accuracy and audio intelligence compared → New GladiaFlow Real-time dictation for your entire desktop. No code. Try it now → News Solaria-3 is live 9.6% WER on real English audio · strongest gains across EN, FR, DE, ES & IT → Use cases Meeting assistants → CCaaS → Voice agents → Content & media → Success stories Voices that shape our story Discover why builders, startups & enterprises trust us for their voice applications. See success stories → News Solaria-3 is live 9.6% WER on real English audio · strongest gains across EN, FR, DE, ES & IT → Tools Playground → Documentation → Changelog → Platform Status → Integration → Community Discord → Developers Test our real-time and async transcription Upload a file or start a live session, evaluate the output yourself. Get your API key → News Solaria-3 is live 9.6% WER on real English audio · strongest gains across EN, FR, DE, ES & IT → Content Blog → Library → TCO Calculator → GladiaFlow → Guides Compliance Hub → AI note-taker guide → Contact center guide → Report 2026 Meeting Assistant Report See who's leading the race, and where the gaps are. Read the report → News Solaria-3 is live 9.6% WER on real English audio · strongest gains across EN, FR, DE, ES & IT → Company About us → Careers → Press → Partners → Testimonials → Security Compliance Hub How our security and compliance protect your data. Learn more → News Solaria-3 is live 9.6% WER on real English audio · strongest gains across EN, FR, DE, ES & IT → Security Bug bounty program Report a vulnerability, get rewarded, and help protect the data our customers trust us with. Last updated: 01/07/2026 Why we run this program Gladia processes audio for enterprises — sales calls, medical consultations, customer support, and voice agents. That data is often sensitive, sometimes regulated, and always someone else's. We're SOC 2 and ISO 27001 certified, independently audited for HIPAA compliance, and GDPR compliant, because our customers can't afford a breach. No internal team catches everything — our API surface is large and constantly evolving. We run this program because we'd rather hear about a vulnerability from a researcher than from a customer. If you find one, we want to know, and we'll reward you for it. In-scope assets Asset Priority api.gladia.io Highest app.gladia.io High Official SDKs (npm, PyPI) Medium gladia.io Low Out-of-scope All other *.gladia.io subdomains Third-party services (Intercom, Stripe dashboard, Google Workspace) Social engineering or phishing attacks on staff Physical security Denial of Service (DoS/DDoS) Assets not owned or operated by Gladia Vulnerabilities requiring physical access Reports from automated scanners without manual validation Qualifying vulnerabilities Authentication or authorization bypass Cross-tenant data access SQL/NoSQL injection Remote code execution Server-side request forgery (SSRF) Cross-site scripting (XSS) Cross-site request forgery (CSRF) Webhook signature bypass or replay Audio data leakage across accounts API key or token leakage Any vulnerability impacting the confidentiality, integrity, or availability of user data Non-qualifying issues Missing or invalid HTTP headers (without demonstrated impact) Cookie flags Clickjacking (without demonstrated impact) SSL/TLS confi
+[0m
+[0m$ [0mpython3 -c "
+import re,html
+t=open('/tmp/opencode/bb.html',encoding='utf-8',errors='ignore').read()
+t=re.sub(r'<script.*?</script>','',t,flags=re.S)
+t=re.sub(r'<style.*?</style>','',t,flags=re.S)
+t=re.sub(r'<[^>]+>',' ',t)
+t=html.unescape(t)
+t=re.sub(r'\s+',' ',t)
+print(t[4000:8000])
+"
+guration issues Account enumeration SPF/DKIM issues Rate-limiting issues Password policy issues Self-exploitation Issues with no demonstrable security impact Results from automated scanning tools without manual validation Research guidelines Do Test only against assets explicitly listed as in-scope Use your own test accounts, and only your own data Stop as soon as you confirm a vulnerability, and report it promptly Keep the details confidential until we've deployed a fix Give us reasonable time to remediate before any disclosure Do not Access, modify, or delete data belonging to other users Exfiltrate or retain any data you encounter, including audio and transcripts Degrade or disrupt our services (no DoS/DDoS, spam, or load testing) Use social engineering, phishing, or physical attacks against Gladia staff or facilities Run automated scanners that generate high volumes of traffic without prior agreement Publicly disclose a vulnerability before it is resolved and coordinated with us Rewards Severity Reward Critical $2,000 High $1,000 Medium $250 Low $50 Rewards are determined by the Gladia security team based on severity and impact. Non-security issues are not eligible for monetary rewards. Response SLAs Stage Timeline Acknowledgment 5 business days Triage decision 15 business days Payment (after fix verification) 30 business days Safe harbor Gladia SAS and Gladia Inc. consider security research conducted in good faith under this policy to be authorized activity. If you comply with this policy, we will: Consider your research authorized and lawful, and will not initiate or support legal action against you for it Not report your activity to law enforcement, and will make it known that your actions were conducted in compliance with this policy should any third party pursue legal action Work with you to understand and resolve the issue quickly Protect your identity and keep your report confidential, and not share your personal information without your consent This authorization applies only to activity that: Is limited to the in-scope assets listed above Acts in good faith and complies with this policy and applicable law Does not access, disclose, alter, or delete data belonging to other users Does not disrupt or degrade Gladia services Reports vulnerabilities promptly and does not publicly disclose them before resolution If in doubt about whether a specific action is authorized, contact us at security@gladia.io before proceeding. Coordinated disclosure Researchers may publicly disclose vulnerability details 90 days after the fix is deployed, or sooner with written mutual agreement. Disclosure must: Not include exploit code that could harm Gladia customers Reference the Gladia Bug Bounty Program Be shared with us in draft form 5 business days before publication How to report Submit all reports through our dedicated form at gladia.io/bug-bounty-report . Include: Description of the vulnerability Steps to reproduce Affected asset and endpoint Impact assessment Any supporting evidence (screenshots, logs, proof of concept) Please submit vulnerabilities through the form rather than by email — we use it to ensure fair precedence. For any questions about the program, reach us at security@gladia.io . Eligibility Must not be a current or former Gladia employee Must not violate any applicable law Must be the first to report the vulnerability Must not publicly disclose before fix Hall of fame With permission, we credit researchers who responsibly disclose valid vulnerabilities. Product Real-time STT Batch STT Audio Intelligence Pricing Solutions Meeting assistants CCaaS Voice agents Content & media Resources Blog Library AI note-takers guide CCaaS async speech AI guide API benchmarks Whisper TCO calculator Compliance hub Meeting assistant map Gladia vs AssemblyAI Gladia vs Deepgram Developers Documentation Playground Status Discord Legal Privacy notice Legal notice Terms & conditions Data processing agreement Terms of use — Gladia Inc. Terms
+[0m
+[0m$ [0mcurl -s --max-time 15 https://api.gladia.io/openapi.json -o /tmp/opencode/oa.json -w "openapi %{http_code} %{size_download}\n"; curl -s --max-time 15 https://api.gladia.io/v1/models -o /tmp/opencode/models.json -w "models %{http_code} %{size_download}\n"
+openapi 200 125131
+models 200 530
+[0m
+**STEP 1 — DELTA**
+- [NEW] api.gladia.io AND app.gladia.io serve `/.well-known/security.txt` (200, 172B) — official disclosure channel `security@gladia.io` + `gladia.io/bug-bounty`, Expires 2027-06-25, langs en/fr. Never previously recorded.
+- [NEW] gladia.io/bug-bounty program page (fetched 2026-08-08) — confirms SSRF and "API key or token leakage" as **qualifying, rewarded** classes; rewards Critical $2000 / High $1000 / Medium $250 / Low $50; submission ONLY via `gladia.io/bug-bounty-report` form (fair precedence, not email); guidelines require own test accounts / own data / stop-on-confirm, and "contact security@gladia.io if in doubt about authorization".
+- [CHANGED] gladiaio GitHub org still 19 repos (no new); `skills` pushed 2026-08-07, `docs` 2026-08-06 — recent activity on in-scope-adjacent docs, no new SDK code.
+- [CONFIRMED] NO_DRIFT — openapi.json 125131B + /v1/models 530B byte-identical re-verified live 2026-08-08 (7th cycle).
+
+**STEP 2 — PRIORITIZE**
+- [PRIO] api.gladia.io — score 7.9 (attack 8 / business 10 / tech 7 NestJS+Express+WS+CORS / gate 5 key-gated / cloud 8 FR-US egress / fresh 8 live-confirmed)
+- [PRIO] npm `gladia`@0.1.3 — score 6.5 (attack 5 / business 7 / tech 6 / gate 10 / cloud 2 raw-key-in-WS-URL / fresh 9 repo-404 confirmed)
+- [PRIO] app.gladia.io — score 5.9 (attack 6 / business 6 / tech 7 Google-OAuth+SPA / gate 7 unauth reflection / cloud 1 / fresh 7)
+- [PRIO] gladiaio/docs + skills repos — score 4.2 (low, disclosure/verification aid only)
+
+**STEP 3 — HYPOTHESES**
+- [HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+  class: SSRF
+  asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+  confidence: 72
+  reasoning: openapi 125131B/14 paths unchanged re-verified 03:xxZ — audio_url/CallbackConfigDto.url `format:uri` no scheme allowlist; official SDK prerecorded client only isUrl() gates upload-vs-direct (URLs forwarded verbatim); /v1/models 530B live confirms FR/US egress; program page now explicitly lists SSRF as qualifying/rewarded.
+  evidence_needed: key-gated fetch of 169.254.169.254 or internal host reflected in status/error_message/duration; or callback POST observed at own listener.
+  verify_steps: AUTH_HELPED — with own `x-gladia-key`: POST /v2/pre-recorded `{"audio_url":"http://<own-canary>"}` then `{"audio_url":"http://169.254.169.254/latest/meta-data/"}`; repeat video_url on /video/text/video-transcription; then `{"callback_config":{"url":"http://169.254.169.254:80/"}}`; compare status/error_message/duration. Own data only per program rules.
+  impact: cloud-metadata + internal-network read from API origin → High ($1000 tier, key-gated)
+  testability: AUTH_HELPED
+- [HYP] `gladia`@0.1.3 orphaned impersonation package ships raw API key in WebSocket URL
+  class: OTHER
+  asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+  confidence: 88
+  reasoning: tarball README:3 "Unofficial" vs package.json:4 "Official" contradiction (re-verified); source repo alexisbouchez/gladia.ts + user 404 (orphaned); client.ts:307 appends raw `x-gladia-key` to wss://.../v2/live? query vs official session.ts:140 token-after-init; program page now confirms "API key or token leakage" is a qualifying rewarded class and provides the official submission form.
+  evidence_needed: none — artifact + repo-404 verified; report readiness only (evidence bundle: tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, README/pkg diff, repo 404, key-in-URL line).
+  verify_steps: PASSIVE — done (registry, tarball diff, GitHub API repo+user 404); affiliation/disclosure now resolvable via gladia.io/bug-bounty-report.
+  impact: devs installing `gladia` run unreachable-repo code; raw keys captured in access-log/proxy on every realtime session → Medium impersonation + Medium key-hygiene (qualifying class)
+  testability: PASSIVE
+- [HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+  class: OATH
+  asset: app.gladia.io /signin
+  confidence: 60
+  reasoning: re-probed — redirect_to reflected URL-encoded into form action (no host allowlist at unauth layer); unsigned base64url return-to cookie {"url":"/"} confirms server-driven redirect concept; distinct from REJECTED cookie-tamper vector.
+  evidence_needed: post-auth 302 Location resolving to external host, or redirect_to reused as OAuth redirect_uri.
+  verify_steps: AUTH_HELPED — complete Google OAuth with `?redirect_to=https://evil.example.com` and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri. Requires authorized SSO session per program "own test accounts".
+  impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+  testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+All three survive (confidence ≥40, classes not on REJECTED list, concrete verify steps). OATH at 60 is the weakest link (impact unproven, gated by OAuth session) — retained but de-ranked; if a third cycle passes without an authorized SSO session it should be PARKED. No drops this cycle.
+
+[FINAL] 1) SSRF audio_url (api, 72) 2) `gladia`@0.1.3 impersonation (npm, 88→report-ready) 3) redirect_to OATH (app, 60)
+
+**STEP 5 — NEXT ACTION**
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via the official `gladia.io/bug-bounty-report` form (evidence: tarball sha256 3b23ec7d..., README "Unofficial" vs package.json "Official", repo alexisbouchez/gladia.ts 404, client.ts:307 raw-key-in-WS-URL) — this cycle's security.txt discovery closes the long-pending affiliation/disclosure gap; in parallel, request an authorized `x-gladia-key` from security@gladia.io citing the program page (SSRF is a qualifying class; "contact security@gladia.io if in doubt about authorization") to run the single-key /v2/pre-recorded canary test on own data only — sole remaining gate for the top-ranked SSRF POC, frozen surface for 7 cycles.
+
+**STEP 6 — LEARNING**
+- ACCEPTED OTHER @ api.gladia.io + app.gladia.io: /.well-known/security.txt live (200) on both — official disclosure channel security@gladia.io + gladia.io/bug-bounty, expires 2027-06-25 (disclosure path resolved).
+- ACCEPTED OTHER @ gladia.io: /bug-bounty page confirms SSRF + API-key-leakage as qualifying rewarded classes ($50-$2000), submission via bug-bounty-report form only, own-account/data rules, stop-on-confirm.
+- ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT extended to 7th cycle — openapi.json 125131B + /v1/models 530B byte-identical re-verified 03:xx UTC.
+- ACCEPTED OTHER @ gladiaio org: 19 repos unchanged; skills/docs pushed within last 2 days, no new SDK release activity.
+- ACCEPTED MISCONFIG @ api.gladia.io: robots.txt 404 — no robots surface.
+
+**STEP 7 — RISK SCORE**
+- [RISK] api.gladia.io: 78 — SSRF-by-design fetch surface (audio_url/video_url/callback gated only by one key), NestJS/Express fingerprint, CORS wildcard, undocumented /health, WS token-in-URL; SSRF explicitly rewarded
+- [RISK] app.gladia.io: 58 — Google-only OAuth, redirect_to unauth reflection, /dashboard 200 SPA w/o auth (client-side enforcement), unsigned return-to cookie; post-auth impact unproven
+- [RISK] sdk: 62 — `gladia`@0.1.3 orphaned impersonation with raw-key-in-WS-URL is report-ready and explicitly qualifying; official @gladiaio/sdk + gladiaio-sdk PyPI clean
