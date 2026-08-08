@@ -150,3 +150,5 @@
 
 ## 2026-08-08 11:41:38 UTC
 - CHANGED app.gladia.io CSP confirmed: base-uri 'self', object-src 'none', frame-src 'self'+*.gladia.io+billing+svix; NO form-action directive (gap enables unconstrained form-action reflection)
+
+## 2026-08-08 12:03:43 UTC

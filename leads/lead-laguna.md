@@ -1010,3 +1010,4 @@ testability: PASSIVE
 [PARKED] app.gladia.io /dashboard SPA 200 (MISCONFIG, conf 35): below 40 + by-design SPA; no protected JSON at unauth layer → dropped
 [FINAL] 1) app.gladia.io /signin post-auth open redirect via reflected redirect_to + CSP form-action gap (OATH, 65, HUMAN_ONLY) — sole gate = post-auth honoring (auth-flow completion)
 [NEXT] HUMAN: With program authorization, complete Google OAuth (or email/password) signin on app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final 302 Location — sole unverified gate for the app OATH finding; if no Google test-account available, request a Gladia-issued test credential/sandbox account to run the email-password flow and observe post-auth redirect honoring.
+## 2026-08-08 12:03:32 UTC [app] (model laguna)
