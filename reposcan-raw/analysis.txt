@@ -1,48 +1,33 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-# Static Scan Triage — gladiaio org + npm @gladiaio/sdk
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+### Classification Table
 
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | — | — | No live credentials found; `sk-********` in Gallery.tsx is a masked placeholder |
-
-### TEST_OR_EXAMPLE
-| File | Line | Content |
-|------|------|---------|
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` (placeholder) |
-| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21, 27, 34 | Test fixtures using "gladiaflow" strings |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public API base (known, in scope) |
-| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{id}` | Public dashboard URL |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
-| `gladia-quiz-app/app/layout.tsx` | 43 | `https://unpkg.com/@gladiaio/sdk@0.5.2` | Public CDN (older SDK version) |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| `npm/gladia.json` | 1 | **Impersonation package**: `gladia@0.1.3` claims "Official TypeScript SDK for Gladia" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` — **known anomaly** |
-| `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | Direct API implementation using `x-gladia-key` header (bypasses official SDK) |
-| `gladia-quiz-app/package.json` | 24 | Pins `@gladiaio/sdk@^0.6.0` (older than current 1.1.0) |
-| `gladiaflow/src-tauri/Cargo.toml` | 5 | `authors = ["Gladia <support@gladia.io>"]` — official authorship claim |
+| Category | File | Line | Finding | Classification |
+|----------|------|------|---------|----------------|
+| **INTERESTING** | `reposcan-raw/npm/gladia.json` | 1 | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` | **INTERESTING** — Impersonation anomaly (unofficial package masquerading as official) |
+| **INTERESTING** | `reposcan-raw/npm/gladia.json` | 1 | Package README title = "Unofficial TypeScript SDK" vs package.json description = "Official TypeScript SDK" | **INTERESTING** — Contradiction confirms impersonation |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `href="https://app.gladia.io"` | **ENDPOINT_LEAK** — Legitimate prod domain reference |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **ENDPOINT_LEAK** — Legitimate prod URL template |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **ENDPOINT_LEAK** — Legitimate prod URL |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` | **ENDPOINT_LEAK** — Legitimate API base URL |
+| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** — Masked placeholder (asterisks) |
+| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` | **TEST_OR_EXAMPLE** — Explicit test value |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/compare-stt/next.config.ts` | 38,44 | `destination: "https://www.gladia.io/compare-stt-apis"` | **ENDPOINT_LEAK** — Legitimate prod rewrite target |
+| **ENDPOINT_LEAK** | Multiple files | Various | References to `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io` | **ENDPOINT_LEAK** — All legitimate in-scope domains |
 
 ---
 
-## Verdict List
+### Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm package | INTERESTING (impersonation) | **no** | Already tracked as **ACCEPTED OTHER** in knowledge base (2026-08-07); ownership anomaly confirmed, requires affiliation verification via program channel |
-| Direct API usage in `compare-stt` | INTERESTING | **no** | Legitimate integration pattern; uses public `api.gladia.io/v2` with `x-gladia-key` header per spec |
-| Older SDK version in `gladia-quiz-app` | INTERESTING | **no** | Dependency lag, not a security issue |
-| No live secrets found | REAL_SECRET | **no** | Only masked placeholder `sk-********` present |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|-----------------|--------|
+| `gladia@0.1.3` npm package impersonation | **yes** | Package claims "Official" but published from personal GitHub repo (`alexisbouchez/gladia.ts`) by maintainer `softwarecitadel@gmail.com` (no Gladia affiliation); README says "Unofficial" — clear impersonation anomaly. Already tracked in KB as ACCEPTED OTHER. |
+| `sk-********` / `sk-example` in gladiaflow screenshots | **no** | Obvious test fixtures (masked asterisks, literal "example") in screenshot gallery component — not real credentials. |
+| All `gladia.io` / `api.gladia.io` / `app.gladia.io` URL references | **no** | Legitimate in-scope production endpoints; no internal/staging/non-Gladia domains leaked. |
+| `@gladiaio/sdk` usage in gladia-quiz-app, compare-stt | **no** | Official SDK from Gladia org — expected usage. |
 
----
-
-**Summary**: Zero new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and tracked. Surface is frozen (14+ NO_DRIFT cycles on api.gladia.io).
+**Only one reportable candidate:** the `gladia@0.1.3` npm package impersonation (already documented in KB as ACCEPTED OTHER 2026-08-07). No new secrets, no new endpoint leaks beyond known surface.
