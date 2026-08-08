@@ -2,11 +2,14 @@ name: Triager - Validate Leads
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "23,53 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+env:
+  PROBE_ALLOW: "gladia"
 
 jobs:
   triage:
@@ -91,7 +94,7 @@ jobs:
           echo "" >> triage-prompt.txt
           echo "LEADS:" >> triage-prompt.txt
           cat new-leads.txt >> triage-prompt.txt
-          timeout 15m opencode run --model "$MODEL_ID" < triage-prompt.txt > triage-output.txt 2>&1 || true
+          timeout -k 15 15m opencode run --model "$MODEL_ID" < triage-prompt.txt > triage-output.txt 2>&1 || true
           echo "=== triage preview ==="; head -40 triage-output.txt
 
       - name: Update valid-bugs counter

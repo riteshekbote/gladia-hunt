@@ -2,12 +2,15 @@ name: Senior Hunter - Analyst Pipeline (gladia)
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
   actions: write
+
+env:
+  PROBE_ALLOW: "gladia"
 
 jobs:
   analyst:
@@ -112,7 +115,7 @@ jobs:
           RULES: facts vs hypotheses strictly separated; no endpoint-map-only output; no class on the REJECTED list; never mention secrets in full (hash them with sha256sum); all claims must trace to the context provided or your own read-only probes; passive-first only (≤1 rps, GET/HEAD); any scanner output requires manual validation before it becomes a lead.
           PROMPT_EOF
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
-          timeout 18m opencode run --model "$MODEL_ID" < analyst-prompt.txt > analyst-out.txt 2>&1 || true
+          timeout -k 15 18m opencode run --model "$MODEL_ID" < analyst-prompt.txt > analyst-out.txt 2>&1 || true
           cp analyst-out.txt analyst-${MODEL_NAME}.out
           grep -E '^\[(NEW|CHANGED|PRIO|HYP|PARKED|FINAL|NEXT|LEARN|RISK)\]|^class:|^confidence:|^asset:|^impact:|^testability:|^verify_steps:|^reasoning:|^evidence_needed:' analyst-out.txt > lead.txt || true
           {
@@ -226,11 +229,44 @@ jobs:
           print('merged', len(all_h), 'hypotheses')
           PY_EOF
 
+            - name: Run passive verifier on hypotheses (read-only)
+        shell: bash
+        run: |
+          python3 << 'ROBOT_PY'
+          import re, glob, ssl, urllib.request, os, time
+          allow = os.environ.get('PROBE_ALLOW', '').lower()
+          pat = re.compile(r'https://[^\s"\'\)\]\}]+')
+          urls, seen = [], set()
+          for f in glob.glob('art/lead_*.txt') + glob.glob('lead_*.txt') + glob.glob('raw_*.txt') + glob.glob('analyst-*.out'):
+            try: txt = open(f, errors='ignore').read()
+            except OSError: continue
+            for m in pat.findall(txt):
+              u = m.strip('.,;)]}>')
+              if u in seen: continue
+              seen.add(u)
+              if allow and not any(a in u.lower() for a in allow.split('|')): continue
+              urls.append(u[:300])
+          ctx = ssl.create_default_context()
+          rows = []
+          for u in urls[:12]:
+            try:
+              req = urllib.request.Request(u, method='GET', headers={'User-Agent': 'Mozilla/5.0 (passive verifier)'})
+              with urllib.request.urlopen(req, timeout=12, context=ctx) as r:
+                rows.append('%s -> %s len=%s type=%s' % (u, r.status, r.headers.get('Content-Length', '?'), r.headers.get('Content-Type', '')[:40]))
+            except urllib.error.HTTPError as e:
+              rows.append('%s -> HTTP %s' % (u, e.code))
+            except Exception as e:
+              rows.append('%s -> ERR %s' % (u, str(e)[:50]))
+          print('\n'.join(rows) if rows else 'no probes (allow=%s)' % allow)
+          with open('probe-results.md', 'a') as fo:
+            fo.write('\n## %s\n%s\n' % (time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime()), '\n'.join(rows)))
+          ROBOT_PY
+
       - name: Commit (single push, no race)
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add leads reports knowledge inventory state_*.json || true
+          git add leads reports knowledge inventory state_*.json probe-results.md || true
           if ! git diff --cached --quiet; then
             git commit -m "analyst cycle $(date -u +'%Y-%m-%d-%H-%M')"
           fi
