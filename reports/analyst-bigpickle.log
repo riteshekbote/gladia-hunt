@@ -7046,3 +7046,206 @@ STEP 7 — RISK SCORE:
 - [RISK] api.gladia.io: 56 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url, no scheme allowlist), undocumented /health, CORS wildcard-with-x-gladia-key; NEW: confirmed dual-instance egress pool + deploy-window leak via spec examples; all key-gated.
 - [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + client-side-only /dashboard SPA; OAuth SSO in path.
 - [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean.
+===== ANALYST bigpickle 2026-08-08 08:03:21 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/openapi.json -w "openapi:%{http_code}:%{size_download}\n" --max-time 20 https://api.gladia.io/openapi.json; sha256sum /tmp/opencode/openapi.json
+openapi:200:125131
+5373d92b88d5984cdb8a820bf65fc455366f7fe5a764055b8dcc95733ae4e2f1  /tmp/opencode/openapi.json
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "health:%{http_code}:%{size_download}\n" --max-time 20 https://api.gladia.io/health; sleep 1; curl -s -o /dev/null -w "models:%{http_code}:%{size_download}\n" --max-time 20 https://api.gladia.io/v1/models
+health:200:15
+models:200:530
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/openapi.json'))
+paths=sorted(d.get('paths',{}).keys())
+print('paths',len(paths))
+for p in paths: print(' ',p)
+"
+paths 14
+  /audio/text/audio-transcription
+  /v1/history
+  /v1/models
+  /v2/live
+  /v2/live/{id}
+  /v2/live/{id}/file
+  /v2/pre-recorded
+  /v2/pre-recorded/{id}
+  /v2/pre-recorded/{id}/file
+  /v2/transcription
+  /v2/transcription/{id}
+  /v2/transcription/{id}/file
+  /v2/upload
+  /video/text/video-transcription
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/openapi.json'))
+s=json.dumps(d)
+for k in ['audio_url','video_url','callback_config','callback_url','webhook','metadata','x-gladia-key','api_key','apikey','token','files.gladia.io']:
+    print(k, s.count(k))
+import hashlib
+print('servers', d.get('servers'))
+print('info', d.get('info'))
+"
+audio_url 10
+video_url 1
+callback_config 8
+callback_url 2
+webhook 3
+metadata 38
+x-gladia-key 1
+api_key 0
+apikey 0
+token 2
+files.gladia.io 6
+servers [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+info {'title': 'Gladia Control API', 'description': '', 'version': '1.0', 'contact': {}}
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/openapi.json'))
+s=json.dumps(d)
+import re
+# find any numbers that look like timestamps or dynamic ids
+for m in re.findall(r'\"[a-zA-Z_]*(?:id|ts|time|date|created|updated)[a-zA-Z_]*\"\s*:\s*\"[^\"]+\"', s)[:20]:
+    print(m)
+# look for any date-like strings
+for m in re.findall(r'20\d\d-\d\d-\d\d', s)[:10]:
+    print('DATE',m)
+"
+"id": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+"request_id": "G-45463597"
+"created_at": "2023-12-28T09:04:17.210Z"
+"id": "f0dcZE10-23d8-47f0-a25d-74a6eed88721"
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2023-12-28
+DATE 2026-08-07
+DATE 2026-08-07
+DATE 2026-08-07
+[0m
+[0m$ [0mcurl -s --max-time 20 https://api.gladia.io/openapi.json -o /tmp/opencode/openapi2.json; sha256sum /tmp/opencode/openapi2.json; cmp -s /tmp/opencode/openapi.json /tmp/opencode/openapi2.json && echo IDENTICAL || echo DIFFER; python3 -c "
+import json
+a=json.load(open('/tmp/opencode/openapi.json')); b=json.load(open('/tmp/opencode/openapi2.json'))
+print('paths equal', sorted(a['paths'])==sorted(b['paths']))
+print('info equal', a['info']==b['info'])
+"
+2d8205d3f89b561c346ab2ae92ce31a7cf609a20adb25d24247f4c79d73ea085  /tmp/opencode/openapi2.json
+DIFFER
+paths equal True
+info equal True
+[0m
+[0m$ [0mpython3 -c "
+import json
+def strip(o):
+    if isinstance(o,dict): return {k:strip(v) for k,v in o.items() if k not in ('example','examples')}
+    if isinstance(o,list): return [strip(x) for x in o]
+    return o
+a=strip(json.load(open('/tmp/opencode/openapi.json')))
+b=strip(json.load(open('/tmp/opencode/openapi2.json')))
+print('structure identical (sans examples):', a==b)
+"
+structure identical (sans examples): True
+[0m
+[0m$ [0mcurl -s --max-time 20 https://api.gladia.io/health; echo; curl -s --max-time 20 -H "Origin: https://evil.test" https://api.gladia.io/v1/models | head -c 300; echo; curl -s -o /dev/null -w "OPTIONS:%{http_code}\n" --max-time 20 -X OPTIONS -H "Origin: https://evil.test" -H "Access-Control-Request-Headers: x-gladia-key" -H "Access-Control-Request-Method: POST" https://api.gladia.io/v2/transcription
+{"health":"OK"}
+{"data":[{"id":"gladia/solaria-1","name":"Gladia: Solaria 1","created":1730000000,"input_modalities":["audio"],"output_modalities":["text","transcription"],"context_length":0,"max_output_length":0,"pricing":{"prompt":"0","completion":"0","request":"0.000055"},"supported_sampling_parameters":[],"supp
+OPTIONS:204
+[0m
+[0m$ [0mcurl -s -o /dev/null -D - --max-time 20 -X OPTIONS -H "Origin: https://evil.test" -H "Access-Control-Request-Headers: x-gladia-key" -H "Access-Control-Request-Method: POST" https://api.gladia.io/v2/transcription | grep -iE "^(x-powered-by|access-control|content-length|http)"
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+x-powered-by: Express
+[0m
+[0m$ [0msleep 1; curl -s -o /dev/null -w "signin:%{http_code}\n" --max-time 20 "https://app.gladia.io/signin?redirect_to=https://evil.example.com"; sleep 1; curl -s --max-time 20 "https://app.gladia.io/signin?redirect_to=https://evil.example.com" | grep -oE 'action="[^"]*"' | head -3; sleep 1; curl -s -o /dev/null -w "dashboard:%{http_code}:%{size_download}\n" --max-time 20 https://app.gladia.io/dashboard
+signin:200
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+dashboard:200:12229
+[0m
+[0m$ [0mnpm view gladia version dist-tags --json --registry https://registry.npmjs.org 2>/dev/null; sleep 1; npm view gladia@0.1.3 dist.tarball dist.integrity --json --registry https://registry.npmjs.org 2>/dev/null
+{
+  "version": "0.1.3",
+  "dist-tags": {
+    "latest": "0.1.3"
+  }
+}
+{
+  "dist.tarball": "https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz",
+  "dist.integrity": "sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw=="
+}
+[0m
+[0m$ [0msleep 1; curl -s -w "\nHTTP:%{http_code}\n" --max-time 20 https://api.gladia.io/v2/transcription
+{"statusCode":401,"timestamp":"2026-08-08T07:59:47.517Z","path":"/v2/transcription","message":"no gladia key provided","request_id":"G-8b0a6b73"}
+HTTP:401
+[0m
+## 2026-08-08 08:00 UTC [api] (model bigpickle)
+
+STEP 1 — DELTA
+- [NEW] api.gladia.io: /openapi.json sha256 is NOT a stable fingerprint — two fetches 30s apart give different hashes (5373d92b… vs 2d8205d3…) at identical byte count 125131; structure sans `example` fields is byte-identical, so the doc is generated on-the-fly with fresh example values (job-id UUID, `request_id: G-<uuid-prefix>`, `created_at` 2026-08-07). All prior sha256-based NO_DRIFT comparisons (incl. "979f3731 unchanged") are invalidated; drift tracking must hash after stripping examples.
+- [NEW] api.gladia.io: live 401 request_id `G-8b0a6b73` == "G-" + first 8 hex of a UUID, matching the spec's generated example format (G-45463597) — spec generator and runtime share the same request-id generator, confirming the dynamic doc is produced by the live backend, not a static artifact.
+- NO_DELTA on: /health (200, 15B `{"health":"OK"}`), /v1/models (200, 530B, `created:1730000000` static), 14 OpenAPI paths unchanged, OPTIONS /v2/transcription 204 (ACAO `*`, ACAH `x-gladia-key`, `x-powered-by: Express` preflight-only), app.gladia.io /signin redirect_to reflection (`action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`), /dashboard 200 SPA shell, npm `gladia`@0.1.3 dist-tag latest + sha512 integrity unchanged.
+
+STEP 2 — PRIORITIZE
+- [PRIO] api.gladia.io /v2/pre-recorded fetch surface: 7.05 (attack 8, business 9, tech 8, gate 2, cloud 8, fresh 5)
+- [PRIO] npm `gladia`@0.1.3 (sdk): 6.05 (attack 6, business 7, tech 6, gate 10, cloud 0, fresh 4)
+- [PRIO] app.gladia.io /signin redirect_to: 5.45 (attack 5, business 6, tech 6, gate 8, cloud 1, fresh 5)
+- [PRIO] api.gladia.io dynamic openapi.json: 4.05 (attack 2, business 3, tech 4, gate 10, cloud 0, fresh 7)
+
+STEP 3 — HYPOTHESES
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 73
+reasoning: structure-sans-examples re-verified unchanged this cycle — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim (isUrl() gates upload-vs-direct only); /v1/models confirms FR/US egress; spec is generated live by the backend (request_id format matches runtime).
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; run ≥2x to cover the dual-instance egress pool; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] `gladia`@0.1.3 is an orphaned impersonation package at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 88
+reasoning: fresh npm view — dist-tag latest=0.1.3, integrity sha512-56NWQ9pEVyd… unchanged; source repo alexisbouchez/gladia.ts + user 404 (orphaned); README "Unofficial" vs package.json "Official"; client.ts:307 raw x-gladia-key in WS query.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia.
+verify_steps: PASSIVE — done (npm view, tarball sha256 3b23ec7d…, GitHub API 404); submission is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: reflection re-confirmed fresh (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", no host allowlist at unauth layer); unsigned base64url return-to cookie confirms server-driven redirect concept; protected routes are real server-side 302.
+evidence_needed: post-auth 302 Location to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- None dropped (all ≥40, concrete verify_steps, no class on REJECTED list).
+- [FINAL] 1) gladia@0.1.3 impersonation (npm, 88) 2) SSRF audio_url (api, 73) 3) redirect_to OATH (app, 60)
+
+STEP 5 — NEXT ACTION
+[NEXT] PROBE: confirm the dynamic-spec observation is systemic — three fetches of https://api.gladia.io/openapi.json spaced 30s apart must each yield a distinct sha256 while structure-sans-examples stays identical; if so, replace all future drift checks with a examples-stripped structural hash and record the generated `request_id`/`created_at` examples as a live-backend fingerprint (ties spec to runtime). Standing HUMAN dependency unchanged: submit gladia@0.1.3 report + request authorized key for the SSRF canary.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json is dynamically regenerated per request (distinct sha256 each fetch, structure sans examples stable) — prior sha256 NO_DRIFT comparisons were invalid; drift tracking must strip examples.
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: spec example `request_id` (G-<uuid8>) matches live 401 request_id format (G-8b0a6b73) — generated doc originates from the same backend as runtime errors.
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: re-confirmed 08:00 UTC — /health 15B, /v1/models 530B, 14 paths, OPTIONS 204 x-powered-by Express + ACAO `*`, key-gated 401 gate; no new endpoints, surface frozen structurally.
+- [LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection re-confirmed 08:00 UTC — action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring still AUTH_HELPED.
+- [LEARN] ACCEPTED OTHER @ npm: `gladia`@0.1.3 dist-tag latest + sha512 integrity re-confirmed unchanged 08:00 UTC — orphaned impersonation persists.
+
+STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 45 — frozen key-gated v2 surface with SSRF-by-design fetch fields (audio_url/video_url/callback_url) gated solely by key; preflight-only x-powered-by fingerprint + dynamic spec generation aid targeting, but no proven exploitable path without a key | app.gladia.io: 35 — confirmed unauth redirect_to reflection without host allowlist, but post-auth honoring unproven; SPA client-side /dashboard gate; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean
