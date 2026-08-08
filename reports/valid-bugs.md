@@ -27,3 +27,21 @@
   - | 2 | IDOR on /{id}/file | api.gladia.io | **HOLD** | Requires AUTH_HELPED (valid key + cross-user resource) |
   - | 4 | npm `gladia` impersonation | npm registry | **VALID** | Verified fact, supply-chain risk, passive proof complete |
   - | 10 | /v1/history query injection | api.gladia.io | **HOLD** | Requires AUTH_HELPED (valid key) |
+
+- 16 lead(s) marked VALID at 2026-08-08 07:21:35 UTC
+  - **Verdict: ✅ VALID**
+  - | **Q2 Reachability** | **PARTIAL** — all SSRF-capable endpoints are key-gated (401 without `x-gladia-key`). CORS `*` allows cross-origin but **without credentials**, so an attacker cannot present a v
+  - | **Q4 Proof (read-only)** | **NO** — requires a valid `x-gladia-key` to POST `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` and observe reachability signal. Cannot prove without AUTH_HELP
+  - | **Q7 Reasonable triager** | **CONDITIONAL** — a triager would accept IF a valid key is obtained and reachability is demonstrated. Without proof, HOLD. |
+  - | **Q4 Proof (read-only)** | **PARTIAL** — the *design* is confirmed via OpenAPI spec (`wss://api.gladia.io/v2/live?token=<uuid>`). Proving actual token theft/leakage requires a valid key to init a se
+  - **Verdict: ⏸️ HOLD** — Design confirmed via public OpenAPI spec (no auth needed to read spec). The token-in-URL pattern is a genuine weakness. However, proving actual token theft or session hijacking 
+  - | **Q2 Reachability** | **NO** — all `/{id}/file` endpoints are key-gated (401 without key). Cross-account testing requires two valid keys. |
+  - | **Q4 Proof (read-only)** | **NO** — requires valid key + cross-account testing. AUTH_HELPED. |
+  - | **Q6 Not rejected** | **YES** — IDOR is a valid vulnerability class. |
+  - **Verdict: ⏸️ HOLD** — Cannot verify without valid API key and a second account to test cross-account access. Spec does not expose ownership-binding logic.
+  - | **Q4 Proof (read-only)** | **NO** — requires valid key to test `custom_metadata[__proto__][x]=1` etc. |
+  - **Verdict: ⏸️ HOLD** — Gated on valid API key.
+  - | 1 | npm `gladia`@0.1.3 impersonation + WS key-in-URL | npm registry (MEDIUM) | **✅ VALID** | Verified impersonation, orphaned repo, credential leakage in WS URL |
+  - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid API key for AUTH_HELPED proof |
+  - | 8 | IDOR on `/{id}/file` downloads | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid key + cross-account test |
+  - | 9 | Query-param injection on `/v1/history` | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid key |
