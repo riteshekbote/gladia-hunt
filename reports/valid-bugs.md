@@ -72,3 +72,8 @@
   - | 1 | npm `gladia`@0.1.3 impersonation + orphaned repo + raw key in WS URL | npm registry (MEDIUM) | **VALID** | Verified supply-chain impersonation, orphaned repo, credential-leak code pattern |
   - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | **HOLD** | In-scope, real impact, design confirmed; proof gated on valid API key (AUTH_HELPED) |
   - | 3 | IDOR on /{id}/file downloads | api.gladia.io (HIGHEST) | **HOLD** | Needs valid key + cross-account test; UUID guessing infeasible |
+
+- 3 lead(s) marked VALID at 2026-08-08 19:52:44 UTC
+  - | Q4 Proof w/o invasive? | **No** — requires valid API key + canary/internal-URL fetch (AUTH_HELPED, violates no_data_modification / passive-first) |
+  - **Verdict: HOLD** — AUTH_HELPED only; needs program-provided or personal trial key + non-destructive canary fetch (audio_url → http://<your-canary>) to compare job error_code/timing. Do NOT probe 169.
+  - | Q4 Proof w/o invasive? | **No** — requires valid API key + second account / known other-{id} to test cross-owner fetch |
