@@ -1664,3 +1664,4 @@ testability: PASSIVE
 [RISK] app.gladia.io: 40 | Google-only OAuth, reachable redirect_to param with unvalidated post-auth behavior, cookies correctly flagged (HttpOnly/Secure/SameSite=Lax)
 [RISK] sdk: 50 | `gladia` npm package actively claims "Official" while unofficial (impersonation active); official @gladiaio/sdk metadata clean; tarball of `gladia` benign so far
 [HYP] SSRF via audio_url/video_url server-side fetch
+## 2026-08-08 21:16:50 UTC [app] (model laguna)
