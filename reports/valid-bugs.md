@@ -83,3 +83,7 @@
   - | 2. SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | ⏸️ **HOLD** — Needs valid API key (AUTH_HELPED) |
   - | 3. IDOR on `/{id}/file` downloads | api.gladia.io (HIGHEST) | ⏸️ **HOLD** — Needs valid key + cross-account test |
   - | 11. Query injection on `/v1/history` | api.gladia.io | ⏸️ **HOLD** — Needs valid key |
+
+- 2 lead(s) marked VALID at 2026-08-08 22:25:56 UTC
+  - | Q4 proof w/o invasive testing | NO — spec-only; ownership-binding logic is opaque, requires a valid key to test cross-account access. |
+  - **Verdict: HOLD (parked)** — retained as AUTH_HELPED; not reportable without a valid key. Below the confidence floor for a spec-only IDOR.
