@@ -988,3 +988,39 @@ testability: AUTH_HELPED
 ## 2026-08-08 04:01:08 UTC [api] (model bigpickle)
 [FINAL] 1) SSRF audio_url (api, 72) 2) `gladia`@0.1.3 impersonation (npm, 88→report-ready) 3) redirect_to OATH (app, 60)
 [NEXT] HUMAN: Submit the `gladia`@0.1.3 report via the official `gladia.io/bug-bounty-report` form (evidence: tarball sha256 3b23ec7d..., README "Unofficial" vs package.json "Official", repo alexisbouchez/gladia.ts 404, client.ts:307 raw-key-in-WS-URL) — this cycle's security.txt discovery closes the long-pending affiliation/disclosure gap; in parallel, request an authorized `x-gladia-key` from security@gladia.io citing the program page (SSRF is a qualifying class; "contact security@gladia.io if in doubt about authorization") to run the single-key /v2/pre-recorded canary test on own data only — sole remaining gate for the top-ranked SSRF POC, frozen surface for 7 cycles.
+## 2026-08-08 05:08:26 UTC [api] (model bigpickle)
+[PRIO] api.gladia.io — priority 6.55 — attack 8, business 9, tech 6, gate 2 (key-gated), cloud 8 (FR/US egress, SSRF-by-design), fresh 3
+[PRIO] npm `gladia`@0.1.3 — priority 5.75 — attack 3, business 7, tech 5, gate 10 (no auth), cloud 2, fresh 8 (re-verified)
+[PRIO] app.gladia.io — priority 5.60 — attack 6, business 7, tech 6 (OAuth SSO), gate 5 (unauth reflection / post-auth gate), cloud 2, fresh 5
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 72
+reasoning: spec live (openapi 125131B, sha256 979f3731…) still shows audio_url/CallbackConfigDto.url format:uri with no scheme allowlist; official SDK prerecorded client only isUrl() gates upload-vs-direct (URLs forwarded verbatim); /v1/models confirms FR/US egress; jobs return status/error_message/duration reachability signal. Unchanged 8 cycles.
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] `gladia`@0.1.3 is an orphaned impersonation package at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 88
+reasoning: npm view fresh — description "Official TypeScript SDK for Gladia", repo git+https://github.com/alexisbouchez/gladia.ts.git, maintainer softwarecitadel; repo + user 404 (orphaned); tarball sha256 3b23ec7d… has README "Unofficial" vs package.json "Official"; client.ts:307 raw x-gladia-key appended to WS query vs official sdk-1.1.0 session.ts:140 token-after-init. Disclosure channel now confirmed as bug-bounty-report Google Form (login-gated).
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia confirmation via form.
+verify_steps: PASSIVE — done (npm view, tarball diff, GitHub API repo/user 404); submission via form is the only remaining step.
+impact: devs on `gladia` run unofficial code; raw keys in WS URLs (access-log/proxy capture) → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: re-probed this cycle — ?redirect_to=https://evil.example.com reflected into form action (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"), no host allowlist at unauthenticated layer; unsigned base64url return-to cookie confirms server-driven redirect concept; distinct from REJECTED cookie-tampering vector.
+evidence_needed: post-auth 302 Location resolving to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+[FINAL] 1) `gladia`@0.1.3 impersonation (npm, 88) 2) SSRF audio_url (api, 72) 3) redirect_to OATH (app, 60)
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via the confirmed disclosure channel gladia.io/bug-bounty-report (Google Form, live this cycle; NOT security.txt which is 404) — evidence: tarball sha256 3b23ec7d…, README "Unofficial" vs package.json "Official" in same artifact, source repo+account 404 (orphaned), client.ts:307 raw key in WS URL vs official token-after-init; in the same engagement request an authorized `x-gladia-key` to run the /v2/pre-recorded canary POST on own data only (sole remaining gate for top-impact SSRF, surface frozen 8 cycles).
+[RISK] api.gladia.io: 55 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url, no scheme allowlist) + undocumented /health + CORS wildcard-with-x-gladia-key, all key-gated; exploit depends on key procurement
+[RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + client-side-only auth on /dashboard SPA; OAuth SSO in path
+[RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean
