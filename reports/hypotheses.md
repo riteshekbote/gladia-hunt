@@ -615,3 +615,23 @@
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2`, repo alexisbouchez/gladia.ts + user 404 (orphaned), dist-tag latest=0.
 - LEARN: ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive at 18:18 UTC; CSP lacks form-action directive (base-uri 
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (21st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models con
+
+## RANKED HYPOTHESES 2026-08-08 19:45:02 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Phase is POC, target is app. Complete Google OAuth flow on app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target po
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08→18:18 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 18:18 UTC — form action reflects URL-encoded value;
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflecti
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (21st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models con
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 18:18 UTC — sha256 3b23ec7d...7f2 unchanged, dist-tag latest=0.1.3, repo alexisbouchez
+- LEARN: ACCEPTED OTHER @ npm registry: adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) and mainta
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh (openapi 125131B/14 paths, /health 15B, /v1/models 530B) — 22nd frozen cycle, nothing new to report
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT at 19:10 UTC (20th+ cycle) — openapi 125131B/14 paths, /health 15B no x-powered-by on GET, /v1/models 530B FR/US, p
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint confirmed fresh — OPTIONS /v2/pre-recorded 204 x-powered-by=Express; POST
+- LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation alive & byte-fresh 19:10 UTC — dist-tag latest=0.1.3 stable, sha256 `3b23ec7d…7f2`, repo+user alexis
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed byte-fresh 19:10 UTC — form action reflects URL-encoded value; CSP verified fresh: base
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms F

@@ -170,3 +170,8 @@
 ## 2026-08-08 18:18:19 UTC
 
 ## 2026-08-08 19:06:08 UTC
+
+## 2026-08-08 19:45:02 UTC
+- NEW npm registry: adjacent-namespace squat scan returned all-404 for `gladiaio`, `gladia-sdk`, `gladia-sdk-ts`, `gladiaio-sdk`, `gladia-ts`, `gladia-ai`, `gladia-stt`, `@gladia/sdk`, `@gladia/sdk-js`, `@g
+- NEW npm registry: maintainer `softwarecitadel` controls only `@softwarecitadel/girouette` (AdonisJS decorators, unrelated) — no broader squat campaign by that account
+- NEW api.gladia.io: surface re-probe byte-identical — openapi 200/125131B, /health 200/15B, /v1/models 200/530B (22nd frozen cycle)
