@@ -727,3 +727,34 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — sha256 `3b23…7f2`, dist-tag latest=0.1.3 persists, repo+user 404, package.json "Official" v
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed stable — form action reflects URL-encoded value; CSP lacks form
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — example timestamps vary per fetch, not instance identity; structural (examples-
+
+## RANKED HYPOTHESES 2026-08-08 23:36:12 UTC
+- [95] npm: npm `gladia`@0.1.3 orphaned impersonation with API-key leakage (from reports/hypotheses-laguna.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] npm: `gladia`@0.1.3 orphaned impersonation at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, README "Unofficial" vs package.json 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 26 cycles (23:08→current) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-p
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive at 21:52 UTC — form action reflects URL-encoded value; CS
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflecti
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 26 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-p
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host a
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh — shasum `cc96f84a…` + integrity sha512-56NW… unchanged, repo alexisbouchez/gladia.ts 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 26 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-p
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host a
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh — shasum `cc96f84a…` + integrity sha512-56NW… unchanged, repo alexisbouchez/gladia.ts 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 27 cycles (23:08→23:33 UTC) — openapi 125131B/14 paths (structural sha256 a7fa3286…), /health 15B, /v1/model
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound webhook topics (transcription.* + live.*) posting to client-supplied URLs —
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 23:33 UTC — form action reflects URL-encoded value;
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh — shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), di
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 25+ cycles (23:08→23:17 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only 
+- LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2`, shasum `cc96f84a…` unchanged, dist-tag latest=0.1.3 persists, repo a
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed stable — form action reflects URL-encoded value; CSP lacks form
+- LEARN: REJECTED OATH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAut
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator;
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: CORS wildcard returns static `*` (no Origin reflection), no credentials — not exploitable cross-origin (REJECTED).
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /health?full=true returns identical `{"health":"OK"}` — no verbose disclosure (REJECTED).
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, not a vulnera
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — example timestamps vary per fetch, not instance identity; structural (examples-
