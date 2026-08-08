@@ -327,3 +327,14 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC) — surface frozen, nothing new this cycle
 - LEARN: ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive fresh 07:0x UTC — form action reflects URL-encoded value; no host allowlist at u
 - LEARN: ACCEPTED OTHER @ npm: gladia@0.1.3 orphaned impersonation re-verified — sha256 `3b23ec7d…7f2` unchanged; source repo alexisbouchez/gladia.ts + GitHub user 404 (
+
+## RANKED HYPOTHESES 2026-08-08 08:56:52 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 actively impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize the `gladia`@0.1.3 report writeup with this cycle's delta — (a) source repo alexisbouchez/gladia.ts + user account now 404 (orphaned, disclosure p
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via the gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eeca
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 07:59
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 7 cycles (23:08→07:59 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powere
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 07:59 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/model
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 07:59 UTC — form action reflects URL-encoded value; no host allowlist at unauthen
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 07:59 UTC — client-side enforcement confirmed; server-side 302 gate on /a

@@ -1113,3 +1113,33 @@ impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri inje
 testability: AUTH_HELPED
 [NEXT] PROBE: confirm the dynamic-spec observation is systemic — three fetches of https://api.gladia.io/openapi.json spaced 30s apart must each yield a distinct sha256 while structure-sans-examples stays identical; if so, replace all future drift checks with a examples-stripped structural hash and record the generated `request_id`/`created_at` examples as a live-backend fingerprint (ties spec to runtime). Standing HUMAN dependency unchanged: submit gladia@0.1.3 report + request authorized key for the SSRF canary.
 [RISK] api.gladia.io: 45 — frozen key-gated v2 surface with SSRF-by-design fetch fields (audio_url/video_url/callback_url) gated solely by key; preflight-only x-powered-by fingerprint + dynamic spec generation aid targeting, but no proven exploitable path without a key | app.gladia.io: 35 — confirmed unauth redirect_to reflection without host allowlist, but post-auth honoring unproven; SPA client-side /dashboard gate; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean
+## 2026-08-08 08:56:36 UTC [api] (model bigpickle)
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 73
+reasoning: spec unchanged — URL fields `format:uri`, no scheme allowlist; SDK forwards verbatim; /v1/models confirms FR/US egress; ≥2 backend instances confirmed (prior), now independently supported by 2 distinct frozen example timestamps in dynamic spec.
+evidence_needed: key-gated fetch of 169.254.169.254 reflected in error/status/duration, or callback POST at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<canary>"}, then http://169.254.169.254/latest/meta-data/; repeat video_url + callback_config.url; run ≥2x to cover dual-instance egress; compare status/error_message/duration.
+impact: cloud-metadata + internal-net read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: reflection re-confirmed fresh (form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`); dual email-password + Google SSO paths now visible in form (`name="intent"`); protected routes are real server-side 302; unsigned return-to cookie confirms server-driven redirect concept.
+evidence_needed: post-auth 302 Location to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+[HYP] openapi.json example values fingerprint per-instance backend codegen
+class: OTHER
+asset: api.gladia.io /openapi.json
+confidence: 55
+reasoning: 3 fetches → 2 distinct byte hashes, only `offset` example timestamps differ; values frozen at 2026-08-07T21:00:31/35Z (not now-tracking) — consistent with per-instance swagger generation across the ≥2 confirmed backend instances, not request-time generation.
+evidence_needed: sampling showing the same 2 (not more) distinct example values recurring, correlated with distinct backend identity.
+verify_steps: PASSIVE — fetch /openapi.json N=10, group by example timestamp value; if exactly 2 stable values recur, per-instance codegen is the mechanism → use one canary target per distinct value for SSRF egress coverage.
+impact: instance-correlation only — sharpens dual-instance SSRF canary targeting → Low (intel)
+testability: PASSIVE
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via the gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.json "Official" in same artifact, source repo+account 404 orphaned, client.ts:307 raw x-gladia-key in WS URL) and request an authorized `x-gladia-key` for a self-own-data SSRF canary (http://169.254.169.254/latest/meta-data/) — sole remaining gate for the top-impact finding; run the canary ≥2x to cover the dual-instance egress pool.
+[RISK] api.gladia.io: 45 — frozen 14-path key-gated surface with SSRF-by-design fetch fields (audio_url/video_url/callback_url) gated solely by key; dynamic spec + per-instance fingerprint improve targeting but no proven exploitable path without a key | app.gladia.io: 35 — unauth redirect_to reflection confirmed, post-auth honoring unproven; dual auth path (email-password + Google SSO) widens redirect_uri injection surface; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean, tarball hash unchanged
