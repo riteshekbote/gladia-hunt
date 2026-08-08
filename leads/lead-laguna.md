@@ -584,3 +584,46 @@ testability: AUTH_HELPED
 [RISK] api.gladia.io: 85 — public OpenAPI (14 paths incl. public /v1/models), CORS `*` + ACAH x-gladia-key (no cred), Express fingerprint on preflight, audio_url/video_url/callback_config.url `format:uri` no scheme allowlist (SSRF surface), WebSocket token-in-URL, /health undocumented, NestJS-on-Express single key-gated auth, FR+US cloud egress
 [RISK] app.gladia.io: 58 — Google OAuth-only (no self-service bypass), /dashboard 200 SPA w/o auth (client-side enforcement), redirect_to reflected into form action with NO host allowlist (AUTH_HELPED post-auth), strict CSP, custom OAuth impl (oauth2 cookie, not NextAuth), unsigned base64url return-to cookie (server-resets on tamper — REJECTED as redirect vector), no unauthenticated data leakage
 [RISK] sdk: 50 — official @gladiaio/sdk@1.1.0 (npm) + gladiaio-sdk (PyPI) clean; npm gladia@0.1.3 orphaned impersonation + raw x-gladia-key in WS URL query (artifact-verified, sha256 3b23ec7d…) — supply-chain risk; gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg (maintenance debt)
+## 2026-08-08 07:09:02 UTC [app] (model laguna)
+[PRIO] app.gladia.io /signin?redirect_to= → OATH open-redirect/OAuth-redirect_uri injection | 7.55 | reflect confirmed pre-auth (7/10/10), post-auth honoring unverified gate
+[PRIO] app.gladia.io /dashboard → MISCONFIG client-side-only auth (SPA shell) | 6.15 | 200 w/o auth (6/8/7), no data in shell yet
+[PRIO] app.gladia.io /auth/google/callback → OATH OAuth callback error handling | 5.25 | 500 on bad input (5/5/4), unverified state/redirect_uri flow
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 65
+reasoning: Fresh 07:0x UTC — GET /signin?redirect_to=https://evil.example.com (200) reflects URL-encoded into `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`; confirmed reflected without host allowlist for protocol-relative `//evil`, bare-host, `app.gladia.io.evil` confusing-subdomain, and path-only. POST /signin intent=google → 302 to accounts.google.com with hardcoded redirect_uri; opaque 32-byte oauth2:<uuid> state cookie (not NextAuth). redirect_to not visible in state/cookie/cookie → post-auth honoring unverified.
+evidence_needed: Post-auth HTTP 302 Location resolving to external `https://evil.example.com` after completing Google OAuth flow with redirect_to set.
+verify_steps: AUTH_HELPED — with authorized Google SSO session: (1) GET /signin?redirect_to=https://evil.example.com → complete Google OAuth flow → capture final 302 Location + Set-Cookie; (2) repeat with redirect_to=//evil.example.com, redirect_to=https://app.gladia.io.evil; (3) test redirect_to as OAuth redirect_uri injection parameter.
+impact: Post-auth phishing redirect to attacker-controlled host → credential capture page; Low-Med if plain redirect, High if redirect_uri injectable (OAuth code/state theft).
+testability: AUTH_HELPED
+[HYP] Client-side-only auth on /dashboard SPA allows authenticated API data access without __sid cookie
+class: MISCONFIG
+asset: app.gladia.io /dashboard
+confidence: 38
+reasoning: Fresh 07:0x UTC — GET /dashboard → 200 text/html (SPA shell) with no auth cookie or __sid. Protected routes /apikeys, /transcriptions, /settings → 302 /signin (server-side gate confirmed). However /dashboard itself bypasses server-side auth — enforcement is purely client-side JS. JS bundle at /assets/ contains endpoint refs.
+evidence_needed: Authenticated API response (JSON data: transcriptions, apikeys) reachable from SPA-discovered API endpoint without valid __sid cookie.
+verify_steps: PROBE — (1) GET /dashboard (200 SPA shell); (2) fetch /assets/entry.client-*.js and grep for /api/ paths; (3) with NO __sid cookie, GET each discovered endpoint → compare 200+data vs expected 302/401.
+impact: Information disclosure of account data (transcriptions, apikeys) if any API endpoint lacks server-side auth. Currently limited to shell — Low.
+testability: PROBE
+[HYP] /auth/google/callback HTTP 500 leaks internal state / weak error handling
+class: OATH
+asset: app.gladia.io /auth/google/callback
+confidence: 35
+reasoning: Custom OAuth impl (oauth2:<uuid> cookie, not NextAuth). GET /auth/google/callback?code=bogus&state=bogus → HTTP 500 (no CSRF error message, no graceful handling) — confirms server-side callback processing. Google OAuth redirect_uri hardcoded to app.gladia.io/auth/google/callback. Whether redirect_to honored post-auth still unverified.
+evidence_needed: Post-auth 302 Location to external host after valid Google OAuth callback; or 500 error leaking internal path/stack.
+verify_steps: AUTH_HELPED — complete full Google OAuth flow with redirect_to set; observe callback 500 detail + post-auth redirect Location.
+impact: Information leak via 500 error detail; potential redirect_uri injection. Severity Low-Med without full OAuth completion.
+testability: AUTH_HELPED
+[PARKED] Client-side-only auth on /dashboard: confidence 38 (<40 threshold). While /dashboard returns 200 w/o auth, the SPA shell contains no sensitive data and API routes are gated server-side (302). Evidence gap is speculative.
+[PARKED] /auth/google/callback HTTP 500: confidence 35 (<40). 500 is a single unverified probe; no confirmed data leak path. Needs full OAuth completion (AUTH_HELPED) to prove impact.
+[FINAL]
+[NEXT] HUMAN: Phase is POC, target is app. The `redirect_to` reflection surface on app.gladia.io `/signin` is confirmed unauthenticated + fresh (07:0x UTC) for `https://evil`, `//evil`, bare-host, `app.gladia.io.evil` confusing-subdomain, and path-only variants with NO host allowlist, but post-auth honoring is unverified. Request an authorized/verified Google SSO session for app.gladia.io and complete: (1) GET `/signin?redirect_to=https://evil.example.com` → follow the Google OAuth flow to completion → capture the final post-auth 302 Location + Set-Cookie; (2) repeat with `redirect_to=//evil.example.com` and `redirect_to=https://app.gladia.io.evil` to confirm post-auth honoring; (3) test `redirect_to` as an OAuth `redirect_uri` parameter injection to detect authorization-code/state theft. This is the sole unverified gate for the top hypothesis on the current app target.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 — surface frozen, no new endpoints at 07:0x UTC
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 07:0x UTC (OPTIONS /v2/transcription 204 xpb=Express; POST 401 xpb absent) — not isolated to /v2/transcription, persists across /v2/pre-recorded too
+[LEARN] ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive fresh 07:0x UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate)
+[LEARN] ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 07:0x UTC — client-side enforcement confirmed; server-side 302 gate on /apikeys and /transcriptions intact
+[LEARN] ACCEPTED OTHER @ npm: gladia@0.1.3 sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` confirmed unchanged fresh 07:0x UTC; repo alexisbouchez/gladia.ts + user 404 (orphaned); README "Unofficial" vs package.json "Official" contradiction persists (out of scope per phase target=app, but tracked)
+[RISK] api.gladia.io: 85 — public OpenAPI (14 paths incl. public /v1/models), CORS `*` + ACAH x-gladia-key cross-origin (no cred), Express fingerprint on preflight (NestJS-on-Express backend), audio_url/video_url/callback_config.url `format:uri` no scheme allowlist (SSRF surface, client-side guard absent in SDK), WebSocket token-in-URL, /health undocumented, uniform single key-gated auth, cloud egress FR+US
+[RISK] app.gladia.io: 58 — Google OAuth-only (no self-service bypass), /dashboard 200 SPA w/o auth (client-side enforcement), redirect_to reflected into form action with NO host allowlist (AUTH_HELPED post-auth honoring — top unverified gate), strict CSP, custom OAuth impl (oauth2 cookie, not NextAuth), unsigned base64url return-to cookie (server-resets on tamper — REJECTED as cookie-tamper vector), no SSRF/callback surface on app
+[RISK] sdk: 50 — official @gladiaio/sdk@1.1.0 (npm) + gladiaio-sdk (PyPI) clean (no secrets, no malicious code); npm `gladia`@0.1.3 orphaned impersonation + raw x-gladia-key in WS URL query (artifact-verified, sha256 `3b23ec7d…`…7f2) — supply-chain impersonation risk; gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on uncdn (maintenance debt, no active exploit)

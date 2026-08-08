@@ -6835,3 +6835,214 @@ No hypotheses dropped (all ≥ 60, none on REJECTED list, all with concrete veri
 - [RISK] api.gladia.io: 55 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url no scheme allowlist) + undocumented /health + CORS wildcard-with-x-gladia-key, all key-gated; exploit depends on key procurement; surface frozen 9 cycles
 - [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + server-side-auth model (corrected this cycle); OAuth SSO in path; SPA bundle clean
 - [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean; disclosure via form pending
+===== ANALYST bigpickle 2026-08-08 07:10:17 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/health.json -w "%{http_code} %{size_download}\n" https://api.gladia.io/health && cat /tmp/opencode/health.json; echo
+200 15
+{"health":"OK"}
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/openapi.json -w "%{http_code} %{size_download}\n" https://api.gladia.io/openapi.json && sha256sum /tmp/opencode/openapi.json
+200 125131
+8ec9ebfee4895d614284445b88a78fbc9a1be7e0270986147eb9988295327c7b  /tmp/opencode/openapi.json
+[0m
+[0m$ [0mwc -c /tmp/opencode/openapi.json; ls -la /tmp/opencode/ 2>/dev/null; find /home/runner/work/gladia-hunt/gladia-hunt -name "openapi*" 2>/dev/null | head
+125131 /tmp/opencode/openapi.json
+total 144
+drwxr-xr-x  2 runner runner   4096 Aug  8 07:06 .
+drwxrwxrwt 15 root   root    12288 Aug  8 07:06 ..
+-rw-r--r--  1 runner runner     15 Aug  8 07:06 health.json
+-rw-r--r--  1 runner runner 125131 Aug  8 07:06 openapi.json
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt 2>/dev/null; ls /home/runner/work/gladia-hunt/gladia-hunt/reports 2>/dev/null
+README.md
+analyst-out.txt
+analyst-prompt.txt
+ctx.txt
+inventory
+knowledge
+leads
+reports
+reposcan-raw
+scope.yml
+scripts
+state_bigpickle.json
+state_laguna.json
+state_ling3.json
+state_longcat.json
+state_nemotron3.json
+triage
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+valid-bugs.md
+[0m
+[0m$ [0mgrep -rn "979f3731\|8ec9ebfe\|sha256" /home/runner/work/gladia-hunt/gladia-hunt/knowledge 2>/dev/null | head -20
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge/index.md:8:- Secrets in commits: sha256 only, never raw
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge/index.md:84:- 2026-08-08 CONFIRMED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge/index.md:89:- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+[0m
+[0m$ [0mgrep -rn "979f3731" /home/runner/work/gladia-hunt/gladia-hunt/reports /home/runner/work/gladia-hunt/gladia-hunt/leads /home/runner/work/gladia-hunt/gladia-hunt/inventory 2>/dev/null | head
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:5338:979f3731ded4020c4059a40ecd32f0eb9860a2ea503b56d5370d68a4463494d7  openapi_now.json
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6311:979f3731ded4020c4059a40ecd32f0eb9860a2ea503b56d5370d68a4463494d7  /tmp/opencode/openapi.json
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6394:- [CHANGED] api.gladia.io /openapi.json re-sampled 200 / 125131B / sha256 979f3731… — 8th cycle NO_DRIFT; /health 200; signin reflection alive; npm gladia@0.1.3 + @gladiaio/sdk@1.1.0 unchanged
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6406:reasoning: spec live (openapi 125131B, sha256 979f3731…) still shows audio_url/CallbackConfigDto.url format:uri with no scheme allowlist; official SDK prerecorded client only isUrl() gates upload-vs-direct (URLs forwarded verbatim); /v1/models confirms FR/US egress; jobs return status/error_message/duration reachability signal. Unchanged 8 cycles.
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6441:- ACCEPTED MISCONFIG @ api.gladia.io: 8th consecutive NO_DRIFT cycle (openapi 125131B/sha256 979f3731…, /health 200, key-gated v2, preflight x-powered-by differential) — surface frozen, no new endpoints
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6458:979f3731ded4020c4059a40ecd32f0eb9860a2ea503b56d5370d68a4463494d7  /tmp/opencode/openapi.json
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6674:Surface frozen again (openapi 125131B sha256 979f3731, models 530B, health 15B, npm gladia dist-tag latest stable). Since re-probing is pure drift-confirmation now, I'll mine the frozen spec for schema-level detail not yet catalogued.
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6781:- Core api surface: NO_DRIFT cycle 9 (openapi 125131B sha256 979f3731…, models 530B, health 15B, 14 paths, GET /v2/live + /v2/live/sessions both 401)
+/home/runner/work/gladia-hunt/gladia-hunt/reports/analyst-bigpickle.log:6793:reasoning: openapi 125131B sha256 979f3731 unchanged (cycle 9) — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim; /v1/models confirms FR/US egress; storage host files.gladia.io in spec. Jobs expose status/error_message/duration reachability signal.
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-bigpickle.txt:6:reasoning: openapi 125131B sha256 979f3731 unchanged (cycle 9) — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim; /v1/models confirms FR/US egress; storage host files.gladia.io in spec. Jobs expose status/error_message/duration reachability signal.
+[0m
+Spec hash changed (979f3731… → 8ec9ebfe…) with identical byte size. Let me confirm and find the old copy to diff.
+[0m$ [0mcurl -s https://api.gladia.io/openapi.json -o /tmp/opencode/openapi2.json && sha256sum /tmp/opencode/openapi2.json && cmp /tmp/opencode/openapi.json /tmp/opencode/openapi2.json && echo IDENTICAL
+4c2f1eeaf0d6f96ce75576850ff5929dd89f61062f0354673b018db3793174f5  /tmp/opencode/openapi2.json
+/tmp/opencode/openapi.json /tmp/opencode/openapi2.json differ: byte 2698, line 1
+[0m
+[0m$ [0mfind / -name "openapi_now.json" 2>/dev/null | head; find / -name "openapi*.json" -not -path "*/node_modules/*" 2>/dev/null | head -20
+(no output)
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+Multiple differing hashes across fetches — the spec has dynamic content. Let me find where it differs.
+[0m$ [0mpython3 -c "
+import json
+a=json.load(open('/tmp/opencode/openapi.json'))
+b=json.load(open('/tmp/opencode/openapi2.json'))
+def walk(x,y,path=''):
+    if type(x)!=type(y):
+        print('TYPE',path,type(x).__name__,type(y).__name__); return
+    if isinstance(x,dict):
+        for k in set(x)|set(y):
+            if k not in x: print('NEW',path+'/'+k)
+            elif k not in y: print('GONE',path+'/'+k)
+            else: walk(x[k],y[k],path+'/'+k)
+    elif isinstance(x,list):
+        if len(x)!=len(y): print('LEN',path,len(x),len(y))
+        for i,(u,v) in enumerate(zip(x,y)): walk(u,v,path+'/'+str(i))
+    else:
+        if x!=y: print('VAL',path,repr(x)[:80],'=>',repr(y)[:80])
+walk(a,b)
+" 2>&1 | head -40
+VAL /paths//v2/transcription/get/parameters/3/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v2/transcription/get/parameters/4/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v2/pre-recorded/get/parameters/3/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v2/pre-recorded/get/parameters/4/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v1/history/get/parameters/3/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v1/history/get/parameters/4/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v2/live/get/parameters/3/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+VAL /paths//v2/live/get/parameters/4/schema/example '2026-08-07T21:00:32.264Z' => '2026-08-07T21:00:25.976Z'
+[0m
+[0m$ [0mpython3 -c "
+import json
+a=json.load(open('/tmp/opencode/openapi.json'))
+b=json.load(open('/tmp/opencode/openapi2.json'))
+print('paths:',sorted(a['paths'].keys()))
+# collect all example timestamp values seen
+import re
+s=open('/tmp/opencode/openapi.json').read()
+vals=sorted(set(re.findall(r'2026-08-0[78]T[0-9:.]+Z', s)))
+print('distinct example timestamps in fetch1:', vals)
+s2=open('/tmp/opencode/openapi2.json').read()
+vals2=sorted(set(re.findall(r'2026-08-0[78]T[0-9:.]+Z', s2)))
+print('distinct example timestamps in fetch2:', vals2)
+# verify known SSRF markers persist
+for marker in ['audio_url','video_url','callback_url','CallbackConfigDto','x-gladia-key','files.gladia.io','format','uri']:
+    print(marker, marker in s)
+"
+paths: ['/audio/text/audio-transcription', '/v1/history', '/v1/models', '/v2/live', '/v2/live/{id}', '/v2/live/{id}/file', '/v2/pre-recorded', '/v2/pre-recorded/{id}', '/v2/pre-recorded/{id}/file', '/v2/transcription', '/v2/transcription/{id}', '/v2/transcription/{id}/file', '/v2/upload', '/video/text/video-transcription']
+distinct example timestamps in fetch1: ['2026-08-07T21:00:32.264Z']
+distinct example timestamps in fetch2: ['2026-08-07T21:00:25.976Z']
+audio_url True
+video_url True
+callback_url True
+CallbackConfigDto True
+x-gladia-key True
+files.gladia.io True
+format True
+uri True
+[0m
+Only volatile diff = date-filter `example` timestamps on 8 GET params. Let me verify the rest of the surface is unchanged and check how many distinct example values exist (multi-instance fingerprint).
+Confirmed: 14 paths intact, all SSRF markers persist, and the only diff is volatile per-instance date-filter `example` timestamps (two instances: 21:00:32.264Z vs 21:00:25.976Z). Let me verify the other targets' freshness in one low-rate pass.
+[0m$ [0msleep 2; npm view gladia dist-tags.latest version --json 2>/dev/null; npm view gladia maintainers --json 2>/dev/null
+{
+  "dist-tags.latest": "0.1.3",
+  "version": "0.1.3"
+}
+[
+  "softwarecitadel <softwarecitadel@gmail.com>"
+]
+[0m
+[0m$ [0msleep 2; curl -s -o /dev/null -w "signin: %{http_code}\n" "https://app.gladia.io/signin?redirect_to=https://evil.example.com"; sleep 2; curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" | grep -o 'action="[^"]*"' | head -2
+signin: 200
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+**CYCLE 10 — api (POC). Spec byte-hash broke: volatile per-instance example timestamps confirmed.**
+
+STEP 1 — DELTA:
+- [CHANGED] api.gladia.io /openapi.json: sha256 no longer stable — prior 8-cycle hash `979f3731…` → now `8ec9ebfe…` (07:06 fetch) and `4c2f1eea…` (07:07 fetch); byte size still 125131B/14 paths
+- [NEW] api.gladia.io: ≥2 backend instances confirmed — back-to-back GETs return different swagger `example` timestamps on 8 date-filter params (`from`/`to` on /v2/transcription, /v2/pre-recorded, /v1/history, /v2/live GET): `2026-08-07T21:00:32.264Z` vs `21:00:25.976Z` → load-balanced NestJS pool, per-instance spec generation ≈ deploy window leak (~2026-08-07 21:00 UTC)
+- [CHANGED] api.gladia.io: byte-identity NO_DRIFT record superseded — prior comparisons were fragile; the ONLY content delta this cycle is those volatile example fields, not real endpoints (14 paths, audio_url/video_url/callback_url/CallbackConfigDto/x-gladia-key/files.gladia.io all re-verified present)
+- Unchanged: /health 200 `{"health":"OK"}` 15B; app.gladia.io /signin?redirect_to=https://evil.example.com → 200, action reflects URL-encoded value (alive); npm `gladia` dist-tag latest=0.1.3, maintainer softwarecitadel (alive)
+
+STEP 2 — PRIORITIZE:
+- [PRIO] api.gladia.io POST /v2/pre-recorded SSRF fetch surface | priority 6.3 | attack 6, business 9, tech 5, gate 2, cloud 8, fresh 7
+- [PRIO] npm registry `gladia`@0.1.3 impersonation | priority 5.9 | attack 5, business 6, tech 4, gate 10, cloud 2, fresh 8
+- [PRIO] app.gladia.io /signin redirect_to OATH | priority 5.6 | attack 4, business 7, tech 6, gate 8, cloud 1, fresh 6
+
+STEP 3 — HYPOTHESES:
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 73
+reasoning: live spec this cycle unchanged — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim (isUrl() gates upload-vs-direct only); /v1/models confirms FR/US egress; new: ≥2 backend instances confirmed, so the fetch pool/egress is split — two canary targets needed per instance.
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; repeat across ≥2 requests to cover both instances; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] `gladia`@0.1.3 is an orphaned impersonation package at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 88
+reasoning: fresh this cycle — dist-tag latest=0.1.3, 4 versions [0.1.0–0.1.3], maintainer softwarecitadel <softwarecitadel@gmail.com>; source repo alexisbouchez/gladia.ts + user 404 (orphaned); tarball sha256 3b23ec7d… README "Unofficial" vs package.json "Official"; client.ts:307 raw x-gladia-key in WS query vs official token-after-init.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia.
+verify_steps: PASSIVE — done (npm view, tarball sha256, GitHub API 404); submission via gladia.io/bug-bounty-report form is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: reflection re-confirmed fresh this cycle (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", no host allowlist at unauth layer); unsigned base64url return-to cookie confirms server-driven redirect concept; protected routes are real 302 (auth gate server-side).
+evidence_needed: post-auth 302 Location to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE: All 3 survive (conf ≥60, none on REJECTED list, concrete verify_steps). Multi-instance delta folded into SSRF hypothesis, not given its own slot (low exploit value, same asset). No [PARKED].
+[FINAL] 1) gladia@0.1.3 impersonation (npm, 88) 2) SSRF audio_url (api, 73) 3) redirect_to OATH (app, 60)
+
+STEP 5 — NEXT ACTION:
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 3b23ec7d…, README "Unofficial" vs package.json "Official" in same artifact, source repo+account 404 orphaned, client.ts:307 raw key in WS URL vs official token-after-init) AND request in the same submission an authorized `x-gladia-key` for a self-own-data /v2/pre-recorded canary (169.254.169.254) — sole remaining gate for top-impact SSRF; new this cycle: run the canary ≥2x to cover the confirmed dual-instance egress pool.
+
+STEP 6 — LEARNING:
+- [LEARN] REJECTED MISCONFIG @ api.gladia.io: byte-identity NO_DRIFT claim — /openapi.json sha256 now volatile (two back-to-back fetches differ); 8-cycle stability was an artifact of the swagger plugin's per-instance example timestamps on date-filter params; real endpoint surface (14 paths/125131B/SSRF fields) unchanged, so no endpoint drift — hash drift-detection must strip volatile example fields.
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: ≥2 NestJS backend instances confirmed — swagger `example` timestamps (2026-08-07T21:00:32.264Z vs 21:00:25.976Z) differ per instance, leaking load-balanced pool + approximate deploy window in the public spec.
+
+STEP 7 — RISK SCORE:
+- [RISK] api.gladia.io: 56 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url, no scheme allowlist), undocumented /health, CORS wildcard-with-x-gladia-key; NEW: confirmed dual-instance egress pool + deploy-window leak via spec examples; all key-gated.
+- [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + client-side-only /dashboard SPA; OAuth SSO in path.
+- [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean.
