@@ -1,44 +1,445 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan results and knowledge base, here's the classification:
-
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| *(none)* | | | No hardcoded credentials with signs of life found. The `sk-********` in Gallery.tsx is a masked placeholder. |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| gladiaio/gladia-quiz-app/** | multiple | TEST_OR_EXAMPLE | Demo/quiz app using SDK, API key from localStorage |
-| gladiaio/gladiaflow/** | multiple | TEST_OR_EXAMPLE | Tauri desktop app, screenshots with masked keys |
-| gladiaio/compare-stt/** | multiple | TEST_OR_EXAMPLE | Provider comparison tool, test utilities |
-| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | TEST_OR_EXAMPLE | `apiKey: "sk-********"` — masked placeholder |
-
-#### ENDPOINT_LEAK
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| *(none)* | | | All referenced endpoints (api.gladia.io, app.gladia.io, www.gladia.io) are production. No internal/dev/staging URLs leaked. |
-
-#### INTERESTING
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| reposcan-raw/npm/gladia.json | 1 | INTERESTING | **Ownership anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` — already tracked in KB |
-| reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 43 | INTERESTING | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN (older than current 1.1.0) |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | INTERESTING | Direct API integration pattern: `x-gladia-key` header, base `https://api.gladia.io/v2` |
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls reposcan-raw/
+analysis.txt
+gladiaio
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+npm
+rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls reposcan-raw/gladiaio/
+compare-stt
+docs
+gladia-cli
+gladia-quiz-app
+gladia-samples
+gladiaflow
+n8n-nodes-gladia
+normalization
+realtime-multilingual-asr-router
+sdk
+skills
+vercel-ai
+[0m
+[0m✱ [0mGrep "(api[_-]?key|secret|token|password)\s*[:=]\s*["'][^"']+["']"[90m in reposcan-raw/gladiaio · 100 matches[0m
+[0m✱ [0mGrep "(gladia_[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{20,}|x-gladia-key["']?\s*:\s*["'][a-zA-Z0-9_-]{20,})"[90m in reposcan-raw/gladiaio · 2 matches[0m
+[0m✱ [0mGrep "["'](sk-[a-zA-Z0-9]{32,}|gladia_[a-zA-Z0-9]{32,})["']"[90m in reposcan-raw/gladiaio · 0 matches[0m
+[0m✱ [0mGrep "(AKIA[0-9A-Z]{16}|gh[pousr]_[a-zA-Z0-9]{36}|xox[baprs]-[a-zA-Z0-9-]{10,})"[90m in reposcan-raw/gladiaio · 0 matches[0m
+[0m→ [0mRead reposcan-raw/npm/gladia.json[90m [limit=100][0m
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json[90m [limit=100][0m
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/
+CONTRIBUTING.md
+LICENSE
+README.md
+audit-ci.jsonc
+bun.lock
+bunfig.toml
+commitlint.config.cts
+data
+e2e
+eslint.config.mjs
+nx.json
+package.json
+packages
+tools
+vitest.workspace.mjs
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/
+generator
+sdk-js
+sdk-python
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/sdk/packages/sdk-js
+[0m
+[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src -name "*.ts" | head -30
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/generated-types.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/session.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/session.test.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/client.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/index.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/types.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/generated-types.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/client.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/index.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/iso-ws.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/wsClient.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.test.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/iso-fetch.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/wsClient.test.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/types.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/version.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/internal_types.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/index.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/helpers.ts
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts
+[0m→ [0mRead reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/client.ts
+[0m
+[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python -name "*.py" | head -20
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/live/test_generated_types.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/live/test_connect_session.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_helper.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_websocket_client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_http_client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/__init__.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/test_client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/conftest.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/types.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/async_session.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/async_client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/_helpers.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/generated_types.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/session.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/async_client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/__init__.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/generated_types.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/client.py
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/core.py
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/core.py
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-cli/
+LICENSE
+Makefile
+README.md
+cmd
+docs
+go.mod
+go.sum
+install.ps1
+install.sh
+pkg
+split_infinity.wav
+[0m
+[0m✱ [0mGrep "(api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{20,}["']"[90m in reposcan-raw/gladiaio/gladia-cli · 0 matches[0m
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/n8n-nodes-gladia/
+CHANGELOG.md
+LICENSE
+README.md
+credentials
+eslint.config.mjs
+icons
+jest.config.js
+nodes
+package-lock.json
+package.json
+tsconfig.json
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/n8n-nodes-gladia/credentials/
+GladiaApi.credentials.ts
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/n8n-nodes-gladia/credentials/GladiaApi.credentials.ts
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/realtime-multilingual-asr-router/
+LICENSE
+README.md
+assets
+frontend
+pyproject.toml
+ruff.toml
+scripts
+src
+tests
+uv.lock
+[0m
+[0m✱ [0mGrep "(api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{20,}["']"[90m in reposcan-raw/gladiaio/realtime-multilingual-asr-router/src · 0 matches[0m
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-samples/
+CONTRIBUTING.md
+README.md
+data
+integrations-examples
+javascript
+python
+scripts
+typescript
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/gladia-samples/integrations-examples/
+OBS
+discord
+gmeet-bot
+livekit-agent
+pipecat-bot
+twilio
+[0m
+[0m✱ [0mGrep "(api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{20,}["']"[90m in reposcan-raw/gladiaio/gladia-samples/integrations-examples · 0 matches[0m
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/skills/
+CLAUDE.md
+CONTRIBUTING.md
+LICENSE
+README.md
+plugins
+skills-lock.json
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/skills/plugins/
+gladia
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/skills/plugins/gladia/
+README.md
+skills
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/skills/plugins/gladia/skills/
+gladia-audio-intelligence
+gladia-documentation-auto
+gladia-live-transcription
+gladia-pre-recorded-transcription
+gladia-sdk-integration
+gladia-troubleshooting
+gladia-using-cli
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/
+SKILL.md
+references
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/normalization/
+AGENTS.md
+CLAUDE.md
+CONTRIBUTING.md
+LICENSE
+README.md
+docs
+normalization
+pyproject.toml
+scripts
+tests
+uv.lock
+[0m
+[0m✱ [0mGrep "(api[_-]?key|secret|token)\s*[:=]\s*["'][^"']{20,}["']"[90m in reposcan-raw/gladiaio/normalization · 0 matches[0m
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/docs/
+LICENSE
+README.md
+api-reference
+api-transcription-v1-deprecated
+assets
+asyncapi.yaml
+chapters
+docs.json
+snippets
+style.css
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/docs/snippets/
+badges
+choose-model.mdx
+custom-vocabulary-vs-spelling.mdx
+get-transcription-result.mdx
+getting-started-playground.mdx
+integrations-cards.mdx
+partials-tip.mdx
+recommended-params
+samples.mdx
+setup-account.mdx
+stt-cards.mdx
+why-post-to-open-websocket.mdx
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/docs/snippets/get-transcription-result.mdx
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/vercel-ai/
+AGENTS.md
+CHANGELOG.md
+CLAUDE.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE
+README.md
+architecture
+assets
+content
+contributing
+examples
+package.json
+packages
+pnpm-lock.yaml
+pnpm-workspace.yaml
+skills
+socket.yaml
+tools
+tsconfig.json
+tsconfig.with-examples.json
+turbo.json
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/vercel-ai/packages/
+ai
+alibaba
+amazon-bedrock
+angular
+anthropic
+anthropic-aws
+assemblyai
+azure
+baseten
+black-forest-labs
+bytedance
+cerebras
+codemod
+cohere
+deepgram
+deepinfra
+deepseek
+devtools
+elevenlabs
+fal
+fireworks
+gateway
+gladia
+google
+google-vertex
+groq
+harness
+harness-claude-code
+harness-codex
+harness-pi
+huggingface
+hume
+klingai
+langchain
+llamaindex
+lmnt
+luma
+mcp
+mistral
+moonshotai
+open-responses
+openai
+openai-compatible
+otel
+perplexity
+policy-opa
+prodia
+provider
+provider-utils
+quiverai
+react
+replicate
+revai
+rsc
+sandbox-just-bash
+sandbox-vercel
+svelte
+test-server
+togetherai
+tui
+valibot
+vercel
+voyage
+vue
+workflow
+xai
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/vercel-ai/packages/gladia/
+CHANGELOG.md
+README.md
+package.json
+src
+tsconfig.build.json
+tsconfig.json
+tsup.config.ts
+turbo.json
+vitest.edge.config.js
+vitest.node.config.js
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/
+__fixtures__
+__snapshots__
+gladia-api-types.ts
+gladia-config.ts
+gladia-error.test.ts
+gladia-error.ts
+gladia-provider.ts
+gladia-transcription-model-options.ts
+gladia-transcription-model.test.ts
+gladia-transcription-model.ts
+index.ts
+transcript-test.mp3
+version.ts
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-provider.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+Now I have a complete picture. Let me compile the classification tables.
 
 ---
 
-### Verdict List
+### 🔴 REAL_SECRET
+*No hardcoded credentials with signs of life found.*
+
+| File | Line | Secret SHA256 (truncated) | Context |
+|------|------|---------------------------|---------|
+| — | — | — | — |
+
+---
+
+### 🟡 TEST_OR_EXAMPLE
+
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| `gladiaio/sdk/packages/sdk-python/README.md` | 32,42,71,175 | `api_key="your-api-key"` | Documentation examples |
+| `gladiaio/sdk/packages/sdk-python/tests/test_client.py` | 34,44,78,84 | `api_key="base-key"`, `override-key`, `provided-key` | Test fixtures |
+| `gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/python.md` | 34,50 | `api_key="YOUR_KEY"` | Documentation |
+| `gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md` | 94 | `api_key="your-api-key"` | Documentation |
+| `gladiaio/docs/snippets/get-transcription-result.mdx` | 24 | `api_key="YOUR_GLADIA_API_KEY"` | Documentation |
+| `gladiaio/gladia-samples/python/**/*.py` | multiple | `api_key="GLADIA_API_KEY"` | Sample code |
+| `gladiaio/docs/chapters/**/*.mdx` | multiple | `api_key="<YOUR_GLADIA_API_KEY>"` | Documentation |
+| `gladiaio/vercel-ai/packages/mcp/src/tool/oauth.test.ts` | 740+ | `client_secret: 'secret123'`, `access_token: 'access123'`, etc. | Test fixtures (__fixtures__/__snapshots__) |
+| `gladiaio/vercel-ai/packages/openai/src/**/*.test.ts` | multiple | `token: 'Hello'`, `token: '!'` | Test fixtures |
+| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | Mock data for screenshots (MOCK_SETTINGS) |
+| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` | Mock data for screenshots |
+| `gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx` | 47,56 | `gladiaApiKey` state, localStorage | Client-side key storage pattern (no hardcoded value) |
+| `gladiaio/gladia-quiz-app/lib/gladia-client.ts` | 1,3-11 | `GLADIA_API_KEY_STORAGE`, getStoredApiKey | localStorage key name, not a secret |
+
+---
+
+### 🔵 ENDPOINT_LEAK
+
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3,34,46,80 | `https://api.gladia.io/v2`, `/upload`, `/pre-recorded`, `result_url` | Public API endpoints (in scope, documented) |
+| `gladiaio/vercel-ai/packages/gladia/src/gladia-provider.ts` | 70 | `https://api.gladia.io{path}` | Public API base URL |
+| `gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | Public dashboard URL |
+| `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+| `gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `href="https://app.gladia.io"` | Public dashboard link |
+| `gladiaio/sdk/packages/sdk-js/src/client.ts` | 48 | `https://api.gladia.io` | Default API URL (env overridable) |
+| `gladiaio/docs/snippets/get-transcription-result.mdx` | 62 | `callback_config.url` example | Documentation placeholder |
+
+---
+
+### 🟣 INTERESTING
+
+| File | Line | Finding | Severity |
+|------|------|---------|----------|
+| `reposcan-raw/npm/gladia.json` | 1 | **Unofficial `gladia@0.1.3` package** claims "Official TypeScript SDK for Gladia" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` | HIGH — Impersonation/typo-squat |
+| `reposcan-raw/npm/_gladiaio_sdk.json` | 1 | Official `@gladiaio/sdk@1.1.0` — maintainers use `@gladia.io` emails, repo=`gladiaio/sdk` | INFO — Legitimate |
+| `gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/client.ts` | 12-19 | `isUrl()` only validates `http:`/`https:` scheme — **no host allowlist, redirect limit, metadata blocklist** | MEDIUM — SSRF-by-design (confirms RAG) |
+| `gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/core.py` | 124-130 | `is_url()` only checks `scheme in ("http","https")` and `netloc` — **no SSRF guards** | MEDIUM — SSRF-by-design (confirms RAG) |
+| `gladiaio/gladia-quiz-app/app/layout.tsx` | 43 | Loads SDK from `unpkg.com/@gladiaio/sdk@0.5.2` (CDN, pinned old version) | LOW — Supply-chain pin |
+| `gladiaio/vercel-ai/packages/gladia` | — | Gladia provider for Vercel AI SDK (community-maintained in fork) | LOW — Ecosystem integration |
+
+---
+
+### 📋 VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm ownership anomaly | **no** | Already ACCEPTED in KB (2026-08-07) — known impersonation, requires affiliation verification but not a new finding |
-| Masked key `sk-********` in Gallery.tsx | **no** | Placeholder/test data (asterisks = masked) |
-| Older SDK version (0.5.2) in quiz app | **no** | Dependency drift in demo app, not a security issue |
-| Direct API usage in compare-stt | **no** | Expected pattern for comparison tool; uses public API surface |
-
-**Summary**: **0 new reportable candidates**. Delta scan shows 0 new hits. All findings already documented in knowledge base. The `gladia@0.1.3` impersonation package remains the sole supply-chain anomaly — already triaged and accepted.
+| `gladia@0.1.3` npm package (impersonation) | **YES** | Package claims "Official TypeScript SDK" but published from personal GitHub (`alexisbouchez/gladia.ts`) and personal email (`softwarecitadel@gmail.com`). Risk: developers install thinking it's official. Requires affiliation verification / takedown request. |
+| SSRF-by-design in SDKs (audio_url/callback_url) | **NO** | Already documented in knowledge base as ACCEPTED MISCONFIG/SSRF (2026-08-07). No new finding. |
+| `@gladiaio/sdk` official package | **NO** | Legitimate, verified maintainers from gladia.io domain. |
+| Test fixtures / mock data / documentation placeholders | **NO** | All classified as TEST_OR_EXAMPLE. No live credentials. |
+| Public API endpoints in code | **NO** | In-scope, documented endpoints (`api.gladia.io`, `app.gladia.io`). |
+| Vercel AI SDK Gladia provider | **NO** | Community integration, no secrets. |
+| CDN unpkg load in gladia-quiz-app | **NO** | Pinned version `0.5.2`, no integrity hash — low supply-chain risk, not reportable. |
