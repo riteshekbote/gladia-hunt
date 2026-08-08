@@ -607,3 +607,11 @@
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no code/state thef
 - LEARN: REJECTED OAUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed).
 - LEARN: CONFIRMED MISCONFIG @ app.gladia.io: /dashboard & /org & /api,/oauth,/auth,/oid4,/api/v1,/api/health,/api/me all return 200 text/html (SPA catch-all); real serv
+
+## RANKED HYPOTHESES 2026-08-08 19:06:08 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaking API key in WebSocket URL (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shas
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08→18:18 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only 
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2`, repo alexisbouchez/gladia.ts + user 404 (orphaned), dist-tag latest=0.
+- LEARN: ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive at 18:18 UTC; CSP lacks form-action directive (base-uri 
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (21st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models con

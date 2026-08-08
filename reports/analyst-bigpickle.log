@@ -8639,3 +8639,1949 @@ STEP 6 — LEARNING
 
 STEP 7 — RISK SCORE
 [RISK] api.gladia.io: 45 — frozen 14-path key-gated surface with SSRF-by-design fetch fields gated solely by key; drift baseline validated across 20+ cycles, no proven exploitable path without a key | app.gladia.io: 33 — unauth redirect_to reflection confirmed, post-auth honoring unproven, redirect_uri injection falsified; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern (report ready); official @gladiaio/sdk@1.1.0 clean, tarball unchanged
+===== ANALYST bigpickle 2026-08-08 19:06:08 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sS -m 20 -o /tmp/opencode/openapi.json -w "openapi: %{http_code} %{size_download}B\n" https://api.gladia.io/openapi.json; curl -sS -m 20 https://api.gladia.io/openapi.json | python3 -c "import sys,json; d=json.load(sys.stdin); print('servers:', d.get('servers')); print('paths:', sorted(d['paths'].keys()))"
+openapi: 200 125131B
+servers: [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+paths: ['/audio/text/audio-transcription', '/v1/history', '/v1/models', '/v2/live', '/v2/live/{id}', '/v2/live/{id}/file', '/v2/pre-recorded', '/v2/pre-recorded/{id}', '/v2/pre-recorded/{id}/file', '/v2/transcription', '/v2/transcription/{id}', '/v2/transcription/{id}/file', '/v2/upload', '/video/text/video-transcription']
+[0m
+[0m$ [0mfor p in /docs /swagger /swagger-ui /api-docs /swagger.json /api/swagger.json /healthz /ready /version /status /robots.txt /.well-known/security.txt /api /v1 /v2; do printf "%-24s " "$p"; curl -sS -m 12 -o /dev/null -w "%{http_code} %{size_download}B ct=%{content_type}\n" "https://api.gladia.io$p"; sleep 1.2; done
+/docs                    404 127B ct=application/json; charset=utf-8
+/swagger                 404 133B ct=application/json; charset=utf-8
+/swagger-ui              404 139B ct=application/json; charset=utf-8
+/api-docs                404 135B ct=application/json; charset=utf-8
+/swagger.json            404 143B ct=application/json; charset=utf-8
+/api/swagger.json        404 151B ct=application/json; charset=utf-8
+/healthz                 404 133B ct=application/json; charset=utf-8
+/ready                   404 129B ct=application/json; charset=utf-8
+/version                 404 133B ct=application/json; charset=utf-8
+/status                  404 131B ct=application/json; charset=utf-8
+/robots.txt              404 139B ct=application/json; charset=utf-8
+/.well-known/security.txt 200 172B ct=text/plain; charset=utf-8
+/api                     200 3120B ct=text/html; charset=utf-8
+/v1                      404 123B ct=application/json; charset=utf-8
+/v2                      404 123B ct=application/json; charset=utf-8
+[0m
+Two new responses on api.gladia.io: `.well-known/security.txt` (200) and `/api` (200 text/html). Fetching both.
+[0m$ [0mecho "=== security.txt ==="; curl -sS -m 12 https://api.gladia.io/.well-known/security.txt; echo; echo "=== /api ==="; curl -sS -m 12 https://api.gladia.io/api; sleep 1; echo; echo "=== headers /api ==="; curl -sSI -m 12 https://api.gladia.io/api; sleep 1; echo "=== headers security.txt ==="; curl -sSI -m 12 https://api.gladia.io/.well-known/security.txt
+=== security.txt ===
+Contact: mailto:security@gladia.io
+Contact: https://gladia.io/bug-bounty
+Policy: https://gladia.io/bug-bounty
+Expires: 2027-06-25T00:00:00.000Z
+Preferred-Languages: en, fr
+
+=== /api ===
+
+<!-- HTML for static distribution bundle build -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Swagger UI</title>
+  <link rel="stylesheet" type="text/css" href="./api/swagger-ui.css" >
+  <link rel="icon" type="image/png" href="./api/favicon-32x32.png" sizes="32x32" /><link rel="icon" type="image/png" href="./api/favicon-16x16.png" sizes="16x16" />
+  <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+  </style>
+</head>
+
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
+  <defs>
+    <symbol viewBox="0 0 20 20" id="unlocked">
+      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V6h2v-.801C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8z"></path>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="locked">
+      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8zM12 8H8V5.199C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="close">
+      <path d="M14.348 14.849c-.469.469-1.229.469-1.697 0L10 11.819l-2.651 3.029c-.469.469-1.229.469-1.697 0-.469-.469-.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-.469-.469-.469-1.228 0-1.697.469-.469 1.228-.469 1.697 0L10 8.183l2.651-3.031c.469-.469 1.228-.469 1.697 0 .469.469.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c.469.469.469 1.229 0 1.698z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow">
+      <path d="M13.25 10L6.109 2.58c-.268-.27-.268-.707 0-.979.268-.27.701-.27.969 0l7.83 7.908c.268.271.268.709 0 .979l-7.83 7.908c-.268.271-.701.27-.969 0-.268-.269-.268-.707 0-.979L13.25 10z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow-down">
+      <path d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"/>
+    </symbol>
+
+
+    <symbol viewBox="0 0 24 24" id="jump-to">
+      <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 24 24" id="expand">
+      <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+    </symbol>
+
+  </defs>
+</svg>
+
+<div id="swagger-ui"></div>
+
+<script src="./api/swagger-ui-bundle.js"> </script>
+<script src="./api/swagger-ui-standalone-preset.js"> </script>
+<script src="./api/swagger-ui-init.js"> </script>
+
+
+
+<style>
+  
+  .swagger-ui .topbar .download-url-wrapper { display: none }
+</style>
+</body>
+
+</html>
+
+=== headers /api ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: text/html; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Sat, 08 Aug 2026 19:04:49 GMT
+etag: W/"c30-YeptigtmgAeh4L3+3tPWOkwg8WU"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 3120
+
+=== headers security.txt ===
+HTTP/2 200 
+accept-ranges: bytes
+content-type: text/plain; charset=utf-8
+date: Sat, 08 Aug 2026 19:04:50 GMT
+etag: "6a70f9c5-ac"
+last-modified: Mon, 03 Aug 2026 20:27:49 GMT
+server: nginx/1.28.2
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+content-length: 172
+[0m
+Two genuinely new surface items. `/api` is a Swagger UI host, and `.well-known/security.txt` is served by a directly-exposed `nginx/1.28.2` (different from the NestJS app responses). Digging into the Swagger UI config.
+[0m$ [0mecho "=== /api/swagger-ui-init.js ==="; curl -sS -m 12 https://api.gladia.io/api/swagger-ui-init.js; echo; sleep 1; echo "=== /api/swagger.json ==="; curl -sS -m 12 -o /dev/null -w "%{http_code} %{size_download}B ct=%{content_type}\n" https://api.gladia.io/api/swagger.json; sleep 1; echo "=== /api/ dir listing probe ==="; curl -sS -m 12 -o /dev/null -w "%{http_code} %{size_download}B ct=%{content_type}\n" "https://api.gladia.io/api/"
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fe2c3a1ef0013ZqWrrAW2ZRsxz
+
+            },
+            "error": {
+              "description": "Error message if the addon failed",
+              "nullable": true,
+              "example": null,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "named_entity_recognition"
+              ],
+              "example": "named_entity_recognition",
+              "default": "named_entity_recognition"
+            },
+            "data": {
+              "description": "The message data. \"null\" if the addon failed",
+              "nullable": true,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NamedEntityRecognitionData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "error",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveNamedEntityRecognitionMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.named_entity_recognition"
+              ],
+              "example": "live.named_entity_recognition",
+              "default": "live.named_entity_recognition"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NamedEntityRecognitionMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "ChapterizationSentence": {
+          "type": "object",
+          "properties": {
+            "sentence": {
+              "type": "string"
+            },
+            "start": {
+              "type": "number"
+            },
+            "end": {
+              "type": "number"
+            },
+            "words": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/WordDTO"
+              }
+            }
+          },
+          "required": [
+            "sentence",
+            "start",
+            "end",
+            "words"
+          ]
+        },
+        "PostChapterizationResult": {
+          "type": "object",
+          "properties": {
+            "abstractive_summary": {
+              "type": "string"
+            },
+            "extractive_summary": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "headline": {
+              "type": "string"
+            },
+            "gist": {
+              "type": "string"
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "start": {
+              "type": "number"
+            },
+            "end": {
+              "type": "number"
+            },
+            "sentences": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ChapterizationSentence"
+              }
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "headline",
+            "gist",
+            "keywords",
+            "start",
+            "end",
+            "sentences",
+            "text"
+          ]
+        },
+        "PostChapterizationMessageData": {
+          "type": "object",
+          "properties": {
+            "results": {
+              "description": "The chapters",
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PostChapterizationResult"
+              }
+            }
+          },
+          "required": [
+            "results"
+          ]
+        },
+        "PostChapterizationMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "error": {
+              "description": "Error message if the addon failed",
+              "nullable": true,
+              "example": null,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "post_chapterization"
+              ],
+              "example": "post_chapterization",
+              "default": "post_chapterization"
+            },
+            "data": {
+              "description": "The message data. \"null\" if the addon failed",
+              "nullable": true,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostChapterizationMessageData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "error",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLivePostChapterizationMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.post_chapterization"
+              ],
+              "example": "live.post_chapterization",
+              "default": "live.post_chapterization"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostChapterizationMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "StreamingTranscriptionResultDTO": {
+          "type": "object",
+          "properties": {
+            "metadata": {
+              "description": "Metadata for the given transcription & audio file",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptionMetadataDTO"
+                }
+              ]
+            },
+            "transcription": {
+              "description": "Transcription of the audio speech",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptionDTO"
+                }
+              ]
+            },
+            "translation": {
+              "description": "If `translation` has been enabled, translation of the audio speech transcription",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranslationDTO"
+                }
+              ]
+            },
+            "summarization": {
+              "description": "If `summarization` has been enabled, summarization of the audio speech transcription",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SummarizationDTO"
+                }
+              ]
+            },
+            "named_entity_recognition": {
+              "description": "If `named_entity_recognition` has been enabled, the detected entities",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NamedEntityRecognitionDTO"
+                }
+              ]
+            },
+            "sentiment_analysis": {
+              "description": "If `sentiment_analysis` has been enabled, sentiment analysis of the audio speech transcription",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SentimentAnalysisDTO"
+                }
+              ]
+            },
+            "chapterization": {
+              "description": "If `chapterization` has been enabled, will generate chapters name for different parts of the given audio.",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ChapterizationDTO"
+                }
+              ]
+            }
+          },
+          "required": [
+            "metadata"
+          ]
+        },
+        "PostFinalTranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "post_final_transcript"
+              ],
+              "example": "post_final_transcript",
+              "default": "post_final_transcript"
+            },
+            "data": {
+              "description": "The message data",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StreamingTranscriptionResultDTO"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLivePostFinalTranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.post_final_transcript"
+              ],
+              "example": "live.post_final_transcript",
+              "default": "live.post_final_transcript"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostFinalTranscriptMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "PostSummarizationMessageData": {
+          "type": "object",
+          "properties": {
+            "results": {
+              "type": "string",
+              "description": "The summarization"
+            }
+          },
+          "required": [
+            "results"
+          ]
+        },
+        "PostSummarizationMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "error": {
+              "description": "Error message if the addon failed",
+              "nullable": true,
+              "example": null,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "post_summarization"
+              ],
+              "example": "post_summarization",
+              "default": "post_summarization"
+            },
+            "data": {
+              "description": "The message data. \"null\" if the addon failed",
+              "nullable": true,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostSummarizationMessageData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "error",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLivePostSummarizationMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.post_summarization"
+              ],
+              "example": "live.post_summarization",
+              "default": "live.post_summarization"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostSummarizationMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "PostTranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "post_transcript"
+              ],
+              "example": "post_transcript",
+              "default": "post_transcript"
+            },
+            "data": {
+              "description": "The message data",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptionDTO"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLivePostTranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.post_transcript"
+              ],
+              "example": "live.post_transcript",
+              "default": "live.post_transcript"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostTranscriptMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "SentimentAnalysisResult": {
+          "type": "object",
+          "properties": {
+            "sentiment": {
+              "type": "string"
+            },
+            "emotion": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            },
+            "start": {
+              "type": "number"
+            },
+            "end": {
+              "type": "number"
+            },
+            "channel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "sentiment",
+            "emotion",
+            "text",
+            "start",
+            "end",
+            "channel"
+          ]
+        },
+        "SentimentAnalysisData": {
+          "type": "object",
+          "properties": {
+            "utterance_id": {
+              "type": "string",
+              "description": "Id of the utterance used for this result",
+              "example": "00-00000011"
+            },
+            "utterance": {
+              "description": "The transcribed utterance",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/UtteranceDTO"
+                }
+              ]
+            },
+            "results": {
+              "description": "The sentiment analysis results",
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SentimentAnalysisResult"
+              }
+            }
+          },
+          "required": [
+            "utterance_id",
+            "utterance",
+            "results"
+          ]
+        },
+        "SentimentAnalysisMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "error": {
+              "description": "Error message if the addon failed",
+              "nullable": true,
+              "example": null,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "sentiment_analysis"
+              ],
+              "example": "sentiment_analysis",
+              "default": "sentiment_analysis"
+            },
+            "data": {
+              "description": "The message data. \"null\" if the addon failed",
+              "nullable": true,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SentimentAnalysisData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "error",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveSentimentAnalysisMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.sentiment_analysis"
+              ],
+              "example": "live.sentiment_analysis",
+              "default": "live.sentiment_analysis"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SentimentAnalysisMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "StartRecordingMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "start_recording"
+              ],
+              "example": "start_recording",
+              "default": "start_recording"
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type"
+          ]
+        },
+        "CallbackLiveStartRecordingMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.start_recording"
+              ],
+              "example": "live.start_recording",
+              "default": "live.start_recording"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StartRecordingMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "StartSessionMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "start_session"
+              ],
+              "example": "start_session",
+              "default": "start_session"
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type"
+          ]
+        },
+        "CallbackLiveStartSessionMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.start_session"
+              ],
+              "example": "live.start_session",
+              "default": "live.start_session"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StartSessionMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "StopRecordingAckData": {
+          "type": "object",
+          "properties": {
+            "recording_duration": {
+              "type": "number",
+              "description": "Total audio duration in seconds",
+              "example": 344.45
+            },
+            "recording_left_to_process": {
+              "type": "number",
+              "description": "Audio duration left to process in seconds",
+              "example": 11.23
+            }
+          },
+          "required": [
+            "recording_duration",
+            "recording_left_to_process"
+          ]
+        },
+        "StopRecordingAckMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "acknowledged": {
+              "type": "boolean",
+              "description": "Flag to indicate if the action was successfully acknowledged",
+              "example": true
+            },
+            "error": {
+              "description": "Error message if the action was not successfully acknowledged",
+              "nullable": true,
+              "example": null,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "stop_recording"
+              ],
+              "example": "stop_recording",
+              "default": "stop_recording"
+            },
+            "data": {
+              "description": "The message data. \"null\" if the action was not successfully acknowledged",
+              "nullable": true,
+              "type": "object",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StopRecordingAckData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "acknowledged",
+            "error",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveStopRecordingAckMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.stop_recording"
+              ],
+              "example": "live.stop_recording",
+              "default": "live.stop_recording"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StopRecordingAckMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "TranscriptMessageData": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the utterance",
+              "example": "00-00000011"
+            },
+            "is_final": {
+              "type": "boolean",
+              "description": "Flag to indicate if the transcript is final or not",
+              "example": true
+            },
+            "utterance": {
+              "description": "The transcribed utterance",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/UtteranceDTO"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "is_final",
+            "utterance"
+          ]
+        },
+        "TranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "transcript"
+              ],
+              "example": "transcript",
+              "default": "transcript"
+            },
+            "data": {
+              "description": "The message data",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptMessageData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveTranscriptMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.transcript"
+              ],
+              "example": "live.transcript",
+              "default": "live.transcript"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "SpeechMessageData": {
+          "type": "object",
+          "properties": {
+            "time": {
+              "type": "number",
+              "description": "Timestamp in seconds of the speech event",
+              "example": 12.56
+            },
+            "channel": {
+              "type": "number",
+              "description": "Channel of the speech event",
+              "example": 1
+            }
+          },
+          "required": [
+            "time",
+            "channel"
+          ]
+        },
+        "SpeechStartMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "speech_start"
+              ],
+              "example": "speech_start",
+              "default": "speech_start"
+            },
+            "data": {
+              "description": "The message data",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SpeechMessageData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveSpeechStartMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.speech_start"
+              ],
+              "example": "live.speech_start",
+              "default": "live.speech_start"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SpeechStartMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "SpeechEndMessage": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Id of the live session",
+              "example": "4a39145c-2844-4557-8f34-34883f7be7d9"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Date of creation of the message. The date is formatted as an ISO 8601 string",
+              "example": "2021-09-01T12:00:00.123Z"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "speech_end"
+              ],
+              "example": "speech_end",
+              "default": "speech_end"
+            },
+            "data": {
+              "description": "The message data",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SpeechMessageData"
+                }
+              ]
+            }
+          },
+          "required": [
+            "session_id",
+            "created_at",
+            "type",
+            "data"
+          ]
+        },
+        "CallbackLiveSpeechEndMessage": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.speech_end"
+              ],
+              "example": "live.speech_end",
+              "default": "live.speech_end"
+            },
+            "payload": {
+              "description": "The live message payload as sent to the WebSocket",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SpeechEndMessage"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "event",
+            "payload"
+          ]
+        },
+        "StreamingRequest": {
+          "type": "object",
+          "properties": {
+            "encoding": {
+              "description": "The encoding format of the audio stream. Supported formats: \n- PCM: 8, 16, 24, and 32 bits \n- A-law: 8 bits \n- μ-law: 8 bits \n\nNote: No need to add WAV headers to raw audio as the API supports both formats.",
+              "default": "wav/pcm",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StreamingSupportedEncodingEnum"
+                }
+              ]
+            },
+            "bit_depth": {
+              "description": "The bit depth of the audio stream",
+              "default": 16,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StreamingSupportedBitDepthEnum"
+                }
+              ]
+            },
+            "sample_rate": {
+              "description": "The sample rate of the audio stream",
+              "default": 16000,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StreamingSupportedSampleRateEnum"
+                }
+              ]
+            },
+            "channels": {
+              "type": "integer",
+              "description": "The number of channels of the audio stream",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 8
+            },
+            "custom_metadata": {
+              "type": "object",
+              "description": "Custom metadata you can attach to this live transcription",
+              "example": {
+                "user": "John Doe"
+              },
+              "additionalProperties": true
+            },
+            "model": {
+              "description": "The model used to process the audio. \"solaria-1\" is used by default.",
+              "default": "solaria-1",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StreamingSupportedModels"
+                }
+              ]
+            },
+            "endpointing": {
+              "type": "number",
+              "description": "The endpointing duration in seconds. Endpointing is the duration of silence which will cause an utterance to be considered as finished",
+              "default": 0.05,
+              "minimum": 0.01,
+              "maximum": 10
+            },
+            "maximum_duration_without_endpointing": {
+              "type": "number",
+              "description": "The maximum duration in seconds without endpointing. If endpointing is not detected after this duration, current utterance will be considered as finished",
+              "default": 5,
+              "minimum": 5,
+              "maximum": 60
+            },
+            "language_config": {
+              "description": "Specify the language configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LanguageConfig"
+                }
+              ]
+            },
+            "pre_processing": {
+              "description": "Specify the pre-processing configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PreProcessingConfig"
+                }
+              ]
+            },
+            "realtime_processing": {
+              "description": "Specify the realtime processing configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RealtimeProcessingConfig"
+                }
+              ]
+            },
+            "post_processing": {
+              "description": "Specify the post-processing configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PostProcessingConfig"
+                }
+              ]
+            },
+            "messages_config": {
+              "description": "Specify the websocket messages configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MessagesConfig"
+                }
+              ]
+            },
+            "callback": {
+              "type": "boolean",
+              "description": "If true, messages will be sent to configured url.",
+              "default": false
+            },
+            "callback_config": {
+              "description": "Specify the callback configuration",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/CallbackConfig"
+                }
+              ]
+            }
+          }
+        },
+        "StreamingSupportedRegions": {
+          "type": "string",
+          "enum": [
+            "us-west",
+            "eu-west"
+          ]
+        },
+        "InitStreamingResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Id of the job",
+              "format": "uuid",
+              "example": "45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Creation date",
+              "format": "date-time",
+              "example": "2023-12-28T09:04:17.210Z"
+            },
+            "url": {
+              "type": "string",
+              "description": "The websocket url to connect to for sending audio data. The url will contain the temporary token to authenticate the session.",
+              "example": "wss://api.gladia.io/v2/live?token=4a39145c-2844-4557-8f34-34883f7be7d9",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "id",
+            "created_at",
+            "url"
+          ]
+        },
+        "ListStreamingResponse": {
+          "type": "object",
+          "properties": {
+            "first": {
+              "type": "string",
+              "description": "URL to fetch the first page",
+              "format": "uri",
+              "example": "https://api.gladia.io/v2/transcription?status=done&offset=0&limit=20"
+            },
+            "current": {
+              "type": "string",
+              "description": "URL to fetch the current page",
+              "format": "uri",
+              "example": "https://api.gladia.io/v2/transcription?status=done&offset=0&limit=20"
+            },
+            "next": {
+              "type": "string",
+              "description": "URL to fetch the next page",
+              "format": "uri",
+              "example": "https://api.gladia.io/v2/transcription?status=done&offset=20&limit=20",
+              "nullable": true
+            },
+            "items": {
+              "description": "List of live transcriptions",
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/StreamingResponse"
+              }
+            }
+          },
+          "required": [
+            "first",
+            "current",
+            "next",
+            "items"
+          ]
+        },
+        "PatchRequestParamsDTO": {
+          "type": "object",
+          "properties": {}
+        },
+        "PayloadTooLargeErrorResponse": {
+          "type": "object",
+          "properties": {
+            "timestamp": {
+              "type": "string",
+              "description": "Date of when the error occurred",
+              "example": "2023-12-28T09:04:17.210Z"
+            },
+            "path": {
+              "type": "string",
+              "description": "Path to the API endpoint",
+              "example": "/v2/transcription/45463597-20b7-4af7-b3b3-f5fb778203ab"
+            },
+            "request_id": {
+              "type": "string",
+              "description": "Debug id",
+              "example": "G-821fe9df"
+            },
+            "statusCode": {
+              "type": "number",
+              "description": "HTTP status code of the error",
+              "example": 413
+            },
+            "message": {
+              "type": "string",
+              "description": "Payload too large",
+              "example": "payload too large"
+            }
+          },
+          "required": [
+            "timestamp",
+            "path",
+            "request_id",
+            "statusCode",
+            "message"
+          ]
+        },
+        "WebhookTranscriptionCreatedPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "transcription.created"
+              ],
+              "default": "transcription.created",
+              "example": "transcription.created"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/PreRecordedEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookTranscriptionSuccessPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "transcription.success"
+              ],
+              "default": "transcription.success",
+              "example": "transcription.success"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/PreRecordedEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookTranscriptionErrorPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "transcription.error"
+              ],
+              "default": "transcription.error",
+              "example": "transcription.error"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/PreRecordedEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookLiveStartSessionPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.start_session"
+              ],
+              "default": "live.start_session",
+              "example": "live.start_session"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/LiveEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookLiveStartRecordingPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.start_recording"
+              ],
+              "default": "live.start_recording",
+              "example": "live.start_recording"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/LiveEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookLiveEndRecordingPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.end_recording"
+              ],
+              "default": "live.end_recording",
+              "example": "live.end_recording"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/LiveEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        },
+        "WebhookLiveEndSessionPayload": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "enum": [
+                "live.end_session"
+              ],
+              "default": "live.end_session",
+              "example": "live.end_session"
+            },
+            "payload": {
+              "$ref": "#/components/schemas/LiveEventPayload"
+            }
+          },
+          "required": [
+            "event",
+            "payload"
+          ]
+        }
+      }
+    },
+    "webhooks": {
+      "transcription.created": {
+        "post": {
+          "description": "Sent when a pre-recorded transcription job has been created",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookTranscriptionCreatedPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "transcription.success": {
+        "post": {
+          "description": "Sent when a pre-recorded transcription job is done and its results are available",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookTranscriptionSuccessPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "transcription.error": {
+        "post": {
+          "description": "Sent when an error occurred on a pre-recorded transcription job",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookTranscriptionErrorPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "live.start_session": {
+        "post": {
+          "description": "Sent when a live session has been initiated",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookLiveStartSessionPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "live.start_recording": {
+        "post": {
+          "description": "Sent when we received the first audio chunk of a live session",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookLiveStartRecordingPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "live.end_recording": {
+        "post": {
+          "description": "Sent when the live session recording has ended",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookLiveEndRecordingPayload"
+                }
+              }
+            }
+          }
+        }
+      },
+      "live.end_session": {
+        "post": {
+          "description": "Sent when the live session post-processing has ended and the results are available",
+          "responses": {},
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookLiveEndSessionPayload"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "customOptions": {
+    "tagsSorter": "alpha",
+    "operationsSorter": "alpha",
+    "tryItOutEnabled": true,
+    "displayRequestDuration": true
+  }
+};
+  url = options.swaggerUrl || url
+  let urls = options.swaggerUrls
+  let customOptions = options.customOptions
+  let spec1 = options.swaggerDoc
+  let swaggerOptions = {
+    spec: spec1,
+    url: url,
+    urls: urls,
+    dom_id: '#swagger-ui',
+    deepLinking: true,
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIStandalonePreset
+    ],
+    plugins: [
+      SwaggerUIBundle.plugins.DownloadUrl
+    ],
+    layout: "StandaloneLayout"
+  }
+  for (let attrname in customOptions) {
+    swaggerOptions[attrname] = customOptions[attrname];
+  }
+  let ui = SwaggerUIBundle(swaggerOptions)
+
+  if (customOptions.initOAuth) {
+    ui.initOAuth(customOptions.initOAuth)
+  }
+
+  if (customOptions.authAction) {
+    ui.authActions.authorize(customOptions.authAction)
+  }
+  
+  window.ui = ui
+}
+
+=== /api/swagger.json ===
+404 151B ct=application/json; charset=utf-8
+=== /api/ dir listing probe ===
+200 3096B ct=text/html; charset=utf-8
+[0m
+Swagger UI at `/api` embeds the full inline spec (14 paths, no separate URL, no OAuth creds, `tryItOutEnabled: true`). Now checking the nginx edge fingerprint and whether the static layer exposes anything else.
+[0m$ [0mcurl -sS -m 12 https://api.gladia.io/api/swagger-ui-init.js -o /tmp/opencode/swagger-init.js; python3 - <<'EOF'
+import re
+d=open('/tmp/opencode/swagger-init.js').read()
+print('has webhooks key:', '"webhooks"' in d)
+print('has initOAuth:', 'initOAuth' in d)
+print('has authAction:', 'authAction' in d)
+print('swaggerUrl:', re.findall(r'url\s*=\s*options\.swaggerUrl\s*\|\|\s*([^;]+)', d))
+m=re.findall(r'"(openapi|paths|webhooks|servers|info)"\s*:', d)
+print('spec top keys:', m[:8])
+EOF
+has webhooks key: True
+has initOAuth: True
+has authAction: True
+swaggerUrl: ['url\n  let urls = options.swaggerUrls\n  let customOptions = options.customOptions\n  let spec1 = options.swaggerDoc\n  let swaggerOptions = {\n    spec: spec1,\n    url: url,\n    urls: urls,\n    dom_id: \'#swagger-ui\',\n    deepLinking: true,\n    presets: [\n      SwaggerUIBundle.presets.apis,\n      SwaggerUIStandalonePreset\n    ],\n    plugins: [\n      SwaggerUIBundle.plugins.DownloadUrl\n    ],\n    layout: "StandaloneLayout"\n  }\n  for (let attrname in customOptions) {\n    swaggerOptions[attrname] = customOptions[attrname]']
+spec top keys: ['openapi', 'paths', 'info', 'servers', 'webhooks']
+[0m
+[0m$ [0mfor p in /api/favicon-32x32.png /api/swagger-ui-bundle.js /v1/models /v1/history /.well-known/security.txt; do printf "%-28s " "$p"; curl -sS -m 12 -o /dev/null -D - "https://api.gladia.io$p" 2>/dev/null | grep -iE "^HTTP|^server|^content-type|x-powered" | tr '\n' ' '; echo; sleep 1.2; done
+/api/favicon-32x32.png       HTTP/2 200 
+ content-type: image/png
+ 
+/api/swagger-ui-bundle.js    HTTP/2 200 
+ content-type: text/javascript; charset=utf-8
+ 
+/v1/models                   HTTP/2 200 
+ content-type: application/json; charset=utf-8
+ 
+/v1/history                  HTTP/2 401 
+ content-type: application/json; charset=utf-8
+ 
+/.well-known/security.txt    HTTP/2 200 
+ content-type: text/plain; charset=utf-8
+ server: nginx/1.28.2
+[0m
+Probes complete. Writing structured output.
+
+**STEP 1 — DELTA**
+- [NEW] api.gladia.io `/.well-known/security.txt` — 200 text/plain, ONLY response that discloses `server: nginx/1.28.2` (app/static `/api/*` responses strip the header) → edge-layer nginx with `server_tokens on` on the static block
+- [NEW] api.gladia.io `/api` — public Swagger UI host (200 text/html, 3120B), full inline spec + `webhooks` section (7 events: transcription.created/success/error, live.start_session/start_recording/end_recording/end_session), `tryItOutEnabled:true`, NO initOAuth/authAction creds embedded, no separate spec URL; `/api/swagger.json` 404
+- [CHANGED] api.gladia.io `/openapi.json` re-fetched: 200/125131B/14 paths/servers=[production URL only] — byte-stable vs prior cycles; Swagger UI `/api` is a same-spec mirror, not new endpoints
+
+**STEP 2 — PRIORITIZE**
+- [PRIO] api.gladia.io /api Swagger UI (inline spec mirror): score 4.35 — attack 3, business 2, tech 4, gate 10, cloud 1, fresh 9
+- [PRIO] api.gladia.io .well-known/security.txt nginx/1.28.2 banner: score 3.60 — attack 2, business 1, tech 3, gate 10, cloud 0, fresh 9
+- [PRIO] api.gladia.io POST /v2/pre-recorded URL-fetch fields (existing): score 7.4 — attack 8, business 8, tech 7, gate 5, cloud 9, fresh 7
+
+**STEP 3 — HYPOTHESES**
+- [HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config.url)
+confidence: 73
+reasoning: spec frozen 20+ cycles; URL fields `format:uri` no scheme allowlist; SDK forwards verbatim (sdk-js/sdk-python RAG); /v1/models confirms FR/US egress; key sole gate (401 NestJS shape re-confirmed).
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error/status/duration, or callback at internal listener.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url + callback_config.url; run ≥2x for dual-instance egress pool.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+- [HYP] `gladia`@0.1.3 orphaned impersonation at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 95
+reasoning: dist-tag latest=0.1.3; repo alexisbouchez/gladia.ts + user 404 (orphaned); README "Unofficial" vs package.json "Official" in same artifact; client.ts:307 embeds raw x-gladia-key in wss://.../v2/live?token query.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia.
+verify_steps: PASSIVE — done (npm view, tarball sha256 `3b23ec7d…7f2`, GitHub API 404); submission is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium impersonation + Medium key hygiene
+testability: PASSIVE
+
+- [HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 55
+reasoning: reflection re-confirmed 17:52 UTC; CSP lacks form-action; OAuth redirect_uri injection falsified (fixed callback URI); unsigned return-to cookie resets on tamper.
+evidence_needed: post-auth 302 Location to external host after completing SSO with redirect_to set.
+verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie.
+impact: post-auth phishing redirect → Medium
+testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+- [PARKED] nginx/1.28.2 banner CVE-targeting: below confidence threshold (35) — version banner isolated to one static block, no known applicable CVE, no exploit path; only a fingerprint datapoint.
+- [PARKED] Swagger UI `/api` as new attack surface: same 14-path spec already public at /openapi.json; no OAuth creds, no separate spec URL, no authAction preload → nothing beyond the known OpenAPI exposure.
+- [FINAL] 1) npm `gladia`@0.1.3 impersonation [95] 2) SSRF URL-fetch fields [73] 3) post-auth redirect_to [55]
+
+**STEP 5 — NEXT ACTION**
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a…`, README "Unofficial" vs package.json "Official", source repo+account 404 orphaned, client.ts:307 raw x-gladia-key in WS URL query); in the same submission request an authorized `x-gladia-key` for a self-own-data SSRF canary (http://169.254.169.254/latest/meta-data/); on approval run the canary ≥2x via POST /v2/pre-recorded audio_url/video_url/callback_config.url to cover the FR/US egress pool — unblocks both [95] and [73].
+
+**STEP 6 — LEARNING**
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: public Swagger UI host at /api (200, inline 14-path spec, tryItOutEnabled) — same-spec mirror of /openapi.json, no OAuth creds/authAction embedded, /api/swagger.json 404; adds no endpoints, informational only
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: `server: nginx/1.28.2` disclosed ONLY on /.well-known/security.txt (200, expires 2027-06-25, security@gladia.io + bug-bounty contact) — edge nginx with server_tokens on for the static block; /api/* static and all NestJS JSON paths strip the header → banner isolated, low value
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json still 125131B/14 paths/servers=production-only — byte-stable; Swagger UI `/api` confirmed mirror not delta (20+ cycles frozen)
+
+**STEP 7 — RISK SCORE**
+[RISK] api.gladia.io: 46 — frozen key-gated surface (20+ cycles) with SSRF-by-design fetch fields gated solely by key and SSRF canary unproven; new nginx/1.28.2 banner + public Swagger UI mirror add marginal fingerprint surface only | app.gladia.io: 33 — unauth redirect_to reflection confirmed, post-auth honoring unproven, redirect_uri injection falsified, return-to cookie tamper-reset REJECTED; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern (report ready); official @gladiaio/sdk@1.1.0 clean, tarball unchanged
