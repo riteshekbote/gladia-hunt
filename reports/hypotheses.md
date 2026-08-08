@@ -338,3 +338,19 @@
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 07:59 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/model
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 07:59 UTC — form action reflects URL-encoded value; no host allowlist at unauthen
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 07:59 UTC — client-side enforcement confirmed; server-side 302 gate on /a
+
+## RANKED HYPOTHESES 2026-08-08 09:47:28 UTC
+- [95] npm: npm `gladia@0.1.3` orphaned impersonation leaks API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 actively impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize the `gladia`@0.1.3 report writeup with this cycle's delta — (a) source repo alexisbouchez/gladia.ts + user account now 404 (orphaned, disclosure p
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa8
+- NEXT(hypotheses-laguna.txt): HUMAN: Phase is POC, target is app. The npm `gladia@0.1.3` finding is PASSIVE-verified (sha256 `3b23ec7d…7f2`, src/client.ts:307 key-in-URL, README↔package.json
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 09:45
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 8 cycles (23:08→09:44 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powere
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 09:44 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/model
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 09:44 UTC — form action reflects URL-encoded value; no host allowlist at unauthen
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 09:44 UTC — client-side enforcement confirmed; server-side 302 gate on /a
+- LEARN: REJECTED OTHER @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — 3 fresh fetches → 3 distinct example timestamps (25.976/32.264/26.548Z) 
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: structural hash 9a326c92… (examples-stripped) stable across 3 fetches → validated drift baseline; raw byte hash varies per f
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT this cycle (09:44 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by 
