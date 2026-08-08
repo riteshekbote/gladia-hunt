@@ -230,3 +230,17 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:48Z byte-identical to 23:08Z (openapi 125131B/14 paths, /v1/models 530B, /health 15B, 401 gate, pre
 - LEARN: ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk@1.1.0 metadata static 23:48Z — supply-chain surface unchanged.
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com form-action reflection re-confirmed 23:48Z — reflection surface persists, post-auth 
+
+## RANKED HYPOTHESES 2026-08-08 00:44:48 UTC
+- [85] npm: `gladia`@0.1.3 ships internal README titled "Unofficial" while package.json/npm-search says "Official" — active impersonation, plus raw API key in WS URL query (diverges from official SDK's token-in-URL after /v2/live init) (from reports/hypotheses-bigpickle.txt)
+- [80] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-bigpickle.txt): RAG: document the `gladia`@0.1.3 artifact-level finding for the report — tarball README "Unofficial" vs package.json "Official" contradiction + `x-gladia-key` r
+- NEXT(hypotheses-laguna.txt): HUMAN: api.gladia.io is HIGHEST-priority with the top-ranked SSRF hypothesis gated only by a valid API key. Request a program-provided / authorized trial `x-gla
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 `{"health":"OK"}` (x-powered-by ABSENT on GET) — undocumented endpoint + preflight-only fingerprint conf
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + allow `x-gladia-key`, POST 401 no`x-powered-by` — preflig
+- LEARN: ACCEPTED AUTH @ api.gladia.io: POST /v2/transcription (no key) → 401 — key-gated surface confirmed; @gladiaio/key header is the sole auth model
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125131B, CORS `*`, expose-headers trace ids) + /v1/models (200 public CORS `*`) fully exposed — surface 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → form action reflects URL-encoded value — reflection confirmed fresh 23:5x UTC
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 text/html (SPA shell) without auth — client-side enforcement confirmed fresh
+- LEARN: ACCEPTED OTHER @ npm: `gladia`@0.1.3 description "Official TypeScript SDK…", repo alexisbouchez/gladia.ts (personal), maintainer softwarecitadel@gmail.com — imp
+- LEARN: (no new REJECTED class this cycle; surface re-confirmed byte-identical to 23:08 per 23:48 prior re-probe — drift negative)

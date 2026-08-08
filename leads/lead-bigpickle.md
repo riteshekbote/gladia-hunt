@@ -927,3 +927,32 @@ testability: AUTH_HELPED
 [RISK] api.gladia.io: 82 — public OpenAPI (14 paths/125KB), CORS wildcard + x-gladia-key permitted cross-origin (no creds), x-powered-by Express preflight fingerprint, WS token in URL query, undocumented /health, audio_url/callback SSRF-by-design (key-gated), single-key auth model
 [RISK] app.gladia.io: 52 — Google-only OAuth limits bypass; /dashboard 200 SPA w/o auth (client-side enforcement); redirect_to form-action reflection post-auth unverified; strict CSP; return-to signed-reset (REJECTED)
 [RISK] sdk: 45 — official @gladiaio/sdk 1.1.0 + gladiaio-sdk PyPI clean; `gladia`@0.1.3 impersonation anomaly sole reportable candidate; gladia-quiz-app pins old @gladiaio/sdk@0.5.2
+## 2026-08-08 00:43:25 UTC [api] (model bigpickle)
+[HYP] `gladia`@0.1.3 ships internal README titled "Unofficial" while package.json/npm-search says "Official" — active impersonation, plus raw API key in WS URL query (diverges from official SDK's token-in-URL after /v2/live init)
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 85
+reasoning: tarball RAG this cycle — README.md line 3 "Unofficial TypeScript SDK" vs package.json description "Official TypeScript SDK for Gladia" in the SAME shipped artifact; client.ts:307 `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` puts live key in WS query string; official sdk-1.1.0 session.ts:140-146 instead POSTs init and connects to returned token URL; no malicious code found (no postinstall/eval/exec).
+evidence_needed: none — artifact-level contradiction and WS-key-in-URL verified from tarball; affiliation check still needs Gladia disclosure channel.
+verify_steps: PASSIVE — done (tarball extraction + source diff this cycle, 2026-08-08 00:42Z)
+impact: developers installing `gladia` run unofficial code; raw API keys exposed in WS URLs (access-log/history/proxy capture) on every realtime session → Medium (impersonation) + Medium (key-hygiene)
+testability: PASSIVE
+[HYP] SSRF via audio_url server-side fetch + callback_url outbound POST
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, callback/callback_config) + legacy /video|/audio/text/*
+confidence: 72
+reasoning: spec live 2026-08-08 00:42Z still shows audio_url/CallbackConfigDto.url format:uri with no scheme allowlist; official SDK prerecorded/client.ts:15-16 only isUrl() gates upload-vs-direct (URLs forwarded verbatim to API); /v1/models confirms FR/US egress; jobs return status/error_message/duration = measurable reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254 / internal host reflected in error_message/status/duration; or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: re-probed 200 2026-08-08 00:42Z — redirect_to reflected URL-encoded into form action; unsigned base64url return-to cookie {"url":"/"} confirms server-driven redirect concept; distinct from REJECTED cookie-tampering vector.
+evidence_needed: final post-auth HTTP 302 Location resolving to external host after Google sign-in with redirect_to set; or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+[NEXT] RAG: document the `gladia`@0.1.3 artifact-level finding for the report — tarball README "Unofficial" vs package.json "Official" contradiction + `x-gladia-key` raw-in-WS-URL (client.ts:307) vs official SDK token-in-URL-after-init (session.ts:140); then request program `x-gladia-key` for the standing SSRF POST test (sole remaining gate — passive surface frozen 3 consecutive cycles).
