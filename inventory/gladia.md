@@ -187,3 +187,5 @@
 - CHANGED app.gladia.io return-to cookie re-confirmed: `eyJ1cmwiOiIvIn0=` = unsigned base64url `{"url":"/"}` (plain JSON, NOT a signed JWT); `__sid` expired/empty; both HttpOnly/Secure/SameSite=Lax
 
 ## 2026-08-08 21:19:34 UTC
+
+## 2026-08-08 21:52:34 UTC

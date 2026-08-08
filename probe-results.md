@@ -50,3 +50,6 @@ https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=
 ## 2026-08-08 21:19:36 UTC
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 21:52:36 UTC
+https://app.gladia.io/auth/google/callback` -> 200 len=? type=text/html; charset=utf-8

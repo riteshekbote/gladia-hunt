@@ -1665,3 +1665,4 @@ testability: PASSIVE
 [RISK] sdk: 50 | `gladia` npm package actively claims "Official" while unofficial (impersonation active); official @gladiaio/sdk metadata clean; tarball of `gladia` benign so far
 [HYP] SSRF via audio_url/video_url server-side fetch
 ## 2026-08-08 21:16:50 UTC [app] (model laguna)
+## 2026-08-08 21:52:26 UTC [app] (model laguna)
