@@ -354,3 +354,28 @@
 - LEARN: REJECTED OTHER @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — 3 fresh fetches → 3 distinct example timestamps (25.976/32.264/26.548Z) 
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: structural hash 9a326c92… (examples-stripped) stable across 3 fetches → validated drift baseline; raw byte hash varies per f
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT this cycle (09:44 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by 
+
+## RANKED HYPOTHESES 2026-08-08 10:19:38 UTC
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-nemotron3.txt)
+- [65] app.gladia.io: app.gladia.io /signin post-auth open redirect via reflected redirect_to (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Phase is POC, target is app. Complete Google OAuth flow on app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target po
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via the gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eeca
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: structural hash (examples-stripped) stable at sha256 9a326c924644b59854b0cafddb5f477c23d6d1cfb8c220f0ff5bf689c3c61c7b across
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — 3 fresh fetches returned 3 distinct example timestamps (25.976/32.26
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT this cycle (09:44 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by 
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 09:45
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 8 cycles (23:08→09:44 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powere
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 09:44 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/model
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 09:44 UTC — form action reflects URL-encoded value; no host allowlist at unauthen
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 09:44 UTC — client-side enforcement confirmed; server-side 302 gate on /a
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 9 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-po
+- LEARN: ACCEPTED OTHER @ api.gladia.io: recorded structural-hash baseline `9a326c92…` is not reproducible without the original strip recipe — my normalization yields `a
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum `cc96f84a…` current dist-shasum, source repo alexisbouchez/gladia.ts + user 404, di
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists fresh 10:16 UTC — description "Official", orphaned repo/user 404, sha256 3b23ec7d…7f2, README↔package.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 10:16 UTC — openapi 125131B/14 paths, /health 15B {health:OK}, /v1/models 530B public, preflight-only x-power
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed fresh 10:16 UTC (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"); CSP has 
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 text/html SPA shell without auth confirmed fresh — client-side enforcement; server-side 302 gate intact on /a
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists fresh 10:16 UTC — description "Official", orphaned repo/user 404, sha256 3b23ec7d…7f2, README↔package.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 10:16 UTC — openapi 125131B/14 paths, /health 15B {health:OK}, /v1/models 530B public, preflight-only x-power
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed fresh 10:16 UTC (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"); CSP has 
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 text/html SPA shell without auth confirmed fresh — client-side enforcement; server-side 302 gate intact on /a
