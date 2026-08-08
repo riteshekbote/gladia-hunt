@@ -45,3 +45,9 @@
   - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid API key for AUTH_HELPED proof |
   - | 8 | IDOR on `/{id}/file` downloads | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid key + cross-account test |
   - | 9 | Query-param injection on `/v1/history` | api.gladia.io (HIGHEST) | **⏸️ HOLD** | Gated on valid key |
+
+- 4 lead(s) marked VALID at 2026-08-08 09:07:00 UTC
+  - | 1 | npm `gladia`@0.1.3 impersonation + WS key-in-URL | **✅ VALID** | Verified impersonation, orphaned repo, credential leakage via WS URL query |
+  - | 2 | SSRF via audio_url/video_url/callback_url | **⏸️ HOLD** | In-scope design confirmed; proof gated on valid API key (AUTH_HELPED) |
+  - | 5 | IDOR on `/{id}/file` | **⏸️ HOLD** | Needs valid key + cross-account test |
+  - | 6 | Query-param injection on `/v1/history` | **⏸️ HOLD** | Needs valid key |
