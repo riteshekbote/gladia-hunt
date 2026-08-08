@@ -51,3 +51,24 @@
   - | 2 | SSRF via audio_url/video_url/callback_url | **⏸️ HOLD** | In-scope design confirmed; proof gated on valid API key (AUTH_HELPED) |
   - | 5 | IDOR on `/{id}/file` | **⏸️ HOLD** | Needs valid key + cross-account test |
   - | 6 | Query-param injection on `/v1/history` | **⏸️ HOLD** | Needs valid key |
+
+- 19 lead(s) marked VALID at 2026-08-08 17:56:08 UTC
+  - | Q6 Not rejected? | YES — supply-chain impersonation with credential-leakage code pattern is a valid vulnerability class, not info-disclosure of public data or best-practice. |
+  - ### **Verdict: VALID**
+  - | Q2 Reachable? | PARTIAL — all SSRF-capable endpoints are key-gated (401 without `x-gladia-key`). Only reachable by users with a valid API key (low-priv registered developer). |
+  - | Q4 Passive proof? | NO — the *design* (fetch-by-design, no allowlist) is confirmed via OpenAPI spec and SDK source. But proving actual server-side fetch of an internal address requires POST with a v
+  - | Q6 Not rejected? | YES — SSRF is a valid vulnerability class. |
+  - | Q7 Triager accept? | CONDITIONAL — a triager would accept IF a valid key is obtained and reachability is demonstrated. Without proof, HOLD. |
+  - ### **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact (SSRF to cloud metadata/internal net), design confirmed by spec + SDK. Cannot be proven with passive GET/HEAD only. Requires AUTH
+  - | Q2 Reachable? | NO for cross-account — requires two valid API keys (attacker + victim). Single-key attacker cannot reach another user's resource ID without knowing it (UUID). |
+  - | Q4 Passive proof? | NO — spec does not expose ownership binding; cannot prove without valid key + owned resource ID + cross-account test. |
+  - | Q6 Not rejected? | YES — IDOR is a valid vulnerability class. |
+  - ### **Verdict: HOLD** — Cannot verify without valid API key and a second account to test cross-account access. Spec does not expose ownership-binding logic. UUID-based IDs make unauthenticated guessin
+  - | Q2 Reachable? | PARTIAL — token issuance requires valid `x-gladia-key` (POST /v2/live). Token-in-URL design visible in public spec, but actual token generation requires auth. |
+  - | Q4 Passive proof? | PARTIAL — the *design* (token in URL) is confirmed via public OpenAPI spec (no auth needed to read spec). Proving actual token theft/leakage requires a valid key to init a sessio
+  - | Q6 Not rejected? | YES — credential leakage via URL is a valid vulnerability class, not just "best practice." |
+  - ### **Verdict: HOLD** — Design confirmed via public OpenAPI spec (no auth needed to read). The token-in-URL pattern is a genuine weakness. However, proving actual token theft or session hijacking requ
+  - | Q3 Real impact? | NEGLIGIBLE — Google OAuth callback endpoint must be publicly reachable (it's the redirect_uri target for Google's OAuth flow). 200 response without OAuth state/code is the SPA shel
+  - | 1 | npm `gladia`@0.1.3 impersonation + orphaned repo + raw key in WS URL | npm registry (MEDIUM) | **VALID** | Verified supply-chain impersonation, orphaned repo, credential-leak code pattern |
+  - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | **HOLD** | In-scope, real impact, design confirmed; proof gated on valid API key (AUTH_HELPED) |
+  - | 3 | IDOR on /{id}/file downloads | api.gladia.io (HIGHEST) | **HOLD** | Needs valid key + cross-account test; UUID guessing infeasible |
