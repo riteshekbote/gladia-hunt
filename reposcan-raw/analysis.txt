@@ -1,25 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/npm/gladia.json | jq -r '.versions["0.1.3"].dist.shasum'
-cc96f84a200c0fd49a71e919391f9b659c39f3e9
-[0m
-### Classification Table
+Based on the scan results and knowledge base, here's my triage:
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | None | No hardcoded credentials with signs of life |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`), various test fixtures, SDK usage examples in `gladia-quiz-app`, `compare-stt` | Masked placeholders, expected SDK usage patterns |
-| **ENDPOINT_LEAK** | References to `api.gladia.io`, `app.gladia.io`, `www.gladia.io` across multiple repos | Public production endpoints, expected for SDK consumers |
-| **INTERESTING** | `npm/gladia.json` — `gladia@0.1.3` metadata: `description="Official TypeScript SDK"`, repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" | **Known/accepted impersonation anomaly** (tracked since 2026-08-07, sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`) |
+## Classification Tables
 
-### Verdict
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none found) | — | — | No hardcoded credentials with signs of life |
 
-| Candidate | REPORT_CANDIDATE | Reason |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `https://api.gladia.io/v2` + `x-gladia-key` header (public API, expected) |
+| gladiaio/gladia-quiz-app/app/layout.tsx | 43 | `https://unpkg.com/@gladiaio/sdk@0.5.2` (CDN, public) |
+| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` (public dashboard) |
+| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public dashboard) |
+| gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` (marketing rewrite) |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/npm/gladia.json | 1 | **Impersonation anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` — **KNOWN DUPLICATE** (ACCEPTED OTHER 2026-08-07) |
+| gladiaio/gladia-quiz-app/package.json | 24 | Outdated SDK: `@gladiaio/sdk": "^0.6.0"` (current=1.1.0) |
+| gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | Client-side API key storage key: `gladia_api_key` (localStorage, not a leak) |
+| gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5, 70, 74 | Uses `createGladiaClient` + `liveV2().startSession()` — correct SDK usage |
+
+---
+
+## Verdict List
+
+| Candidate | Report_Candidate | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | **no** | Already accepted (2026-08-07), no change in metadata (sha256 stable, dist-tag `latest` persists, repo+user 404) |
-| `@gladiaio/sdk@1.1.0` references | **no** | Official SDK, expected usage in gladiaio repos |
-| API endpoint references | **no** | Public production surfaces (`api.gladia.io`, `app.gladia.io`) |
-| Placeholder `sk-********` | **no** | Clearly masked in screenshot/test context |
+| `gladia@0.1.3` npm impersonation | **no** | Already tracked as ACCEPTED OTHER (2026-08-07), ownership anomaly confirmed, no new evidence |
+| Hardcoded API keys | **no** | None found — only masked placeholder `sk-********` in test screenshot |
+| Outdated SDK in gladia-quiz-app | **no** | Maintenance issue, not a security finding |
+| Public API endpoints in code | **no** | Expected usage of `api.gladia.io` and `app.gladia.io` |
+| Client-side key storage pattern | **no** | Normal localStorage usage, not a leak |
 
-**Summary**: 0 new hits vs prior scan. All findings are either previously accepted (npm impersonation) or benign/expected (SDK usage, public endpoints, masked placeholders). No actionable candidates.
+**Summary**: No new reportable findings. The scan confirms the previously accepted `gladia@0.1.3` impersonation anomaly (no change) and shows only expected public API usage across Gladia repos.
