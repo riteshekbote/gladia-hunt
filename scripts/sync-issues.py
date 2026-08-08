@@ -31,7 +31,8 @@ def parse_blocks(text, model):
             if kv:
                 b[kv.group(1).lower()] = kv.group(2).strip()
             j += 1
-        blocks.append(b)
+        if "<" not in str(b.get("title", "")):
+            blocks.append(b)
         i = j
     return blocks
 
@@ -83,7 +84,18 @@ def main():
         blocks += parse_blocks(text, model)
     print("hypothesis blocks:", len(blocks))
 
-    confs = sorted({int(b.get("confidence", 0) or 0) // 10 * 10 for b in blocks})
+
+    def _conf(b):
+        v = b.get("confidence", 0) or 0
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            try:
+                return int(float(v))
+            except (ValueError, TypeError):
+                return 0
+
+    confs = sorted({_conf(b) // 10 * 10 for b in blocks})
     models = sorted({b["model"] for b in blocks})
     all_labels = ["bug-bounty", "ai-hypothesis", "pending", "false-positive", TARGET] \
         + [f"model-{m}" for m in models] + [f"confidence-{c}" for c in confs]
@@ -106,7 +118,7 @@ def main():
 
     created = updated = 0
     for b in blocks:
-        conf = int(b.get("confidence", 0) or 0)
+        conf = _conf(b)
         fp = fingerprint(b)
         title = f"[{conf}%] {b['title'][:90]}"
         labels = ["bug-bounty", "ai-hypothesis", "pending", TARGET,
