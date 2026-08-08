@@ -147,3 +147,6 @@
 - NEW api.gladia.io: structural hash (examples-stripped) STABLE at sha256 9a326c924644b59854b0cafddb5f477c23d6d1cfb8c220f0ff5bf689c3c61c7b across 3 fetches — validated drift baseline
 
 ## 2026-08-08 10:58:11 UTC
+
+## 2026-08-08 11:41:38 UTC
+- CHANGED app.gladia.io CSP confirmed: base-uri 'self', object-src 'none', frame-src 'self'+*.gladia.io+billing+svix; NO form-action directive (gap enables unconstrained form-action reflection)
