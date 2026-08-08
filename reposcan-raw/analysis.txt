@@ -410,47 +410,148 @@ export function ScreenshotGallery() {
   );
 }
 [0m
-### Classification Tables
+[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+import type { TranscribeResult, WordTimestamp } from "../transcribe";
 
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | | | No hardcoded credentials with signs of life found |
+const GLADIA_BASE = "https://api.gladia.io/v2";
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` — screenshot gallery mock data for Tauri app |
-| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | ~180 | `apiKeyDisplayValue="sk-example"` in mock HomeView props |
-| `gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts` | 70 | `createGladiaClient(apiKey)` — `apiKey` from user input/localStorage |
-| `gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx` | 47,56 | User-provided API key state + localStorage read |
-| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 36,49 | `x-gladia-key: apiKey` — variable from function param |
+interface GladiaWord {
+  word: string;
+  start: number;
+  end: number;
+}
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` — public API base (known, in scope) |
-| `gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `https://app.gladia.io` — public dashboard (known) |
-| `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` — public (known) |
-| `gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{id}` — public (known) |
-| `gladiaio/compare-stt/next.config.ts` | 38,44 | Redirects to `www.gladia.io` — marketing site (known) |
+interface GladiaUtterance {
+  text: string;
+  words: GladiaWord[];
+}
 
-#### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | Mock `apiKey: "sk-********"` uses `sk-` prefix (OpenAI-style) not Gladia's `x-gladia-key` header format — misleading placeholder in screenshot generator |
-| `npm/gladia.json` | 1 | **Previously known**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" — impersonation anomaly (tracked, 2026-08-07) |
-| `gladiaio/gladia-quiz-app/app/layout.tsx` | 43 | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN — outdated version pinned in demo app |
-| `gladiaio/compare-stt/src/lib/providers.ts` | 10 | `model: "Solaria-3"` — references Gladia's model name in comparison tool |
+export async function transcribeWithGladia(
+  audio: Buffer,
+  mimeType: string
+): Promise<TranscribeResult> {
+  const apiKey = process.env.GLADIA_API_KEY;
+  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+
+  const start = Date.now();
+
+  const ext = mimeType.includes("wav") ? "audio.wav"
+    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
+    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
+    : mimeType.includes("ogg") ? "audio.ogg"
+    : "audio.webm";
+
+  const uploadForm = new FormData();
+  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
+
+  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
+    method: "POST",
+    headers: { "x-gladia-key": apiKey },
+    body: uploadForm,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
+    method: "POST",
+    headers: {
+      "x-gladia-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url,
+      model: "solaria-3",
+      punctuation_enhanced: true,
+      language_config: { code_switching: false },
+    }),
+  });
+
+  if (!transcribeRes.ok) {
+    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
+  }
+
+  const { result_url } = await transcribeRes.json();
+
+  const { transcript, words } = await pollForResult(result_url, apiKey);
+  const durationMs = Date.now() - start;
+
+  return { transcript, words, durationMs };
+}
+
+async function pollForResult(
+  resultUrl: string,
+  apiKey: string
+): Promise<{ transcript: string; words: WordTimestamp[] }> {
+  const maxAttempts = 60;
+  const interval = 1000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(resultUrl, {
+      headers: { "x-gladia-key": apiKey },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gladia poll failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.status === "done") {
+      const utterances: GladiaUtterance[] | undefined =
+        data.result?.transcription?.utterances;
+
+      if (utterances && Array.isArray(utterances)) {
+        const transcript = utterances.map((u) => u.text).join(" ");
+        const words: WordTimestamp[] = utterances.flatMap((u) =>
+          (u.words || []).map((w) => ({
+            word: w.word,
+            start: w.start,
+            end: w.end,
+          }))
+        );
+        return { transcript, words };
+      }
+
+      const fullTranscript = data.result?.transcription?.full_transcript;
+      return { transcript: fullTranscript || "", words: [] };
+    }
+
+    if (data.status === "error") {
+      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
+    }
+
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error("Gladia transcription timed out");
+}
+[0m
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Mock value in `MOCK_SETTINGS` for screenshot generation |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | `gladiaflow`, `gladioflow`, `gladiaflaw` | Test fixture strings |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/customVocabulary.ts | 8-9 | `gladiaflow`, `gladioflow`, `gladiaflaw` | Test vocabulary data |
+| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts | 8 | `gladia` in SLUGS array | Test provider slug |
+| **TEST_OR_EXAMPLE** | compare-stt/prisma/seed.ts | 10 | `Gladia` provider seed data | Database seed fixture |
+| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (known) |
+| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage | Public auth header pattern (known) |
+| **ENDPOINT_LEAK** | gladia-quiz-app/app/layout.tsx | 43 | `unpkg.com/@gladiaio/sdk@0.5.2` | CDN reference to old SDK version |
+| **INTERESTING** | npm/gladia.json | 1 | `gladia@0.1.3` metadata | **Unofficial package claiming "Official"** — repo `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com` — known impersonation anomaly |
+| **INTERESTING** | gladia-quiz-app/package.json | 24 | `@gladiaio/sdk": "^0.6.0` | Pinned to old version (current: 1.1.0) |
+| **INTERESTING** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Hardcoded dashboard URL (expected) |
+| **INTERESTING** | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `app.gladia.io/transcriptions/live/` | Hardcoded dashboard URL pattern (expected) |
+
+**NO REAL_SECRETS found** — no live credentials, tokens, or keys with signs of life.
 
 ---
 
-### Verdict List
+### Verdict
 
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm package impersonation | INTERESTING (known) | **no** | Already accepted 2026-08-07; orphaned personal repo, dist-tag `latest` persists, but out of scope for *this* scan phase (target=app) |
-| `sk-********` mock in Gallery.tsx | TEST_OR_EXAMPLE | **no** | Screenshot gallery mock data; `sk-` prefix is OpenAI-style placeholder, not a Gladia key format |
-| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** | Sample apps, docs links, public API endpoints, variable-based auth — no secrets |
-
-**No new reportable findings in this delta.** Surface re-confirmed frozen (NO_DRIFT across 7 cycles per RAG).
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonation | **yes** | Package claims "Official TypeScript SDK" but source is personal repo `alexisbouchez/gladia.ts` (orphaned user 404), maintainer `softwarecitadel@gmail.com`; tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; README says "Unofficial" vs package.json "Official" — supply-chain confusion risk |
+| All other hits | **no** | Test fixtures, public endpoints, expected hardcoded URLs, or known/accepted findings in knowledge base |
