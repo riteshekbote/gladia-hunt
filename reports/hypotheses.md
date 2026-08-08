@@ -539,3 +539,35 @@
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation re-verified fresh 17:0x UTC — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC — form action reflects URL-encoded value;
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+
+## RANKED HYPOTHESES 2026-08-08 17:52:29 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaking API key in WebSocket URL (from reports/hypotheses-laguna.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Phase is POC, target is app. Complete Google OAuth flow on app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target po
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, README "Unofficial" vs p
+- NEXT(hypotheses-laguna.txt): HUMAN: Phase is POC, target app. With program authorization, complete the Google OAuth (or email/password) flow on https://app.gladia.io/signin?redirect_to=http
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 16 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-p
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:43 UTC — form action reflects URL-encoded value;
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflecti
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec unchanged (16th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; 
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation re-verified fresh 17:0x UTC — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 17 cycles (23:08→17:43 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC M-bM-^@M-^T form action reflects URL-enco
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri M-bM-^@M-^T server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callba
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08->17:44 UTC) — openapi 125131B/14 paths, /health {"health":"OK"} 15B, /v1/models 530B FR/US
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 3b23ec7d...7f2 unchanged, dist-tag latest=0.1.3, repo alexisbouchez
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/m
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value;
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08->17:44 UTC) — openapi 125131B/14 paths, /health {"health":"OK"} 15B, /v1/models 530B FR/US
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 3b23ec7d...7f2 unchanged, dist-tag latest=0.1.3, repo alexisbouchez
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/m
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value;
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08→17:44 UTC) — openapi 125131B/14 paths, /health `{"health":"OK"}` 15B, /v1/models 530B FR/U
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 `3b23ec7d…7f2` unchanged, dist-tag latest=0.1.3, repo alexisbouchez
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/m
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value;
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu

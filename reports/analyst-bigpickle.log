@@ -8467,3 +8467,105 @@ STEP 6 — LEARNING
 
 STEP 7 — RISK SCORE
 [RISK] api.gladia.io: 45 — frozen 14-path key-gated surface with SSRF-by-design fetch fields gated solely by key; drift baseline validated across 16 cycles but no proven exploitable path without a key | app.gladia.io: 33 — unauth redirect_to reflection confirmed, post-auth honoring unproven, redirect_uri injection falsified; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern (report ready); official @gladiaio/sdk@1.1.0 clean, tarball unchanged
+===== ANALYST bigpickle 2026-08-08 17:52:29 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mfor i in 1 2 3 4; do
+  case $i in
+    1) echo "--- /openapi.json ---"; curl -s -o /tmp/op.json -w 'status=%{http_code} size=%{size_download} acao=%{header_json}' https://api.gladia.io/openapi.json; echo; grep -o '"paths"' /tmp/op.json >/dev/null && python3 -c "import json;d=json.load(open('/tmp/op.json'));print('paths',len(d['paths']))";;
+    2) echo "--- /health ---"; curl -s -w '\nstatus=%{http_code}\n' https://api.gladia.io/health;;
+    3) echo "--- /v1/models ---"; curl -s -w '\nstatus=%{http_code} size=%{size_download}\n' https://api.gladia.io/v1/models | tail -c 200;;
+    4) echo "--- OPTIONS /v2/transcription ---"; curl -s -o /dev/null -X OPTIONS -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" -w 'status=%{http_code} xpb=%{header_json}' https://api.gladia.io/v2/transcription; echo;;
+  esac
+  sleep 1
+done
+--- /openapi.json ---
+status=200 size=125131 acao={"access-control-allow-origin":["*"],
+"access-control-expose-headers":["x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id"],
+"content-type":["application/json; charset=utf-8"],
+"cross-origin-opener-policy":["same-origin"],
+"date":["Sat, 08 Aug 2026 17:43:27 GMT"],
+"etag":["W/\"1e8cb-UQA6NISIyhtXZOqYg29gpySreJA\""],
+"origin-agent-cluster":["?1"],
+"referrer-policy":["strict-origin-when-cross-origin"],
+"strict-transport-security":["max-age=31536000; includeSubDomains; preload"],
+"x-content-type-options":["nosniff"],
+"x-dns-prefetch-control":["off"],
+"x-download-options":["noopen"],
+"x-permitted-cross-domain-policies":["none"],
+"x-xss-protection":["0"],
+"content-length":["125131"]
+}
+paths 14
+--- /health ---
+{"health":"OK"}
+status=200
+--- /v1/models ---
+-to-text model supporting 100+ languages with sub-300ms latency. Async and real-time transcription.","is_ready":true,"datacenters":[{"country_code":"FR"},{"country_code":"US"}]}]}
+status=200 size=530
+--- OPTIONS /v2/transcription ---
+status=204 xpb={"access-control-allow-headers":["x-gladia-key"],
+"access-control-allow-methods":["GET,HEAD,PUT,PATCH,POST,DELETE"],
+"access-control-allow-origin":["*"],
+"access-control-expose-headers":["x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id"],
+"date":["Sat, 08 Aug 2026 17:43:33 GMT"],
+"strict-transport-security":["max-age=31536000; includeSubDomains; preload"],
+"vary":["Access-Control-Request-Headers"],
+"x-powered-by":["Express"]
+}
+[0m
+Fresh probe 17:43 UTC confirms byte-identical surface. Structured output follows.
+
+STEP 1 — DELTA
+- [CHANGED] api.gladia.io: fresh probe 17:43 UTC — /openapi.json 125131B/14 paths, /health 200 `{"health":"OK"}`, /v1/models 530B FR/US, OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + ACAH `x-gladia-key` — 17th NO_DRIFT cycle, surface frozen
+- NO new endpoints, headers, versions, or registry artifacts since 17:05 cycle
+
+STEP 2 — PRIORITIZE
+- [PRIO] npm registry `gladia`@0.1.3: 5.8 (attack 4, business 8, tech 6, gate 10, cloud 2, fresh 2) — only finding with evidence COMPLETE, submission-ready
+- [PRIO] api.gladia.io POST /v2/pre-recorded (SSRF fetch surface): 5.7 (attack 7, business 7, tech 7, gate 1, cloud 8, fresh 2) — highest severity, sole blocker is authorized key
+- [PRIO] app.gladia.io /signin redirect_to post-auth: 4.1 (attack 4, business 5, tech 5, gate 5, cloud 1, fresh 2) — Medium at best, needs SSO completion
+
+STEP 3 — HYPOTHESES
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config.url)
+confidence: 73
+reasoning: spec frozen 17 cycles; URL fields `format:uri` no scheme allowlist; SDK forwards verbatim (sdk-js/sdk-python RAG); /v1/models confirms FR/US egress; key is sole gate (401 NestJS shape confirmed).
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error/status/duration, or callback at internal listener.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url + callback_config.url; run ≥2x for dual-instance egress pool.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] `gladia`@0.1.3 orphaned impersonation at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 95
+reasoning: dist-tag latest=0.1.3; repo alexisbouchez/gladia.ts + user 404 (orphaned); README "Unofficial" vs package.json "Official" in same artifact; client.ts:307 embeds raw x-gladia-key in wss://.../v2/live?token query.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia.
+verify_steps: PASSIVE — done (npm view, tarball sha256 `3b23ec7d…7f2`, GitHub API 404); submission is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium impersonation + Medium key hygiene
+testability: PASSIVE
+
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 55
+reasoning: reflection re-confirmed 14:48 UTC; CSP lacks form-action; OAuth redirect_uri injection falsified (fixed callback URI); unsigned return-to cookie resets on tamper.
+evidence_needed: post-auth 302 Location to external host after completing SSO with redirect_to set.
+verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie.
+impact: post-auth phishing redirect → Medium (Low-Medium given no Host-header angle remains)
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- None dropped (all ≥40, none on REJECTED list, all have concrete verify_steps).
+- [FINAL] 1) npm impersonation [95] 2) api SSRF [73] 3) app redirect_to post-auth [55]
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, README "Unofficial" vs package.json "Official" contradiction, source repo+account 404 orphaned, client.ts:307 raw x-gladia-key in WS URL query) and in the same submission request an authorized `x-gladia-key` for a self-own-data SSRF canary (http://169.254.169.254/latest/meta-data/); on approval run the canary ≥2x via POST /v2/pre-recorded audio_url/video_url/callback_config.url to cover the FR/US egress pool — this unblocks both the [95] report and the [73] top api finding.
+
+STEP 6 — LEARNING
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 17 cycles (23:08→17:43 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential (OPTIONS 204 xpb=Express, GET/POST 401 xpb absent), CORS static wildcard — surface frozen, nothing new to report
+
+STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 45 — frozen 14-path key-gated surface with SSRF-by-design fetch fields gated solely by key; drift baseline validated across 17 cycles, no proven exploitable path without a key | app.gladia.io: 33 — unauth redirect_to reflection confirmed, post-auth honoring unproven, redirect_uri injection falsified; no confirmed vuln | sdk: 50 — orphaned `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern (report ready); official @gladiaio/sdk@1.1.0 clean, tarball unchanged
