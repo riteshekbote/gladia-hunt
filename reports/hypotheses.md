@@ -244,3 +244,14 @@
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 text/html (SPA shell) without auth — client-side enforcement confirmed fresh
 - LEARN: ACCEPTED OTHER @ npm: `gladia`@0.1.3 description "Official TypeScript SDK…", repo alexisbouchez/gladia.ts (personal), maintainer softwarecitadel@gmail.com — imp
 - LEARN: (no new REJECTED class this cycle; surface re-confirmed byte-identical to 23:08 per 23:48 prior re-probe — drift negative)
+
+## RANKED HYPOTHESES 2026-08-08 03:03:04 UTC
+- [88] npm: `gladia`@0.1.3 is now an orphaned impersonation package — source repo alexisbouchez/gladia.ts returns 404 while dist-tag latest persists (from reports/hypotheses-bigpickle.txt)
+- [85] npm: Artifact-level package impersonation + WebSocket API-key leakage in npm `gladia`@0.1.3 (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-bigpickle.txt): RAG: finalize the `gladia`@0.1.3 report writeup with this cycle's delta — (a) source repo alexisbouchez/gladia.ts + user account now 404 (orphaned, disclosure p
+- NEXT(hypotheses-laguna.txt): HUMAN: Request an authorized Google SSO session for app.gladia.io to close the #3 open-redirect POC — complete the OAuth sign-in with `?redirect_to=https://evil
+- LEARN: CONFIRMED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 02:50 UTC across protocol-relative //evil, bare-host, app.gladia.io.evil confusin
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-

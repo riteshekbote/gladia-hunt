@@ -956,3 +956,32 @@ verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://ev
 impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
 testability: AUTH_HELPED
 [NEXT] RAG: document the `gladia`@0.1.3 artifact-level finding for the report — tarball README "Unofficial" vs package.json "Official" contradiction + `x-gladia-key` raw-in-WS-URL (client.ts:307) vs official SDK token-in-URL-after-init (session.ts:140); then request program `x-gladia-key` for the standing SSRF POST test (sole remaining gate — passive surface frozen 3 consecutive cycles).
+## 2026-08-08 02:47:01 UTC [api] (model bigpickle)
+[HYP] `gladia`@0.1.3 is now an orphaned impersonation package — source repo alexisbouchez/gladia.ts returns 404 while dist-tag latest persists
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 88
+reasoning: this cycle — `api.github.com/repos/alexisbouchez/gladia.ts` AND `api.github.com/users/alexisbouchez` both 404 with x-ratelimit-remaining 50 (real, not throttled); registry still lists repo field `git+https://github.com/alexisbouchez/gladia.ts.git`, description "Official TypeScript SDK for Gladia", maintainer softwarecitadel@gmail.com; tarball re-extracted: README.md:3 "Unofficial" vs package.json:4 "Official". Repo deletion removes the only public source for disclosure/verification — package is unfixable and untrackable at source level.
+evidence_needed: none at registry level — repo 404 + artifact contradiction verified fresh; residual unknown = whether account was renamed (fork/search check) vs deleted; affiliation check pending Gladia disclosure channel.
+verify_steps: PASSIVE — done (registry metadata 0.1.3, tarball README/package.json diff, GitHub API repo+user 404, web 404, rate-limit confirmed); optional follow-up: GitHub search for renamed `gladia.ts` forks.
+impact: developers installing `gladia` (dist-tag latest, top search result) run unofficial code from a now-unreachable repo; repo/account hijack impossible to remediate at source; raw `x-gladia-key` in WS query string (client.ts:307) leaks key to access-log/proxy on every realtime session → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 72
+reasoning: spec live shows audio_url/CallbackConfigDto.url `format:uri` with no scheme allowlist; official SDK prerecorded client only isUrl() gates upload-vs-direct (URLs forwarded verbatim); /v1/models confirms FR/US egress; jobs return status/error_message/duration reachability signal. Unchanged 4 cycles.
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: re-probed 200 — redirect_to reflected URL-encoded into form action; unsigned base64url return-to cookie {"url":"/"} confirms server-driven redirect concept; distinct from REJECTED cookie-tampering vector.
+evidence_needed: post-auth 302 Location resolving to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+[NEXT] RAG: finalize the `gladia`@0.1.3 report writeup with this cycle's delta — (a) source repo alexisbouchez/gladia.ts + user account now 404 (orphaned, disclosure path severed), (b) tarball README "Unofficial" vs package.json "Official" contradiction (re-verified), (c) client.ts:307 raw `x-gladia-key` in WS query vs official sdk session.ts:140 token-after-init; output report section + disclosure-readiness summary for human; then escalate HUMAN for program `x-gladia-key` to unblock SSRF POST test (ranked #2, sole remaining gate, surface frozen 4 cycles).

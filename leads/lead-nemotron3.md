@@ -413,3 +413,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 55 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist but Google-only OAuth limits exploitability; HSTS preload strong; CSP restrictive
 [RISK] sdk: 45 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly persists; PyPI version bump to 1.0.5 noted; no malicious behavior observed in official packages
 ## 2026-08-08 00:42:07 UTC [app] (model nemotron3)
+## 2026-08-08 03:02:53 UTC [app] (model nemotron3)
