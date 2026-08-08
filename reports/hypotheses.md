@@ -504,3 +504,18 @@
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2` unchanged, repo alexisbouchez/gladia.ts + user 404, src/client.ts:307 e
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec confirms audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; key-gated 401 — 
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=http://app.gladia.io/auth/google/callback; no OAut
+
+## RANKED HYPOTHESES 2026-08-08 15:21:19 UTC
+- [95] npm: Orphaned npm package `gladia@0.1.3` impersonates official SDK leaking API key in WebSocket URL (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url/callback_url server-side fetch (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Phase is POC, target is app. Complete Google OAuth flow on app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target po
+- NEXT(hypotheses-laguna.txt): HUMAN — Phase is POC, target app. With program authorization, complete the Google OAuth (or email/password) flow on `https://app.gladia.io/signin?redirect_to=ht
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 14 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-p
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive 14:48 UTC — form action reflects URL-encoded value; no ho
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: fresh probe confirms NO_DRIFT (15th cycle) — openapi 125131B/14 paths, /health `{"health":"OK"}`, /v1/models 530B, preflight
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host a
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 SPA shell without auth — client-side enforcement; server-side 302 gate intact on /apikeys,/transcript
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2` unchanged, repo alexisbouchez/gladia.ts + user 404, src/client.ts:307 e
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec unchanged (15th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; 
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
