@@ -1,33 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mls -la reposcan-raw/
+total 84
+drwxr-xr-x  4 runner runner  4096 Aug  8 17:28 .
+drwxr-xr-x 11 runner runner  4096 Aug  8 17:28 ..
+-rw-r--r--  1 runner runner    43 Aug  8 17:28 analysis.txt
+drwxr-xr-x 14 runner runner  4096 Aug  8 17:28 gladiaio
+-rw-r--r--  1 runner runner    40 Aug  8 17:28 grep-delta.txt
+-rw-r--r--  1 runner runner  7424 Aug  8 17:28 grep-hits.prev.txt
+-rw-r--r--  1 runner runner  7424 Aug  8 17:28 grep-hits.txt
+drwxr-xr-x  2 runner runner  4096 Aug  8 17:28 npm
+-rw-r--r--  1 runner runner 44611 Aug  8 17:28 rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/analysis.txt
 [0m→ [0mRead reposcan-raw/npm/gladia.json
 [0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
 [0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-### Classification Table
-
-| Category | File | Line | Finding | Classification |
-|----------|------|------|---------|----------------|
-| **INTERESTING** | `reposcan-raw/npm/gladia.json` | 1 | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` | **INTERESTING** — Impersonation anomaly (unofficial package masquerading as official) |
-| **INTERESTING** | `reposcan-raw/npm/gladia.json` | 1 | Package README title = "Unofficial TypeScript SDK" vs package.json description = "Official TypeScript SDK" | **INTERESTING** — Contradiction confirms impersonation |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `href="https://app.gladia.io"` | **ENDPOINT_LEAK** — Legitimate prod domain reference |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **ENDPOINT_LEAK** — Legitimate prod URL template |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **ENDPOINT_LEAK** — Legitimate prod URL |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` | **ENDPOINT_LEAK** — Legitimate API base URL |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** — Masked placeholder (asterisks) |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` | **TEST_OR_EXAMPLE** — Explicit test value |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/compare-stt/next.config.ts` | 38,44 | `destination: "https://www.gladia.io/compare-stt-apis"` | **ENDPOINT_LEAK** — Legitimate prod rewrite target |
-| **ENDPOINT_LEAK** | Multiple files | Various | References to `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io` | **ENDPOINT_LEAK** — All legitimate in-scope domains |
+[0m✱ [0mGlob "**/*.ts"[90m in reposcan-raw/gladiaio · 100 matches[0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts
+Based on my analysis of the scan results and the knowledge base, here's the classification:
 
 ---
 
-### Verdict List
+### Classification Table
+
+| Category | Findings |
+|----------|----------|
+| **REAL_SECRET** | None found |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` in `MOCK_SETTINGS` constant (screenshot mock data)<br>`gladiaflow/src/screenshots/Gallery.tsx:222` — `apiKeyDisplayValue="sk-example"` (screenshot placeholder) |
+| **ENDPOINT_LEAK** | None — all endpoints referenced (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`) are public production hosts |
+| **INTERESTING** | `npm/gladia.json` — Package `gladia@0.1.3` claims "Official TypeScript SDK for Gladia" but repository is `alexisbouchez/gladia.ts` (personal account), maintainer `softwarecitadel@gmail.com`, README says "Unofficial" — **impersonation anomaly** (already tracked in knowledge base as ACCEPTED OTHER, 2026-08-07) |
+
+---
+
+### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|-----------------|--------|
-| `gladia@0.1.3` npm package impersonation | **yes** | Package claims "Official" but published from personal GitHub repo (`alexisbouchez/gladia.ts`) by maintainer `softwarecitadel@gmail.com` (no Gladia affiliation); README says "Unofficial" — clear impersonation anomaly. Already tracked in KB as ACCEPTED OTHER. |
-| `sk-********` / `sk-example` in gladiaflow screenshots | **no** | Obvious test fixtures (masked asterisks, literal "example") in screenshot gallery component — not real credentials. |
-| All `gladia.io` / `api.gladia.io` / `app.gladia.io` URL references | **no** | Legitimate in-scope production endpoints; no internal/staging/non-Gladia domains leaked. |
-| `@gladiaio/sdk` usage in gladia-quiz-app, compare-stt | **no** | Official SDK from Gladia org — expected usage. |
+| `gladia@0.1.3` npm impersonation | **no** | Already accepted & tracked (2026-08-07); no new delta; out of scope for new reporting |
+| Mock API keys in screenshots | **no** | Clearly test/fixture data (`sk-********`, `sk-example` in `MOCK_SETTINGS`) |
+| Legitimate SDK usage in gladiaio repos | **no** | Uses official `@gladiaio/sdk`, references public API hosts |
+| No new secrets, endpoints, or anomalies | **no** | Delta = 0 new hits vs previous scan |
 
-**Only one reportable candidate:** the `gladia@0.1.3` npm package impersonation (already documented in KB as ACCEPTED OTHER 2026-08-07). No new secrets, no new endpoint leaks beyond known surface.
+**Summary**: No new reportable findings. The sole pre-existing anomaly (`gladia@0.1.3` impersonation) remains unchanged and was already accepted in the knowledge base. Surface is frozen across 16+ probe cycles.
