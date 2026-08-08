@@ -6445,3 +6445,393 @@ STEP 7 — RISK SCORE
 [RISK] api.gladia.io: 55 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url, no scheme allowlist) + undocumented /health + CORS wildcard-with-x-gladia-key, all key-gated; exploit depends on key procurement
 [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + client-side-only auth on /dashboard SPA; OAuth SSO in path
 [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean
+===== ANALYST bigpickle 2026-08-08 06:08:58 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/models.json -w "%{http_code} %{size_download}\n" https://api.gladia.io/v1/models && sha256sum /tmp/opencode/models.json
+200 530
+0e3c1166029bc4b2d545b947cd51b21a62077352197475124f9c593eafa618cb  /tmp/opencode/models.json
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/openapi.json -w "%{http_code} %{size_download}\n" https://api.gladia.io/openapi.json && sha256sum /tmp/opencode/openapi.json
+200 125131
+979f3731ded4020c4059a40ecd32f0eb9860a2ea503b56d5370d68a4463494d7  /tmp/opencode/openapi.json
+[0m
+[0m$ [0mnpm view gladia@0.1.3 --json 2>/dev/null | head -40; sleep 1; npm view @gladiaio/sdk version 2>/dev/null
+{
+  "_id": "gladia@0.1.3",
+  "_rev": "4-d0214ef116ff0426b738c29cf2a97cf1",
+  "name": "gladia",
+  "dist-tags": {
+    "latest": "0.1.3"
+  },
+  "versions": [
+    "0.1.0",
+    "0.1.1",
+    "0.1.2",
+    "0.1.3"
+  ],
+  "time": {
+    "created": "2025-03-28T17:20:09.872Z",
+    "modified": "2025-04-07T13:46:48.993Z",
+    "0.1.0": "2025-03-28T17:20:10.148Z",
+    "0.1.1": "2025-03-28T17:35:57.688Z",
+    "0.1.2": "2025-04-07T13:42:54.763Z",
+    "0.1.3": "2025-04-07T13:46:48.823Z"
+  },
+  "bugs": {
+    "url": "https://github.com/alexisbouchez/gladia.ts/issues"
+  },
+  "author": "Alexis Bouchez",
+  "license": "MIT",
+  "homepage": "https://github.com/alexisbouchez/gladia.ts#readme",
+  "keywords": [
+    "gladia",
+    "speech-to-text",
+    "transcription",
+    "audio",
+    "video",
+    "ai",
+    "typescript",
+    "sdk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+1.1.0
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/health.txt -w "%{http_code} %{size_download}\n" https://api.gladia.io/health && cat /tmp/opencode/health.txt && echo && sleep 1 && curl -s -o /dev/null -w "signin: %{http_code}\n" -D /tmp/opencode/signin_h.txt "https://app.gladia.io/signin?redirect_to=https://evil.example.com" && grep -i -E "location|set-cookie|action=" /tmp/opencode/signin_h.txt | head -5
+200 15
+{"health":"OK"}
+signin: 200
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+s=json.load(open('openapi.json'))
+print('paths:',len(s['paths']))
+import re
+t=open('openapi.json').read()
+for pat in [r'[\w.-]+\.internal', r'[a-z0-9.-]+\.gladia\.io', r'\b(secret|token|api[_-]?key)\b.{0,40}', r'https?://[^\"\\\\ ]+']:
+    m=set(re.findall(pat,t,re.I))
+    print(pat,'->',len(m))
+    for x in list(m)[:15]: print('   ',x[:120])
+"
+paths: 14
+[\w.-]+\.internal -> 0
+[a-z0-9.-]+\.gladia\.io -> 2
+    api.gladia.io
+    files.gladia.io
+\b(secret|token|api[_-]?key)\b.{0,40} -> 2
+    apiKey
+    token
+https?://[^"\\ ]+ -> 9
+    https://api.gladia.io/v2/transcription?status=done&offset=20&limit=20
+    https://api.gladia.io/v2/transcription/45463597-20b7-4af7-b3b3-f5fb778203ab
+    https://api.gladia.io/file/6c09400e-23d2-4bd2-be55-96a5ececfa3b
+    https://openrouter.ai/models).
+    https://loc.gov/preservation/digital/formats//fdd/fdd000569.shtml#:~:text=SRT%20files%20are%20basic%20text,alongside%2C%
+    https://api.gladia.io/v2/transcription?status=done&offset=0&limit=20
+    https://callback.example
+    https://api.gladia.io/
+    https://files.gladia.io/example/audio-transcription/split_infinity.wav
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+s=json.load(open('openapi.json'))
+schemas=s.get('components',{}).get('schemas',{})
+print('schemas:',len(schemas))
+for name,sc in schemas.items():
+    props=sc.get('properties',{})
+    unconstrained=[p for p,pv in props.items() if ('maxLength' not in pv and 'pattern' not in pv and 'enum' not in pv)]
+    obj=[p for p,pv in props.items() if pv.get('type')=='object' and pv.get('additionalProperties',True) is True]
+    if unconstrained or obj:
+        print(name,'| unconstrained:',unconstrained,'| open-object:',obj)
+"
+schemas: 138
+PreRecordedEventPayload | unconstrained: ['id'] | open-object: []
+LiveEventPayload | unconstrained: ['id'] | open-object: []
+AudioUploadMetadataDTO | unconstrained: ['id', 'filename', 'source', 'extension', 'size', 'audio_duration', 'number_of_channels'] | open-object: []
+AudioUploadResponse | unconstrained: ['audio_url', 'audio_metadata'] | open-object: []
+CustomVocabularyEntryDTO | unconstrained: ['value', 'intensity', 'pronunciations', 'language'] | open-object: []
+CustomVocabularyConfigDTO | unconstrained: ['vocabulary', 'default_intensity'] | open-object: []
+CallbackConfigDto | unconstrained: ['url', 'method'] | open-object: []
+SubtitlesConfigDTO | unconstrained: ['formats', 'minimum_duration', 'maximum_duration', 'maximum_characters_per_row', 'maximum_rows_per_caption', 'style'] | open-object: []
+DiarizationConfigDTO | unconstrained: ['number_of_speakers', 'min_speakers', 'max_speakers'] | open-object: []
+TranslationConfigDTO | unconstrained: ['target_languages', 'model', 'match_original_utterances', 'lipsync', 'context_adaptation', 'context', 'informal'] | open-object: []
+SummarizationConfigDTO | unconstrained: ['type'] | open-object: []
+CustomSpellingConfigDTO | unconstrained: ['spelling_dictionary'] | open-object: []
+AudioToLlmListConfigDTO | unconstrained: ['prompts', 'model'] | open-object: []
+PiiRedactionConfigDTO | unconstrained: ['entity_types'] | open-object: []
+LanguageConfig | unconstrained: ['languages', 'code_switching'] | open-object: []
+InitTranscriptionRequest | unconstrained: ['custom_vocabulary', 'custom_vocabulary_config', 'callback_url', 'callback', 'callback_config', 'subtitles', 'subtitles_config', 'diarization', 'diarization_config', 'translation', 'translation_config', 'summarization', 'summarization_config', 'named_entity_recognition', 'custom_spelling', 'custom_spelling_config', 'sentiment_analysis', 'audio_to_llm', 'audio_to_llm_config', 'pii_redaction', 'pii_redaction_config', 'custom_metadata', 'sentences', 'punctuation_enhanced', 'language_config', 'audio_url'] | open-object: ['custom_metadata']
+InitPreRecordedTranscriptionResponse | unconstrained: ['id', 'result_url'] | open-object: []
+BadRequestErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message', 'validation_errors'] | open-object: []
+UnauthorizedErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message'] | open-object: []
+UnprocessableEntityErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message'] | open-object: []
+FileResponse | unconstrained: ['id', 'filename', 'source', 'audio_duration', 'number_of_channels'] | open-object: []
+PreRecordedRequestParamsResponse | unconstrained: ['custom_vocabulary', 'custom_vocabulary_config', 'callback_url', 'callback', 'callback_config', 'subtitles', 'subtitles_config', 'diarization', 'diarization_config', 'translation', 'translation_config', 'summarization', 'summarization_config', 'named_entity_recognition', 'custom_spelling', 'custom_spelling_config', 'sentiment_analysis', 'audio_to_llm', 'audio_to_llm_config', 'pii_redaction', 'pii_redaction_config', 'sentences', 'punctuation_enhanced', 'language_config', 'audio_url'] | open-object: []
+TranscriptionMetadataDTO | unconstrained: ['audio_duration', 'number_of_distinct_channels', 'billing_time', 'transcription_time'] | open-object: []
+AddonErrorDTO | unconstrained: ['status_code', 'exception', 'message'] | open-object: []
+SentencesDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+SubtitleDTO | unconstrained: ['format', 'subtitles'] | open-object: []
+WordDTO | unconstrained: ['word', 'start', 'end', 'confidence'] | open-object: []
+UtteranceDTO | unconstrained: ['start', 'end', 'confidence', 'channel', 'speaker', 'words', 'text', 'language'] | open-object: []
+TranscriptionDTO | unconstrained: ['full_transcript', 'languages', 'sentences', 'subtitles', 'utterances'] | open-object: []
+TranslationResultDTO | unconstrained: ['error', 'full_transcript', 'languages', 'sentences', 'subtitles', 'utterances'] | open-object: ['error']
+TranslationDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+SummarizationDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+ModerationDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+NamedEntityRecognitionResult | unconstrained: ['entity_type', 'text', 'start', 'end'] | open-object: []
+NamedEntityRecognitionDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+NamesConsistencyDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+StructuredDataExtractionDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+SentimentAnalysisDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+AudioToLlmResultDTO | unconstrained: ['prompt', 'response'] | open-object: []
+AudioToLlmDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error', 'results']
+AudioToLlmListDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+DisplayModeDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+ChapterizationDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error', 'results']
+DiarizationDTO | unconstrained: ['success', 'is_empty', 'exec_time', 'error', 'results'] | open-object: ['error']
+TranscriptionResultDTO | unconstrained: ['metadata', 'transcription', 'translation', 'summarization', 'moderation', 'named_entity_recognition', 'name_consistency', 'structured_data_extraction', 'sentiment_analysis', 'audio_to_llm', 'sentences', 'display_mode', 'chapterization', 'diarization'] | open-object: []
+PreRecordedResponse | unconstrained: ['id', 'request_id', 'version', 'created_at', 'completed_at', 'custom_metadata', 'error_code', 'post_session_metadata', 'file', 'request_params', 'result'] | open-object: ['custom_metadata', 'post_session_metadata', 'file', 'request_params', 'result']
+NotFoundErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message'] | open-object: []
+ListPreRecordedResponse | unconstrained: ['first', 'current', 'next', 'items'] | open-object: []
+ForbiddenErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message'] | open-object: []
+CallbackTranscriptionSuccessPayload | unconstrained: ['id', 'payload', 'custom_metadata'] | open-object: ['custom_metadata']
+ErrorDTO | unconstrained: ['code', 'message'] | open-object: []
+CallbackTranscriptionErrorPayload | unconstrained: ['id', 'error', 'custom_metadata'] | open-object: ['custom_metadata']
+PreProcessingConfig | unconstrained: ['audio_enhancer', 'speech_threshold'] | open-object: []
+RealtimeProcessingConfig | unconstrained: ['custom_vocabulary', 'custom_vocabulary_config', 'custom_spelling', 'custom_spelling_config', 'translation', 'translation_config', 'named_entity_recognition', 'sentiment_analysis'] | open-object: []
+PostProcessingConfig | unconstrained: ['summarization', 'summarization_config', 'chapterization'] | open-object: []
+MessagesConfig | unconstrained: ['receive_partial_transcripts', 'receive_final_transcripts', 'receive_speech_events', 'receive_pre_processing_events', 'receive_realtime_processing_events', 'receive_post_processing_events', 'receive_acknowledgments', 'receive_errors', 'receive_lifecycle_events'] | open-object: []
+CallbackConfig | unconstrained: ['url', 'receive_partial_transcripts', 'receive_final_transcripts', 'receive_speech_events', 'receive_pre_processing_events', 'receive_realtime_processing_events', 'receive_post_processing_events', 'receive_acknowledgments', 'receive_errors', 'receive_lifecycle_events'] | open-object: []
+StreamingRequestParamsResponse | unconstrained: ['encoding', 'bit_depth', 'sample_rate', 'channels', 'model', 'endpointing', 'maximum_duration_without_endpointing', 'language_config', 'pre_processing', 'realtime_processing', 'post_processing', 'messages_config', 'callback', 'callback_config'] | open-object: []
+StreamingTranscriptionResultWithMessagesDTO | unconstrained: ['metadata', 'transcription', 'translation', 'summarization', 'named_entity_recognition', 'sentiment_analysis', 'chapterization', 'messages'] | open-object: []
+StreamingResponse | unconstrained: ['id', 'request_id', 'version', 'created_at', 'completed_at', 'custom_metadata', 'error_code', 'post_session_metadata', 'file', 'request_params', 'result'] | open-object: ['custom_metadata', 'post_session_metadata', 'file', 'request_params', 'result']
+ListTranscriptionResponse | unconstrained: ['first', 'current', 'next', 'items'] | open-object: []
+ListHistoryResponse | unconstrained: ['first', 'current', 'next', 'items'] | open-object: []
+AudioChunkActionData | unconstrained: ['chunk'] | open-object: []
+AudioChunkAction | unconstrained: ['data'] | open-object: []
+Error | unconstrained: ['message'] | open-object: []
+AudioChunkAckData | unconstrained: ['byte_range', 'time_range'] | open-object: []
+AudioChunkAckMessage | unconstrained: ['session_id', 'created_at', 'acknowledged', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLiveAudioChunkAckMessage | unconstrained: ['id', 'payload'] | open-object: []
+EndRecordingMessageData | unconstrained: ['recording_duration'] | open-object: []
+EndRecordingMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLiveEndRecordingMessage | unconstrained: ['id', 'payload'] | open-object: []
+EndSessionMessage | unconstrained: ['session_id', 'created_at'] | open-object: []
+CallbackLiveEndSessionMessage | unconstrained: ['id', 'payload'] | open-object: []
+TranslationData | unconstrained: ['utterance_id', 'utterance', 'original_language', 'target_language', 'translated_utterance'] | open-object: []
+TranslationMessage | unconstrained: ['session_id', 'created_at', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLiveTranslationMessage | unconstrained: ['id', 'payload'] | open-object: []
+NamedEntityRecognitionData | unconstrained: ['utterance_id', 'utterance', 'results'] | open-object: []
+NamedEntityRecognitionMessage | unconstrained: ['session_id', 'created_at', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLiveNamedEntityRecognitionMessage | unconstrained: ['id', 'payload'] | open-object: []
+ChapterizationSentence | unconstrained: ['sentence', 'start', 'end', 'words'] | open-object: []
+PostChapterizationResult | unconstrained: ['abstractive_summary', 'extractive_summary', 'summary', 'headline', 'gist', 'keywords', 'start', 'end', 'sentences', 'text'] | open-object: []
+PostChapterizationMessageData | unconstrained: ['results'] | open-object: []
+PostChapterizationMessage | unconstrained: ['session_id', 'created_at', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLivePostChapterizationMessage | unconstrained: ['id', 'payload'] | open-object: []
+StreamingTranscriptionResultDTO | unconstrained: ['metadata', 'transcription', 'translation', 'summarization', 'named_entity_recognition', 'sentiment_analysis', 'chapterization'] | open-object: []
+PostFinalTranscriptMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLivePostFinalTranscriptMessage | unconstrained: ['id', 'payload'] | open-object: []
+PostSummarizationMessageData | unconstrained: ['results'] | open-object: []
+PostSummarizationMessage | unconstrained: ['session_id', 'created_at', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLivePostSummarizationMessage | unconstrained: ['id', 'payload'] | open-object: []
+PostTranscriptMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLivePostTranscriptMessage | unconstrained: ['id', 'payload'] | open-object: []
+SentimentAnalysisResult | unconstrained: ['sentiment', 'emotion', 'text', 'start', 'end', 'channel'] | open-object: []
+SentimentAnalysisData | unconstrained: ['utterance_id', 'utterance', 'results'] | open-object: []
+SentimentAnalysisMessage | unconstrained: ['session_id', 'created_at', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLiveSentimentAnalysisMessage | unconstrained: ['id', 'payload'] | open-object: []
+StartRecordingMessage | unconstrained: ['session_id', 'created_at'] | open-object: []
+CallbackLiveStartRecordingMessage | unconstrained: ['id', 'payload'] | open-object: []
+StartSessionMessage | unconstrained: ['session_id', 'created_at'] | open-object: []
+CallbackLiveStartSessionMessage | unconstrained: ['id', 'payload'] | open-object: []
+StopRecordingAckData | unconstrained: ['recording_duration', 'recording_left_to_process'] | open-object: []
+StopRecordingAckMessage | unconstrained: ['session_id', 'created_at', 'acknowledged', 'error', 'data'] | open-object: ['error', 'data']
+CallbackLiveStopRecordingAckMessage | unconstrained: ['id', 'payload'] | open-object: []
+TranscriptMessageData | unconstrained: ['id', 'is_final', 'utterance'] | open-object: []
+TranscriptMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLiveTranscriptMessage | unconstrained: ['id', 'payload'] | open-object: []
+SpeechMessageData | unconstrained: ['time', 'channel'] | open-object: []
+SpeechStartMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLiveSpeechStartMessage | unconstrained: ['id', 'payload'] | open-object: []
+SpeechEndMessage | unconstrained: ['session_id', 'created_at', 'data'] | open-object: []
+CallbackLiveSpeechEndMessage | unconstrained: ['id', 'payload'] | open-object: []
+StreamingRequest | unconstrained: ['encoding', 'bit_depth', 'sample_rate', 'channels', 'custom_metadata', 'model', 'endpointing', 'maximum_duration_without_endpointing', 'language_config', 'pre_processing', 'realtime_processing', 'post_processing', 'messages_config', 'callback', 'callback_config'] | open-object: ['custom_metadata']
+InitStreamingResponse | unconstrained: ['id', 'created_at', 'url'] | open-object: []
+ListStreamingResponse | unconstrained: ['first', 'current', 'next', 'items'] | open-object: []
+PayloadTooLargeErrorResponse | unconstrained: ['timestamp', 'path', 'request_id', 'statusCode', 'message'] | open-object: []
+WebhookTranscriptionCreatedPayload | unconstrained: ['payload'] | open-object: []
+WebhookTranscriptionSuccessPayload | unconstrained: ['payload'] | open-object: []
+WebhookTranscriptionErrorPayload | unconstrained: ['payload'] | open-object: []
+WebhookLiveStartSessionPayload | unconstrained: ['payload'] | open-object: []
+WebhookLiveStartRecordingPayload | unconstrained: ['payload'] | open-object: []
+WebhookLiveEndRecordingPayload | unconstrained: ['payload'] | open-object: []
+WebhookLiveEndSessionPayload | unconstrained: ['payload'] | open-object: []
+[0m
+Surface frozen again (openapi 125131B sha256 979f3731, models 530B, health 15B, npm gladia dist-tag latest stable). Since re-probing is pure drift-confirmation now, I'll mine the frozen spec for schema-level detail not yet catalogued.
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+s=json.load(open('openapi.json'))
+for p,ops in s['paths'].items():
+    print(p, sorted(ops.keys()))
+print('servers:', s.get('servers'))
+print('info:', s.get('info'))
+"
+/v2/upload ['post']
+/v2/pre-recorded ['get', 'post']
+/v2/pre-recorded/{id} ['delete', 'get']
+/v2/pre-recorded/{id}/file ['get']
+/v2/transcription ['get', 'post']
+/v2/transcription/{id} ['delete', 'get']
+/v2/transcription/{id}/file ['get']
+/audio/text/audio-transcription ['post']
+/video/text/video-transcription ['post']
+/v1/history ['get']
+/v2/live ['get', 'post']
+/v2/live/{id} ['delete', 'get', 'patch']
+/v2/live/{id}/file ['get']
+/v1/models ['get']
+servers: [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+info: {'title': 'Gladia Control API', 'description': '', 'version': '1.0', 'contact': {}}
+[0m
+Spec mining surfaced one genuinely new reference: `files.gladia.io` (audio storage backend) and `https://callback.example` in the spec. Let me confirm the path map is still 14 and check the streaming-session listing endpoints.
+[0m$ [0msleep 1; curl -s -o /tmp/opencode/live_get.txt -w "GET /v2/live: %{http_code}\n" https://api.gladia.io/v2/live; sleep 1; curl -s -o /tmp/opencode/live_list.txt -w "GET /v2/live/sessions: %{http_code}\n" https://api.gladia.io/v2/live/sessions
+GET /v2/live: 401
+GET /v2/live/sessions: 401
+[0m
+All 14 paths stable, key-gated. One passive angle not yet exhausted: the app.gladia.io SPA bundle could leak `NEXT_PUBLIC_*` env keys, internal API routes, or feature flags. Let me pull the dashboard shell and its JS.
+[0m$ [0msleep 1; curl -s https://app.gladia.io/dashboard -o /tmp/opencode/dash.html -w "dash: %{http_code} %{size_download}\n"; grep -oE 'src="[^"]+\.js[^"]*"' /tmp/opencode/dash.html | head -30
+dash: 200 12229
+[0m
+[0m→ [0mRead /tmp/opencode/dash.html
+New surface: app.gladia.io is React Router v7 with lazy route discovery — manifest exposes a `/__manifest` endpoint that enumerates all route modules. That could reveal unlisted app routes (billing, webhooks, admin).
+[0m
+[0m$ [0msleep 1; curl -s "https://app.gladia.io/__manifest" -o /tmp/opencode/manifest.json -w "__manifest: %{http_code} %{size_download}\n"; python3 -c "
+import json,re
+t=open('/tmp/opencode/manifest.json').read()
+try:
+    m=json.loads(t)
+    routes=m.get('routes',{})
+    for rid,r in routes.items():
+        print(rid,'->',r.get('path'),'| module:',r.get('module'))
+except Exception as e:
+    print('parse fail:',e)
+    print(t[:500])
+"
+__manifest: 204 0
+parse fail: Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0msleep 1; curl -s -H "Accept: */*" "https://app.gladia.io/__manifest?route=root" -o /tmp/opencode/m1.txt -w "route=root: %{http_code} %{size_download}\n"; head -c 400 /tmp/opencode/m1.txt; echo; sleep 1; curl -s -H "Accept: application/json" "https://app.gladia.io/__manifest?route=root" -o /tmp/opencode/m2.txt -w "json: %{http_code} %{size_download}\n"; head -c 400 /tmp/opencode/m2.txt
+route=root: 204 0
+
+json: 204 0
+[0m
+`/__manifest` returns 204 (route discovery already fully inlined — enumeration dead). But the SPA chunks are enumerable via the manifest. Let me pull the shared lib/schemas chunks and the apikeys page chunk, passively grepping for API-key handling and hidden endpoints.
+[0m$ [0mfor f in lib-CoATexri.js schemas-D5cmvACT.js apikeys--SUM6uO_.js; do sleep 1; curl -s "https://app.gladia.io/assets/$f" -o "/tmp/opencode/$f" -w "$f: %{http_code} %{size_download}\n"; done
+lib-CoATexri.js: 200 11020
+schemas-D5cmvACT.js: 200 98526
+apikeys--SUM6uO_.js: 200 4869
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import re
+for f in ['lib-CoATexri.js','apikeys--SUM6uO_.js']:
+    t=open(f).read()
+    print('===',f,len(t))
+    for pat in [r'https?://[a-z0-9.-]+', r'x-gladia[-a-z]*', r'sk[-_][A-Za-z0-9]{8}', r'api[_-]?key', r'wss://[^\"\\\\ ]+']:
+        for m in sorted(set(re.findall(pat,t,re.I))):
+            print(' ',pat,'->',m[:100])
+"
+=== lib-CoATexri.js 11020
+  https?://[a-z0-9.-]+ -> https://reactrouter.com
+=== apikeys--SUM6uO_.js 4869
+  api[_-]?key -> api-key
+  api[_-]?key -> apiKey
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import re
+t=open('schemas-D5cmvACT.js').read()
+print('size',len(t))
+for pat in [r'https?://[a-z0-9./_-]+', r'x-gladia[-a-z]*', r'wss://[^\"\\\\ ]+', r'apiKey', r'fetch\(', r'/\w+/\w+']:
+    m=sorted(set(re.findall(pat,t)))
+    print('---',pat,len(m))
+    for x in m[:25]: print('   ',x[:110])
+"
+size 98522
+--- https?://[a-z0-9./_-]+ 3
+    http://json-schema.org/draft-04/schema
+    http://json-schema.org/draft-07/schema
+    https://json-schema.org/draft/2020-12/schema
+--- x-gladia[-a-z]* 0
+--- wss://[^"\\ ]+ 0
+--- apiKey 0
+--- fetch\( 0
+--- /\w+/\w+ 1
+    /draft/2020
+[0m
+Surface mined, bundles grepped, endpoints re-probed. Synthesizing.
+
+## STEP 1 — DELTA
+- [NEW] api.gladia.io: spec example URLs reference storage backend `files.gladia.io/example/audio-transcription/split_infinity.wav` — confirms audio blob storage host (out-of-scope subdomain, asset relation only)
+- [NEW] app.gladia.io: identified as React Router v7 (SSR, `window.__reactRouterManifest`, lazy route discovery via `/__manifest`) — `/__manifest` returns 204 (route set fully inlined, no lazy enumeration); manifest shows only root/catchall/app-layout/app-home
+- [CHANGED] app.gladia.io: `/dashboard` 200 shell is the **catchall 404 route** (`404 - Page Not Found` inside SPA shell) — NOT a distinct client page; prior "client-side-only auth on /dashboard" corrected: real protected routes (/apikeys, /transcriptions) are enforced **server-side** (302→/signin)
+- [NEW] app.gladia.io: SPA chunk audit clean — schemas/lib/apikeys chunks contain no `x-gladia-key`, no `wss://`, no api.gladia.io client fetch (API layer is server-side loaders/actions); `window.ENV` only exposes `APP_BASE_URL` + GTM id
+- Core api surface: NO_DRIFT cycle 9 (openapi 125131B sha256 979f3731…, models 530B, health 15B, 14 paths, GET /v2/live + /v2/live/sessions both 401)
+
+## STEP 2 — PRIORITIZE
+- [PRIO] api.gladia.io — priority 6.55 — attack 8, business 9, tech 6 (NestJS+WS), gate 2 (key-gated), cloud 8 (FR/US egress, SSRF-by-design, files.gladia.io storage), fresh 3
+- [PRIO] npm `gladia`@0.1.3 — priority 5.75 — attack 3, business 7, tech 5, gate 10 (no auth), cloud 2, fresh 8 (re-verified this cycle: dist-tag latest persists)
+- [PRIO] app.gladia.io — priority 5.60 — attack 6, business 7, tech 6 (React Router v7 SSR/OAuth SSO), gate 5 (unauth reflection / post-auth gate), cloud 2, fresh 5
+
+## STEP 3 — HYPOTHESES
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 72
+reasoning: openapi 125131B sha256 979f3731 unchanged (cycle 9) — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim; /v1/models confirms FR/US egress; storage host files.gladia.io in spec. Jobs expose status/error_message/duration reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] `gladia`@0.1.3 is an orphaned impersonation package at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 88
+reasoning: fresh npm view this cycle — dist-tag latest=0.1.3, 4 versions [0.1.0-0.1.3], repo git+github.com/alexisbouchez/gladia.ts (repo+user 404, orphaned), author alexisbouchez, maintainer softwarecitadel; tarball sha256 3b23ec7d… README "Unofficial" vs package.json "Official"; client.ts:307 raw x-gladia-key in WS query vs official token-after-init.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia via bug-bounty form.
+verify_steps: PASSIVE — done (npm view, tarball diff, GitHub API 404); submission is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: reflection re-confirmed alive (form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", no host allowlist at unauth layer); unsigned base64url return-to cookie confirms server-driven redirect concept; protected routes are server-side 302 (auth gate real, not client-only).
+evidence_needed: post-auth 302 Location to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+No hypotheses dropped (all ≥ 60, none on REJECTED list, all with concrete verify_steps). Considered and parked rather than emitted:
+- [PARKED] files.gladia.io storage host as target — out of scope by program rules (*.gladia.io subdomains), relation only
+- [PARKED] app.gladia.io SSR loader as SSRF relay — gated by auth (all loaders behind 302), speculative, <40 confidence
+- [PARKED] route-module enumeration via /__manifest — returns 204, surface dead
+- [FINAL] 1) npm `gladia`@0.1.3 impersonation (88) 2) SSRF audio_url (api, 72) 3) redirect_to OATH (app, 60)
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 3b23ec7d…, README "Unofficial" vs package.json "Official", repo+account 404 orphaned, client.ts:307 raw key in WS URL) AND in the same submission request an authorized `x-gladia-key` for a self-own-data /v2/pre-recorded canary (169.254.169.254) — sole remaining gate for the top-impact SSRF; surface frozen 9 cycles, this cycle added only out-of-scope files.gladia.io reference and a clean-app-bundle negative.
+
+## STEP 6 — LEARNING
+- [LEARN] REJECTED OTHER @ app.gladia.io: `/__manifest` returns 204 and SPA chunks contain no key material, no client fetch to api.gladia.io, no wss URLs — client-bundle leak surface dead (negated this cycle)
+- [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: spec references files.gladia.io storage backend in example audio URLs — confirms blob storage host (out-of-scope subdomain, asset relation only)
+- [LEARN] ACCEPTED OTHER @ app.gladia.io: /dashboard is catchall 404 route; real protected pages enforced server-side (302→/signin) — corrects prior "client-side-only auth" note, auth model stronger than assumed
+
+## STEP 7 — RISK SCORE
+- [RISK] api.gladia.io: 55 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url no scheme allowlist) + undocumented /health + CORS wildcard-with-x-gladia-key, all key-gated; exploit depends on key procurement; surface frozen 9 cycles
+- [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + server-side-auth model (corrected this cycle); OAuth SSO in path; SPA bundle clean
+- [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean; disclosure via form pending

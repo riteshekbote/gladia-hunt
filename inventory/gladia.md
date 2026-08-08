@@ -123,3 +123,8 @@
 - NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
 - NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS sta
 - CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 04:01 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM
+
+## 2026-08-08 06:08:58 UTC
+- NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
+- NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS sta
+- CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 04:01 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM

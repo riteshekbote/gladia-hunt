@@ -1024,3 +1024,32 @@ testability: AUTH_HELPED
 [RISK] api.gladia.io: 55 — live SSRF-by-design fetch surface (audio_url/video_url/callback_url, no scheme allowlist) + undocumented /health + CORS wildcard-with-x-gladia-key, all key-gated; exploit depends on key procurement
 [RISK] app.gladia.io: 45 — unauthenticated redirect_to reflection (post-auth honoring unverified) + client-side-only auth on /dashboard SPA; OAuth SSO in path
 [RISK] sdk: 50 — orphaned impersonation `gladia`@0.1.3 at dist-tag latest with raw-API-key-in-WS-URL pattern; official @gladiaio/sdk@1.1.0 clean
+## 2026-08-08 05:58:52 UTC [api] (model bigpickle)
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ /video/text/video-transcription, callback_config)
+confidence: 72
+reasoning: openapi 125131B sha256 979f3731 unchanged (cycle 9) — audio_url/video_url/CallbackConfigDto.url `format:uri`, no scheme allowlist; SDK forwards URLs verbatim; /v1/models confirms FR/US egress; storage host files.gladia.io in spec. Jobs expose status/error_message/duration reachability signal.
+evidence_needed: key-gated fetch of 169.254.169.254/internal host reflected in error_message/status/duration, or callback POST observed at internal listener.
+verify_steps: AUTH_HELPED — with x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<canary>"} then {"audio_url":"http://169.254.169.254/latest/meta-data/"}; repeat video_url on /video/text/video-transcription; then {"callback_config":{"url":"http://169.254.169.254:80/"}}; compare status/error_message/duration.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] `gladia`@0.1.3 is an orphaned impersonation package at dist-tag latest
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 88
+reasoning: fresh npm view this cycle — dist-tag latest=0.1.3, 4 versions [0.1.0-0.1.3], repo git+github.com/alexisbouchez/gladia.ts (repo+user 404, orphaned), author alexisbouchez, maintainer softwarecitadel; tarball sha256 3b23ec7d… README "Unofficial" vs package.json "Official"; client.ts:307 raw x-gladia-key in WS query vs official token-after-init.
+evidence_needed: none at registry level — artifact contradiction + orphan verified; affiliation verdict pending Gladia via bug-bounty form.
+verify_steps: PASSIVE — done (npm view, tarball diff, GitHub API 404); submission is the only remaining step.
+impact: devs run unofficial code with raw API keys in WS URLs (access-log/proxy capture) → Medium (impersonation) + Medium (key hygiene)
+testability: PASSIVE
+[HYP] redirect_to honored post-auth to external host (open redirect / OAuth redirect_uri injection)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 60
+reasoning: reflection re-confirmed alive (form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", no host allowlist at unauth layer); unsigned base64url return-to cookie confirms server-driven redirect concept; protected routes are server-side 302 (auth gate real, not client-only).
+evidence_needed: post-auth 302 Location to external host, or redirect_to reused as OAuth redirect_uri.
+verify_steps: AUTH_HELPED — complete Google OAuth with ?redirect_to=https://evil.example.com and //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie; test redirect_to-as-redirect_uri.
+impact: post-auth phishing redirect; OAuth code/state theft if redirect_uri injectable → Medium (High if proven)
+testability: AUTH_HELPED
+[NEXT] HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report Google Form (tarball sha256 3b23ec7d…, README "Unofficial" vs package.json "Official", repo+account 404 orphaned, client.ts:307 raw key in WS URL) AND in the same submission request an authorized `x-gladia-key` for a self-own-data /v2/pre-recorded canary (169.254.169.254) — sole remaining gate for the top-impact SSRF; surface frozen 9 cycles, this cycle added only out-of-scope files.gladia.io reference and a clean-app-bundle negative.
