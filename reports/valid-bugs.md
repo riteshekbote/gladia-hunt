@@ -87,3 +87,9 @@
 - 2 lead(s) marked VALID at 2026-08-08 22:25:56 UTC
   - | Q4 proof w/o invasive testing | NO — spec-only; ownership-binding logic is opaque, requires a valid key to test cross-account access. |
   - **Verdict: HOLD (parked)** — retained as AUTH_HELPED; not reportable without a valid key. Below the confidence floor for a spec-only IDOR.
+
+- 4 lead(s) marked VALID at 2026-08-08 23:17:09 UTC
+  - | **Q4 Read-only proof?** | ❌ NO — requires `POST` with a valid `x-gladia-key` to test; invasive. Passive probes confirm the *surface* (spec says `format:uri` with no scheme allowlist; SDK forwards `a
+  - | **Q7 Triager accept?** | ⚠️ CONDITIONAL — a triager would accept this *only* with a key-gated POC. Without a valid key, it remains a strong hypothesis |
+  - **Verdict: VALID**
+  - | 2 | npm `gladia@0.1.3` impersonation | npm registry | **VALID** | 85 | 5.4 |
