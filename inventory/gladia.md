@@ -191,3 +191,9 @@
 ## 2026-08-08 21:52:34 UTC
 
 ## 2026-08-08 22:24:48 UTC
+
+## 2026-08-08 22:57:51 UTC
+- NEW api.gladia.io: NO_DRIFT across 25+ cycles (23:08→21:52 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface fro
+- NEW app.gladia.io: /signin?redirect_to= reflection confirmed alive at 21:52 UTC — form action reflects URL-encoded value; CSP full set re-captured, NO form-action directive (gap confirmed)
+- NEW npm registry: adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) — gladia@0.1.3 is ISOLATED impersonator, no broader campaign
+- CHANGED app.gladia.io: /auth/google/callback returns 200 text/html (SPA shell) — OAuth callback path live, expected by design
