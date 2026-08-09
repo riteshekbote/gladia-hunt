@@ -3,23 +3,49 @@
 [0m
 Based on the scan results and knowledge base, here's the triage:
 
-## Classification Table
+## Classification Tables
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | None | No hardcoded credentials with signs of life found. `sk-********` in screenshots is a placeholder. |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17`, `gladiaflow/src/lib/vocabularyEditor.test.ts` | Test fixtures, screenshot placeholders, sample data — not reportable |
-| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3`, `gladia-quiz-app/app/layout.tsx:43`, multiple refs to `api.gladia.io`/`app.gladia.io` | All reference **public production endpoints** — not leaks |
-| **INTERESTING** | `reposcan-raw/npm/gladia.json` (impersonation anomaly), `gladia-quiz-app/package.json:24` (old SDK ^0.6.0), `compare-stt` provider implementation | All **previously documented** in knowledge base |
+### REAL_SECRET
+| File | Line | Finding | SHA256 | Verdict |
+|------|------|---------|--------|---------|
+| *(none)* | - | No hardcoded credentials with signs of life found | - | - |
 
-## Verdict
+The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a masked placeholder, not a real secret.
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | **no** | Already accepted/known (2026-08-07+), orphaned personal repo, dist-tag persists — no change |
-| `@gladiaio/sdk@1.1.0` | **no** | Official, from gladiaio org, static |
-| Old SDK version in gladia-quiz-app (^0.6.0) | **no** | Sample app using outdated version — not a security issue |
-| Public endpoint references | **no** | `api.gladia.io`, `app.gladia.io` are production hosts in scope |
-| Test/fixture data | **no** | Placeholders and test vectors only |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| `gladia-quiz-app/**` | multiple | Entire repo is a Halloween demo app using `@gladiaio/sdk` |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | Screenshot mock data with `apiKey: "sk-********"` |
+| `compare-stt/**` | multiple | Comparison site testing multiple STT providers including Gladia |
 
-**Summary**: DELTA = 0 new hits. All findings are pre-existing, documented in the knowledge base, and show no drift. No new reportable candidates.
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Classification |
+|------|------|----------|----------------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Known public API (in scope) |
+| `gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `https://app.gladia.io` | Known public dashboard (in scope) |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Known public dashboard (in scope) |
+| `compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/*` | Marketing site (in scope) |
+
+All endpoints are documented public surfaces — no internal/staging leaks.
+
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `npm/gladia.json` | 1 | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" | **Known impersonation anomaly** (ACCEPTED OTHER in KB) |
+| `gladia-quiz-app/package.json` | 24 | Uses `@gladiaio/sdk@^0.6.0` (old) + unpkg CDN `@0.5.2` | Version lag in sample app |
+| `gladiaflow/src-tauri/tauri.conf.json` | 5 | `identifier: "io.gladia.gladiaflow"`, authors `["Gladia <support@gladia.io>"]` | Official Tauri desktop app |
+| `compare-stt/src/lib/providers/gladia.ts` | 36,49 | Sends `x-gladia-key` header directly | Expected SDK usage pattern |
+
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package | INTERESTING (impersonation) | **no** | Already tracked as ACCEPTED OTHER in KB (orphaned personal repo, "Official" vs "Unofficial" contradiction, raw key in WSS URL). No new disclosure needed. |
+| Hardcoded secrets | REAL_SECRET | **no** | None found — only placeholders (`sk-********`) and localStorage reads |
+| Internal endpoints | ENDPOINT_LEAK | **no** | All refs point to known public in-scope hosts |
+| Sample/demo apps | TEST_OR_EXAMPLE | **no** | Expected for public repos (gladia-quiz-app, gladiaflow, compare-stt) |
+
+**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and stable across 30+ probe cycles. Surface is frozen — no drift, no new secrets, no unreported endpoint leaks.
