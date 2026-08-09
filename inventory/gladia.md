@@ -238,3 +238,9 @@
 - NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
 - NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
 - CHANGED npm registry: `gladia@0.1.3` individual version endpoint returns 404 but package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (
+
+## 2026-08-09 14:13:40 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
+- CHANGED npm registry: `gladia@0.1.3` individual version endpoint returns 404 but package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (

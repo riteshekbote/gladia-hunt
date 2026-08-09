@@ -1043,3 +1043,11 @@
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh — sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, dist-tag la
 - LEARN: ACCEPTED OTHER @ npm registry: adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) and mainta
 - LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+
+## RANKED HYPOTHESES 2026-08-09 14:13:40 UTC
+- [95] npm: `gladia@0.1.3` orphaned impersonation at dist-tag latest (raw API key in WS URL) (from reports/hypotheses-bigpickle.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia@0.1.3` report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d…`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, README "
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 39+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered

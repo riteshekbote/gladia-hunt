@@ -2299,3 +2299,7 @@ evidence_needed: post-auth 302 Location to external host after completing Google
 verify_steps: HUMAN_ONLY — complete Google OAuth at /signin?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie
 impact: post-auth phishing redirect to attacker-controlled host — Medium
 testability: HUMAN_ONLY
+## 2026-08-09 14:13:28 UTC [app] (model laguna)
+[FINAL] re-ranked (all three survive confidence ≥ 40 / not REJECTED / have concrete verify_steps):
+[PARKED] none — all three exceed confidence 40, none on REJECTED class list, all have concrete verify_steps.
+[NEXT][HUMAN]: Submit the npm `gladia@0.1.3` report via Gladia security/bug-bounty channel — PASSIVE proof is complete (sha256 `3b23ec7d…7f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user 404, README "Unofficial"↔package.json "Official", src/client.ts:306–308 raw key-in-WSS-URL). In the same contact, request **(a)** an authorized self-owned `x-gladia-key` for SSRF canary POST `/v2/pre-recorded` with `http://<external_canary>` + `http://169.254.169.254/latest/meta-data/` (closes H2), and **(b)** an authorized Google SSO session to complete `/signin?redirect_to=https://evil.example.com` and capture post-auth Location/Set-Cookie (closes H3, target=app).
