@@ -102,3 +102,6 @@
   - | Q4 Proof without invasive testing | ❌ **No** — requires two different valid API keys to test cross-account access. AUTH_HELPED. |
   - | 1 | SSRF via audio_url/video_url/callback_url | api.gladia.io | **HOLD** | AUTH_HELPED — unverifiable without valid API key |
   - | 5 | IDOR on /{id}/file downloads | api.gladia.io | **HOLD** | AUTH_HELPED — needs two valid keys to test |
+
+- 1 lead(s) marked VALID at 2026-08-09 05:39:02 UTC
+  - | Q6 Not rejected? | ✅ YES — supply-chain impersonation is a valid class |
