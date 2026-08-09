@@ -1,22 +1,44 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**SCAN TRIAGE: gladiaio org + npm metadata**
+## Classification Table
 
-| Category | Findings |
-|----------|----------|
-| **REAL_SECRET** | None — no live credentials in 5647 files |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder) |
-| **ENDPOINT_LEAK** | None — all endpoints are public `api.gladia.io` / `app.gladia.io` |
-| **INTERESTING** | `npm/gladia.json` — **orphaned impersonator package** `gladia@0.1.3` (description "Official", repo `alexisbouchez/gladia.ts` + user 404, README "Unofficial", src/client.ts:306–308 embeds raw `x-gladia-key` in WSS URL query); `npm/_gladiaio_sdk.json` — official `@gladiaio/sdk@1.1.0` (gladiaio org, static) |
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none* | — | — | No hardcoded live credentials found |
 
-**Verdict per candidate**
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot UI component |
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures using "gladiaflow" strings |
+| gladiaflow/src/lib/customVocabulary.ts | 8-9 | Test data: `value: "gladiaflow"`, pronunciations array |
+| compare-stt/prisma/seed.ts | 10 | Seed data: `{ name: "Gladia", slug: "gladia", ... }` |
+| compare-stt/src/lib/providers.ts | 10 | Provider config object for Gladia (public metadata) |
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| `gladia@0.1.3` npm impersonation | **no** | Already tracked as **ACCEPTED OTHER** in knowledge base (2026-08-07→2026-08-09, 45+ cycles) — orphaned personal package claiming "Official", no broader campaign (adjacent-namespace scan all-404) |
-| `@gladiaio/sdk` usage in repos | **no** | Legitimate official SDK consumption (gladia-quiz-app, compare-stt) |
-| `app.gladia.io` / `api.gladia.io` refs in code | **no** | Public production endpoints, expected |
-| Masked `sk-********` in screenshots | **no** | Obvious test/fixture placeholder |
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| *none* | — | All `api.gladia.io` / `app.gladia.io` / `www.gladia.io` references are public production endpoints |
 
-**Summary**: **0 new reportable findings**. Delta = 0 hits vs prior scan. All surfaced items are pre-existing, triaged, and either rejected or accepted in the knowledge base. The npm `gladia@0.1.3` impersonation anomaly remains the sole supply-chain signal — already documented, isolated, and frozen.
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/npm/gladia.json | 1 | **Impersonation anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal, 404), maintainer=`softwarecitadel@gmail.com`; README says "Unofficial" — **already ACCEPTED OTHER in knowledge base** |
+| gladia-quiz-app/package.json | 24 | Uses `@gladiaio/sdk@^0.6.0` (outdated; latest 1.1.0) |
+| gladia-quiz-app/app/layout.tsx | 43 | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN (pinned old version) |
+| compare-stt/src/lib/providers/gladia.ts | 3,36,49 | Hardcodes `GLADIA_BASE = "https://api.gladia.io/v2"` + `x-gladia-key` header usage (expected SDK pattern) |
+
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `gladia@0.1.3` npm package impersonation | INTERESTING (supply-chain) | **no** — already tracked as ACCEPTED OTHER (2026-08-07→2026-08-09), orphaned personal repo, dist-tag latest persists, no broader campaign (adjacent namespaces all 404) |
+| Hardcoded API keys/secrets | REAL_SECRET | **no** — none found; only masked placeholder `sk-********` in screenshot component |
+| Outdated SDK versions in sample apps | INTERESTING (maintenance) | **no** — gladia-quiz-app uses ^0.6.0 / 0.5.2; not a security issue |
+| Public endpoint references | ENDPOINT_LEAK | **no** — all point to production `api.gladia.io` / `app.gladia.io` |
+
+**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and stable across 45+ probe cycles. Surface is frozen (NO_DRIFT across api.gladia.io, app.gladia.io, npm registry).
