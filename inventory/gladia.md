@@ -252,3 +252,9 @@
 - CHANGED npm registry: `gladia@0.1.3` package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.js
 
 ## 2026-08-09 15:33:08 UTC
+
+## 2026-08-09 16:04:13 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com with full OAuth initiation (client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only
+- CHANGED npm registry: `gladia@0.1.3` dist-tag latest=0.1.3 stable, shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradictio
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage; example URLs point to generic callback.example + out-of-scope files.
