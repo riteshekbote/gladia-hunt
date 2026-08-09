@@ -158,3 +158,8 @@ https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=
 https://app.gladia.io.evil.example.com` -> ERR <urlopen error [Errno -2] Name or service not know
 https://api.gladia.io -> HTTP 404
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 15:33:10 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8

@@ -2439,3 +2439,4 @@ evidence_needed: post-auth 302 Location to external host after Google SSO with r
 verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie.
 impact: post-auth phishing redirect → Medium
 testability: AUTH_HELPED
+## 2026-08-09 15:32:14 UTC [api] (model bigpickle)

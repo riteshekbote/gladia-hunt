@@ -250,3 +250,5 @@
 - NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
 - NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
 - CHANGED npm registry: `gladia@0.1.3` package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.js
+
+## 2026-08-09 15:33:08 UTC

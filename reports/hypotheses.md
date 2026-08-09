@@ -1062,3 +1062,10 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (39th cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+
+## RANKED HYPOTHESES 2026-08-09 15:33:08 UTC
+- [95] npm: npm `gladia@0.1.3` orphaned impersonator with raw API key leakage in WebSocket URL (from reports/hypotheses-laguna.txt)
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 41st cycle (23:08→15:31 UTC) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-o
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh (15:31 UTC) — form action=`/signin?redirect_to=https%3A%
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh (15:31 UTC) — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, repo+user alexisbouchez 
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models con
