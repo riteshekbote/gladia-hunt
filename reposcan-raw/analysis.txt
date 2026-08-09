@@ -1,22 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Triage Results
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+### Classification Tables
 
-### Classification Table
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | 0 |
-| **TEST_OR_EXAMPLE** | 41 hits (all code/config references, dependency declarations, test files, masked example `sk-********`, external links, URL constants) |
-| **ENDPOINT_LEAK** | 0 |
-| **INTERESTING** | 1 hit: `reposcan-raw/npm/gladia.json:1` — npm registry metadata for `gladia@0.1.3` (unofficial package, personal repo `alexisbouchez/gladia.ts`, maintainer `softwarecitadel@gmail.com`, description claims "Official" but README says "Unofficial") |
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` constant for screenshot gallery |
+| `gladiaflow/src/screenshots/main.tsx` | 3 | Imports `gladia-tokens.css` (styles only) |
+| `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | Runtime `apiKey` parameter passed to headers (not hardcoded) |
+| `gladia-quiz-app/hooks/useGladiaTranscription.ts` | 70 | Runtime `createGladiaClient(apiKey)` from localStorage |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Known production API base (in scope) |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Known dashboard URL |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Known dashboard URL |
+| `compare-stt/next.config.ts` | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing site redirect |
+| `gladia-quiz-app/app/layout.tsx` | 43 | `https://unpkg.com/@gladiaio/sdk@0.5.2` | CDN for official SDK |
+| `gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `https://app.gladia.io` | Dashboard link |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| `npm/gladia.json` | 1 | **Package `gladia@0.1.3`**: claims "Official TypeScript SDK for Gladia" but `repository=git+https://github.com/alexisbouchez/gladia.ts.git` (personal account), maintainer `softwarecitadel@gmail.com`, README says "Unofficial" — **orphaned impersonation** (already in KB as ACCEPTED OTHER) |
+| `npm/_gladiaio_sdk.json` | 1 | **Package `@gladiaio/sdk@1.1.0`**: official package from `gladiaio` org, stable |
+| `gladia-quiz-app/package.json` | 24 | Depends on `@gladiaio/sdk@^0.6.0` (older version) |
+| `gladiaflow/package.json` | 2 | Tauri desktop app named `gladiaflow`, author `Gladia <support@gladia.io>` — legitimate sample/app |
+
+---
 
 ### Verdict List
 
-| Candidate | Report_Candidate | Reason |
-|-----------|------------------|--------|
-| `reposcan-raw/npm/gladia.json:1` | **no** | Known orphaned impersonation package — already tracked in knowledge base as **ACCEPTED OTHER** (2026-08-07 through 2026-08-09 multiple cycles). No new secret material; supply-chain anomaly persists but is documented and monitored. |
-| All other hits | **no** | Legitimate source code, test fixtures, dependency references, masked placeholder (`sk-********`), and public documentation links. No credentials, internal endpoints, or actionable findings. |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package impersonation | INTERESTING (supply chain) | **no** | Already documented in KB as **ACCEPTED OTHER** (2026-08-07 through 2026-08-09, 20+ reconfirmations). Orphaned personal repo, dist-tag latest persists, but known and tracked. |
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** | Mock/placeholder in screenshot fixture (`MOCK_SETTINGS`), 8 asterisks = clearly not a real key. |
+| All endpoint references | ENDPOINT_LEAK | **no** | All point to known production hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`) already in scope and documented. |
+| `@gladiaio/sdk` usage in samples | INTERESTING | **no** | Legitimate consumption of official SDK by Gladia's own sample repos. |
 
-**Summary**: 0 new reportable candidates. The only anomaly (`gladia@0.1.3` impersonation) is a known, tracked finding with no new evidence this scan.
+**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is a known, tracked ACCEPTED OTHER with no change in status. All other hits are test fixtures, legitimate SDK usage, or references to documented production endpoints.
