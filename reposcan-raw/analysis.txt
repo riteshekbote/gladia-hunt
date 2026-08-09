@@ -1,54 +1,51 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/npm/gladia.json | jq -r '.versions["0.1.3"] | {name, version, description, repository, maintainers, author, README}' 2>/dev/null || cat reposcan-raw/npm/gladia.json | head -200
-{
-  "name": "gladia",
-  "version": "0.1.3",
-  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
-  },
-  "maintainers": [
-    {
-      "name": "softwarecitadel",
-      "email": "softwarecitadel@gmail.com"
-    }
-  ],
-  "author": {
-    "name": "Alexis Bouchez"
-  },
-  "README": null
-}
-[0m
-[0m$ [0mcat reposcan-raw/npm/gladia.json | jq -r '.versions["0.1.3"].readme' 2>/dev/null | head -50
-null
-[0m
-| Category | File | Line | Finding | Classification |
-|----------|------|------|---------|----------------|
-| **REAL_SECRET** | — | — | None found (only masked placeholder `sk-********` in screenshot) | — |
-| **TEST_OR_EXAMPLE** | gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | localStorage key `gladia_api_key` for demo app | Example app storage |
-| | gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5,70,74 | SDK usage in React hook | Example integration |
-| | gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9,94 | API key input + link to app.gladia.io | Example UI |
-| | gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Placeholder `sk-********` in screenshot | Masked placeholder |
-| | gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | URL template `app.gladia.io/transcriptions/live/{id}` | Example URL |
-| | gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Example URL |
-| | gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | `GLADIA_BASE = "https://api.gladia.io/v2"`, `x-gladia-key` header | Provider integration example |
-| | gladiaio/compare-stt/src/lib/transcribe.ts | 2,25 | Import + usage of Gladia provider | Example integration |
-| **ENDPOINT_LEAK** | — | — | All endpoints are public production (api.gladia.io, app.gladia.io) | — |
-| **INTERESTING** | npm/gladia.json (pkg `gladia@0.1.3`) | — | `description: "Official TypeScript SDK"` but repo `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com` | **Known impersonation anomaly** (tracked since 2026-08-07) |
-| | gladiaio/gladia-quiz-app/package.json | 24 | `@gladiaio/sdk": "^0.6.0` (older than current 1.1.0) | Version lag in example |
-| | gladiaio/compare-stt/next.config.ts | 38,44 | Rewrites to `www.gladia.io/compare-stt-apis` | Marketing proxy config |
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/test-providers.ts
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/prisma/seed.ts
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | — | — | No live credentials found |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — masked placeholder for screenshot gallery |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` — example value in screenshot mock |
+| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21, 27, 34 | Test strings: `"gladiaflow"`, `"gladioflow"`, `"gladiaflaw"` |
+| `gladiaflow/src/lib/customVocabulary.ts` | 8–9 | Default vocabulary entries: `"gladiaflow"`, `"gladioflow"`, `"gladiaflaw"` |
+| `compare-stt/test-providers.ts` | 8 | Test slugs array: `["gladia","deepgram","assemblyai","elevenlabs","speechmatics","mistral"]` |
+| `compare-stt/prisma/seed.ts` | 10 | Seed data for provider comparison database |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| *(none)* | — | — | All URLs are production/public: `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io` |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| `npm/gladia.json` | 1 | **Orphaned impersonator package** — `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal, 404), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" vs package.json="Official", embeds raw `x-gladia-key` in WSS URL query (diverges from official POST `/v2/live`→token flow). Already tracked in knowledge base. |
+| `gladia-quiz-app/app/layout.tsx` | 43 | Loads `@gladiaio/sdk@0.5.2` from unpkg — outdated (current=1.1.0) |
+| `gladiaflow/` | — | Tauri desktop app (Rust + TypeScript) — distinct attack surface (local IPC, filesystem) |
+| `compare-stt/` | — | Multi-provider STT comparison tool — exercises live API keys against Gladia + competitors |
 
 ---
 
-### VERDICT
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | **no** | Already tracked (ACCEPTED OTHER 2026-08-07), no change since last scan |
-| All other hits | **no** | Test/example code in official repos; public endpoints only; no secrets |
-| **Delta scan** | **no** | 0 new hits vs previous scan — surface frozen |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package | INTERESTING (supply-chain) | **yes** | Orphaned impersonator persists on npm with "Official" description, personal repo 404, divergent auth flow (key in WSS query). Requires affiliation verification / takedown request via npm security. |
+| `gladia-quiz-app` unpkg SDK version | INTERESTING (drift) | **no** | Uses `@gladiaio/sdk@0.5.2` (old) — not a vulnerability, just version lag in a sample app. |
+| `gladiaflow` Tauri app | INTERESTING (architecture) | **no** | Desktop app with local IPC — out of scope for web/API program; no secrets leaked. |
+| `compare-stt` test harness | TEST_OR_EXAMPLE | **no** | Legitimate comparison tool; exercises real API keys via `.env.local` (not committed). |
+| All other hits | TEST_OR_EXAMPLE / benign | **no** | Mock data, test fixtures, seed scripts, public endpoint references. |
 
-**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and stable. All other hits are legitimate example/integration code in official Gladia repos using public endpoints.
+**Summary**: Only the `gladia@0.1.3` npm impersonation package warrants reporting (already tracked as `ACCEPTED OTHER` in knowledge base). No new secrets, endpoint leaks, or actionable vulnerabilities in this scan delta.
