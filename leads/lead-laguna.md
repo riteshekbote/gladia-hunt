@@ -2626,3 +2626,28 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 87 — frozen key-gated surface (30+ cycles) but high-impact: OpenAPI@CORS `*`, /health (200), /v1/models public FR+US egress, SSRF-by-design fetch fields (no allowlist), preflight-only `x-powered-by: Express`, WebSocket token-in-URL, NestJS-on-Express error shape. Gated only by key (AUTH_HELPED).
 [RISK] app.gladia.io: 52 — Google-only OAuth w/ PKCE S256 + FIXED redirect_uri blocks code/state theft; unauth /signin form-action reflection + CSP gap (HUMAN_ONLY open-redirect gate); /dashboard / /org / /api* SPA catch-all 200 (client-side enforcement); server-side 302 gate intact on /apikeys,/transcriptions,/settings; HSTS/preload strong; no x-powered-by on GET.
 [RISK] sdk: 78 — orphaned `gladia@0.1.3` at dist-tag latest (repo+user 404→irrevocable takeover risk) + raw API key in wss:// URL query (RAG-VERIFIED src/client.ts:306–308); official `@gladiaio/sdk@1.1.0` confirmed clean.
+## 2026-08-09 19:42:35 UTC [app] (model laguna)
+class: MISCONFIG
+asset: app.gladia.io `/auth/google/callback` (no params → 302 to Google; `?code=fake&state=fake` → 500)
+confidence: 42
+reasoning: Fresh probe (19:34 UTC) confirms `/auth/google/callback` (no params) now returns 302 → accounts.google.com OAuth2 initiation (was 200 SPA shell per probe-results.md through 18:58 UTC). Sending `?code=fake123&state=abc` yields HTTP 500 "Unexpected Server Error" (14324B) — server attempts code exchange, crashes ungracefully on invalid code. No stack trace or sensitive headers in 500 response body (generic React error boundary). `Secure` flag absent on `oauth2:<uuid>` state cookie.
+evidence_needed: 500 response body inspection for stack trace / internal path disclosure; cookie Secure flag absence in Set-Cookie header.
+verify_steps: PASSIVE — `curl -sS -D - "https://app.gladia.io/auth/google/callback?code=fake123&state=abc"` (already done: 500, generic error page, no leak); `curl -sS -D - -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -H "Content-Type: application/x-www-form-urlencoded" -d "intent=google"` (already done: 302 to Google, Set-Cookie no Secure flag).
+impact: Minor: ungraceful 500 on invalid OAuth callback params; missing Secure flag on OAuth2 state cookie allows interception over HTTP (site HSTS mitigates transit but not same-subnet). Severity: Low.
+testability: PASSIVE
+class: OTHER
+asset: npm `gladia@0.1.3` → `package/src/client.ts:306–308` / `dist/gladia.cjs.development.js:826–838`
+confidence: 95
+reasoning: dist-tag `latest=0.1.3`, description "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API", repo `git+https://github.com/alexisbouchez/gladia.ts.git`. GitHub API returns 404 on both user `alexisbouchez` and repo (orphaned → irrevocable takeover risk). Tarball shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` static. RAG confirms: `src/client.ts:306` constructs `new URL(\`${baseUrl}/v2/live\`)`, `:307` calls `.searchParams.append('x-gladia-key', apiKey)`, `:308` `new WebSocket(wsUrl)` — raw API key embedded in wss:// URL query, diverges from official `@gladiaio/sdk@1.1.0` (POST /v2/live → token-from-response → wss://...?token=<uuid>). README "Unofficial" vs package.json "Official" contradiction.
+evidence_needed: `npm pack gladia@0.1.3 && sha256sum`; GitHub 404 on user+repo; client.ts:306–308 snippet; README↔package.json contradiction.
+verify_steps: PASSIVE — `npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz`; `curl -o /dev/null -w '%{http_code}' https://api.github.com/users/alexisbouchez`; `curl -o /dev/null -w '%{http_code}' https://api.github.com/repos/alexisbouchez/gladia.ts`; `grep -n "searchParams.append\|new WebSocket" package/src/client.ts`; `diff <(grep description package.json) <(grep -i unofficial README.md)`.
+impact: Supply-chain impersonation by orphaned maintainer (0% chance of legitimate ownership) + raw API key leaked into WebSocket URL query (proxy/edge logs, Referer, browser history, server logs). Severity: Medium.
+testability: PASSIVE
+class: OATH
+asset: app.gladia.io `/signin?redirect_to=https://evil.example.com`
+confidence: 55
+reasoning: GET → 200/27448B; form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` — URL-encoded reflection with no host allowlist; `//evil`, `app.gladia.io.evil`, path-only `/dashboard` all reflect. CSP: 0 form-action directives (gap confirmed, base-uri 'self', object-src 'none', frame-src allowlist). OAuth redirect_uri FIXED=`https://app.gladia.io/auth/google/callback` (PKCE S256, 19:34 probe confirms); redirect_to NOT stored in oauth2 state cookie (only PKCE). return-to cookie tamper-reset REJECTED. Post-auth honoring of redirect_to remains the sole unverified gate.
+evidence_needed: Post-auth 302 Location to external host (evil.example.com) after completing Google SSO with redirect_to set; capture post-auth Set-Cookie.
+verify_steps: HUMAN_ONLY — (a) POST `intent=google` to `/signin?redirect_to=https://evil.example.com` (→ 302 to accounts.google.com, confirmed); (b) complete Google SSO in-browser; (c) capture post-auth `302 Location` + `Set-Cookie`; (d) repeat `//evil.example.com`, `app.gladia.io.evil.example.com`, path-only `/dashboard`.
+impact: Post-auth phishing redirect to attacker-controlled host; session/token exfiltration via redirect chain. Severity: Medium.
+testability: HUMAN_ONLY
