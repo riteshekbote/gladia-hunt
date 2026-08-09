@@ -2714,3 +2714,4 @@ verify_steps: HUMAN_ONLY — (a) POST `intent=google` to /signin?redirect_to=htt
 impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain. Severity: Medium.
 testability: HUMAN_ONLY
 [NEXT] RAG: Finalize npm `gladia@0.1.3` report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README↔package.json "Official/Unofficial" contradiction, GitHub user+repo 404 (orphaned), RAG-VERIFIED `package/src/client.ts:306–308` + `dist/gladia.cjs.development.js:826–838`: `new URL(`${baseUrl}/v2/live`)` -> `.searchParams.append('x-gladia-key', this.apiKey)` -> `new WebSocket(wsUrl.toString())`; compare against official `@gladiaio/sdk@1.1.0` `packages/sdk-js/client.ts` POST /v2/live -> token-from-response flow to document divergence.
+## 2026-08-09 21:38:02 UTC [app] (model laguna)
