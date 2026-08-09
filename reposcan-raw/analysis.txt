@@ -1,51 +1,19 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan results and knowledge base, here's the triage:
+Let me analyze the scan results. The user wants me to triage the static scan of public repos from the gladiaio GitHub org plus npm package metadata for @gladiaio/sdk.
 
-## Classification Tables
+From the knowledge base, I can see there's been extensive reconnaissance already done. The key findings from the RAG are:
+1. api.gladia.io has a frozen surface (NO_DRIFT across 38+ cycles)
+2. app.gladia.io has redirect_to reflection in signin form action
+3. npm package `gladia@0.1.3` is an orphaned impersonation (personal repo alexisbouchez/gladia.ts, user 404, description says "Official" but README says "Unofficial")
+4. @gladiaio/sdk@1.1.0 is the official SDK from gladiaio org
 
-### REAL_SECRET
-| File | Line | Finding | SHA256 | Verdict |
-|------|------|---------|--------|---------|
-| *(none)* | - | No hardcoded credentials with signs of life found | - | - |
+Now looking at the NEW HITS since last scan: DELTA shows 0 new hit lines vs previous scan.
 
-The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a masked placeholder, not a real secret.
+The FULL GREP HITS show various files referencing Gladia SDKs, API keys, URLs, etc. Let me classify each hit:
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| `gladia-quiz-app/**` | multiple | Entire repo is a Halloween demo app using `@gladiaio/sdk` |
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | Screenshot mock data with `apiKey: "sk-********"` |
-| `compare-stt/**` | multiple | Comparison site testing multiple STT providers including Gladia |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Known public API (in scope) |
-| `gladia-quiz-app/components/GladiaApiKeyInput.tsx` | 94 | `https://app.gladia.io` | Known public dashboard (in scope) |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Known public dashboard (in scope) |
-| `compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/*` | Marketing site (in scope) |
-
-All endpoints are documented public surfaces — no internal/staging leaks.
-
-### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| `npm/gladia.json` | 1 | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" | **Known impersonation anomaly** (ACCEPTED OTHER in KB) |
-| `gladia-quiz-app/package.json` | 24 | Uses `@gladiaio/sdk@^0.6.0` (old) + unpkg CDN `@0.5.2` | Version lag in sample app |
-| `gladiaflow/src-tauri/tauri.conf.json` | 5 | `identifier: "io.gladia.gladiaflow"`, authors `["Gladia <support@gladia.io>"]` | Official Tauri desktop app |
-| `compare-stt/src/lib/providers/gladia.ts` | 36,49 | Sends `x-gladia-key` header directly | Expected SDK usage pattern |
-
----
-
-## Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm package | INTERESTING (impersonation) | **no** | Already tracked as ACCEPTED OTHER in KB (orphaned personal repo, "Official" vs "Unofficial" contradiction, raw key in WSS URL). No new disclosure needed. |
-| Hardcoded secrets | REAL_SECRET | **no** | None found — only placeholders (`sk-********`) and localStorage reads |
-| Internal endpoints | ENDPOINT_LEAK | **no** | All refs point to known public in-scope hosts |
-| Sample/demo apps | TEST_OR_EXAMPLE | **no** | Expected for public repos (gladia-quiz-app, gladiaflow, compare-stt) |
-
-**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and stable across 30+ probe cycles. Surface is frozen — no drift, no new secrets, no unreported endpoint leaks.
+1. reposcan-raw/npm/gladia.json - npm package metadata for the impersonator package `gladia@0.1.3` - this is the known orphaned impersonation
+2. reposcan-raw/npm/_gladiaio_sdk.json - npm package metadata for official @gladiaio/sdk
+3. reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json - references @gladiaio/sdk ^0.6.0
+4. reposcan-raw/gladiaio/gladia
