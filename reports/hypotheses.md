@@ -1100,3 +1100,18 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 43rd cycle (fresh probes byte-identical) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US,
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection alive byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation unchanged — latest=0.1.3, shasum `cc96f84a…`, repo alexisbouchez/gladia.ts 404, maintainer softwarec
+
+## RANKED HYPOTHESES 2026-08-09 17:25:48 UTC
+- [95] npm: npm `gladia@0.1.3` orphaned impersonator + raw API key in WebSocket URL (from reports/hypotheses-laguna.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + webhook/callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia@0.1.3` report via gladia.io/bug-bounty-report (tarball shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, README "Unofficial" vs packa
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 44th cycle (fresh probes byte-identical) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US,
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection alive byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation unchanged — latest=0.1.3, shasum `cc96f84a…`, repo alexisbouchez/gladia.ts + user 404, maintainer so
