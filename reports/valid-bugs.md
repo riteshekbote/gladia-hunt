@@ -152,3 +152,25 @@
   - | Q2 | **PARTIAL** — token is bearer-equivalent but requires valid `x-gladia-key` to generate |
   - | Q4 | **NO** — cannot prove token leakage without generating a valid session (AUTH_HELPED); the OpenAPI spec confirms the design but doesn't prove exploitation |
   - | 1 | npm `gladia@0.1.3` impersonation | npm (MEDIUM) | **VALID** ✅ | Verified ownership anomaly, real supply-chain risk |
+
+- 20 lead(s) marked VALID at 2026-08-09 22:57:20 UTC
+  - valid-bugs.md
+  - | Q6 | Not rejected? | ✅ YES — supply-chain impersonation with a credential-handling SDK is a valid class; it is not "info disclosure of public data" (the package handles API keys) |
+  - ### **Verdict: VALID ✅**
+  - | Q2 | Reachable? | ⚠️ PARTIAL — all `/v2/*` endpoints return `401 "no gladia key provided"` (uniform gate per probe-results.md). Fetch logic only reachable with a valid `x-gladia-key` |
+  - | Q4 | Passive proof? | ❌ NO — OpenAPI spec confirms *design* (`audio_url`/`video_url`/`CallbackConfigDto.url` all `format:uri` with no scheme allowlist), and SDK source forwards verbatim. But proving
+  - | Q6 | Not rejected? | ✅ YES — SSRF is a valid class |
+  - | Q7 | Triager accept? | ⚠️ CONDITIONAL — would accept only with a key-gated POC. Without a valid key, remains a strong hypothesis |
+  - | Q2 | Reachable? | ⚠️ PARTIAL — endpoints return 401 without key; cross-account testing needs two valid keys |
+  - | Q4 | Passive proof? | ❌ NO — spec does not expose ownership-binding logic; cannot prove without valid key + cross-account test |
+  - | Q6 | Not rejected? | ✅ YES — IDOR is a valid class |
+  - | Q2 | Reachable? | ⚠️ PARTIAL — token issuance requires valid `x-gladia-key`; design visible in public OpenAPI spec |
+  - | Q4 | Passive proof? | ⚠️ PARTIAL — the *design* (`wss://api.gladia.io/v2/live?token=<uuid>`) is confirmed via public OpenAPI spec (no auth needed to read spec). Proving actual token theft requires a
+  - | Q6 | Not rejected? | ⚠️ BORDERLINE — "credential in URL" is a valid weakness, but many cloud APIs do this by design. Absent evidence of long-lived tokens or actual leakage, this leans toward "best p
+  - | Q6 | Not rejected? | ✅ YES — open redirect is a valid class |
+  - | Q2 | Reachable? | ⚠️ PARTIAL — `/v1/history` returns 401 without key (probe-results.md consistent); injection testing requires a valid `x-gladia-key` |
+  - | Q4 | Passive proof? | ❌ NO — spec confirms `custom_metadata` as `additionalProperties:true` object param, but proving injection requires `GET /v1/history?custom_metadata[__proto__][x]=1` with a vali
+  - | Q6 | Not rejected? | ✅ YES — injection is a valid class |
+  - | Q7 | Triager accept? | ❌ NO — spec-only; no evidence of actual injection without a valid key |
+  - | Q7 | Triager accept? | ❌ NO — no reasonable triager accepts `x-powered-by: Express` as a valid vulnerability |
+  - | 1 | npm `gladia`@0.1.3 impersonation | npm registry (MEDIUM) | **✅ VALID** | 4.3 Med |
