@@ -3,43 +3,68 @@
 [0m
 [0m→ [0mRead reposcan-raw/npm/gladia.json
 [0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
-### REAL_SECRET
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+### Classification Tables
+
+#### REAL_SECRET
 | File | Line | SHA256 | Notes |
 |------|------|--------|-------|
-| *(none found)* | | | No hardcoded credentials with signs of life detected |
+| *(none)* | — | — | No hardcoded live credentials found |
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/main.tsx | 3 | `apiKey: "sk-********"` — placeholder in screenshot/example |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures referencing "gladiaflow" strings |
-| gladia-quiz-app/package.json | 24 | `"@gladiaio/sdk": "^0.6.0"` — version pin (older than 1.1.0) |
-| gladia-quiz-app/hooks/useGladiaTranscription.ts | 5,70,74 | Client-side SDK usage with user-provided API key from localStorage |
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| reposcan-raw/npm/_gladiaio_sdk.json | 1 | Official `@gladiaio/sdk` package metadata (legitimate) |
+| reposcan-raw/gladiaio/gladia-quiz-app/package*.json | 11,24 | Sample app depending on official SDK v0.6.0 |
+| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5,70 | Sample app hook using localStorage API key |
+| reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1,13-27 | Sample app client wrapper (loads from CDN) |
+| reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx | 47,56 | Sample app UI reading localStorage key |
+| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9,94 | Sample app input component |
+| reposcan-raw/gladiaio/gladiaflow/package*.json | 2,8 | Tauri app package metadata |
+| reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 4 | App entry point |
+| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 264,274,284 | Tauri invoke calls (internal commands) |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked placeholder `sk-********` in screenshot gallery |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8-9 | Sample vocabulary terms |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.*.conf.json | 3,5 | Tauri app identifiers |
+| reposcan-raw/gladiaio/gladiaflow/Cargo.toml | 2,5 | Rust package metadata (author: Gladia support) |
+| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test slug list |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Test seed data |
+| reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | Tracking config |
+| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2,25 | App code importing provider |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider registry config |
+| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 9,87 | App layout with analytics |
+| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72,107 | Terms page links |
+| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68,156 | About page links |
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | **KNOWN PUBLIC** — production API base, documented in OpenAPI |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | **KNOWN PUBLIC** — dashboard URL pattern |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | **KNOWN PUBLIC** — dashboard API keys page |
-| Multiple files | Various | `https://www.gladia.io`, `https://docs.gladia.io` | **KNOWN PUBLIC** — marketing/docs sites |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint / URL |
+|------|------|----------------|
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` (rewrites) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37,46 | `https://www.gladia.io/blog/...` |
+| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5 | `https://www.gladia.io` (site origin) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,34-36,46-50 | `https://api.gladia.io/v2` + live API calls with `x-gladia-key` |
+| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72 | `https://gladia.io`, `https://www.gladia.io/legal/terms-of-use` |
+| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 156 | `https://gladia.io` |
 
-### INTERESTING
+#### INTERESTING
 | File | Line | Finding |
 |------|------|---------|
-| reposcan-raw/npm/gladia.json | 1 | **IMPERSONATION ANOMALY**: `gladia@0.1.3` claims `"description": "Official TypeScript SDK for Gladia"` but `repository.url = "git+https://github.com/alexisbouchez/gladia.ts.git"` (personal account), maintainer `softwarecitadel@gmail.com`, GitHub user/repo 404 (orphaned). README says "Unofficial". **Already documented in knowledge base (2026-08-07+)**. |
-| reposcan-raw/npm/_gladiaio_sdk.json | 1 | **OFFICIAL SDK**: `@gladiaio/sdk@1.1.0` — maintainers include `gladia-admin@gladia.io`, `tnesztler`, `nmorel@gladia.io`, `sboudouk@gladia.io`, `amorin@gladia.io`, `cpire@gladia.io`; repo `gladiaio/sdk` monorepo. |
-| gladiaflow/src-tauri/Cargo.toml | 2,5 | Tauri desktop app (Rust + TS) — `identifier: "io.gladia.gladiaflow"`, authors `["Gladia <support@gladia.io>"]` — official desktop companion. |
-| compare-stt/next.config.ts | 38,44 | Rewrites proxying to `https://www.gladia.io/compare-stt-apis` — marketing sub-path, not API. |
+| reposcan-raw/npm/gladia.json | 1 | **Impersonation package**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com`, README="Unofficial" vs package.json="Official" — **KNOWN ACCEPTED** (supply-chain anomaly) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 20 | Reads `process.env.GLADIA_API_KEY` — real integration pattern (expected for comparison tool) |
 
 ---
 
-### VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | **yes** | Orphaned personal repo (alexisbouchez/gladia.ts + user 404), package.json says "Official", README says "Unofficial", dist-tag `latest=0.1.3` persists, embeds raw `x-gladia-key` in WSS URL query (`src/client.ts:306-308`). **Supply-chain risk: developers may install thinking it's official.** |
-| Hardcoded secrets | **no** | Only placeholder `sk-********` in screenshot; no live credentials. |
-| Internal/staging endpoints | **no** | All endpoints are production/public (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io`). |
-| `@gladiaio/sdk` usage in repos | **no** | Official SDK, expected usage. Version `^0.6.0` in quiz app is outdated but not a vulnerability. |
-| Tauri app (gladiaflow) | **no** | Official desktop app, no secrets, uses public APIs. |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package impersonation | INTERESTING | **no** | Already **ACCEPTED OTHER** in knowledge base (2026-08-07 through 2026-08-09 multiple cycles) — orphaned personal repo, dist-tag latest persists, contradictory "Official"/"Unofficial" metadata, raw key-in-WSS-URL in source. No new delta. |
+| Production endpoint references in sample apps | ENDPOINT_LEAK | **no** | Expected for sample/comparison apps (`gladia-quiz-app`, `gladiaflow`, `compare-stt`); all point to legitimate Gladia prod hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`). No internal/staging leaks. |
+| `compare-stt` Gladia provider integration | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** | Legitimate comparison tool using real API with env var key; demonstrates correct `x-gladia-key` header usage. |
+| All other hits | TEST_OR_EXAMPLE | **no** | Sample code, package metadata, test fixtures, UI components — no secrets, no actionable findings. |
+
+**Summary**: No new reportable candidates. The only anomalous finding (`gladia@0.1.3` impersonation) is a **known accepted** supply-chain issue with no change since last scan. All endpoint references are to legitimate production hosts in sample/demo code.
