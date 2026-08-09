@@ -105,3 +105,15 @@
 
 - 1 lead(s) marked VALID at 2026-08-09 05:39:02 UTC
   - | Q6 Not rejected? | ✅ YES — supply-chain impersonation is a valid class |
+
+- 10 lead(s) marked VALID at 2026-08-09 08:28:05 UTC
+  - | Q2 | ✅ Yes — reachable with any valid `x-gladia-key` (low-priv self-service key) |
+  - | Q4 | ❌ No — proof requires `POST` with a valid key (state-changing, paid action). Cannot prove with GET/HEAD only |
+  - **Verdict: VALID** — fully provable, passive-only, in-scope (official SDK scope, counterfeit asset).
+  - | Q2 | ⚠️ Requires valid key on both sides (attacker + victim resource) |
+  - | Q4 | ❌ No — requires two valid sessions + owned resources; spec does not expose ownership-binding |
+  - | Q2 | ⚠️ Token is bearer-equivalent for a live session; obtainable only with a valid `x-gladia-key` |
+  - **Verdict: HOLD** — design smell with real implications (token in URL leaks via logs/Referer), but requires a valid key to demonstrate, and the design is spec-documented (intentional). Lower priority 
+  - | Q2 | ⚠️ Requires valid key (endpoint returns 401 unauthenticated) |
+  - | 1 | SSRF via audio_url/video_url/callback_url | api.gladia.io | **HOLD** | Needs valid key + POST; cannot prove passive-only |
+  - | 3 | npm `gladia`@0.1.3 impersonation | npm registry | **VALID** | Fully provable passive; metadata contradiction confirmed |
