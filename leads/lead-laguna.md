@@ -2229,3 +2229,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 33 — Google-only OAuth fixed redirect_uri prevents code/state theft; unauth /signin?redirect_to= reflection + CSP lacks form-action (post-auth open-redirect gate unverified, HUMAN_ONLY); /dashboard & /org SPA catch-all 200 without auth (client-side enforcement); server-side 302 gate intact on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset REJECTED; HSTS/preload strong
 [RISK] sdk: 53 — orphaned `gladia@0.1.3` at dist-tag latest impersonates official SDK (repo+user 404, sha256 `3b23…7f2`) AND embeds raw API key in wss:// URL query (RAG-confirmed src/client.ts:306–308, diverges from official POST /v2/live→token flow); orphaned repo prevents audit/upgrade; supply-chain credential-harvest + future maintainer-hijack severity Medium; official @gladiaio/sdk@1.1.0 / gladiaio-sdk@1.0.5 clean
 ## 2026-08-09 11:07:58 UTC [app] (model laguna)
+## 2026-08-09 11:42:48 UTC [app] (model laguna)
