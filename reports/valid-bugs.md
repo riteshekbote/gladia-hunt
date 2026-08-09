@@ -93,3 +93,12 @@
   - | **Q7 Triager accept?** | ⚠️ CONDITIONAL — a triager would accept this *only* with a key-gated POC. Without a valid key, it remains a strong hypothesis |
   - **Verdict: VALID**
   - | 2 | npm `gladia@0.1.3` impersonation | npm registry | **VALID** | 85 | 5.4 |
+
+- 7 lead(s) marked VALID at 2026-08-09 03:12:30 UTC
+  - | Q2 Reachability | ⚠️ Key-gated — all v2 endpoints return 401 without `x-gladia-key`. An attacker needs a valid API key. |
+  - | Q4 Proof without invasive testing | ❌ **No** — requires `POST` with a valid `x-gladia-key` and canary/internal-URL comparison. Purely AUTH_HELPED. |
+  - | Q7 Reasonable triager | ❌ **No** — cannot be validated without a valid API key. Per `rules.passive_first` and `rules.no_data_modification`, this cannot be proven with GET/HEAD alone. Per `rules.manu
+  - | Q7 Reasonable triager | ❌ **No** — no reasonable triager accepts `x-powered-by: Express` as a valid vulnerability. |
+  - | Q4 Proof without invasive testing | ❌ **No** — requires two different valid API keys to test cross-account access. AUTH_HELPED. |
+  - | 1 | SSRF via audio_url/video_url/callback_url | api.gladia.io | **HOLD** | AUTH_HELPED — unverifiable without valid API key |
+  - | 5 | IDOR on /{id}/file downloads | api.gladia.io | **HOLD** | AUTH_HELPED — needs two valid keys to test |
