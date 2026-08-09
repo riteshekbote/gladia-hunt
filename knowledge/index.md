@@ -388,3 +388,5 @@
 - 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation byte-fresh (repo+user 404 @ 18:04 UTC; sha256 `3b23…7f2`; src/client.ts:306–308 raw key in wss URL).
 - 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/webhooks format:uri no allowlist; /v1/models FR+US egress; POST 401 key-gated (AUTH_HELPED).
 - 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection alive — CSP gap (no form-action); OAuth redirect_uri FIXED; post-auth honoring unverified.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-verified fresh this cycle (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B) — 45+ cycles frozen, no new endpoints or headers.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`) — no host allowlist at unauth layer; CSP form-action still absent; post-auth honoring sole unverified gate.
