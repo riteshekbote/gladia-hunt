@@ -1218,3 +1218,30 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 46th cycle confirmed fresh (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, PO
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fev
 - LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation byte-fresh — `npm view` confirms shasum `cc96f84a…`, description "Official", repo alexisbouchez/glad
+
+## RANKED HYPOTHESES 2026-08-09 22:01:31 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + callback/webhook delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-laguna.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: `/auth/google/callback?code=fake123&state=abc` → HTTP 500 with generic SPA error page "Unexpected Server Error" (sha256 `f02
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie (`oauth2:<uuid>=…`) set with `HttpOnly; SameSite=Lax` but **no `Secure` flag** — HSTS preload (`max-age=
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 45+ cycles (23:08→21:58 UTC) — openapi 125131B/14 paths/7 webhooks/1 server, /health `{"health":"OK"}` 15
+- LEARN: ACCEPTED OAUTH @ app.gladia.io: `/auth/google/callback` (no params) → 302 → `accounts.google.com/o/oauth2/v2/auth` with client_id `352060113328-fnk8shoffbkh10im
+- LEARN: ACCEPTED OATH @ app.gladia.io: `/signin?redirect_to=https://evil.example.com` → 200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` ref
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — dist-tag latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sha256 `3b23e
