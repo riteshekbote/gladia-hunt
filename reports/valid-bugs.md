@@ -131,3 +131,10 @@
   - | **Q7 Triager accept?** | ❌ NO — no reasonable triager accepts this as a valid vuln |
   - | 1 | npm `gladia@0.1.3` impersonation | npm registry (MEDIUM) | ✅ **VALID** |
   - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | ⏸️ HOLD — needs valid key |
+
+- 5 lead(s) marked VALID at 2026-08-09 14:25:07 UTC
+  - | npm `gladia`@0.1.3 impersonation | **VALID** | Supply-chain squat, verified fact, passive proof complete — report to Gladia security channel |
+  - | SSRF via audio_url/video_url/callback_url | **HOLD** | AUTH_HELPED only — requires valid API key + POST |
+  - | IDOR on `/{id}/file` downloads | **HOLD** | AUTH_HELPED only — requires valid key + cross-account test |
+  - | WebSocket auth token in URL | **HOLD** | Design confirmed via public spec; proof of leakage requires valid key |
+  - | Query-param injection on `/v1/history` | **HOLD** | AUTH_HELPED only — requires valid key to test injection |
