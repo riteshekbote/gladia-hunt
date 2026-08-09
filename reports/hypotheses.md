@@ -937,3 +937,26 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; CSP lacks
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models confirms FR/US e
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, repo+user alexisbo
+
+## RANKED HYPOTHESES 2026-08-09 10:28:52 UTC
+- [95] npm: npm `gladia@0.1.3` orphaned impersonator with API key leakage in WebSocket URL (from reports/hypotheses-laguna.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + webhook/callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, README "Unofficial" vs package.json 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 27+ cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; CSP lacks
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAu
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflecti
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (21st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models con
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed fresh — sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, dist-tag la
+- LEARN: ACCEPTED OTHER @ npm registry: adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) and mainta
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 36th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/mode
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; CSP lacks
+- LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — latest=0.1.3, shasum cc96f84a… + integrity sha512-56NW… unchanged, repo alexisbouchez/gladi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: fresh 10:27 UTC probe byte-identical to all 25+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 SPA shell + CSP full-set re-captured fresh — connect-src `*.gladia.io`+wss+`*.google.*`, script-src nonce+str
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` reflection c
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_config.url `format:uri` NO scheme allowlist; /v1/models confirms FR+US egress; /op
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — example timestamps vary per fetch (10:27:35 / 10:27:35 / prior 25.976/32.264/26
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation re-verified fresh — npm view confirms latest=0.1.3, description "Official TypeScript SDK for Gladia"
