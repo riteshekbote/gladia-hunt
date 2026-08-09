@@ -908,3 +908,11 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed stable — form action reflects URL-encoded value; CSP lacks form-action directive; OAuth
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models confirms FR/US e
 - LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, repo+user alexis
+
+## RANKED HYPOTHESES 2026-08-09 09:01:30 UTC
+- [95] npm: `gladia`@0.1.3 orphaned impersonation at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia`@0.1.3 report via gladia.io/bug-bounty-report (tarball sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, README "Unofficial" vs package.json 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 34th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/mode
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection alive fresh; CSP full set re-captured (connect-src incl. *.gladia.i
+- LEARN: ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, repo+user alexisbouchez 404, @gladiaio
