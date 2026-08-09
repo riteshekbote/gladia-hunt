@@ -1,44 +1,341 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat reposcan-raw/npm/gladia.json | jq -r '.versions["0.1.3"] | {name, version, description, repository, author, maintainers, "dist.shasum": .dist.shasum, "dist.integrity": .dist.integrity}'
+{
+  "name": "gladia",
+  "version": "0.1.3",
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+  },
+  "author": {
+    "name": "Alexis Bouchez"
+  },
+  "maintainers": [
+    {
+      "name": "softwarecitadel",
+      "email": "softwarecitadel@gmail.com"
+    }
+  ],
+  "dist.shasum": "cc96f84a200c0fd49a71e919391f9b659c39f3e9",
+  "dist.integrity": "sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw=="
+}
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
+
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+import type { TranscribeResult, WordTimestamp } from "../transcribe";
+
+const GLADIA_BASE = "https://api.gladia.io/v2";
+
+interface GladiaWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
+interface GladiaUtterance {
+  text: string;
+  words: GladiaWord[];
+}
+
+export async function transcribeWithGladia(
+  audio: Buffer,
+  mimeType: string
+): Promise<TranscribeResult> {
+  const apiKey = process.env.GLADIA_API_KEY;
+  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+
+  const start = Date.now();
+
+  const ext = mimeType.includes("wav") ? "audio.wav"
+    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
+    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
+    : mimeType.includes("ogg") ? "audio.ogg"
+    : "audio.webm";
+
+  const uploadForm = new FormData();
+  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
+
+  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
+    method: "POST",
+    headers: { "x-gladia-key": apiKey },
+    body: uploadForm,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
+    method: "POST",
+    headers: {
+      "x-gladia-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url,
+      model: "solaria-3",
+      punctuation_enhanced: true,
+      language_config: { code_switching: false },
+    }),
+  });
+
+  if (!transcribeRes.ok) {
+    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
+  }
+
+  const { result_url } = await transcribeRes.json();
+
+  const { transcript, words } = await pollForResult(result_url, apiKey);
+  const durationMs = Date.now() - start;
+
+  return { transcript, words, durationMs };
+}
+
+async function pollForResult(
+  resultUrl: string,
+  apiKey: string
+): Promise<{ transcript: string; words: WordTimestamp[] }> {
+  const maxAttempts = 60;
+  const interval = 1000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(resultUrl, {
+      headers: { "x-gladia-key": apiKey },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gladia poll failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.status === "done") {
+      const utterances: GladiaUtterance[] | undefined =
+        data.result?.transcription?.utterances;
+
+      if (utterances && Array.isArray(utterances)) {
+        const transcript = utterances.map((u) => u.text).join(" ");
+        const words: WordTimestamp[] = utterances.flatMap((u) =>
+          (u.words || []).map((w) => ({
+            word: w.word,
+            start: w.start,
+            end: w.end,
+          }))
+        );
+        return { transcript, words };
+      }
+
+      const fullTranscript = data.result?.transcription?.full_transcript;
+      return { transcript: fullTranscript || "", words: [] };
+    }
+
+    if (data.status === "error") {
+      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
+    }
+
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error("Gladia transcription timed out");
+}
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
+
+export function getStoredApiKey(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(GLADIA_API_KEY_STORAGE);
+}
+
+export function clearStoredApiKey(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(GLADIA_API_KEY_STORAGE);
+}
+
+export function createGladiaClient(apiKey: string) {
+  // Use CDN version (v0.5.2 from unpkg, same as official sample)
+  if (typeof window !== 'undefined' && (window as any).Gladia) {
+    try {
+      const client = new (window as any).Gladia.GladiaClient({ apiKey });
+      return client;
+    } catch (error) {
+      console.error('Error creating Gladia client:', error);
+      throw error;
+    }
+  }
+  
+  console.error('Gladia SDK not available. Window.Gladia:', typeof (window as any)?.Gladia);
+  throw new Error('Gladia SDK not loaded. Please refresh the page.');
+}
+
+export const AUDIO_CONFIG = {
+  sample_rate: 16000,
+  encoding: 'wav/pcm',
+  bit_depth: 16,
+  channels: 1,
+} as const;
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx
+import { invoke } from "@tauri-apps/api/core";
+import { ApiKeyField } from "./ApiKeyField";
+
+const API_KEYS_URL = "https://app.gladia.io/apikeys";
+
+export function ApiKeyOnboardingView({
+  displayValue,
+  isLocked,
+  isTesting,
+  onChangeKey,
+  onSave,
+}: {
+  displayValue: string;
+  isLocked: boolean;
+  isTesting: boolean;
+  onChangeKey: (v: string) => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="setup-step setup-step-center">
+      <h2 className="setup-title">Welcome to GladiaFlow</h2>
+      <p className="setup-desc">Enter your Gladia API key to get started.</p>
+      <div className="setup-form">
+        <ApiKeyField
+        displayValue={displayValue}
+        isLocked={isLocked}
+        isTesting={isTesting}
+        onChangeKey={onChangeKey}
+        onSave={onSave}
+        secondaryAction={
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => void invoke("open_url", { url: API_KEYS_URL })}
+          >
+            Get your API key ↗
+          </button>
+        }
+        />
+      </div>
+    </div>
+  );
+}
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx
+import type { Metadata } from 'next'
+import Script from 'next/script'
+import { HalloweenBackground } from '../components/HalloweenBackground'
+import './globals.css'
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),
+  title: 'Gladia Halloween Quiz',
+  description: 'Play the interactive Halloween quiz powered by Gladia SDK for real-time speech recognition.',
+  openGraph: {
+    title: 'Gladia Halloween Quiz',
+    description: 'Play the interactive Halloween quiz powered by Gladia SDK for real-time speech recognition.',
+    images: [
+      {
+        url: '/og-halloween-quiz.png',
+        width: 1200,
+        height: 630,
+        alt: 'Gladia Halloween Quiz',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Gladia Halloween Quiz',
+    description: 'Play the interactive Halloween quiz powered by Gladia SDK for real-time speech recognition.',
+    images: ['/og-halloween-quiz.png'],
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <Script 
+          src="https://unpkg.com/@gladiaio/sdk@0.5.2"
+          strategy="beforeInteractive"
+        />
+        <Script 
+          src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js"
+          strategy="beforeInteractive"
+        />
+      </head>
+      <body className="relative">
+        <HalloweenBackground />
+        <div className="relative z-10">
+          {children}
+        </div>
+      </body>
+    </html>
+  )
+}
+[0m
 ## Classification Table
 
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none* | — | — | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot UI component |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures using "gladiaflow" strings |
-| gladiaflow/src/lib/customVocabulary.ts | 8-9 | Test data: `value: "gladiaflow"`, pronunciations array |
-| compare-stt/prisma/seed.ts | 10 | Seed data: `{ name: "Gladia", slug: "gladia", ... }` |
-| compare-stt/src/lib/providers.ts | 10 | Provider config object for Gladia (public metadata) |
-
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| *none* | — | All `api.gladia.io` / `app.gladia.io` / `www.gladia.io` references are public production endpoints |
-
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/npm/gladia.json | 1 | **Impersonation anomaly**: `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal, 404), maintainer=`softwarecitadel@gmail.com`; README says "Unofficial" — **already ACCEPTED OTHER in knowledge base** |
-| gladia-quiz-app/package.json | 24 | Uses `@gladiaio/sdk@^0.6.0` (outdated; latest 1.1.0) |
-| gladia-quiz-app/app/layout.tsx | 43 | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN (pinned old version) |
-| compare-stt/src/lib/providers/gladia.ts | 3,36,49 | Hardcodes `GLADIA_BASE = "https://api.gladia.io/v2"` + `x-gladia-key` header usage (expected SDK pattern) |
+| Category | Files / Lines | Details |
+|----------|---------------|---------|
+| **REAL_SECRET** | *(none)* | No hardcoded credentials/API keys/tokens with signs of life found |
+| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` — masked placeholder in mock settings |
+| | `gladiaio/compare-stt/src/lib/providers/gladia.ts` | Uses `process.env.GLADIA_API_KEY` — proper env var pattern |
+| **ENDPOINT_LEAK** | *(none)* | All referenced endpoints are public `api.gladia.io` / `app.gladia.io` (in scope, known) |
+| **INTERESTING** | `reposcan-raw/npm/gladia.json` | **Orphaned impersonation package** `gladia@0.1.3`: description="Official TypeScript SDK", repo=`alexisbouchez/gladia.ts` (personal, 404), user 404, README="Unofficial" vs package.json="Official", src embeds raw `x-gladia-key` in WSS URL query — **already documented in KB as ACCEPTED OTHER** |
+| | `gladiaio/gladia-quiz-app/app/layout.tsx:43` | Loads `@gladiaio/sdk@0.5.2` from unpkg CDN — legitimate older version reference |
+| | `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | References `https://app.gladia.io/apikeys` — legitimate app URL |
 
 ---
 
 ## Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `gladia@0.1.3` npm package impersonation | INTERESTING (supply-chain) | **no** — already tracked as ACCEPTED OTHER (2026-08-07→2026-08-09), orphaned personal repo, dist-tag latest persists, no broader campaign (adjacent namespaces all 404) |
-| Hardcoded API keys/secrets | REAL_SECRET | **no** — none found; only masked placeholder `sk-********` in screenshot component |
-| Outdated SDK versions in sample apps | INTERESTING (maintenance) | **no** — gladia-quiz-app uses ^0.6.0 / 0.5.2; not a security issue |
-| Public endpoint references | ENDPOINT_LEAK | **no** — all point to production `api.gladia.io` / `app.gladia.io` |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm package (orphaned impersonation) | **no** | Already tracked in KB (2026-08-07 through 2026-08-09 cycles) as **ACCEPTED OTHER** — stable, no new risk |
+| All other hits | **no** | Benign: test placeholders, env var usage, legitimate SDK imports, known public endpoints |
 
-**Summary**: No new reportable findings. The only anomaly (`gladia@0.1.3` impersonation) is already documented and stable across 45+ probe cycles. Surface is frozen (NO_DRIFT across api.gladia.io, app.gladia.io, npm registry).
+**Summary**: Delta scan shows 0 new hits. The sole pre-existing anomaly (`gladia@0.1.3` impersonation) remains stable and already accepted. No actionable findings this cycle.
