@@ -117,3 +117,17 @@
   - | Q2 | ⚠️ Requires valid key (endpoint returns 401 unauthenticated) |
   - | 1 | SSRF via audio_url/video_url/callback_url | api.gladia.io | **HOLD** | Needs valid key + POST; cannot prove passive-only |
   - | 3 | npm `gladia`@0.1.3 impersonation | npm registry | **VALID** | Fully provable passive; metadata contradiction confirmed |
+
+- 12 lead(s) marked VALID at 2026-08-09 09:28:12 UTC
+  - | **Q6 Not rejected?** | ✅ YES — supply-chain impersonation is a valid class, not info-disclosure of public data or best-practice |
+  - ### **Verdict: ✅ VALID**
+  - | **Q4 Passive proof?** | ❌ NO — OpenAPI spec confirms `format:uri` with no scheme allowlist; SDK source confirms verbatim forwarding. But proving actual server-side fetch requires `POST` with valid k
+  - | **Q6 Not rejected?** | ✅ YES — SSRF is a valid class |
+  - | **Q6 Not rejected?** | ✅ YES — open redirect is a valid class |
+  - | **Q2 Reachable?** | ⚠️ PARTIAL — endpoints key-gated; cross-account testing requires two valid keys |
+  - | **Q6 Not rejected?** | ✅ YES — IDOR is valid |
+  - | **Q2 Reachable?** | ⚠️ PARTIAL — token issuance requires valid `x-gladia-key`; design visible in public spec |
+  - | **Q4 Passive proof?** | ⚠️ PARTIAL — design confirmed via OpenAPI spec (`wss://api.gladia.io/v2/live?token=<uuid>`); actual token theft/leakage requires valid key |
+  - | **Q7 Triager accept?** | ❌ NO — no reasonable triager accepts this as a valid vuln |
+  - | 1 | npm `gladia@0.1.3` impersonation | npm registry (MEDIUM) | ✅ **VALID** |
+  - | 2 | SSRF via audio_url/video_url/callback_url | api.gladia.io (HIGHEST) | ⏸️ HOLD — needs valid key |
