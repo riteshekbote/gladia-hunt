@@ -1269,3 +1269,22 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: audio_url is plain string with no format/scheme validation in /audio/text/audio-transcription (not `format:uri` as in /v2/en
 - LEARN: REJECTED MISCONFIG @ reposcan: grep-delta "0 new hit lines"; analysis.txt verdict: 0 reportable findings, sole anomaly (gladia@0.1.3) stable and already ACCEPTE
+
+## RANKED HYPOTHESES 2026-08-09 23:08:05 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + callback/webhook delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.ex
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+U
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/c
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: `/auth/google/callback?code=fake123&state=abc` → HTTP 500 with generic SPA error page "Unexpected Server Error" (sha256 `f02
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie (`oauth2:<uuid>=…`) set with `HttpOnly; SameSite=Lax` but **no `Secure` flag** — HSTS preload (`max-age=
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.created/success/error + live.start_session/start_reco
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v1/models (530B) leaks FR+US datacenter region labels but is not an endpoint-path or new surface — confirmed informational,
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 returns ONLY generic SPA "Unexpected Server Error" page (sha256 f02d
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie (`oauth2:<uuid>`) lacks Secure flag but HSTS preload (max-age=31536000; includeSubDomains; preload) make
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= unauthenticated reflection into form action confirmed byte-fresh (50th+ cycle) — 0 form-action directives in
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url format:uri no scheme allowlist; 7 webhook delivery paths;
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — sha256 3b23ec7d…7f2, shasum cc96f84a…, repo+user alexisbouchez 404, src/client.ts:306-3
