@@ -138,3 +138,7 @@
   - | IDOR on `/{id}/file` downloads | **HOLD** | AUTH_HELPED only — requires valid key + cross-account test |
   - | WebSocket auth token in URL | **HOLD** | Design confirmed via public spec; proof of leakage requires valid key |
   - | Query-param injection on `/v1/history` | **HOLD** | AUTH_HELPED only — requires valid key to test injection |
+
+- 2 lead(s) marked VALID at 2026-08-09 19:54:26 UTC
+  - | Q7 Reasonable triager? | **BORDERLINE** — 200 on signin page is expected even with valid redirect_to param; need body/Location header to confirm redirect actually fires |
+  - | Q3 Real impact? | **UNLIKELY** — callback without valid OAuth state/code typically renders the login page (normal behavior). 500 on fake params could be verbose error but no body to confirm |
