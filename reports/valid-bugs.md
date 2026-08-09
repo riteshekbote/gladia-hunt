@@ -142,3 +142,13 @@
 - 2 lead(s) marked VALID at 2026-08-09 19:54:26 UTC
   - | Q7 Reasonable triager? | **BORDERLINE** — 200 on signin page is expected even with valid redirect_to param; need body/Location header to confirm redirect actually fires |
   - | Q3 Real impact? | **UNLIKELY** — callback without valid OAuth state/code typically renders the login page (normal behavior). 500 on fake params could be verbose error but no body to confirm |
+
+- 8 lead(s) marked VALID at 2026-08-09 21:57:23 UTC
+  - ### Verdict: **VALID** ✅
+  - | Q2 | **PARTIAL** — all v2 endpoints require `x-gladia-key` (401 unauthenticated). Attacker needs a valid key |
+  - | Q4 | **NO** — proving SSRF requires POST with canary/internal URLs and observing error/timing; requires a valid API key (AUTH_HELPED). Cannot prove with GET/HEAD only |
+  - | Q2 | **NO** — requires valid `x-gladia-key` to test; cross-account testing needs two keys |
+  - | Q4 | **NO** — cannot prove without two valid API keys and owned resources |
+  - | Q2 | **PARTIAL** — token is bearer-equivalent but requires valid `x-gladia-key` to generate |
+  - | Q4 | **NO** — cannot prove token leakage without generating a valid session (AUTH_HELPED); the OpenAPI spec confirms the design but doesn't prove exploitation |
+  - | 1 | npm `gladia@0.1.3` impersonation | npm (MEDIUM) | **VALID** ✅ | Verified ownership anomaly, real supply-chain risk |
