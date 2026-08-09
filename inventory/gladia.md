@@ -227,3 +227,8 @@
 ## 2026-08-09 11:08:07 UTC
 
 ## 2026-08-09 11:44:12 UTC
+
+## 2026-08-09 12:17:53 UTC
+- NEW app.gladia.io: /auth/google/callback now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acces
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
