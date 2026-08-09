@@ -390,3 +390,4 @@
 - 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection alive — CSP gap (no form-action); OAuth redirect_uri FIXED; post-auth honoring unverified.
 - 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-verified fresh this cycle (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B) — 45+ cycles frozen, no new endpoints or headers.
 - 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`) — no host allowlist at unauth layer; CSP form-action still absent; post-auth honoring sole unverified gate.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-verified fresh this cycle (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B) — 45+ cycles frozen, no new endpoints or headers.

