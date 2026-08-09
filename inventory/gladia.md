@@ -258,3 +258,7 @@
 - NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only
 - CHANGED npm registry: `gladia@0.1.3` dist-tag latest=0.1.3 stable, shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradictio
 - NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage; example URLs point to generic callback.example + out-of-scope files.
+
+## 2026-08-09 16:53:50 UTC
+- NEW None — surface frozen since 23:08 UTC (41+ NO_DRIFT cycles)
+- CHANGED None — all observations re-confirmed byte-identical; npm `gladia@0.1.3` dist-tag/shasum/repo/user static
