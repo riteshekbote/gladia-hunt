@@ -3186,3 +3186,12 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 87 — Public OpenAPI 3.1 spec (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace ids) reveals full v2 surface; /v1/models public (530B) leaks FR+US egress; undocumented /health; preflight-only `x-powered-by: Express` confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_config.url+7 webhook paths all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design surface (key-gated only, AUTH_HELPED); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) confirm client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic error (no detail leak); oauth2 cookie missing Secure flag mitigated by HSTS-preload; OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
 [RISK] sdk: 92 — Official SDKs (@gladiaio/sdk@1.1.0 npm / gladiaio-sdk@1.0.5 PyPI) generated from public OpenAPI spec, static surface; orphaned npm `gladia@0.1.3` (latest dist-tag persists, repo+user 404) impersonates official SDK with "Official"/"Unofficial" contradiction + raw API key in WebSocket URL query — irrevocable takeover risk
+## 2026-08-10 08:04:14 UTC [app] (model laguna)
+[PRIO] npm registry `gladia@0.1.3`: score=8.25 — attack_surface=9, business_value=8, tech_exposure=8, gate_ease=10, cloud_surface=3, freshness=10
+[PRIO] api.gladia.io: score=7.15 — attack_surface=9, business_value=9, tech_exposure=8, gate_ease=1, cloud_surface=8, freshness=5
+[PRIO] app.gladia.io: score=6.85 — attack_surface=7, business_value=8, tech_exposure=6, gate_ease=6, cloud_surface=6, freshness=7
+[HYP] Orphaned npm package `gladia@0.1.3` impersonates official SDK with API key leakage in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3`
+confidence: 95
+reasoning: Package description "Official TypeScript SDK" but GitHub user

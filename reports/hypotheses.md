@@ -1355,3 +1355,14 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed this cycle (28th+ cycle) — /openapi.json 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, prefl
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh confirmed this cycle — sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, dist-tag latest=0.1.3, 
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection byte-fresh confirmed (200/27448B, form action reflects URL-encoded value, 0 form-action directive
+
+## RANKED HYPOTHESES 2026-08-10 08:06:57 UTC
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator at dist-tag latest leaks API keys via WebSocket URL query parameter (from reports/hypotheses-longcat.txt)
+- [95] npm: `gladia@0.1.3` orphaned impersonation at dist-tag latest (raw API key in WS URL) (from reports/hypotheses-bigpickle.txt)
+- [95] npm: Orphaned npm package `gladia@0.1.3` impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Unchanged from prior cycle — submit the `gladia@0.1.3` report via the program's bug-bounty channel (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3
+- NEXT(hypotheses-longcat.txt): **HUMAN**: Submit `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report with the following evidence package:
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POS
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404; @gladiaio/sdk@1
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh this cycle — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevoc
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 54+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-
