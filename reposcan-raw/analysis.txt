@@ -1,24 +1,25 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan results and knowledge base, here's the classification:
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+| Category | File | Line | Classification | Notes |
+|---|---|---|---|---|
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx` | 17 | TEST_OR_EXAMPLE | `apiKey: "sk-********"` — 8-asterisk placeholder in mock settings for screenshot gallery |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx` | 222 | TEST_OR_EXAMPLE | `apiKeyDisplayValue="sk-example"` — explicit example value in another mock |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts` | 3 | ENDPOINT_LEAK | `const GLADIA_BASE = "https://api.gladia.io/v2"` — public API base, not internal |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | ENDPOINT_LEAK | `x-gladia-key` header usage — public auth header name |
+| **INTERESTING** | `npm/gladia.json` | 1 | INTERESTING | Orphaned impersonator package `gladia@0.1.3` (personal repo, "Official" vs "Unofficial" contradiction) — **already ACCEPTED in KB** |
+| **INTERESTING** | `gladia-quiz-app/app/layout.tsx` | 43 | INTERESTING | CDN import `@gladiaio/sdk@0.5.2` — outdated version pinned in demo app |
+| — | All other hits | — | — | Legitimate usage of official `@gladiaio/sdk`, public `api.gladia.io`/`app.gladia.io` URLs, test fixtures, config files |
 
-## Classification Table
-
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | None | No live credentials found. `sk-********` in gladiaflow screenshot is a masked placeholder |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx:17 (`sk-********`), gladiaflow/src/lib/vocabularyEditor.test.ts | Test fixtures & masked examples only |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts:3 (`https://api.gladia.io/v2`), various app.gladia.io/api.gladia.io refs | All public production endpoints, not leaks |
-| **INTERESTING** | npm/gladia.json (impersonation package), gladia-quiz-app (uses @gladiaio/sdk^0.6.0 + unpkg CDN), gladiaflow (Tauri desktop app), compare-stt (STT comparison tool) | Known supply-chain anomaly (gladia@0.1.3) + legitimate demo/sample apps |
-
-## Verdict
+**Verdict**
 
 | Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm package (alexisbouchez/gladia.ts) | **yes** | Orphaned impersonation: claims "Official" in package.json vs "Unofficial" in README, personal repo + user 404, embeds raw `x-gladia-key` in WSS URL query (diverges from official SDK flow), dist-tag latest=0.1.3 persists — **already ACCEPTED OTHER in knowledge base, report-ready** |
-| `@gladiaio/sdk@1.1.0` | no | Official package from gladiaio org, clean |
-| gladia-quiz-app / gladiaflow / compare-stt | no | Legitimate demo/sample apps using official SDK or public API |
-| Any hardcoded secrets | no | None found (only masked placeholder `sk-********`) |
+|---|---|---|
+| `gladia@0.1.3` npm impersonation | **no** | Already ACCEPTED in KB (2026-08-07 through 2026-08-10), report-ready, portal submission pending |
+| `sk-********` / `sk-example` in gladiaflow | **no** | Test fixtures / screenshot mocks (8-asterisk and `sk-example` placeholders) |
+| Public API endpoints / headers in compare-stt | **no** | Documented public surface (`api.gladia.io/v2`, `x-gladia-key`) |
+| Outdated SDK version in demo app | **no** | Demo app pinning `@gladiaio/sdk@0.5.2` — not a security issue |
+| All other hits | **no** | Legitimate code, config, docs, test files |
 
-**Summary**: Delta scan shows **0 new findings**. The sole reportable candidate remains the pre-existing `gladia@0.1.3` npm impersonation anomaly (tracked since 2026-08-07, verified across 50+ probe cycles). No new secrets, endpoint leaks, or vulnerabilities detected in this scan.
+**Delta summary**: 0 new hit lines vs previous scan. No new findings to report. The sole pre-existing anomaly (`gladia@0.1.3` orphaned impersonator) remains stable and already triaged.
