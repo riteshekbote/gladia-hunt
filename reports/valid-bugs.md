@@ -228,3 +228,9 @@
   - **Verdict: VALID (DUPLICATE)** — This is the same npm impersonation + API key harvesting finding already confirmed as VALID in two prior triage runs. Not novel.
   - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | Already reported as VALID in prior triage |
   - The only VALID finding remains the **npm `gladia`@0.1.3 impersonation + API key harvesting** (Lead G), which has already been reported with full passive proof. No new probe data changes any prior verd
+
+- 4 lead(s) marked VALID at 2026-08-10 23:58:34 UTC
+  - | Q5 Novel? | **NO — already reported as VALID in triage-report-2026-08-10 (Leads 1+13) and 8+ prior triage cycles** |
+  - | Q6 Not rejected? | YES — valid vulnerability class |
+  - **Verdict: VALID (DUPLICATE)** — Same npm `gladia`@0.1.3 impersonation + API key harvesting finding already confirmed as VALID. The probe data (npm registry 200, repo 404) is consistent evidence but d
+  - | H | `registry.npmjs.org/gladia` (200) | **VALID (DUPLICATE)** | Already reported; not novel |
