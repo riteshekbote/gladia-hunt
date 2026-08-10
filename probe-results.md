@@ -281,3 +281,8 @@ https://api.gladia.io -> HTTP 404
 ## 2026-08-10 10:54:24 UTC
 https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 11:45:55 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
