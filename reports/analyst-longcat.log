@@ -282,3 +282,114 @@
 [0m
 > build · longcat-2.0-free
 [0m
+===== ANALYST longcat 2026-08-10 04:50:07 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+## STEP 1 — DELTA
+
+**NO_DELTA**
+
+Surface frozen across 50+ cycles. Last inventory entry (2026-08-10 03:06:26 UTC) confirms: openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key, npm `gladia@0.1.3` dist-tag/shasum/repo/user static. No new endpoints, headers, or supply-chain changes.
+
+---
+
+## STEP 2 — PRIORITIZE
+
+| Asset | Attack | Business | Tech | Gate | Cloud | Fresh | **Score** |
+|---|---|---|---|---|---|---|---|
+| npm `gladia@0.1.3` | 9 | 8 | 6 | 10 | 2 | 3 | **7.40** |
+| api.gladia.io (SSRF surface) | 8 | 9 | 7 | 3 | 6 | 1 | **6.20** |
+| app.gladia.io (/signin reflection) | 6 | 7 | 5 | 8 | 1 | 2 | **5.35** |
+
+- **[PRIO] npm `gladia@0.1.3`** — score 7.40 (attack 9, business 8, tech 6, gate 10, cloud 2, fresh 3). Unauthenticated install, orphaned repo, key-in-URL leak, impersonation contradiction.
+- **[PRIO] api.gladia.io SSRF surface** — score 6.20 (attack 8, business 9, tech 7, gate 3, cloud 6, fresh 1). audio_url/video_url/callback_url format:uri no scheme allowlist, 7 webhook delivery paths, FR/US egress confirmed. Key-gated (AUTH_HELPED).
+- **[PRIO] app.gladia.io /signin reflection** — score 5.35 (attack 6, business 7, tech 5, gate 8, cloud 1, fresh 2). Unauthenticated form-action reflection, CSP lacks form-action directive. Post-auth honoring unverified (HUMAN_ONLY).
+
+---
+
+## STEP 3 — HYPOTHESES
+
+**[HYP] npm gladia@0.1.3 — orphaned impersonator with API key leakage in WebSocket URL**
+- class: OTHER
+- asset: npm registry — `gladia@0.1.3`
+- confidence: 95
+- reasoning: Package claims "Official TypeScript SDK" in package.json but README says "Unofficial". Source repo `alexisbouchez/gladia.ts` + GitHub user both 404 (orphaned, irrevocable takeover risk). `src/client.ts:306-308` appends raw `x-gladia-key` to `wss://api.gladia.io/v2/live` URL query via `searchParams.append`, diverging from official SDK's POST-then-token flow. dist-tag latest=0.1.3 persists.
+- evidence_needed: Already complete — tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, npm view metadata, GitHub API 404 on repo+user, RAG of client.ts:306-308.
+- verify_steps: `npm view gladia@0.1.3` (metadata), `curl -s https://registry.npmjs.org/gladia/0.1.3 | jq .` (shasum/dist), `curl -s https://api.github.com/repos/alexisbouchez/gladia.ts` (404), `curl -s https://api.github.com/users/alexisbouchez` (404). All passive, all already executed across multiple cycles.
+- impact: Supply-chain attack surface — attacker who claims orphaned `alexisbouchez` GitHub account or `gladia` npm namespace could push malicious update to `latest` tag. Current version leaks API keys in WebSocket URL query params (logged in server access logs, proxy logs, browser history). Severity: Medium (P3/P4).
+- testability: PASSIVE
+
+**[HYP] api.gladia.io — SSRF via audio_url/video_url with no scheme allowlist**
+- class: SSRF
+- asset: api.gladia.io — POST /v2/pre-recorded (audio_url, video_url, callback_url)
+- confidence: 73
+- reasoning: OpenAPI spec confirms audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` with no scheme allowlist. SDK RAG confirms no client-side guard (is_url() only gates upload-vs-direct path). /v1/models confirms FR/US egress. 7 webhook delivery paths to client-supplied URLs. Key is sole gate.
+- evidence_needed: Valid API key to test SSRF payload delivery to internal metadata endpoint (169.254.169.254) or internal network.
+- verify_steps: AUTH_HELPED — requires valid `x-gladia-key`. With key: `POST /v2/pre-recorded` with `audio_url: "http://169.254.169.254/latest/meta-data/"` and observe if server fetches it. Passive probe without key only confirms 401 gate.
+- impact: Server-side request forgery — attacker with valid key could scan internal network, access cloud metadata endpoints, or reach internal services. Severity: High (P2) if exploitable.
+- testability: AUTH_HELPED
+
+**[HYP] app.gladia.io — post-auth open redirect via redirect_to**
+- class: OATH
+- asset: app.gladia.io — /signin?redirect_to=
+- confidence: 45
+- reasoning: Unauthenticated layer reflects redirect_to into form action (confirmed across 50+ cycles). CSP lacks form-action directive. OAuth redirect_uri is FIXED (PKCE S256) — no OAuth code theft. Return-to cookie tamper-reset confirmed (REJECTED). Sole remaining question: does server honor redirect_to after successful authentication?
+- evidence_needed: Authenticated session to observe post-auth Location header.
+- verify_steps: HUMAN_ONLY — requires valid credentials or OAuth completion to test post-auth redirect honoring. Passive probe only confirms unauthenticated reflection.
+- impact: If post-auth honoring confirmed, attacker could craft login URL redirecting victim to attacker-controlled site after successful auth. Severity: Low-Medium (P3/P4).
+- testability: HUMAN_ONLY
+
+---
+
+## STEP 4 — SELF-CRITIQUE
+
+**[FINAL] npm gladia@0.1.3 — orphaned impersonator with API key leakage in WebSocket URL**
+- class: OTHER | confidence: 95 | testability: PASSIVE
+- Survives: high confidence, concrete evidence, passive testability, not on REJECTED list.
+
+**[FINAL] api.gladia.io — SSRF via audio_url/video_url with no scheme allowlist**
+- class: SSRF | confidence: 73 | testability: AUTH_HELPED
+- Survives: moderate confidence, spec+RAG confirmed, not on REJECTED list. Requires key.
+
+**[FINAL] app.gladia.io — post-auth open redirect via redirect_to**
+- class: OATH | confidence: 45 | testability: HUMAN_ONLY
+- Survives: lower confidence but not below 40. Not on REJECTED list (only OAuth redirect_uri-injection and cookie-tamper are REJECTED; post-auth honoring remains unverified).
+
+No hypotheses parked — all three survive self-critique.
+
+---
+
+## STEP 5 — NEXT ACTION
+
+**[NEXT] HUMAN: Submit the `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report**
+
+Report-ready evidence package:
+- npm: `gladia@0.1.3`, dist-tag latest, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`
+- GitHub: user `alexisbouchez` + repo `alexisbouchez/gladia.ts` both 404 (orphaned, irrevocable takeover risk)
+- Impersonation: package.json description "Official TypeScript SDK for Gladia" vs README.md "Unofficial TypeScript SDK for Gladia"
+- Key leakage: `src/client.ts:306-308` — `new URL(\`${baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())` — raw API key in WebSocket URL query (logged in server/proxy/browser history)
+- Divergence from official: `@gladiaio/sdk@1.1.0` uses POST /v2/live → token-from-response → wss?token=<uuid> flow (key never in URL)
+- Adjacent-namespace scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) — isolated impersonator, no broader campaign
+
+---
+
+## STEP 6 — LEARNING
+
+No new classes proven dead or alive this cycle. Surface frozen across 50+ cycles. All prior REJECTED/ACCEPTED findings remain valid:
+- REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT (50+ cycles)
+- REJECTED OAUTH @ app.gladia.io: redirect_uri FIXED (PKCE S256)
+- REJECTED MISCONFIG @ app.gladia.io: return-to cookie tamper-reset
+- ACCEPTED OTHER @ npm: gladia@0.1.3 orphaned impersonation (report-ready)
+
+---
+
+## STEP 7 — RISK SCORE
+
+| Asset | Score | Reasoning |
+|---|---|---|
+| **api.gladia.io** | 58/100 | SSRF-by-design surface (audio_url/video_url/callback_url no scheme allowlist, 7 webhook paths, FR/US egress) but key-gated. CORS wildcard without credentials not exploitable. NestJS-on-Express backend fingerprinted. No new endpoints in 50+ cycles. |
+| **app.gladia.io** | 35/100 | Unauthenticated form-action reflection (CSP gap), but OAuth redirect_uri FIXED, return-to cookie tamper-reset, post-auth honoring unverified. SPA shell exposed without auth (client-side enforcement). |
+| **sdk** | 45/100 | Orphaned npm impersonator (`gladia@0.1.3`) with key-in-URL leak and irrevocable takeover risk. Official SDKs (`@gladiaio/sdk@1.1.0`, `gladiaio-sdk@1.0.5`) clean. Supply-chain risk concentrated in unmaintained namespace. |
+
+**Program overall: 46/100** — Moderate exposure. Highest-risk vector is the key-gated SSRF surface at api.gladia.io (requires valid key, AUTH_HELPED). Supply-chain risk from orphaned npm package is real but lower severity (P3/P4). App-side reflection is unauthenticated but post-auth impact unverified.
