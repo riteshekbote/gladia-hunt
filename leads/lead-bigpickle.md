@@ -3319,3 +3319,22 @@ verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil
 impact: post-auth phishing redirect → Medium
 testability: AUTH_HELPED
 [NEXT] HUMAN: Unchanged — submit the `gladia@0.1.3` report via the program's bug-bounty submission channel (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, README "Unofficial" vs package.json "Official", orphaned repo+user alexisbouchez 404, src/client.ts:306–308 raw x-gladia-key in WS URL, adjacent-namespace all-clear). In the same submission request an authorized `x-gladia-key` + permission for a self-owned SSRF canary listener — on approval run ≥2x via POST /v2/pre-recorded audio_url/video_url/callback_config.url covering FR/US egress, unblocking the SSRF hypothesis. No new PROBE available — surface 59 cycles frozen, unauthenticated probing exhausted.
+## 2026-08-10 14:05:45 UTC [api] (model bigpickle)
+[HYP] SSRF via audio_url/video_url fetch + webhook/callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, video_url, callback_config.url; 7 webhook topics to client-supplied URLs)
+confidence: 73
+reasoning: openapi byte-frozen 59th cycle (200/125131B/14 paths/7 webhooks/single server); URL fields no scheme/host allowlist; /v1/models 530B confirms FR+US egress; POST re-confirmed 401/144 NestJS this cycle — key is sole gate.
+evidence_needed: key-gated fetch where server error/timing reflects reachability of a self-owned canary, or webhook/callback POST received at a private listener.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key, POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>"}`; repeat video_url + callback_config.url + webhook URL; ≥2x to cover FR/US egress; self-owned data only.
+impact: cloud-metadata + internal-network read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh (form action reflects URL-encoded value, 0 form-action CSP directives); OAuth hardened (PKCE S256, state, FIXED redirect_uri); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after Google SSO with redirect_to set.
+verify_steps: AUTH_HELPED — complete Google SSO with ?redirect_to=https://evil.example.com + //evil + app.gladia.io.evil variants; capture post-auth Location + Set-Cookie.
+impact: post-auth phishing redirect → Medium
+testability: AUTH_HELPED

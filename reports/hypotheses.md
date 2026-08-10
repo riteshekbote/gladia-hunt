@@ -1444,3 +1444,25 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+
+## RANKED HYPOTHESES 2026-08-10 14:08:36 UTC
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator at dist-tag latest leaks API keys via WebSocket URL query parameter (from reports/hypotheses-longcat.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [95] npm: Orphaned npm `gladia`@0.1.3 impersonator leaks API keys in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + webhook/callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via Gladia bug-bounty portal with evidence package (tarball sha256 `3b23ec7d7a763abc04c52db232d157a98
+- NEXT(hypotheses-longcat.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report with evidence package: dist-tag latest=0.1.3, repo+user alexisbouchez
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3, repo+user alexisbouchez both 404 (irrevocable), sha256
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key confirmed with 7 outbound topics (transcription.{created,success,error} + live.{start_session,sta
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen (50+ cycles) — audio_url (plain string) + video_url (plain string) + callback_url/CallbackConfig.url (format:uri) all
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (200/27448B, form action reflects URL-encoded value); CSP has 0 form-action directives 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: openapi.json `servers` array single entry https://api.gladia.io only — no staging/alt host leakage confirmed
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} on t
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending.
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 58+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-

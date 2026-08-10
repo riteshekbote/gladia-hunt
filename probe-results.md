@@ -289,3 +289,10 @@ https://api.gladia.io/v2/pre-recorded -> HTTP 401
 
 ## 2026-08-10 12:41:03 UTC
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 14:08:40 UTC
+https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz -> 200 len=48516 type=application/octet-stream
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io -> HTTP 404
