@@ -337,3 +337,6 @@
 
 ## 2026-08-10 20:08:26 UTC
 - NEW npm `gladia@0.1.3`: local `npm pack` reproduced independently — tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` verified; `src/client.ts:307` `wsUrl.searchParams.appe
+
+## 2026-08-10 21:01:57 UTC
+- NEW None — all surfaces match prior cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks frozen, app.gladia.io signin reflection + CSP gap confirmed, npm gladia@0.1.3 orphaned at latest with repo+use
