@@ -221,3 +221,10 @@
   - | Q4 Passive proof? | NO — requires valid API key to test injection strings |
   - | Q6 Not rejected? | YES — injection is a valid vulnerability class |
   - | Q7 Triager accept? | CONDITIONAL — only if injection demonstrated with valid key |
+
+- 5 lead(s) marked VALID at 2026-08-10 20:29:39 UTC
+  - | Q5 Novel? | NO — already reported as VALID in triage-report-2026-08-08 (Lead 1) and 2026-08-10 (Leads 1+13) |
+  - | Q6 Not rejected? | YES — supply-chain impersonation is a valid vulnerability class |
+  - **Verdict: VALID (DUPLICATE)** — This is the same npm impersonation + API key harvesting finding already confirmed as VALID in two prior triage runs. Not novel.
+  - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | Already reported as VALID in prior triage |
+  - The only VALID finding remains the **npm `gladia`@0.1.3 impersonation + API key harvesting** (Lead G), which has already been reported with full passive proof. No new probe data changes any prior verd
