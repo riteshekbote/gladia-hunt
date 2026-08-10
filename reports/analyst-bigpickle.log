@@ -19290,3 +19290,584 @@ STEP 7 — RISK SCORE
 [RISK] api.gladia.io: 87 — Public OpenAPI 3.1 (125131B/14 paths/7 webhooks, CORS `*` + expose-headers trace/request IDs) reveals full v2 surface incl. audio_url/video_url/callback_url with NO scheme allowlist; /v1/models public (530B, security:null) leaks FR/US egress; undocumented /health; preflight-only x-powered-by: Express (NestJS-on-Express fingerprint); SSRF-by-design fetch + webhook delivery, key-gated only (AUTH_HELPED).
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all 200 without auth (client-side enforcement); /signin redirect_to reflects into form action with 0 CSP form-action directives (unauth OATH gap); OAuth 2.0 PKCE S256 with FIXED redirect_uri (code/state theft blocked); oauth2 cookie no Secure flag (HSTS-preload mitigated, informational); 500 on bogus callback leaks nothing (RSC error boundary); 302 gate intact on /apikeys,/transcriptions,/settings.
 [RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user 404, irrevocable takeover); src/client.ts:307 embeds raw API key in WebSocket URL query (proxies/logs/Referer/history exposure); official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean.
+===== ANALYST bigpickle 2026-08-10 23:18:54 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la && git log --oneline -5 2>/dev/null
+total 416
+drwxr-xr-x 11 runner runner   4096 Aug 10 23:17 .
+drwxr-xr-x  3 runner runner   4096 Aug 10 23:16 ..
+drwxr-xr-x  7 runner runner   4096 Aug 10 23:17 .git
+drwxr-xr-x  3 runner runner   4096 Aug 10 23:16 .github
+-rw-r--r--  1 runner runner    156 Aug 10 23:16 README.md
+-rw-r--r--  1 runner runner     32 Aug 10 23:17 analyst-out.txt
+-rw-r--r--  1 runner runner 162223 Aug 10 23:17 analyst-prompt.txt
+-rw-r--r--  1 runner runner 159458 Aug 10 23:17 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 10 23:16 leads
+-rw-r--r--  1 runner runner  16003 Aug 10 23:16 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 reports
+drwxr-xr-x  4 runner runner   4096 Aug 10 23:16 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 10 23:16 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 scripts
+-rw-r--r--  1 runner runner     33 Aug 10 23:16 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 10 23:16 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 10 23:16 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 10 23:16 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 10 23:16 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 triage
+2ca206b triage 2026-08-10-23-06
+[0m
+[0m$ [0mls -la reports/ triage/ leads/ scripts/ knowledge/ inventory/ 2>/dev/null
+inventory/:
+total 36
+drwxr-xr-x  2 runner runner  4096 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner  4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner 28421 Aug 10 23:16 gladia.md
+
+knowledge/:
+total 144
+drwxr-xr-x  2 runner runner   4096 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner   4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner 138541 Aug 10 23:16 index.md
+
+leads/:
+total 4320
+drwxr-xr-x  2 runner runner  12288 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner   4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner 484958 Aug 10 23:16 lead-bigpickle.md
+-rw-r--r--  1 runner runner 682822 Aug 10 23:16 lead-laguna.md
+-rw-r--r--  1 runner runner   4227 Aug 10 23:16 lead-ling3.md
+-rw-r--r--  1 runner runner  86813 Aug 10 23:16 lead-longcat.md
+-rw-r--r--  1 runner runner 544000 Aug 10 23:16 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug 10 23:16 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug 10 23:16 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug 10 23:16 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug 10 23:16 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug 10 23:16 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug 10 23:16 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug 10 23:16 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug 10 23:16 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug 10 23:16 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug 10 23:16 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug 10 23:16 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug 10 23:16 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug 10 23:16 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug 10 23:16 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug 10 23:16 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug 10 23:16 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug 10 23:16 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug 10 23:16 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug 10 23:16 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug 10 23:16 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug 10 23:16 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug 10 23:16 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug 10 23:16 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug 10 23:16 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug 10 23:16 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug 10 23:16 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug 10 23:16 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug 10 23:16 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug 10 23:16 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug 10 23:16 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug 10 23:16 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug 10 23:16 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug 10 23:16 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug 10 23:16 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug 10 23:16 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug 10 23:16 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug 10 23:16 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug 10 23:16 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug 10 23:16 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug 10 23:16 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug 10 23:16 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-17-55.md
+-rw-r--r--  1 runner runner   5821 Aug 10 23:16 reposcan-2026-08-08-18-00.md
+-rw-r--r--  1 runner runner   6816 Aug 10 23:16 reposcan-2026-08-08-18-20.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-18-52.md
+-rw-r--r--  1 runner runner   7054 Aug 10 23:16 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  27131 Aug 10 23:16 reposcan-2026-08-08-19-30.md
+-rw-r--r--  1 runner runner   9467 Aug 10 23:16 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-20-03.md
+-rw-r--r--  1 runner runner   6737 Aug 10 23:16 reposcan-2026-08-08-20-14.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-20-31.md
+-rw-r--r--  1 runner runner   8762 Aug 10 23:16 reposcan-2026-08-08-20-52.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-08-21-03.md
+-rw-r--r--  1 runner runner  27381 Aug 10 23:16 reposcan-2026-08-08-21-21.md
+-rw-r--r--  1 runner runner   7872 Aug 10 23:16 reposcan-2026-08-08-21-47.md
+-rw-r--r--  1 runner runner  27610 Aug 10 23:16 reposcan-2026-08-08-21-54.md
+-rw-r--r--  1 runner runner   7642 Aug 10 23:16 reposcan-2026-08-08-22-26.md
+-rw-r--r--  1 runner runner  11379 Aug 10 23:16 reposcan-2026-08-08-22-28.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  26885 Aug 10 23:16 reposcan-2026-08-08-23-39.md
+-rw-r--r--  1 runner runner   6380 Aug 10 23:16 reposcan-2026-08-09-00-05.md
+-rw-r--r--  1 runner runner  28494 Aug 10 23:16 reposcan-2026-08-09-02-29.md
+-rw-r--r--  1 runner runner  14401 Aug 10 23:16 reposcan-2026-08-09-04-03.md
+-rw-r--r--  1 runner runner   8639 Aug 10 23:16 reposcan-2026-08-09-05-19.md
+-rw-r--r--  1 runner runner   8541 Aug 10 23:16 reposcan-2026-08-09-06-06.md
+-rw-r--r--  1 runner runner  79446 Aug 10 23:16 reposcan-2026-08-09-06-09.md
+-rw-r--r--  1 runner runner   6133 Aug 10 23:16 reposcan-2026-08-09-07-17.md
+-rw-r--r--  1 runner runner   8300 Aug 10 23:16 reposcan-2026-08-09-08-09.md
+-rw-r--r--  1 runner runner   7946 Aug 10 23:16 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  27400 Aug 10 23:16 reposcan-2026-08-09-09-55.md
+-rw-r--r--  1 runner runner  27610 Aug 10 23:16 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner   9192 Aug 10 23:16 reposcan-2026-08-09-10-31.md
+-rw-r--r--  1 runner runner   7230 Aug 10 23:16 reposcan-2026-08-09-10-38.md
+-rw-r--r--  1 runner runner   6487 Aug 10 23:16 reposcan-2026-08-09-11-10.md
+-rw-r--r--  1 runner runner   7854 Aug 10 23:16 reposcan-2026-08-09-11-46.md
+-rw-r--r--  1 runner runner   6024 Aug 10 23:16 reposcan-2026-08-09-12-17.md
+-rw-r--r--  1 runner runner   7839 Aug 10 23:16 reposcan-2026-08-09-12-19.md
+-rw-r--r--  1 runner runner   7712 Aug 10 23:16 reposcan-2026-08-09-13-33.md
+-rw-r--r--  1 runner runner   8882 Aug 10 23:16 reposcan-2026-08-09-14-16.md
+-rw-r--r--  1 runner runner  77508 Aug 10 23:16 reposcan-2026-08-09-14-23.md
+-rw-r--r--  1 runner runner   8689 Aug 10 23:16 reposcan-2026-08-09-15-02.md
+-rw-r--r--  1 runner runner   7849 Aug 10 23:16 reposcan-2026-08-09-15-35.md
+-rw-r--r--  1 runner runner   8080 Aug 10 23:16 reposcan-2026-08-09-15-48.md
+-rw-r--r--  1 runner runner   8373 Aug 10 23:16 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner   7541 Aug 10 23:16 reposcan-2026-08-09-16-35.md
+-rw-r--r--  1 runner runner  10447 Aug 10 23:16 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  27381 Aug 10 23:16 reposcan-2026-08-09-17-16.md
+-rw-r--r--  1 runner runner   7883 Aug 10 23:16 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  27448 Aug 10 23:16 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner   8455 Aug 10 23:16 reposcan-2026-08-09-18-07.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-09-18-38.md
+-rw-r--r--  1 runner runner  27448 Aug 10 23:16 reposcan-2026-08-09-18-59.md
+-rw-r--r--  1 runner runner   8249 Aug 10 23:16 reposcan-2026-08-09-19-22.md
+-rw-r--r--  1 runner runner  10364 Aug 10 23:16 reposcan-2026-08-09-19-45.md
+-rw-r--r--  1 runner runner   8634 Aug 10 23:16 reposcan-2026-08-09-19-58.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-09-20-07.md
+-rw-r--r--  1 runner runner   9349 Aug 10 23:16 reposcan-2026-08-09-20-40.md
+-rw-r--r--  1 runner runner   7800 Aug 10 23:16 reposcan-2026-08-09-20-53.md
+-rw-r--r--  1 runner runner   7117 Aug 10 23:16 reposcan-2026-08-09-21-15.md
+-rw-r--r--  1 runner runner  27448 Aug 10 23:16 reposcan-2026-08-09-21-40.md
+-rw-r--r--  1 runner runner   6483 Aug 10 23:16 reposcan-2026-08-09-21-50.md
+-rw-r--r--  1 runner runner   7453 Aug 10 23:16 reposcan-2026-08-09-22-03.md
+-rw-r--r--  1 runner runner   8738 Aug 10 23:16 reposcan-2026-08-09-22-30.md
+-rw-r--r--  1 runner runner   8713 Aug 10 23:16 reposcan-2026-08-09-22-44.md
+-rw-r--r--  1 runner runner  27904 Aug 10 23:16 reposcan-2026-08-09-23-03.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-09-23-09.md
+-rw-r--r--  1 runner runner   8541 Aug 10 23:16 reposcan-2026-08-09-23-47.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-00-42.md
+-rw-r--r--  1 runner runner   9436 Aug 10 23:16 reposcan-2026-08-10-01-42.md
+-rw-r--r--  1 runner runner   6733 Aug 10 23:16 reposcan-2026-08-10-03-08.md
+-rw-r--r--  1 runner runner   7669 Aug 10 23:16 reposcan-2026-08-10-03-32.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-10-04-52.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-05-13.md
+-rw-r--r--  1 runner runner   6726 Aug 10 23:16 reposcan-2026-08-10-06-25.md
+-rw-r--r--  1 runner runner   6981 Aug 10 23:16 reposcan-2026-08-10-06-43.md
+-rw-r--r--  1 runner runner  53466 Aug 10 23:16 reposcan-2026-08-10-08-09.md
+-rw-r--r--  1 runner runner   8442 Aug 10 23:16 reposcan-2026-08-10-08-18.md
+-rw-r--r--  1 runner runner   7031 Aug 10 23:16 reposcan-2026-08-10-09-51.md
+-rw-r--r--  1 runner runner   7337 Aug 10 23:16 reposcan-2026-08-10-09-59.md
+-rw-r--r--  1 runner runner  12443 Aug 10 23:16 reposcan-2026-08-10-10-57.md
+-rw-r--r--  1 runner runner   9378 Aug 10 23:16 reposcan-2026-08-10-11-13.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-11-49.md
+-rw-r--r--  1 runner runner   8085 Aug 10 23:16 reposcan-2026-08-10-12-03.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-12-44.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-13-37.md
+-rw-r--r--  1 runner runner  12311 Aug 10 23:16 reposcan-2026-08-10-14-11.md
+-rw-r--r--  1 runner runner  27650 Aug 10 23:16 reposcan-2026-08-10-14-47.md
+-rw-r--r--  1 runner runner  27382 Aug 10 23:16 reposcan-2026-08-10-15-24.md
+-rw-r--r--  1 runner runner   8165 Aug 10 23:16 reposcan-2026-08-10-15-45.md
+-rw-r--r--  1 runner runner   6861 Aug 10 23:16 reposcan-2026-08-10-16-20.md
+-rw-r--r--  1 runner runner   4813 Aug 10 23:16 reposcan-2026-08-10-16-35.md
+-rw-r--r--  1 runner runner   4813 Aug 10 23:16 reposcan-2026-08-10-17-19.md
+-rw-r--r--  1 runner runner   9122 Aug 10 23:16 reposcan-2026-08-10-17-40.md
+-rw-r--r--  1 runner runner  25302 Aug 10 23:16 reposcan-2026-08-10-18-21.md
+-rw-r--r--  1 runner runner   8356 Aug 10 23:16 reposcan-2026-08-10-18-39.md
+-rw-r--r--  1 runner runner  29716 Aug 10 23:16 reposcan-2026-08-10-19-23.md
+-rw-r--r--  1 runner runner   7798 Aug 10 23:16 reposcan-2026-08-10-19-44.md
+-rw-r--r--  1 runner runner   8819 Aug 10 23:16 reposcan-2026-08-10-20-11.md
+-rw-r--r--  1 runner runner  28475 Aug 10 23:16 reposcan-2026-08-10-20-27.md
+-rw-r--r--  1 runner runner   4813 Aug 10 23:16 reposcan-2026-08-10-21-04.md
+-rw-r--r--  1 runner runner   7034 Aug 10 23:16 reposcan-2026-08-10-21-14.md
+-rw-r--r--  1 runner runner   4813 Aug 10 23:16 reposcan-2026-08-10-22-04.md
+-rw-r--r--  1 runner runner   8244 Aug 10 23:16 reposcan-2026-08-10-22-40.md
+-rw-r--r--  1 runner runner  12146 Aug 10 23:16 reposcan-2026-08-10-22-51.md
+-rw-r--r--  1 runner runner  12146 Aug 10 23:16 reposcan-latest.md
+
+reports/:
+total 5780
+drwxr-xr-x  2 runner runner    4096 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner    4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner 1518373 Aug 10 23:16 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 2854570 Aug 10 23:16 analyst-laguna.log
+-rw-r--r--  1 runner runner   19008 Aug 10 23:16 analyst-ling3.log
+-rw-r--r--  1 runner runner  128726 Aug 10 23:16 analyst-longcat.log
+-rw-r--r--  1 runner runner 1058762 Aug 10 23:16 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    6070 Aug 10 23:16 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   10571 Aug 10 23:16 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 10 23:16 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner    5685 Aug 10 23:16 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    6637 Aug 10 23:16 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  252027 Aug 10 23:16 hypotheses.md
+-rw-r--r--  1 runner runner   26240 Aug 10 23:16 valid-bugs.md
+
+scripts/:
+total 16
+drwxr-xr-x  2 runner runner 4096 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner 4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner 7771 Aug 10 23:16 sync-issues.py
+
+triage/:
+total 680
+drwxr-xr-x  2 runner runner  4096 Aug 10 23:16 .
+drwxr-xr-x 11 runner runner  4096 Aug 10 23:17 ..
+-rw-r--r--  1 runner runner   329 Aug 10 23:16 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 10 23:16 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 10 23:16 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 10 23:16 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 10 23:16 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 10 23:16 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 10 23:16 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 10 23:16 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 10 23:16 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 10 23:16 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 10 23:16 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 10 23:16 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 10 23:16 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 10 23:16 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 10 23:16 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 10 23:16 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 10 23:16 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 10 23:16 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 10 23:16 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 10 23:16 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 10 23:16 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 10 23:16 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 10 23:16 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 10 23:16 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 10 23:16 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 10 23:16 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 10 23:16 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 10 23:16 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 10 23:16 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 10 23:16 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 10 23:16 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 10 23:16 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 10 23:16 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 10 23:16 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 10 23:16 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 10 23:16 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 10 23:16 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 10 23:16 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 10 23:16 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 10 23:16 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 10 23:16 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 10 23:16 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 10 23:16 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 10 23:16 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 10 23:16 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 10 23:16 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 10 23:16 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 10 23:16 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 10 23:16 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 10 23:16 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 10 23:16 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 10 23:16 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 10 23:16 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 10 23:16 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 10 23:16 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 10 23:16 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 10 23:16 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 10 23:16 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 10 23:16 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 10 23:16 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 10 23:16 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 10 23:16 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 10 23:16 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner   288 Aug 10 23:16 run-2026-08-10-15-27.md
+-rw-r--r--  1 runner runner   329 Aug 10 23:16 run-2026-08-10-16-39.md
+-rw-r--r--  1 runner runner   329 Aug 10 23:16 run-2026-08-10-17-41.md
+-rw-r--r--  1 runner runner   246 Aug 10 23:16 run-2026-08-10-18-37.md
+-rw-r--r--  1 runner runner   351 Aug 10 23:16 run-2026-08-10-19-45.md
+-rw-r--r--  1 runner runner  8559 Aug 10 23:16 run-2026-08-10-20-29.md
+-rw-r--r--  1 runner runner   343 Aug 10 23:16 run-2026-08-10-21-28.md
+-rw-r--r--  1 runner runner   277 Aug 10 23:16 run-2026-08-10-22-22.md
+-rw-r--r--  1 runner runner   524 Aug 10 23:16 run-2026-08-10-23-06.md
+-rw-r--r--  1 runner runner 13831 Aug 10 23:16 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 10 23:16 triage-report-2026-08-10.md
+[0m
+[0m$ [0mcat state_bigpickle.json; echo "---"; cat triage/run-2026-08-10-23-06.md; echo "---"; cat probe-results.md | head -80
+{"phase": "POC", "target": "api"}---
+
+===== TRIAGE 2026-08-10 23:06:12 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+I'm ready to triage, but **no actual leads were provided** in your message — the "LEADS:" section is empty. There are no URLs, HTTP status codes, descriptions, or findings to validate against the 7-Question Gate.
+
+Please share the specific leads (with URLs, probe results, and any contextual description the hunt bot produced), and I'll apply the full gate to each one and return VALID / INVALID / HOLD verdicts with the requested details.
+---
+
+## 2026-08-08 17:05:56 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 17:52:32 UTC
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 18:18:22 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 19:06:10 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 19:45:06 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 20:12:05 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 20:49:57 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 21:19:36 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 21:52:36 UTC
+https://app.gladia.io/auth/google/callback` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 22:24:51 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-08 22:57:53 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 23:36:16 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/ -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 00:03:29 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 02:27:08 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+[0m
+[0m$ [0mcat scope.yml; echo "======"; cat reports/hypotheses-bigpickle.txt
+programs:
+  gladia:
+    name: Gladia Bug Bounty
+    disclosure_policy: TBD - operator-provided program scope (update once public channel confirmed)
+    assets:
+      - name: api.gladia.io
+        priority: Highest
+      - name: app.gladia.io
+        priority: High
+      - name: Official SDKs (npm @gladiaio/sdk, PyPI gladiaio-sdk)
+        priority: Medium
+      - name: gladia.io
+        priority: Low
+    out_of_scope:
+      - "All other *.gladia.io subdomains"
+      - "Third-party services (Intercom, Stripe dashboard, Google Workspace)"
+      - "Social engineering or phishing attacks on staff"
+      - "Physical security"
+      - "Denial of Service (DoS/DDoS)"
+      - "Assets not owned or operated by Gladia"
+      - "Vulnerabilities requiring physical access"
+      - "Reports from automated scanners without manual validation"
+    github_orgs:
+      - gladiaio
+    npm_packages:
+      - "@gladiaio/sdk"
+      - "gladia"
+    pypi_packages:
+      - "gladiaio-sdk"
+    known_surface:
+      - "https://api.gladia.io/openapi.json  (OpenAPI spec consumed by the SDK code generator)"
+
+rules:
+  # Operator-defined program scope. Passive-first, human-validated only.
+  passive_first: true          # GET/HEAD reads first; no invasive testing without program approval
+  max_requests_per_second: 1   # never hammer
+  no_doom: true                # no DoS/DDoS, no resource-exhaustion tests
+  no_account_creation: true    # no mass signups on app.gladia.io without program approval
+  no_data_modification: true   # no writes, deletes, state changes on live infra
+  no_pre_disclosure: true      # never disclose before program response
+  manual_validation_required: true  # scanner output alone is REJECTED per scope; every finding must be manually validated
+  redact_secrets_in_commits: true   # commit sha256 of secrets, never raw values
+
+# Multi-model ensemble: every hunt run picks a rotation of the 5 models.
+models:
+  - { id: opencode/big-pickle, name: bigpickle }
+  - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+  - { id: opencode/longcat-2.0-free, name: longcat }
+  - { id: opencode/ling-3.0-flash-free, name: ling3 }
+  - { id: opencode/laguna-s-2.1-free, name: laguna }
+======
+## 2026-08-10 22:36:04 UTC [api] (model bigpickle)
+[PRIO] npm `gladia@0.1.3` (sdk): score 8.6 — attack 9, business 9, tech 8, gate 10, cloud 7, fresh 8. Orphaned impersonator at dist-tag latest leaks raw keys in wss:// URL query.
+[PRIO] api.gladia.io POST /v2/pre-recorded (SSRF-by-design): score 7.4 — attack 8, business 9, tech 8, gate 5 (key-gated 401), cloud 9, fresh 6. URL fields no scheme allowlist; FR/US egress; key sole gate.
+[PRIO] app.gladia.io /signin redirect_to (post-auth honoring): score 6.1 — attack 7, business 7, tech 7, gate 4 (needs SSO), cloud 4, fresh 7. Unauth reflection confirmed; only post-auth honoring unverified.
+[HYP] `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 96
+reasoning: dist-tag latest=0.1.3 + description "Official TypeScript SDK"; tarball sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` verified; src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`; GitHub user+repo `alexisbouchez` 404 (irrevocable); README "Unofficial" vs package.json "Official".
+evidence_needed: all captured (tarball hash, code lines, GitHub 404, official @gladiaio/sdk@1.1.0 POST→token contrast).
+verify_steps: PASSIVE complete — remaining step is disclosure-portal submission only.
+impact: devs running `npm i gladia` leak API key into wss:// URL query (proxies/logs/Referer/history). Severity: High.
+testability: PASSIVE
+[HYP] SSRF via audio_url/video_url server-side fetch + webhook/callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, video_url, callback_config.url; 7 webhook topics)
+confidence: 73
+reasoning: openapi 125131B byte-frozen (fresh this cycle); URL fields plain string/`format:uri` with NO scheme allowlist; /v1/models 530B public (security:null) confirms FR+US egress; POST (no key) 401/144 NestJS — key sole gate; webhooks key = 7 outbound POSTs to client-supplied URLs.
+evidence_needed: key-gated fetch where server error/timing reflects reachability of self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + webhook URL; ≥2x across FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin (form-action reflection; Google OAuth path)
+confidence: 50
+reasoning: reflection byte-fresh (200/27448B, 0 CSP form-action directives); OAuth hardened (PKCE S256, FIXED redirect_uri → REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: AUTH_HELPED — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: AUTH_HELPED
+[PARKED] none — all 3 hypotheses ≥ 50 confidence, none on the REJECTED list, all have concrete verify_steps.
+[FINAL] re-ranked top first:
+[NEXT] HUMAN: Submit the `gladia@0.1.3` orphaned-impersonation report via the Gladia disclosure portal with the locked evidence package (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, dist-shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`, GitHub user+repo `alexisbouchez` 404, README "Unofficial" vs package.json "Official", dist-tag latest=0.1.3, contrast official @gladiaio/sdk@1.1.0 POST→token flow); in the same submission request an authorized x-gladia-key + permission for a self-owned SSRF canary (audio_url/video_url/callback_config.url, ≥2x FR/US) to unblock hypothesis #2.
+[LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh re-verified — sha256 `3b23ec7d…7f2`, dist-tag latest=0.1.3, GitHub 404, key-in-URL; report-ready, portal submission pending.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed with fresh probes this cycle — openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/530B FR+US, signin 200/27448B — surface frozen across 60+ cycles, nothing new.
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — unauth reflection persists; post-auth honoring remains HUMAN_ONLY gate.
+[RISK] api.gladia.io: 87 — Public OpenAPI 3.1 (125131B/14 paths/7 webhooks, CORS `*` + expose-headers trace/request IDs) reveals full v2 surface incl. audio_url/video_url/callback_url with NO scheme allowlist; /v1/models public (530B, security:null) leaks FR/US egress; undocumented /health; preflight-only x-powered-by: Express (NestJS-on-Express fingerprint); SSRF-by-design fetch + webhook delivery, key-gated only (AUTH_HELPED).
+[RISK] app.gladia.io: 72 — /dashboard + SPA catch-all 200 without auth (client-side enforcement); /signin redirect_to reflects into form action with 0 CSP form-action directives (unauth OATH gap); OAuth 2.0 PKCE S256 with FIXED redirect_uri (code/state theft blocked); oauth2 cookie no Secure flag (HSTS-preload mitigated, informational); 500 on bogus callback leaks nothing (RSC error boundary); 302 gate intact on /apikeys,/transcriptions,/settings.
+[RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user 404, irrevocable takeover); src/client.ts:307 embeds raw API key in WebSocket URL query (proxies/logs/Referer/history exposure); official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean.
+[0m
+[0m$ [0mdate -u; echo "---"; curl -s -o /dev/null -w "openapi %{http_code} %{size_download}B\n" https://api.gladia.io/openapi.json; sleep 1; curl -s -o /dev/null -w "health %{http_code} %{size_download}B\n" https://api.gladia.io/health; sleep 1; curl -s -o /dev/null -w "v1/models %{http_code} %{size_download}B\n" https://api.gladia.io/v1/models
+Mon Aug 10 23:17:26 UTC 2026
+---
+openapi 200 125131B
+health 200 15B
+v1/models 200 530B
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X OPTIONS https://api.gladia.io/v2/pre-recorded -H "Origin: https://evil.example.com" -H "Access-Control-Request-Headers: x-gladia-key" | grep -iE "HTTP/|access-control|x-powered"; sleep 1; curl -s -o /dev/null -w "signin %{http_code} %{size_download}B\n" "https://app.gladia.io/signin?redirect_to=https://evil.example.com"
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+signin 200 27448B
+[0m
+[0m$ [0mcurl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" | grep -o 'action="/signin?redirect_to=[^"]*"' | head -1; echo "---form-action count:"; curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" | grep -c "form-action" || true
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+---form-action count:
+0
+[0m
+[0m$ [0mnpm view gladia dist-tags latest 2>/dev/null; npm view gladia description repository.url 2>/dev/null; echo "---github:"; curl -s -o /dev/null -w "%{http_code}\n" https://api.github.com/repos/alexisbouchez/gladia.ts; sleep 1; curl -s -o /dev/null -w "%{http_code}\n" https://api.github.com/users/alexisbouchez
+{ latest: '0.1.3' }
+description = 'Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API'
+repository.url = 'git+https://github.com/alexisbouchez/gladia.ts.git'
+---github:
+404
+404
+[0m
+STEP 1 — DELTA
+NO_DELTA — fresh probes 23:17 UTC byte-identical to the 60+ cycle frozen baseline: /openapi.json 200/125131B, /health 200/15B, /v1/models 200/530B, OPTIONS /v2/pre-recorded 204 `x-powered-by: Express` + ACAO `*` + ACAH `x-gladia-key`, POST key-gated 401; /signin?redirect_to=https://evil.example.com 200/27448B with `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflection and 0 `form-action` directives; npm `gladia` dist-tag latest=0.1.3, repo+user `alexisbouchez` both GitHub 404.
+
+STEP 2 — PRIORITIZE
+[PRIO] npm `gladia@0.1.3` (sdk): score 8.6 — attack 9, business 9, tech 8, gate 10, cloud 7, fresh 8. Orphaned impersonator at dist-tag latest; raw key in wss:// URL query; report-ready.
+[PRIO] api.gladia.io POST /v2/pre-recorded (SSRF-by-design): score 7.4 — attack 8, business 9, tech 8, gate 5 (401 key-gated), cloud 9, fresh 6. URL fields no scheme allowlist; FR/US egress; key sole gate.
+[PRIO] app.gladia.io /signin redirect_to (post-auth honoring): score 6.1 — attack 7, business 7, tech 7, gate 4 (SSO), cloud 4, fresh 7. Unauth reflection byte-fresh; only post-auth honoring unverified.
+
+STEP 3 — HYPOTHESES
+[HYP] `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 96
+reasoning: dist-tag latest=0.1.3 + description "Official"; tarball sha256 `3b23ec7d…7f2` + dist-shasum `cc96f84a…` verified; src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`; GitHub user+repo `alexisbouchez` both 404 this cycle (irrevocable).
+evidence_needed: all captured; only disclosure-portal submission remains.
+verify_steps: PASSIVE complete — submission with locked evidence package only.
+impact: devs running `npm i gladia` leak API key into wss:// URL query (proxies/logs/Referer/history). Severity: High.
+testability: PASSIVE
+[HYP] SSRF via audio_url/video_url server-side fetch + webhook/callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, video_url, callback_config.url; 7 webhook topics)
+confidence: 73
+reasoning: openapi 125131B byte-frozen this cycle; URL fields plain string/`format:uri` with NO scheme allowlist; /v1/models 530B public (security:null) confirms FR+US egress; POST (no key) 401/144 NestJS — key sole gate; webhooks = 7 outbound POSTs to client-supplied URLs.
+evidence_needed: key-gated fetch where server error/timing reflects reachability of self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + webhook URL; ≥2x across FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin (form-action reflection; Google OAuth path)
+confidence: 50
+reasoning: reflection byte-fresh (200/27448B, 0 CSP form-action directives); OAuth hardened (PKCE S256, FIXED redirect_uri → REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: AUTH_HELPED — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+[PARKED] none — all 3 hypotheses ≥ 50 confidence, none on the REJECTED list, all have concrete verify_steps.
+[FINAL] re-ranked top first:
+1. [96] `gladia@0.1.3` orphaned impersonation (OTHER, PASSIVE complete)
+2. [73] SSRF via audio_url/video_url/webhook delivery (SSRF, AUTH_HELPED)
+3. [50] redirect_to post-auth honoring (OATH, AUTH_HELPED)
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Submit the `gladia@0.1.3` orphaned-impersonation report via the Gladia vulnerability disclosure channel with the locked evidence package (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, dist-shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`, GitHub user+repo `alexisbouchez` 404, README "Unofficial" vs package.json "Official", dist-tag latest=0.1.3, contrast official @gladiaio/sdk@1.1.0 POST→token flow); in the same submission request an authorized x-gladia-key + permission for a self-owned SSRF canary (audio_url/video_url/callback_config.url, ≥2x FR/US) to unblock hypothesis #2 (api target, phase POC).
+
+STEP 6 — LEARNING
+[LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh re-verified — dist-tag latest=0.1.3, description "Official", GitHub repo+user 404 (irrevocable), sha256 `3b23ec7d…7f2`; report-ready, portal submission pending.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 23:17 UTC (61st+ cycle) — openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/530B, OPTIONS 204 x-powered-by=Express + ACAO `*`, signin 200/27448B — surface frozen, nothing new.
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (1 match, 0 form-action CSP directives) — unauth reflection persists; post-auth honoring remains HUMAN_ONLY gate.
+
+STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 87 — Public OpenAPI 3.1 (125131B/14 paths/7 webhooks, CORS `*` + expose-headers trace/request IDs) reveals full v2 surface incl. audio_url/video_url/callback_url with NO scheme allowlist; /v1/models public (530B, security:null) leaks FR/US egress; undocumented /health; preflight-only x-powered-by: Express (NestJS-on-Express fingerprint); wss://v2/live?token=<uuid>; SSRF-by-design fetch + webhook delivery, key-gated only (AUTH_HELPED).
+[RISK] app.gladia.io: 72 — /dashboard + SPA catch-all 200 without auth (client-side enforcement); /signin redirect_to reflects into form action with 0 CSP form-action directives (unauth OATH gap); OAuth 2.0 PKCE S256 with FIXED redirect_uri (code/state theft blocked); oauth2 cookie no Secure flag (HSTS-preload mitigated, informational); 500 on bogus callback leaks nothing (RSC error boundary); 302 gate intact on /apikeys,/transcriptions,/settings.
+[RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user 404, irrevocable takeover); src/client.ts:307 embeds raw API key in WebSocket URL query (proxies/logs/Referer/history exposure); official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean.
