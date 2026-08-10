@@ -3238,3 +3238,33 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
 [RISK] api.gladia.io: 87 — Public OpenAPI 3.1 spec (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; preflight-only `x-powered-by: Express` confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_config.url+7 webhook paths all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design surface (key-gated only, AUTH_HELPED); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) confirm client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic error (no detail leak); oauth2 cookie missing Secure flag mitigated by HSTS-preload; OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /api
+## 2026-08-10 10:52:45 UTC [app] (model laguna)
+[HYP] Orphaned npm `gladia@0.1.3` impersonates official SDK with API key leakage in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3`
+confidence: 95
+reasoning: Package description "Official TypeScript SDK" but GitHub user+repo alexisbouchez/gladia.ts both 404 (orphaned/irrevocable); dist-tag latest=0.1.3 persists; README says "Unofficial" while package.json says "Official"; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live via `new URL()` + `.searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`; diverges from official @gladiaio/sdk (POST /v2/live → token-from-response → wss?token=<uuid>)
+evidence_needed: npm registry metadata (description "Official", repository.url=404, dist-tags.latest=0.1.3, shasum cc96f84a200c0fd49a71e919391f9b659c39f3e9), tarball inspection showing README↔package.json contradiction + key-in-URL code at client.ts:306-308, GitHub 404 on user+repo
+verify_steps: PASSIVE — `npm view gladia@0.1.3` (confirm shasum, dist-tag.latest, repository.url 404); `npm pack gladia@0.1.3` + `tar -xzf` → grep "searchParams.append\|new WebSocket" package/src/client.ts; `curl -s -o /dev/null -w '%{http_code}' https://api.github.com/users/alexisbouchez https://api.github.com/repos/alexisbouchez/gladia.ts` (both 404); HUMAN: Request Gladia security confirm no affiliation with alexisbouchez/softwarecitadel
+impact: Supply-chain credential theft — developers unknowingly install impersonated SDK; API keys exposed in WebSocket URL query (logged/proxy/browser history/referer); irrevocable takeover (owner 404) means persisted impersonation risk. Severity: High
+testability: PASSIVE
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch on api.gladia.io — no scheme allowlist by design
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url), /video/text/video-transcription (video_url), callback_config.url, 7 webhook delivery paths
+confidence: 73
+reasoning: OpenAPI 3.1 /openapi.json (125131B, 14 paths, 7 webhooks, CORS *) exposes audio_url as plain string + video_url as plain string + CallbackConfig.url as format:uri, all with NO scheme/allowlist; /v1/models (530B, public, no security) confirms FR+US egress regions; SDK RAG confirms is_url()/uploadFile() only gates upload-vs-direct, no host allowlist/metadata-blocklist/redirect-limit; POST /v2/pre-recorded (no key) → 401 NestJS (key sole gate)
+evidence_needed: With authorized x-gladia-key, POST {"audio_url":"http://<canary>"} → canary hit; {"audio_url":"http://169.254.169.254/latest/meta-data/"} → IMDSv1 response or distinct error_code/status
+verify_steps: AUTH_HELPED — `curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<attacker-canary>/listen","encoding":"mp3"}'` (observe canary hit); then `-d '{"audio_url":"http://169.254.169.254/latest/meta-data/","encoding":"mp3"}'` (observe error_code/status change)
+impact: Cloud metadata read (IMDSv1 → IAM credentials), internal network enumeration from FR/US egress, data exfiltration via callback/webhook. Severity: High (key-gated, auth required)
+testability: AUTH_HELPED
+[HYP] /signin redirect_to unauthenticated form-action reflection without host allowlist (post-auth honoring unverified)
+class: OATH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 55
+reasoning: GET → 200; form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` server-side reflection byte-fresh across 50+ cycles; no host allowlist at unauthenticated layer; CSP has 0 form-action directives (gap confirmed); OAuth redirect_uri FIXED → redirect_to cannot steal OAuth code/state; return-to cookie tamper-reset REJECTED
+evidence_needed: After completing Google OAuth with ?redirect_to=https://evil.example.com, post-auth HTTP 302 Location to external host (evil.example.com) + Set-Cookie
+verify_steps: HUMAN_ONLY — (a) GET /signin?redirect_to=https://evil.example.com → confirm 200 form action reflection (PASSIVE, already confirmed this cycle); (b) POST intent=google → observe 302 to accounts.google.com; (c) complete Google SSO in controlled browser; (d) capture post-auth 302 Location + Set-Cookie; (e) repeat with //evil, app.gladia.io.evil
+impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain; credential phishing via lookalike landing. Severity: Medium (requires user interaction + valid SSO)
+testability: HUMAN_ONLY
+[FINAL] (re-ranked, top first):
+[NEXT][RAG]: Verify `gladia@0.1.3` tarball contents — run `npm pack gladia@0.1.3` (or `npm view gladia@0.1.3 dist.tarball` then `curl -s <url> | tar -tzf -`), extract, and confirm `package/src/client.ts:306-308` embeds raw `x-gladia-key` in wss:// URL query (`.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`) and README↔package.json "Unofficial"/"Official" contradiction, to lock the evidence package for portal submission. Exact commands:

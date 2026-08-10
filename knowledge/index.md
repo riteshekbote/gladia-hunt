@@ -457,3 +457,7 @@
 - 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
 - 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 verified, client.ts:306-308 RAG complete — report-ready
 - 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 57th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v1/models 530B, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key.
