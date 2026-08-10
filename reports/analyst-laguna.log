@@ -19485,3 +19485,640 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 87 — Public OpenAPI 3.1 spec (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; preflight-only `x-powered-by: Express` confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_config.url+7 webhook paths all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design surface (key-gated only, AUTH_HELPED); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) confirm client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic error (no detail leak); oauth2 cookie missing Secure flag mitigated by HSTS-preload; OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
 [RISK] sdk: 92 — Official SDKs (@glidiaio/sdk@1.1.0 npm / gladiaio-sdk@1.0.5 PyPI) generated from public OpenAPI spec, static surface; orphaned npm `gladia@0.1.3` (latest dist-tag persists, repo+user 404) impersonates official SDK with "Official"/"Unofficial" contradiction + raw API key in WebSocket URL query (src/client.ts:307) — irrevocable takeover risk; adjacent-namespace squat scan all-404 (isolated impersonator)
+===== ANALYST laguna 2026-08-10 03:06:26 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
+total 372
+drwxr-xr-x 11 runner runner   4096 Aug 10 02:59 .
+drwxr-xr-x  3 runner runner   4096 Aug 10 02:59 ..
+drwxr-xr-x  7 runner runner   4096 Aug 10 02:59 .git
+drwxr-xr-x  3 runner runner   4096 Aug 10 02:59 .github
+-rw-r--r--  1 runner runner    156 Aug 10 02:59 README.md
+-rw-r--r--  1 runner runner     39 Aug 10 02:59 analyst-out.txt
+-rw-r--r--  1 runner runner 138296 Aug 10 02:59 analyst-prompt.txt
+-rw-r--r--  1 runner runner 135531 Aug 10 02:59 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 10 02:59 leads
+-rw-r--r--  1 runner runner  13082 Aug 10 02:59 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 reports
+drwxr-xr-x  4 runner runner   4096 Aug 10 02:59 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 10 02:59 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 scripts
+-rw-r--r--  1 runner runner     33 Aug 10 02:59 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 10 02:59 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 10 02:59 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 10 02:59 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 10 02:59 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 triage
+[0m
+[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt -maxdepth 2 -type d 2>/dev/null | head -40
+/home/runner/work/gladia-hunt/gladia-hunt
+/home/runner/work/gladia-hunt/gladia-hunt/.github
+/home/runner/work/gladia-hunt/gladia-hunt/.github/workflows
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge
+/home/runner/work/gladia-hunt/gladia-hunt/.git
+/home/runner/work/gladia-hunt/gladia-hunt/.git/objects
+/home/runner/work/gladia-hunt/gladia-hunt/.git/hooks
+/home/runner/work/gladia-hunt/gladia-hunt/.git/logs
+/home/runner/work/gladia-hunt/gladia-hunt/.git/refs
+/home/runner/work/gladia-hunt/gladia-hunt/.git/info
+/home/runner/work/gladia-hunt/gladia-hunt/leads
+/home/runner/work/gladia-hunt/gladia-hunt/reports
+/home/runner/work/gladia-hunt/gladia-hunt/inventory
+/home/runner/work/gladia-hunt/gladia-hunt/scripts
+/home/runner/work/gladia-hunt/gladia-hunt/triage
+[0m
+I'll start by understanding the current workspace and what's already been done.
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead state_laguna.json
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/leads/ /home/runner/work/gladia-hunt/gladia-hunt/reports/ /home/runner/work/gladia-hunt/gladia-hunt/probe-results.md
+-rw-r--r-- 1 runner runner 13082 Aug 10 02:59 /home/runner/work/gladia-hunt/gladia-hunt/probe-results.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/leads/:
+total 3364
+drwxr-xr-x  2 runner runner  12288 Aug 10 02:59 .
+drwxr-xr-x 11 runner runner   4096 Aug 10 02:59 ..
+-rw-r--r--  1 runner runner 396466 Aug 10 02:59 lead-bigpickle.md
+-rw-r--r--  1 runner runner 546544 Aug 10 02:59 lead-laguna.md
+-rw-r--r--  1 runner runner   3381 Aug 10 02:59 lead-ling3.md
+-rw-r--r--  1 runner runner   3523 Aug 10 02:59 lead-longcat.md
+-rw-r--r--  1 runner runner 453605 Aug 10 02:59 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug 10 02:59 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug 10 02:59 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug 10 02:59 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug 10 02:59 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug 10 02:59 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug 10 02:59 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug 10 02:59 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug 10 02:59 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug 10 02:59 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug 10 02:59 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug 10 02:59 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug 10 02:59 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug 10 02:59 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug 10 02:59 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug 10 02:59 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug 10 02:59 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug 10 02:59 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug 10 02:59 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug 10 02:59 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug 10 02:59 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug 10 02:59 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug 10 02:59 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug 10 02:59 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug 10 02:59 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug 10 02:59 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug 10 02:59 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug 10 02:59 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug 10 02:59 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug 10 02:59 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug 10 02:59 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug 10 02:59 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug 10 02:59 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug 10 02:59 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug 10 02:59 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug 10 02:59 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug 10 02:59 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug 10 02:59 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug 10 02:59 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug 10 02:59 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug 10 02:59 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug 10 02:59 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-17-55.md
+-rw-r--r--  1 runner runner   5821 Aug 10 02:59 reposcan-2026-08-08-18-00.md
+-rw-r--r--  1 runner runner   6816 Aug 10 02:59 reposcan-2026-08-08-18-20.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-18-52.md
+-rw-r--r--  1 runner runner   7054 Aug 10 02:59 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  27131 Aug 10 02:59 reposcan-2026-08-08-19-30.md
+-rw-r--r--  1 runner runner   9467 Aug 10 02:59 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-20-03.md
+-rw-r--r--  1 runner runner   6737 Aug 10 02:59 reposcan-2026-08-08-20-14.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-20-31.md
+-rw-r--r--  1 runner runner   8762 Aug 10 02:59 reposcan-2026-08-08-20-52.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-08-21-03.md
+-rw-r--r--  1 runner runner  27381 Aug 10 02:59 reposcan-2026-08-08-21-21.md
+-rw-r--r--  1 runner runner   7872 Aug 10 02:59 reposcan-2026-08-08-21-47.md
+-rw-r--r--  1 runner runner  27610 Aug 10 02:59 reposcan-2026-08-08-21-54.md
+-rw-r--r--  1 runner runner   7642 Aug 10 02:59 reposcan-2026-08-08-22-26.md
+-rw-r--r--  1 runner runner  11379 Aug 10 02:59 reposcan-2026-08-08-22-28.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  26885 Aug 10 02:59 reposcan-2026-08-08-23-39.md
+-rw-r--r--  1 runner runner   6380 Aug 10 02:59 reposcan-2026-08-09-00-05.md
+-rw-r--r--  1 runner runner  28494 Aug 10 02:59 reposcan-2026-08-09-02-29.md
+-rw-r--r--  1 runner runner  14401 Aug 10 02:59 reposcan-2026-08-09-04-03.md
+-rw-r--r--  1 runner runner   8639 Aug 10 02:59 reposcan-2026-08-09-05-19.md
+-rw-r--r--  1 runner runner   8541 Aug 10 02:59 reposcan-2026-08-09-06-06.md
+-rw-r--r--  1 runner runner  79446 Aug 10 02:59 reposcan-2026-08-09-06-09.md
+-rw-r--r--  1 runner runner   6133 Aug 10 02:59 reposcan-2026-08-09-07-17.md
+-rw-r--r--  1 runner runner   8300 Aug 10 02:59 reposcan-2026-08-09-08-09.md
+-rw-r--r--  1 runner runner   7946 Aug 10 02:59 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  27400 Aug 10 02:59 reposcan-2026-08-09-09-55.md
+-rw-r--r--  1 runner runner  27610 Aug 10 02:59 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner   9192 Aug 10 02:59 reposcan-2026-08-09-10-31.md
+-rw-r--r--  1 runner runner   7230 Aug 10 02:59 reposcan-2026-08-09-10-38.md
+-rw-r--r--  1 runner runner   6487 Aug 10 02:59 reposcan-2026-08-09-11-10.md
+-rw-r--r--  1 runner runner   7854 Aug 10 02:59 reposcan-2026-08-09-11-46.md
+-rw-r--r--  1 runner runner   6024 Aug 10 02:59 reposcan-2026-08-09-12-17.md
+-rw-r--r--  1 runner runner   7839 Aug 10 02:59 reposcan-2026-08-09-12-19.md
+-rw-r--r--  1 runner runner   7712 Aug 10 02:59 reposcan-2026-08-09-13-33.md
+-rw-r--r--  1 runner runner   8882 Aug 10 02:59 reposcan-2026-08-09-14-16.md
+-rw-r--r--  1 runner runner  77508 Aug 10 02:59 reposcan-2026-08-09-14-23.md
+-rw-r--r--  1 runner runner   8689 Aug 10 02:59 reposcan-2026-08-09-15-02.md
+-rw-r--r--  1 runner runner   7849 Aug 10 02:59 reposcan-2026-08-09-15-35.md
+-rw-r--r--  1 runner runner   8080 Aug 10 02:59 reposcan-2026-08-09-15-48.md
+-rw-r--r--  1 runner runner   8373 Aug 10 02:59 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner   7541 Aug 10 02:59 reposcan-2026-08-09-16-35.md
+-rw-r--r--  1 runner runner  10447 Aug 10 02:59 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  27381 Aug 10 02:59 reposcan-2026-08-09-17-16.md
+-rw-r--r--  1 runner runner   7883 Aug 10 02:59 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  27448 Aug 10 02:59 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner   8455 Aug 10 02:59 reposcan-2026-08-09-18-07.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-09-18-38.md
+-rw-r--r--  1 runner runner  27448 Aug 10 02:59 reposcan-2026-08-09-18-59.md
+-rw-r--r--  1 runner runner   8249 Aug 10 02:59 reposcan-2026-08-09-19-22.md
+-rw-r--r--  1 runner runner  10364 Aug 10 02:59 reposcan-2026-08-09-19-45.md
+-rw-r--r--  1 runner runner   8634 Aug 10 02:59 reposcan-2026-08-09-19-58.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-09-20-07.md
+-rw-r--r--  1 runner runner   9349 Aug 10 02:59 reposcan-2026-08-09-20-40.md
+-rw-r--r--  1 runner runner   7800 Aug 10 02:59 reposcan-2026-08-09-20-53.md
+-rw-r--r--  1 runner runner   7117 Aug 10 02:59 reposcan-2026-08-09-21-15.md
+-rw-r--r--  1 runner runner  27448 Aug 10 02:59 reposcan-2026-08-09-21-40.md
+-rw-r--r--  1 runner runner   6483 Aug 10 02:59 reposcan-2026-08-09-21-50.md
+-rw-r--r--  1 runner runner   7453 Aug 10 02:59 reposcan-2026-08-09-22-03.md
+-rw-r--r--  1 runner runner   8738 Aug 10 02:59 reposcan-2026-08-09-22-30.md
+-rw-r--r--  1 runner runner   8713 Aug 10 02:59 reposcan-2026-08-09-22-44.md
+-rw-r--r--  1 runner runner  27904 Aug 10 02:59 reposcan-2026-08-09-23-03.md
+-rw-r--r--  1 runner runner   8356 Aug 10 02:59 reposcan-2026-08-09-23-09.md
+-rw-r--r--  1 runner runner   8541 Aug 10 02:59 reposcan-2026-08-09-23-47.md
+-rw-r--r--  1 runner runner  27382 Aug 10 02:59 reposcan-2026-08-10-00-42.md
+-rw-r--r--  1 runner runner   9436 Aug 10 02:59 reposcan-2026-08-10-01-42.md
+-rw-r--r--  1 runner runner   9436 Aug 10 02:59 reposcan-latest.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/reports/:
+total 4528
+drwxr-xr-x  2 runner runner    4096 Aug 10 02:59 .
+drwxr-xr-x 11 runner runner    4096 Aug 10 02:59 ..
+-rw-r--r--  1 runner runner 1308805 Aug 10 02:59 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 2226528 Aug 10 02:59 analyst-laguna.log
+-rw-r--r--  1 runner runner   15120 Aug 10 02:59 analyst-ling3.log
+-rw-r--r--  1 runner runner    6300 Aug 10 02:59 analyst-longcat.log
+-rw-r--r--  1 runner runner  815617 Aug 10 02:59 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    2477 Aug 10 02:59 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner    7525 Aug 10 02:59 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 10 02:59 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 10 02:59 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    1765 Aug 10 02:59 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  199116 Aug 10 02:59 hypotheses.md
+-rw-r--r--  1 runner runner   19848 Aug 10 02:59 valid-bugs.md
+[0m
+[0m→ [0mRead probe-results.md
+[0m
+[0m$ [0mhead -100 /home/runner/work/gladia-hunt/gladia-hunt/valid-bugs.md
+head: cannot open '/home/runner/work/gladia-hunt/gladia-hunt/valid-bugs.md' for reading: No such file or directory
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/valid-bugs.md 2>&1; wc -l /home/runner/work/gladia-hunt/gladia-hunt/ctx.txt
+ls: cannot access '/home/runner/work/gladia-hunt/gladia-hunt/valid-bugs.md': No such file or directory
+586 /home/runner/work/gladia-hunt/gladia-hunt/ctx.txt
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/knowledge/ /home/runner/work/gladia-hunt/gladia-hunt/scripts/ /home/runner/work/gladia-hunt/gladia-hunt/triage/
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge/:
+total 116
+drwxr-xr-x  2 runner runner   4096 Aug 10 02:59 .
+drwxr-xr-x 11 runner runner   4096 Aug 10 02:59 ..
+-rw-r--r--  1 runner runner 110136 Aug 10 02:59 index.md
+
+/home/runner/work/gladia-hunt/gladia-hunt/scripts/:
+total 16
+drwxr-xr-x  2 runner runner 4096 Aug 10 02:59 .
+drwxr-xr-x 11 runner runner 4096 Aug 10 02:59 ..
+-rw-r--r--  1 runner runner 7771 Aug 10 02:59 sync-issues.py
+
+/home/runner/work/gladia-hunt/gladia-hunt/triage/:
+total 528
+drwxr-xr-x  2 runner runner  4096 Aug 10 02:59 .
+drwxr-xr-x 11 runner runner  4096 Aug 10 02:59 ..
+-rw-r--r--  1 runner runner   329 Aug 10 02:59 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 10 02:59 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 10 02:59 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 10 02:59 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 10 02:59 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 10 02:59 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 10 02:59 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 10 02:59 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 10 02:59 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 10 02:59 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 10 02:59 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 10 02:59 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 10 02:59 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 10 02:59 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 10 02:59 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 10 02:59 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 10 02:59 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 10 02:59 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 10 02:59 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 10 02:59 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 10 02:59 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 10 02:59 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 10 02:59 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 10 02:59 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 10 02:59 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 10 02:59 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 10 02:59 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 10 02:59 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 10 02:59 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 10 02:59 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 10 02:59 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 10 02:59 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 10 02:59 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 10 02:59 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 10 02:59 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 10 02:59 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 10 02:59 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 10 02:59 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 10 02:59 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 10 02:59 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 10 02:59 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 10 02:59 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 10 02:59 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 10 02:59 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 10 02:59 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 10 02:59 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 10 02:59 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 10 02:59 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 10 02:59 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 10 02:59 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 10 02:59 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 10 02:59 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 10 02:59 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 10 02:59 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 10 02:59 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner 13831 Aug 10 02:59 triage-report-2026-08-08.md
+[0m
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead ctx.txt[90m [offset=225][0m
+[0m→ [0mRead ctx.txt[90m [offset=406][0m
+[0m✗ [0mRead hypotheses-nemotron3.txt failed
+[91m[1mError: [0mFile not found: /home/runner/work/gladia-hunt/gladia-hunt/hypotheses-nemotron3.txt
+[0m
+[0m$ [0mhead -60 /home/runner/work/gladia-hunt/gladia-hunt/leads/hypotheses-bigpickle.txt 2>/dev/null; echo "---LING3---"; cat /home/runner/work/gladia-hunt/gladia-hunt/hypotheses-ling3.txt 2>/dev/null; echo "---LONGCAT---"; cat /home/runner/work/gladia-hunt/gladia-hunt/hypotheses-longcat.txt 2>/dev/null
+---LING3---
+---LONGCAT---
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses*.txt 2>/dev/null; cat /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-ling3.txt 2>/dev/null; echo "---"; cat /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-longcat.txt 2>/dev/null
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-bigpickle.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-laguna.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-ling3.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-longcat.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-nemotron3.txt
+## 2026-08-10 00:39:02 UTC [api] (model ling3)
+---
+## 2026-08-10 00:38:59 UTC [sdk] (model longcat)
+[0m
+[0m$ [0mhead -80 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-nemotron3.txt 2>/dev/null
+## 2026-08-10 00:40:33 UTC [app] (model nemotron3)
+[PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io: 7.15 attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=5
+[PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 95
+reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:306–308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key=<key> query parameter — diverges from official SDK's token-after-init POST /v2/live flow, leaks key in URLs/logs/proxies
+evidence_needed: Document artifact-level findings (tarball sha256, README vs package.json contradiction, client.ts:306–308 key-in-URL); confirm no affiliation with Gladia
+verify_steps: RAG: Finalize report with tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, README "Unofficial" vs package.json "Official", client.ts:306–308 key-in-URL; HUMAN: Request Gladia security confirm no affiliation with alexisbouchez/softwarecitadel
+impact: Supply chain risk — developers install impersonated SDK leading to credential theft via key-in-URL logs/proxies; severity High
+testability: RAG
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch
+class:
+[0m
+[0m$ [0mhead -60 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-laguna.txt
+## 2026-08-10 00:40:11 UTC [app] (model laguna)
+class: OTHER
+asset: npm registry `gladia@0.1.3` (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`)
+confidence: 95
+reasoning: Tarball RAG confirms `package/src/client.ts:307` → `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` → `:318` `new WebSocket(wsUrl.toString())` (raw key in wss:// URL query); README says "Unofficial" while package.json says "Official"; GitHub API 404 for both user `alexisbouchez` and repo `alexisbouchez/gladia.ts` → orphaned/irrevocable takeover risk; dist-tag latest pinned to 0.1.3 despite orphaned maintainer; official `@gladiaio/sdk@1.1.0` + `gladiaio-sdk@1.0.5` are clean and diverge (POST /v2/live → token-from-response → wss?token=<uuid>).
+evidence_needed: npm registry metadata + tarball sha256 match + GitHub API 404 on user+repo + client.ts:307/318 snippet + README↔package.json contradiction
+verify_steps: PASSIVE — `npm view gladia@0.1.3 dist-tags shasum description repository.url` ; `curl -s -o /dev/null -w '%{http_code}' https://api.github.com/users/alexisbouchez https://api.github.com/repos/alexisbouchez/gladia.ts` ; `npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz` ; inspect tarball `grep -n "searchParams.append\|new WebSocket" package/src/client.ts`
+impact: Supply-chain impersonation: `npm install gladia` installs the impersonator SDK. Raw API key in WebSocket URL query → leaks into edge/proxy logs, Referer headers, browser history, api.gladia.io access logs. Irrevocable takeover (owner 404) = persisted impersonation. Severity: High.
+testability: PASSIVE
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url), POST /video/text/video-transcription (video_url), CallbackConfig.url, 7 webhook delivery paths
+confidence: 73
+reasoning: OpenAPI 3.1 /openapi.json (125131B, 14 paths, 7 webhooks, CORS `*`) exposes audio_url as plain string + video_url as plain string + CallbackConfig.url as `format:uri`, all with NO scheme/allowlist; /v1/models (530B, public, no security) confirms FR+US egress regions; SDK RAG confirms is_url()/uploadFile() only gates upload-vs-direct, no host allowlist/metadata-blocklist/redirect-limit; POST /v2/pre-recorded (no key) → 401 NestJS `{"message":"no gladia key provided"}` (key sole gate).
+evidence_needed: With authorized x-gladia-key, POST `{"audio_url":"http://<canary>"}` observes canary hit; `{"audio_url":"http://169.254.169.254/..."}` returns IMDSv1 response or distinct error_code/status vs canary → confirms SSRF fetch; repeat for video_url + callback_config.url + webhook delivery
+verify_steps: AUTH_HELPED — `curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<attacker-canary>/listen","encoding":"mp3"}'` (observe canary hit); then `-d '{"audio_url":"http://169.254.169.254/latest/meta-data/","encoding":"mp3"}'` (observe error_code/status change → confirms SSRF fetch); repeat via `/video/text/video-transcription` with video_url
+impact: Cloud metadata read (IMDSv1 → IAM credentials), internal network enumeration from FR/US egress, data exfiltration via callback/webhook. Severity: High (key-gated).
+testability: AUTH_HELPED
+class: OATH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 55
+reasoning: GET → 200/27448B; form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` server-side reflection byte-fresh across 50+ cycles for https://, protocol-relative //evil, bare-host, confusing-subdomain `app.gladia.io.evil.example.com`, path-only /dashboard; no host allowlist enforced at unauthenticated layer; CSP full-set re-captured has 0 form-action directives (gap confirmed not oversight); OAuth redirect_uri FIXED → redirect_to cannot steal OAuth code/state; return-to cookie tamper-reset REJECTED.
+evidence_needed: After completing Google OAuth with ?redirect_to=https://evil.example.com, final HTTP 302 Location to external host + post-auth Set-Cookie
+verify_steps: HUMAN_ONLY — (a) GET /signin?redirect_to=https://evil.example.com → confirm 200 form action reflection; (b) POST intent=google → observe 302 to accounts.google.com; (c) complete Google SSO in controlled browser; (d) capture post-auth 302 Location + Set-Cookie; (e) repeat with //evil, app.gladia.io.evil, /dashboard
+impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain; credential phishing via lookalike landing. Severity: Medium (requires user interaction + valid SSO).
+testability: HUMAN_ONLY
+[FINAL] (re-ranked, top first):
+[NEXT][HUMAN]: Complete Google OAuth flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com` in a controlled browser session to verify post-auth honoring of redirect_to. Capture full redirect chain (302 Location headers) and Set-Cookie headers after SSO completion. Test 4 variants: (1) `redirect_to=https://evil.example.com`, (2) `redirect_to=//evil.example.com`, (3) `redirect_to=app.gladia.io.evil.example.com`, (4) `redirect_to=/dashboard`. If post-auth 302 Location points to evil.example.com → OATH open redirect confirmed → escalate. If all resolve to app.gladia.io/* → finding REJECTED.
+[LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh at 23:47 UTC — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — **report-ready, portal submission pending**
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; **post-auth honoring is sole unverified gate (HUMAN_ONLY)**
+[RISK] api.gladia.io: 87 — Public OpenAPI 3.1 spec (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; preflight-only `x-powered-by: Express` confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_config.url+7 webhook paths all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design surface (key-gated only, AUTH_HELPED); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
+[RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) confirm client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic error (no detail leak); oauth2 cookie missing Secure flag mitigated by HSTS-preload; OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
+[RISK] sdk: 92 — Official SDKs (@glidiaio/sdk@1.1.0 npm / gladiaio-sdk@1.0.5 PyPI) generated from public OpenAPI spec, static surface; orphaned npm `gladia@0.1.3` (latest dist-tag persists, repo+user 404) impersonates official SDK with "Official"/"Unofficial" contradiction + raw API key in WebSocket URL query (src/client.ts:307) — irrevocable takeover risk; adjacent-namespace squat scan all-404 (isolated impersonator)
+[0m
+[0m$ [0mtail -30 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/reposcan-latest.md 2>/dev/null; echo "===LATEST REPOSCAN==="; head -50 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-01-42.md 2>/dev/null
+===LATEST REPOSCAN===
+
+===== REPOSCAN 2026-08-10 01:42:21 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/npm/gladia.json:1: {"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia","dist-tags":{"latest":"0.1.3"},"versions":{"0.1.0":{"name":"gladia","version":"0.1.0","keywords":["gladia","speech-to-text","transcription","aud
+reposcan-raw/npm/_gladiaio_sdk.json:1: {"_id":"@gladiaio/sdk","_rev":"129-8d16ae11f6d0f01320400f5fcaa4e9e8","name":"@gladiaio/sdk","dist-tags":{"latest":"1.1.0"},"versions":{"0.1.0":{"name":"@gladiaio/sdk","version":"0.1.0","keywords":["gladia","sdk","typescr
+reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json:11: "@gladiaio/sdk": "^0.6.0",
+reposcan-raw/gladiaio/gladia-quiz-app/package.json:24: "@gladiaio/sdk": "^0.6.0",
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:5: import { createGladiaClient, getStoredApiKey } from '../lib/gladia-client';
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:70: const gladia = createGladiaClient(apiKey);
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:74: const liveSession = gladia.liveV2().startSession({
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:1: export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
+reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:7: metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),
+reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:43: src="https://unpkg.com/@gladiaio/sdk@0.5.2"
+reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:47: const [gladiaApiKey, setGladiaApiKey] = useState<string | null>(null);
+reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:56: const stored = localStorage.getItem('gladia_api_key');
+reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:9: import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';
+reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:94: href="https://app.gladia.io"
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+
+## Model analysis:
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcat reposcan-raw/npm/gladia.json | jq -r '.versions["0.1.3"] | {name, version, description, repository, author, maintainers, dist}' 2>/dev/null || cat reposcan-raw/npm/gladia.json | head -200
+{
+[0m
+[0m→ [0mRead reports/hypotheses-laguna.txt
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/gladia.json | python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('versions',{}).get('0.1.3',{}); print(json.dumps({k:v.get(k) for k in ['name','version','description','repository','author','dist']}, indent=2))" 2>/dev/null || cat /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/gladia.json | head -300
+{
+  "name": "gladia",
+  "version": "0.1.3",
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+  },
+  "author": {
+    "name": "Alexis Bouchez"
+  },
+  "dist": {
+    "integrity": "sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==",
+    "shasum": "cc96f84a200c0fd49a71e919391f9b659c39f3e9",
+    "tarball": "https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz",
+    "fileCount": 16,
+    "unpackedSize": 225780,
+    "signatures": [
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEQCIATiiYQSNgsmQdpzMxy0/J9jcf6RsccvWZ1tNNrvK4IZAiAPkjKPTOYBQgB7d4CJbfX/MxeXJ7XSDswDMJP3Zc4R4Q=="
+      }
+    ]
+  }
+}
+[0m
+[0m$ [0mecho "=== api.gladia.io /openapi.json ===" && curl -sI "https://api.gladia.io/openapi.json" 2>/dev/null | grep -iE 'HTTP|content-length|access-control|content-type' && curl -s "https://api.gladia.io/openapi.json" 2>/dev/null | wc -c
+=== api.gladia.io /openapi.json ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+x-content-type-options: nosniff
+content-length: 125131
+125131
+[0m
+[0m$ [0mecho "=== api.gladia.io /health ===" && curl -s -w '\n%{http_code} %{size_download} bytes\n' "https://api.gladia.io/health" 2>/dev/null && echo "=== api.gladia.io /v1/models ===" && curl -s -w '\n%{http_code} %{size_download} bytes\n' "https://api.gladia.io/v1/models" 2>/dev/null | tail -3 && echo "=== api.gladia.io OPTIONS /v2/pre-recorded ===" && curl -sI -X OPTIONS "https://api.gladia.io/v2/pre-recorded" -H "Access-Control-Request-Method: POST" -H "Origin: https://evil.example.com" 2>/dev/null | grep -iE 'HTTP|x-powered-by|access-control|allow'
+=== api.gladia.io /health ===
+{"health":"OK"}
+200 15 bytes
+=== api.gladia.io /v1/models ===
+{"data":[{"id":"gladia/solaria-1","name":"Gladia: Solaria 1","created":1730000000,"input_modalities":["audio"],"output_modalities":["text","transcription"],"context_length":0,"max_output_length":0,"pricing":{"prompt":"0","completion":"0","request":"0.000055"},"supported_sampling_parameters":[],"supported_features":[],"description":"Enterprise speech-to-text model supporting 100+ languages with sub-300ms latency. Async and real-time transcription.","is_ready":true,"datacenters":[{"country_code":"FR"},{"country_code":"US"}]}]}
+200 530 bytes
+=== api.gladia.io OPTIONS /v2/pre-recorded ===
+HTTP/2 204 
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+[0m
+Now let me run fresh passive probes to check for any deltas across all three targets.
+[0m$ [0mecho "=== npm gladia@0.1.3 metadata ===" && npm view gladia@0.1.3 dist-tags shasum description repository.url author 2>/dev/null
+=== npm gladia@0.1.3 metadata ===
+dist-tags = { latest: '0.1.3' }
+description = 'Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API'
+repository.url = 'git+https://github.com/alexisbouchez/gladia.ts.git'
+author = 'Alexis Bouchez'
+[0m
+[0m$ [0mecho "=== app.gladia.io /signin redirect_to ===" && curl -s -w '\nHTTP %{http_code} %{size_download} bytes\n' "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -oE 'action="[^"]*"' | head -1; echo "---CSP---" && curl -sI "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -iE 'content-security' ; echo "=== app.gladia.io /dashboard ===" && curl -s -o /dev/null -w '%{http_code} %{size_download}\n' "https://app.gladia.io/dashboard" 2>/dev/null
+=== app.gladia.io /signin redirect_to ===
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+---CSP---
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-82e90dfef0272fa3b769e2218d2a0194' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+=== app.gladia.io /dashboard ===
+200 12229
+[0m
+[0m$ [0mecho "=== /auth/google/callback (no params) ===" && curl -sI -L "https://app.gladia.io/auth/google/callback" 2>/dev/null | grep -iE 'HTTP|location|set-cookie|content-security' | head -10; echo; echo "=== /signin POST intent=google ===" && curl -s -w '\nHTTP %{http_code}\n' -X POST "https://app.gladia.io/signin" -d "intent=google&redirect_to=https%3A%2F%2Fevil.example.com" 2>/dev/null | grep -iE 'HTTP|location|302|redirect' | head -5
+=== /auth/google/callback (no params) ===
+HTTP/2 302 
+location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&state=o6gCeyvcbS7dZSy_bE_F6mxltpMdh-PedVVfvHxridI&code_challenge_method=S256&code_challenge=bDWQfCczirCDbCwOpbCB1Y48TuO5lPkuPNSIV5slBj8&scope=openid+email+profile&access_type=offline&prompt=consent
+set-cookie: oauth2:6b3ae528-f8df-4db9-9f75-6e6ec772a6a4=state=o6gCeyvcbS7dZSy_bE_F6mxltpMdh-PedVVfvHxridI&o6gCeyvcbS7dZSy_bE_F6mxltpMdh-PedVVfvHxridI=Dr52oMqw3SKj9nZ66x9mMLmuV1WWpBeJsrFKiEsNNu8; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+HTTP/2 302 
+set-cookie: __Host-GAPS=1:jhuib0lfuIoBTZkE3tVtEF8FjJIVMQ:DSxkbKgAUz2Ar0uo;Path=/;Expires=Wed, 09-Aug-2028 03:02:27 GMT;Secure;HttpOnly;Priority=HIGH
+location: https://accounts.google.com/v3/signin/identifier?opparams=%253F&dsh=S1932584567%3A1786330947223799&access_type=offline&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&code_challenge=bDWQfCczirCDbCwOpbCB1Y48TuO5lPkuPNSIV5slBj8&code_challenge_method=S256&o2v=2&prompt=consent&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&response_type=code&scope=openid+email+profile&service=lso&state=o6gCeyvcbS7dZSy_bE_F6mxltpMdh-PedVVfvHxridI&flowName=GeneralOAuthLite&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Flegacy%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hAPtH0pI7n5sShL0Ouk_XsmeKp6djG_fOaW3FfZTC39NwXtZJGnLsy03_aJuZDOFGV4bxBIxwsJvwKO5UkpD3XWCQq1AjrvoqXTTvRNln2uf98H6NZqpteIgOpW7hAo_gU1vWwvsBCU4EjY979bZAWMGvzUutZyarm870jzzAED7VTWspB-_PUJgr09U-i74OeMnr7UC7xz8lOhWXt44TQieLLDY5MlxL3G_i4gZCbXtUjG4BfN7fmtjhLasBB8A9h-3x9V9U_xQfM6OVOfPIrkWvVv1p21n5rCFfSSGSVe0Tl31OfuMxyiZZEoeNNiz8wuhQ5iCGlfYtxOkZs2qzh75rvWmygpdCwwZDE22ngFZwe4uQbkKCQvG0d-mFxp7Nv1-O5MQveKC1fbJj6rjaHa6TiSHMBz3Ms1-FvaJWjzCjYiXEfrnSHwU6KVTbIrfgA3okITQ3N9L9HLGLlH6KmQUF8vDcg%26flowName%3DGeneralOAuthFlow%26as%3DS1932584567%253A1786330947223799%26client_id%3D352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com%23&app_domain=https%3A%2F%2Fapp.gladia.io&rart=ANgoxceB0pHUsSXydIwkP2q9Ww19WmMQdIno4z7wCR6TQ074nk7jbMAf2PzxY3VAFPRNW_1GzWkXAnrsG-I83EOWmb__sPRU-JD9n-sS3TU3s3dVrT3Tb7g
+report-to: {"group":"coop_gse_qebhlk","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/gse_qebhlk"}]}
+content-security-policy: require-trusted-types-for 'script';report-uri /cspreport
+content-security-policy: script-src 'nonce-pf2CNjl10JJE06CR_Bicqw' 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';report-uri /cspreport
+HTTP/2 200 
+
+=== /signin POST intent=google ===
+HTTP 302
+[0m
+All three targets confirm NO_DRIFT vs the established baseline. Let me do a few targeted probes on app.gladia.io (my current target) to look for additional attack surface around the OAuth flow.
+[0m$ [0mecho "=== /signin form fields ===" && curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -oE '<(form|input|button)[^>]*|action="[^"]*"|name="[^"]*"' | head -20
+=== /signin form fields ===
+name="viewport"
+name="color-scheme"
+<form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post"
+<input hidden="" autoComplete="email" name="email"/
+<input type="email" required="" autoComplete="email" placeholder="Enter your email" tabindex="0" id="react-aria-_R_2alal_" aria-labelledby="react-aria-_R_2alalH1_" aria-describedby="react-aria-_R_2alalH3_ react-aria-_R_2alalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/
+<input hidden="" autoComplete="current-password" name="password"/
+<input type="password" required="" autoComplete="current-password" placeholder="••••••••" tabindex="0" id="react-aria-_R_9ilal_" aria-labelledby="react-aria-_R_9ilalH1_" aria-describedby="react-aria-_R_9ilalH3_ react-aria-_R_9ilalH4_" class="flex-1 min-w-0 outline-0 font-normal text-text-primary lining-nums tabular-nums placeholder:text-text-placeholder disabled:text-text-disabled text-md" data-rac="" value=""/
+<button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0 underline place-self-start" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_2ilal_"
+<button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap bg-button-primary-bg text-button-primary-fg inset-ring-1 inset-ring-white/12 hover:bg-button-primary-bg_hover hover:text-button-primary-fg_hover py-[.625rem] px-4 gap-1.5 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67]" data-rac="" type="submit" value="email-password" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_clal_" name="intent"
+<button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-text-primary hover:text-text-primary_hover bg-bg-primary hover:bg-bg-primary_hover inset-ring-1 inset-ring-border-primary py-[.625rem] px-4 rounded-md text-md font-semibold [&amp;:has(svg:only-child)]:p-3 [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] gap-3" data-rac="" type="submit" value="google" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_klal_" name="intent"
+<button class="relative inline-flex justify-center items-center cursor-pointer lining-nums tabular-nums whitespace-nowrap text-button-tertiary-fg hover:text-button-tertiary-fg_hover gap-1 rounded-md text-sm font-semibold [&amp;&gt;svg]:size-5 [&amp;&gt;svg]:stroke-[1.67] p-0 [&amp;:has(svg:only-child)]:p-0" data-rac="" type="button" tabindex="0" data-react-aria-pressable="true" id="react-aria-_R_llal_"
+[0m
+[0m$ [0mecho "=== SPA catch-all probe on app.gladia.io ===" && for p in /org /api /oauth /auth /oid4 /api/v1 /api/health /api/me /apikeys /transcriptions /settings; do echo -n "$p -> "; curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io$p" 2>/dev/null; done
+=== SPA catch-all probe on app.gladia.io ===
+/org -> 200 12229 text/html; charset=utf-8
+/api -> 200 12229 text/html; charset=utf-8
+/oauth -> 200 12229 text/html; charset=utf-8
+/auth -> 200 12229 text/html; charset=utf-8
+/oid4 -> 200 12229 text/html; charset=utf-8
+/api/v1 -> 200 12229 text/html; charset=utf-8
+/api/health -> 200 12229 text/html; charset=utf-8
+/api/me -> 200 12229 text/html; charset=utf-8
+/apikeys -> 302 0 
+/transcriptions -> 302 0 
+/settings -> 302 0
+[0m
+[0m$ [0mecho "=== POST /signin intent=google Location header ===" && curl -sI -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=google" 2>/dev/null | grep -iE 'HTTP|location|set-cookie'; echo; echo "=== /auth/google/callback?code=test&state=test ===" && curl -s -w '\nHTTP %{http_code} %{size_download} bytes\n' "https://app.gladia.io/auth/google/callback?code=test123&state=abc" 2>/dev/null | grep -iE 'HTTP|error|unexpected|sha' | head -5; echo; echo "=== sha256 of 500 page ===" && curl -s "https://app.gladia.io/auth/google/callback?code=fake123&state=abc" 2>/dev/null | sha256sum
+=== POST /signin intent=google Location header ===
+
+=== /auth/google/callback?code=test&state=test ===
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="color-scheme" content="dark"/><title>Gladia</title><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="icon" type="image/svg+xml" href="/favicon.svg"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="alternate icon" type="image/png" href="/favicons/android-chrome-192x192.png"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="apple-touch-icon" href="/favicons/apple-touch-icon.png"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="manifest" href="/site.webmanifest" crossorigin="use-credentials"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="preconnect" href="https://fonts.googleapis.com"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><link rel="modulepreload" href="/assets/entry.client-BOHuV7Pj.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/jsx-runtime-u17CrQMm.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/components-DUTgi2q6.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/en-DvLSrjYu.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/errorBoundaries-BziFktkY.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/index-CBoJQWs5.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/index-B9GFzMmk.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/i18n-C3JOyqxk.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/util-x7g5cCpw.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/preload-helper-BXl3LOEh.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/root-CSBghsej.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/root-DSZo80Vq.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/lib-CoATexri.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/schemas-D5cmvACT.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/gtm-CQTxuEbw.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/Alert-BGjXwa6V.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/GeneralErrorBoundary-D2PfLWTB.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/layout-fgA_iDCk.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/Layout-CX7WKhJl.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link rel="modulepreload" href="/assets/providerCallback-C4CvTYnp.js" nonce="ec0aac28d37b8b0c3d274bf967847cad"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;display=swap"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&amp;display=swap"/><link nonce="ec0aac28d37b8b0c3d274bf967847cad" rel="stylesheet" href="/assets/tailwind-CHmKW_mh.css"/><script nonce="ec0aac28d37b8b0c3d274bf967847cad">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-N7XJQJG');</script></head><body><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7XJQJG" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><div class="h-full lg:flex bg-bg-primary"><div class="container p-8 mx-auto"><div class="relative flex p-4 gap-4 border rounded-xl text-sm font-normal bg-error-950 border-error-800 text-alpha-black-60"><div class="w-full">Unexpected Server Error</div></div></div><div class="hidden basis-1/2 lg:block bg-[url(/assets/images/auth-background.webp)] bg-cover bg-no-repeat bg-center"></div></div><script nonce="ec0aac28d37b8b0c3d274bf967847cad">window.ENV = {"MODE":"production","APP_BASE_URL":"https://app.gladia.io","GA_USER_ID":null,"GOOGLE_TAG_MANAGER_ID":"GTM-N7XJQJG"}</script><script nonce="ec0aac28d37b8b0c3d274bf967847cad">((storageKey, restoreKey) => {
+		} catch (error) {
+			console.error(error);
+
+=== sha256 of 500 page ===
+a56f1ca8203cfdc6357085e21d71d20919b835470013b4b5a76f8a23a59939c8  -
+[0m
+[0m$ [0mecho "=== Check /auth/google/oauth2 (implicit flow?) ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/auth/google" 2>/dev/null; echo "=== Check /oauth/authorize ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/oauth/authorize" 2>/dev/null; echo "=== Check /api/me ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/api/me" 2>/dev/null; echo "=== Check /api/health ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/api/health" 2>/dev/null; echo "=== Check /openid (OIDC?) ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/.well-known/openid-configuration" 2>/dev/null; echo "=== Check /well-known ===" && curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io/.well-known/web-app-manifest" 2>/dev/null
+=== Check /auth/google/oauth2 (implicit flow?) ===
+302 0 
+=== Check /oauth/authorize ===
+200 12229 text/html; charset=utf-8
+=== Check /api/me ===
+200 12229 text/html; charset=utf-8
+=== Check /api/health ===
+200 12229 text/html; charset=utf-8
+=== Check /openid (OIDC?) ===
+200 12229 text/html; charset=utf-8
+=== Check /well-known ===
+200 12229 text/html; charset=utf-8
+[0m
+[0m$ [0mecho "=== /auth/google/callback?code=fake123&state=abc status ===" && curl -s -o /dev/null -w 'HTTP %{http_code} %{size_download} bytes\n' "https://app.gladia.io/auth/google/callback?code=fake123&state=abc" 2>/dev/null; echo; echo "=== POST /signin headers (intent=google) ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=https%3A%2F%2Fevil.example.com" -d "intent=google&redirect_to=https%3A%2F%2Fevil.example.com" 2>/dev/null | grep -iE 'HTTP|location|set-cookie|content-security'
+=== /auth/google/callback?code=fake123&state=abc status ===
+HTTP 500 14324 bytes
+
+=== POST /signin headers (intent=google) ===
+HTTP/2 302 
+location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&state=qCy4ulTrmY5FF1RmxDnHuutn4PsD7KZAXG-dZuY9sRw&code_challenge_method=S256&code_challenge=Q-_vjQPZosBKuvnBofI5WYR94YBtkBnMI9ZY636OQ80&scope=openid+email+profile&access_type=offline&prompt=consent
+set-cookie: oauth2:037b743f-d065-4b08-8e6b-f5d727cb3810=state=qCy4ulTrmY5FF1RmxDnHuutn4PsD7KZAXG-dZuY9sRw&qCy4ulTrmY5FF1RmxDnHuutn4PsD7KZAXG-dZuY9sRw=a7b5_wrh4BE3FR6NiyOyCpF_ONy15Qd9GdBunLhcO00; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+[0m
+[0m$ [0mecho "=== App endpoint scan (passive) ===" && for p in /api/user /api/sessions /api/keys /api/account /api/billing /logout /login /signup /reset-password /magic-link /api/transcriptions /api/v2 /app /console /admin /debug /metrics /health /status /cdn-cgi; do echo -n "$p -> "; curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "https://app.gladia.io$p" 2>/dev/null; done
+=== App endpoint scan (passive) ===
+/api/user -> 200 12229 text/html; charset=utf-8
+/api/sessions -> 200 12229 text/html; charset=utf-8
+/api/keys -> 200 12229 text/html; charset=utf-8
+/api/account -> 200 12229 text/html; charset=utf-8
+/api/billing -> 200 12229 text/html; charset=utf-8
+/logout -> 200 12229 text/html; charset=utf-8
+/login -> 200 12229 text/html; charset=utf-8
+/signup -> 200 31352 text/html; charset=utf-8
+/reset-password -> 200 12229 text/html; charset=utf-8
+/magic-link -> 200 12229 text/html; charset=utf-8
+/api/transcriptions -> 200 12229 text/html; charset=utf-8
+/api/v2 -> 200 12229 text/html; charset=utf-8
+/app -> 200 12229 text/html; charset=utf-8
+/console -> 200 12229 text/html; charset=utf-8
+/admin -> 200 12229 text/html; charset=utf-8
+/debug -> 200 12229 text/html; charset=utf-8
+/metrics -> 200 12229 text/html; charset=utf-8
+/health -> 200 12229 text/html; charset=utf-8
+/status -> 200 12229 text/html; charset=utf-8
+/cdn-cgi -> 200 12229 text/html; charset=utf-8
+[0m
+[0m$ [0mecho "=== POST /signin with fake credentials (email/password intent) ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=email-password&email=test@example.com&password=fake123" 2>/dev/null | grep -iE 'HTTP|location|set-cookie|content-security' | head -10; echo; echo "=== POST /signin with invalid redirect_to scheme ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=javascript:alert(1)" -d "intent=google" 2>/dev/null | grep -iE 'HTTP|location|set-cookie' | head -5
+=== POST /signin with fake credentials (email/password intent) ===
+HTTP/2 200 
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-4c28455de8eeaac2bdc2f5141792b06c' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+
+=== POST /signin with invalid redirect_to scheme ===
+HTTP/2 302 
+location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&state=2VvmOJgvdEEZ5MCKdKxqFKGUmOPs9Kw3wOCSQ3huOOw&code_challenge_method=S256&code_challenge=2u4PCiCXqU39jXh02je1OezvZAY8RZv9ObyqPfpNyAQ&scope=openid+email+profile&access_type=offline&prompt=consent
+set-cookie: oauth2:2e7d8ea9-309d-4337-a9b3-ae345a830275=state=2VvmOJgvdEEZ5MCKdKxqFKGUmOPs9Kw3wOCSQ3huOOw&2VvmOJgvdEEZ5MCKdKxqFKGUmOPs9Kw3wOCSQ3huOOw=cuNh5Oue4MjjLoMfDLWdrBS8X-poQMWlmHSLJhKFINY; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+[0m
+[0m$ [0mecho "=== /signup page (31352 bytes - different from SPA shell) ===" && curl -s "https://app.gladia.io/signup" 2>/dev/null | grep -oE '(action|method|form|h1|h2|title)[^>]*' | head -10; echo; echo "=== Check form action on /signup ===" && curl -s "https://app.gladia.io/signup?redirect_to=https://evil.example.com" 2>/dev/null | grep -oE 'action="[^"]*"|redirect_to[^"<>]*' | head -5
+=== /signup page (31352 bytes - different from SPA shell) ===
+title
+title
+title
+title
+form id="sign-up-form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signup" method="post"
+h1 class="text-display-xs font-semibold"
+h1
+form-referer" form="sign-up-form" type="hidden" name="referer"/
+form
+actionData\",\"errors\",\"root\",{\"_10\":11,\"_12\":13,\"_9\":-7},\"routes/auth/signup\",{\"_9\":-5},\"signupSteps\",\"userPrefs\",{\"_21\":22,\"_23\":24,\"_25\":26},\"ENV\",{\"_14\":15,\"_16\":17,\"_18\":-5,\"_19\":20},\"MODE\",\"production\",\"APP_BASE_URL\",\"https://app.gladia.io\",\"GA_USER_ID\",\"GOOGLE_TAG_MANAGER_ID\",\"GTM-N7XJQJG\",\"theme\",\"dark\",\"locale\",\"en\",\"sidebar\",\"expanded\"]\n");</script
+
+=== Check form action on /signup ===
+action="/signup?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[0m$ [0mecho "=== POST /signup with fake data (redirect_to reflection in response?) ===" && curl -s -w '\nHTTP %{http_code}\n' -X POST "https://app.gladia.io/signup?redirect_to=https://evil.example.com" -d "email=test@example.com&password=fake123&confirmPassword=fake123" 2>/dev/null | grep -oE 'action="[^"]*"|redirect_to[^"<>]*|/signup[^"<]*' | head -5; echo; echo "=== POST /signin (email/password) response body check ===" && curl -s -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=email-password&email=test@example.com&password=fake123" 2>/dev/null | grep -oE 'action="[^"]*"' | head -3
+=== POST /signup with fake data (redirect_to reflection in response?) ===
+/signup-DQ-rxRjK.js
+action="/signup?redirect_to=https%3A%2F%2Fevil.example.com"
+/signup-DQ-rxRjK.js
+/signup
+/signup
+
+=== POST /signin (email/password) response body check ===
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[0m$ [0mecho "=== Check if redirect_to reflected in /signin response body after POST ===" && curl -s -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=email-password&email=test@example.com&password=fake123" 2>/dev/null | grep -oE 'redirect_to[^"<>]*' | head -3; echo "=== Check for any Location header with redirect_to after POST ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=email-password&email=test@example.com&password=fake123&redirect_to=https://evil.example.com" 2>/dev/null | grep -iE 'location' | head -3
+=== Check if redirect_to reflected in /signin response body after POST ===
+redirect_to=https%3A%2F%2Fevil.example.com
+=== Check for any Location header with redirect_to after POST ===
+[0m
+[0m$ [0mecho "=== Check cookies after POST /signin intent=google with redirect_to ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=google" 2>/dev/null | grep -iE 'set-cookie' | head -10; echo; echo "=== Compare: POST /signin intent=google WITHOUT redirect_to ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin" -d "intent=google" 2>/dev/null | grep -iE 'set-cookie' | head -10
+=== Check cookies after POST /signin intent=google with redirect_to ===
+set-cookie: oauth2:5b51b0ba-5b59-405f-9e3b-50ebed7c2f2e=state=xLnRu_lqNuBkMgh0arQnuPcmrt-MAWoPuoukYDyhG0M&xLnRu_lqNuBkMgh0arQnuPcmrt-MAWoPuoukYDyhG0M=dfQVMVNyav_nRTQlHvbsv9v-QM41qXjBPHtHTv51xTw; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+
+=== Compare: POST /signin intent=google WITHOUT redirect_to ===
+set-cookie: oauth2:427f8689-5e6e-42e4-b26a-52dd50c0e858=state=HpA2xeSxj3CxcwXppxlZBVmGq8f3R7ItftjhX4vIuFc&HpA2xeSxj3CxcwXppxlZBVmGq8f3R7ItftjhX4vIuFc=wWlJjCEtlA7Up_SPyaVap9jIENVaIEMFO9W0qe8Wp8k; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mecho "=== Diff the two cookie sets ===" && curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -d "intent=google" 2>/dev/null | grep -iE 'set-cookie' > /tmp/cookies_with_rt.txt 2>&1; curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin" -d "intent=google" 2>/dev/null | grep -iE 'set-cookie' > /tmp/cookies_without_rt.txt 2>&1; echo "--- With redirect_to ---"; cat /tmp/cookies_with_rt.txt; echo "--- Without redirect_to ---"; cat /tmp/cookies_without_rt.txt failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
