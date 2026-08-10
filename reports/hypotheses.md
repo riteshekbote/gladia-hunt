@@ -1366,3 +1366,27 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404; @gladiaio/sdk@1
 - LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh this cycle — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevoc
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 54+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-
+
+## RANKED HYPOTHESES 2026-08-10 09:49:22 UTC
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator at dist-tag latest leaks API keys via WebSocket URL query parameter (from reports/hypotheses-longcat.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [95] npm: Orphaned npm package `gladia@0.1.3` at dist-tag latest impersonates official SDK — leaks API key in WebSocket URL query + irrevocable takeover risk (from reports/hypotheses-laguna.txt)
+- [58] api.gladia.io: SSRF via file-URL ingestion in transcription/upload endpoints (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via Gladia bug-bounty portal with evidence package (tarball sha256 `3b23ec7d7a763abc04c52db232d157a98
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Unchanged from prior cycle — submit the `gladia@0.1.3` report via the program's bug-bounty submission channel (tarball sha256 `3b23ec7d7a763abc04c52db232
+- NEXT(hypotheses-longcat.txt): **HUMAN**: Submit `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report with evidence: dist-tag latest=0.1.3, repo+user alexisbouchez 404
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 56th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404, reposcan 08:18 
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation confirmed byte-fresh at 23:47 UTC this cycle — dist-tag latest=0.1.3 static, repo+user alexisbouchez
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles (23:08→23:47 UTC) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B F
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /openapi.json `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirm
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed byte-fresh — form action reflects URL-encoded value (0 form-act
+- LEARN: ACCEPTED AUTH @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → 500 generic SPA "Unexpected Server Error" page (no stack trace, no file path, no i
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive — CSP gap confirmed (
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
