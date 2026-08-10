@@ -1510,3 +1510,20 @@
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models 
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differe
+
+## RANKED HYPOTHESES 2026-08-10 17:16:05 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator at dist-tag latest leaks API keys via WebSocket URL query parameter (from reports/hypotheses-longcat.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + webhook/callback delivery (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: /signin redirect_to unauthenticated form-action reflection (post-auth honoring unverified) (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Unchanged — submit the `gladia@0.1.3` report via the program's bug-bounty submission channel (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c
+- NEXT(hypotheses-longcat.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report with evidence package: dist-tag latest=0.1.3, repo+user alexisbouchez
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 61st cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, sig
+- LEARN: CONFIRMED NO_DRIFT @ api.gladia.io (50th+ cycle, 2026-08-10 23:xx UTC) — openapi 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B FR/US, OPTIO
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed byte-fresh — form action reflects URL-encoded value; CSP **0 form-action directives** r
+- LEARN: CONFIRMED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — dist-tag latest=0.1.3, shasum cc96f84a200c0fd49a71e919391f9b659c39f3e9, sha256 3b23ec7
+- LEARN: CONFIRMED MISCONFIG @ app.gladia.io: /dashboard 200 SPA shell without auth (12229B); /apikeys,/transcriptions,/settings 302→/signin with return-to cookie tamper
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending.
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differe

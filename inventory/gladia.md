@@ -327,3 +327,5 @@
 - NEW app.gladia.io /auth/google/callback (no params) → 302 → accounts.google.com full OAuth 2.0 PKCE S256 init (client_id, fixed redirect_uri, code_challenge, state) confirmed
 
 ## 2026-08-10 16:16:07 UTC
+
+## 2026-08-10 17:16:05 UTC
