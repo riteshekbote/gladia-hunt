@@ -1308,3 +1308,10 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 (form action reflects URL-encoded value, 0 form-action directives in CSP, byte
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — `npm view` dist-tag.latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sh
+
+## RANKED HYPOTHESES 2026-08-10 00:40:41 UTC
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via audio_url/video_url fetch + callback/webhook delivery (from reports/hypotheses-bigpickle.txt)
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh at 23:47 UTC — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrev
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
