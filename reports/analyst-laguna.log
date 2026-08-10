@@ -22947,3 +22947,417 @@ No hypotheses dropped — all 3 pass confidence ≥ 40, none on REJECTED list, a
 [RISK] api.gladia.io: 87 — public OpenAPI 3.1 (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace+request ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; `x-powered-by: Express` on OPTIONS confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_url + 7 webhooks all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design fetch surface (key-gated only); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) = client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic SPA error (no detail leak); oauth2 state cookie HttpOnly+SameSite=Lax but no Secure flag (HSTS-preload mitigated); OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
 [RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag latest impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover); src/client.ts:306-318 embeds raw API key in WebSocket URL query (exposed to proxies/logs/history/Referer); official `@gladiaio/sdk@1.1.0` uses secure POST→token flow; PyPI `gladiaio-sdk@1.0.5` static and clean
+===== ANALYST laguna 2026-08-10 16:16:07 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mmkdir -p /tmp/opencode/npm-verify && cd /tmp/opencode/npm-verify && npm pack @gladiaio/sdk@1.1.0 2>&1 | head -5 && npm pack gladia@0.1.3 2>&1 | head -5 && ls -la
+npm notice
+npm notice 📦  @gladiaio/sdk@1.1.0
+npm notice Tarball Contents
+npm notice 2.5kB CHANGELOG.md
+npm notice 4.6kB README.md
+npm notice
+npm notice 📦  gladia@0.1.3
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 9.0kB README.md
+total 204
+drwxr-xr-x 2 runner runner   4096 Aug 10 16:12 .
+drwxr-xr-x 3 runner runner   4096 Aug 10 16:12 ..
+-rw-r--r-- 1 runner runner  48516 Aug 10 16:12 gladia-0.1.3.tgz
+-rw-r--r-- 1 runner runner 148106 Aug 10 16:12 gladiaio-sdk-1.1.0.tgz
+[0m
+[0m$ [0mcd /tmp/opencode/npm-verify && mkdir -p official impersonator && tar -xzf gladiaio-sdk-1.1.0.tgz -C official && tar -xzf gladia-0.1.3.tgz -C impersonator && echo "=== OFFICIAL WebSocket/Live flow ===" && grep -rn "WebSocket\|/v2/live\|searchParams\|token=" official/package/dist/ 2>/dev/null | head -20 && echo "=== IMPERSONATOR WebSocket/Live flow ===" && grep -rn "WebSocket\|/v2/live\|searchParams\|x-gladia-key" impersonator/package/src/impersonator/package/src/ 2>/dev/null | head -20 && find impersonator -name "client.ts" -o -name "*.js" | head -10
+=== OFFICIAL WebSocket/Live flow ===
+official/package/dist/client.d.cts:2:import { LiveV2Client } from "./v2/live/client.cjs";
+official/package/dist/client.cjs:2:const require_client = require('./v2/live/client.cjs');
+official/package/dist/client.cjs:3:require('./v2/live/index.cjs');
+official/package/dist/client.cjs:29:	].includes(url.protocol)) throw new Error(`Only HTTP and WebSocket protocols are supported for apiUrl (received: ${url.protocol}).`);
+official/package/dist/index.iife.js:1:var Gladia=(function(e){var t=Object.create,n=Object.defineProperty,r=Object.getOwnPropertyDescriptor,i=Object.getOwnPropertyNames,a=Object.getPrototypeOf,o=Object.prototype.hasOwnProperty,s=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports),c=(e,t,a,s)=>{if(t&&typeof t==`object`||typeof t==`function`)for(var c=i(t),l=0,u=c.length,d;l<u;l++)d=c[l],!o.call(e,d)&&d!==a&&n(e,d,{get:(e=>t[e]).bind(null,d),enumerable:!(s=r(t,d))||s.enumerable});return e},l=(e,r,i)=>(i=e==null?{}:t(a(e)),c(r||!e||!e.__esModule?n(i,`default`,{value:e,enumerable:!0}):i,e));function u(e,t){if(e={...e},!t)return e;for(let[n,r]of Object.entries(t))r!=null&&(e[n]&&typeof e[n]==`object`&&typeof r==`object`?e[n]=u(e[n],r):e[n]=r);return e}function d(e,t){return typeof process>`u`||process.env===void 0?t:process.env[e]??t}async function f(e){await new Promise(t=>setTimeout(t,e))}function p(e){return typeof SharedArrayBuffer<`u`&&e instanceof SharedArrayBuffer}function m(e){return p(e),new Uint8Array(e)}function h(e,t){let n=new Uint8Array((e?.byteLength??0)+(t?.byteLength??0));return e&&n.set(new Uint8Array(e),0),t&&n.set(new Uint8Array(t),e?.byteLength??0),n}let g=2147483647;async function _(){if(d(`VITEST_WORKER_ID`)||!(typeof process<`u`&&process.versions?.node))return fetch;try{let{Agent:e,setGlobalDispatcher:t}=await import(`undici`);return t(new e({connectTimeout:g,connect:{timeout:g},headersTimeout:g,bodyTimeout:0})),fetch}catch{return fetch}}function v(e){"@babel/helpers - typeof";return v=typeof Symbol==`function`&&typeof Symbol.iterator==`symbol`?function(e){return typeof e}:function(e){return e&&typeof Symbol==`function`&&e.constructor===Symbol&&e!==Symbol.prototype?`symbol`:typeof e},v(e)}function y(e,t){if(v(e)!=`object`||!e)return e;var n=e[Symbol.toPrimitive];if(n!==void 0){var r=n.call(e,t||`default`);if(v(r)!=`object`)return r;throw TypeError(`@@toPrimitive must return a primitive value.`)}return(t===`string`?String:Number)(e)}function b(e){var t=y(e,`string`);return v(t)==`symbol`?t:t+``}function x(e,t,n){return(t=b(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}var S=class extends Error{constructor({message:e,method:t,id:n,requestId:r,responseBody:i,url:a,status:o,headers:s},c){super(e,c),x(this,`method`,void 0),x(this,`status`,void 0),x(this,`url`,void 0),x(this,`id`,void 0),x(this,`requestId`,void 0),x(this,`responseBody`,void 0),x(this,`responseHeaders`,void 0),this.name=`HttpError`,this.method=t,this.url=a,this.status=o,this.id=n,this.requestId=r,this.responseBody=i,this.responseHeaders=s}};async function C(e,t,n,r){let i,a,o,s,c;try{o=n.headers.get(`x-aipi-call-id`)??void 0,c=Object.fromEntries(n.headers.entries()),s=await n.text();try{s=JSON.parse(s),a=s?.request_id,i=s?.message}catch{}}catch{}return new S({method:e,message:[i||n.statusText||`An error occurred`,a||o,n.status.toString(),`${e} ${new URL(t).pathname}`].filter(Boolean).join(` | `),url:t.toString(),status:n.status,id:o,requestId:a,responseBody:s,headers:c},r)}var w=class extends Error{constructor(e,t,n){super(e,n),x(this,`timeout`,void 0),this.name=`TimeoutError`,this.timeout=t}};function T(e,t){for(let n of t)if(typeof n==`number`){if(e===n)return!0}else{let[t,r]=n;if(e>=t&&e<=r)return!0}return!1}function E(e){if(!e||typeof e!=`object`)return!1;if(`name`in e&&e.name===`AbortError`)return!0;try{if(typeof DOMException<`u`&&e instanceof DOMException&&e.name===`AbortError`)return!0}catch{}return!1}var D=class{constructor(e){x(this,`baseUrl`,void 0),x(this,`defaultHeaders`,void 0),x(this,`defaultQueryParams`,void 0),x(this,`retry`,void 0),x(this,`timeout`,void 0),x(this,`fetchPromise`,void 0),this.baseUrl=e.baseUrl,this.defaultHeaders=e.headers,this.defaultQueryParams=e.queryParams,this.retry=e.retry,this.timeout=e.timeout,this.retry.maxAttempts=Math.max(0,Math.floor(this.retry.maxAttempts)),this.timeout=Math.max(0,Math.floor(this.timeout)),this.fetchPromise=_()}async get(e,t={}){return this.request(`GET`,e,t)}async post(e,t={}){return this.request(`POST`,e,t)}async put(e,t={}){return this.request(`PUT`,e,t)}async delete(e,t={}){return this.request(`DELETE`,e,t)}async request(e,t,n={}){if(t=new URL(t,this.baseUrl),this.defaultQueryParams)for(let[e,n]of Object.entries(this.defaultQueryParams))t.searchParams.has(e)||t.searchParams.set(e,n);let{signal:r,headers:i,rawResponse:a,requestTimeout:o,...s}=n,c=o===void 0?this.timeout:Math.max(0,Math.floor(o)),l=Date.now(),d=[],p=0,m=this.retry.maxAttempts;for(;;){p+=1;let n=new AbortController,o=()=>n.abort(r?.reason),h,g=!1;try{if(r){if(r.aborted)throw Error(`Request aborted by the provided AbortSignal`,{cause:r.reason});r.addEventListener(`abort`,o,{once:!0})}c>0&&(h=setTimeout(()=>{g=!0,n.abort(new w(`Request timed out after ${c}ms`,c))},c));let l=await(await this.fetchPromise)(t,{...s,method:e,headers:this.defaultHeaders?u(this.defaultHeaders,i):i,signal:n.signal});if(h&&clearTimeout(h),r&&r.removeEventListener(`abort`,o),!l.ok){let n=await C(e,t,l);if((m===0||p<m)&&T(l.status,this.retry.statusCodes)){d.push(n),await f(this.retry.delay(p));continue}throw n}return a?l:l.headers.get(`content-type`)?.includes(`application/json`)?await l.json():l}catch(n){if(h&&clearTimeout(h),r&&r.removeEventListener(`abort`,o),g){let r=Date.now()-l;throw new w(`Request timed out after ${c}ms on attempt ${p} (duration=${r}ms) for ${e} ${t}`,c,{cause:n})}if(E(n)||r&&r.aborted){let r=Date.now()-l;throw Error(`Request aborted by the provided AbortSignal after ${r}ms for ${e} ${t}`,{cause:n})}let i=n instanceof Error?n:Error(String(n));if(i instanceof S){if(T(i.status,this.retry.statusCodes)&&(m===0||p<m)){d.push(i),await f(this.retry.delay(p));continue}if(d.length>0){d.push(i);let n=Date.now()-l,r=AggregateError(d,`All retry attempts failed`);throw Error(`HTTP request failed after ${p} attempts over ${n}ms for ${e} ${t}`,{cause:r})}throw i}if(m===0||p<m){d.push(i),await f(this.retry.delay(p));continue}d.push(i);let a=Date.now()-l,s=AggregateError(d,`All retry attempts failed`);throw Error(`HTTP request failed after ${p} attempts over ${a}ms for ${e} ${t}`,{cause:s})}}}};let O={CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3};function k(){if(typeof WebSocket<`u`)return WebSocket;if(typeof global<`u`&&global.WebSocket!==void 0)return global.WebSocket;if(typeof globalThis<`u`&&globalThis.WebSocket!==void 0)return globalThis.WebSocket;if(typeof window<`u`&&window.WebSocket!==void 0||typeof window<`u`&&window.WebSocket!==void 0)return window.WebSocket;if(typeof self<`u`&&self.WebSocket!==void 0)return self.WebSocket}async function A(e){let t;try{t=k()??(await import(`ws`)).WebSocket}catch{}if(!t)throw Error("WebSocket is not supported in this environment and the `ws` package is not installed");return new t(e)}function j(e,t){for(let n of t)if(typeof n==`number`){if(e===n)return!0}else{let[t,r]=n;if(e>=t&&e<=r)return!0}return!1}function M(e){e&&(e.onopen=null,e.onerror=null,e.onmessage=null,e.onclose=null)}var N=class{constructor(e){x(this,`baseUrl`,void 0),x(this,`retry`,void 0),x(this,`timeout`,void 0),this.baseUrl=e.baseUrl,this.retry=e.retry,this.timeout=e.timeout,this.retry.maxAttemptsPerConnection=Math.max(0,Math.floor(this.retry.maxAttemptsPerConnection)),this.retry.maxConnections=Math.max(0,Math.floor(this.retry.maxConnections)),this.timeout=Math.max(0,Math.floor(this.timeout))}createSession(e){return new P({retry:this.retry,timeout:this.timeout,url:new URL(e,this.baseUrl)})}},P=class{constructor({retry:e,timeout:t,url:n}){x(this,`onconnecting`,null),x(this,`onopen`,null),x(this,`onerror`,null),x(this,`onclose`,null),x(this,`onmessage`,null),x(this,`_readyState`,O.CONNECTING),x(this,`_url`,void 0),x(this,`retry`,void 0),x(this,`timeout`,void 0),x(this,`ws`,null),x(this,`connectionCount`,0),x(this,`connectionAttempt`,0),x(this,`connectionTimeoutId`,void 0),this._url=n.toString(),this.retry=e,this.timeout=t,this.connect().catch(()=>{})}get readyState(){return this._readyState}get url(){return this._url}send(e){if(this.readyState===O.OPEN){if(!this.ws)throw Error(`readyState is open but ws is not initialized`);this.ws.send(e)}else throw Error(`WebSocket is not open`)}close(e=1e3,t=``){this.readyState===O.CLOSING||this.readyState===O.CLOSED||(this.clearConnectionTimeout(),this._readyState=O.CLOSING,this.ws?.readyState===O.OPEN?this.ws.close(e):this.onWsClose(e,t))}onWsClose(e=1e3,t=``){this.clearConnectionTimeout(),this.readyState!==O.CLOSED&&(this._readyState=O.CLOSED,this.onclose?.({code:e,reason:t})),this.onconnecting=null,this.onopen=null,this.onclose=null,this.onerror=null,this.onmessage=null,M(this.ws),this.ws=null}async connect(e=!1){this.clearConnectionTimeout(),e||(this.connectionCount+=1,this.connectionAttempt=0),this.connectionAttempt+=1,this._readyState=O.CONNECTING,this.onconnecting?.({connection:this.connectionCount,attempt:this.connectionAttempt}),this.timeout>0&&(this.connectionTimeoutId=setTimeout(()=>{this.close(3008,`WebSocket connection timeout`)},this.timeout));let t=async(e,t)=>{if(this.clearConnectionTimeout(),M(e),this.readyState===O.CONNECTING){if(this.retry.maxAttemptsPerConnection>0&&this.connectionAttempt>=this.retry.maxAttemptsPerConnection){this.onerror?.(Error(`WebSocket connection error`,{cause:t})),this.close(1006,`WebSocket connection error`);return}await f(this.retry.delay(this.connectionAttempt)),this.readyState===O.CONNECTING&&this.connect(!0)}},n;try{n=await A(this.url)}catch(e){t(null,e instanceof Error?e:Error(String(e)));return}if(this.readyState!==O.CONNECTING){n.close(1001);return}n.onerror=()=>t(n),n.onopen=()=>{if(this.clearConnectionTimeout(),M(n),this.readyState!==O.CONNECTING){n.close(1001);return}n.onmessage=e=>{this.onmessage?.(e)},n.onclose=e=>{if(M(n),this.ws===n){if(this.ws=null,this.readyState===O.CLOSING){this.onWsClose(e.code,e.reason||``);return}if(this.retry.maxConnections>0&&this.connectionCount>=this.retry.maxConnections||!j(e.code,this.retry.closeCodes)){this.close(e.code,e.reason||``);return}this.connect()}},this.ws=n,this._readyState=O.OPEN,this.onopen?.({connection:this.connectionCount,attempt:this.connectionAttempt})}}clearConnectionTimeout(){this.connectionTimeoutId&&(clearTimeout(this.connectionTimeoutId),this.connectionTimeoutId=void 0)}},F=l(s(((e,t)=>{var n=Object.prototype.hasOwnProperty,r=`~`;function i(){}Object.create&&(i.prototype=Object.create(null),new i().__proto__||(r=!1));function a(e,t,n){this.fn=e,this.context=t,this.once=n||!1}function o(e,t,n,i,o){if(typeof n!=`function`)throw TypeError(`The listener must be a function`);var s=new a(n,i||e,o),c=r?r+t:t;return e._events[c]?e._events[c].fn?e._events[c]=[e._events[c],s]:e._events[c].push(s):(e._events[c]=s,e._eventsCount++),e}function s(e,t){--e._eventsCount===0?e._events=new i:delete e._events[t]}function c(){this._events=new i,this._eventsCount=0}c.prototype.eventNames=function(){var e=[],t,i;if(this._eventsCount===0)return e;for(i in t=this._events)n.call(t,i)&&e.push(r?i.slice(1):i);return Object.getOwnPropertySymbols?e.concat(Object.getOwnPropertySymbols(t)):e},c.prototype.listeners=function(e){var t=r?r+e:e,n=this._events[t];if(!n)return[];if(n.fn)return[n.fn];for(var i=0,a=n.length,o=Array(a);i<a;i++)o[i]=n[i].fn;return o},c.prototype.listenerCount=function(e){var t=r?r+e:e,n=this._events[t];return n?n.fn?1:n.length:0},c.prototype.emit=function(e,t,n,i,a,o){var s=r?r+e:e;if(!this._events[s])return!1;var c=this._events[s],l=arguments.length,u,d;if(c.fn){switch(c.once&&this.removeListener(e,c.fn,void 0,!0),l){case 1:return c.fn.call(c.context),!0;case 2:return c.fn.call(c.context,t),!0;case 3:return c.fn.call(c.context,t,n),!0;case 4:return c.fn.call(c.context,t,n,i),!0;case 5:return c.fn.call(c.context,t,n,i,a),!0;case 6:return c.fn.call(c.context,t,n,i,a,o),!0}for(d=1,u=Array(l-1);d<l;d++)u[d-1]=arguments[d];c.fn.apply(c.context,u)}else{var f=c.length,p;for(d=0;d<f;d++)switch(c[d].once&&this.removeListener(e,c[d].fn,void 0,!0),l){case 1:c[d].fn.call(c[d].context);break;case 2:c[d].fn.call(c[d].context,t);break;case 3:c[d].fn.call(c[d].context,t,n);break;case 4:c[d].fn.call(c[d].context,t,n,i);break;default:if(!u)for(p=1,u=Array(l-1);p<l;p++)u[p-1]=arguments[p];c[d].fn.apply(c[d].context,u)}}return!0},c.prototype.on=function(e,t,n){return o(this,e,t,n,!1)},c.prototype.once=function(e,t,n){return o(this,e,t,n,!0)},c.prototype.removeListener=function(e,t,n,i){var a=r?r+e:e;if(!this._events[a])return this;if(!t)return s(this,a),this;var o=this._events[a];if(o.fn)o.fn===t&&(!i||o.once)&&(!n||o.context===n)&&s(this,a);else{for(var c=0,l=[],u=o.length;c<u;c++)(o[c].fn!==t||i&&!o[c].once||n&&o[c].context!==n)&&l.push(o[c]);l.length?this._events[a]=l.length===1?l[0]:l:s(this,a)}return this},c.prototype.removeAllListeners=function(e){var t;return e?(t=r?r+e:e,this._events[t]&&s(this,t)):(this._events=new i,this._eventsCount=0),this},c.prototype.off=c.prototype.removeListener,c.prototype.addListener=c.prototype.on,c.prefixed=r,c.EventEmitter=c,t!==void 0&&(t.exports=c)}))(),1),I=class{constructor({options:e,region:t,existingSession:n,httpClient:r,webSocketClient:i}){x(this,`sessionOptions`,void 0),x(this,`httpClient`,void 0),x(this,`webSocketClient`,void 0),x(this,`abortController`,new AbortController),x(this,`initSessionPromise`,void 0),x(this,`initSessionResponse`,null),x(this,`webSocketSession`,null),x(this,`eventEmitter`,new F.default),x(this,`bytesSent`,0),x(this,`audioBuffer`,null),x(this,`_status`,`starting`),x(this,`region`,void 0),this.sessionOptions=e,this.region=t,this.httpClient=r,this.webSocketClient=i,this.abortController=new AbortController,this.initSessionPromise=n?Promise.resolve(n):this.initSession(),this.startSession()}async getSessionId(){let{id:e}=await this.initSessionPromise;return e}get sessionId(){return this.initSessionResponse?.id??null}get status(){return this._status}sendAudio(e){if(this._status===`ended`||this._status===`ending`)return;let t=m(e);this.audioBuffer=h(this.audioBuffer,t),this.webSocketSession?.readyState===O.OPEN&&this.webSocketSession?.send(t)}stopRecording(){this.doStop(1e3)}endSession(){this.doDestroy(1e3,`Session ended by user`)}async initSession(){try{let e=this.region?`/v2/live?region=${encodeURIComponent(this.region)}`:`/v2/live`;return await this.httpClient.post(e,{signal:this.abortController.signal,headers:{"Content-Type":`application/json`},body:JSON.stringify({...this.sessionOptions,messages_config:{...this.sessionOptions.messages_config,receive_acknowledgments:!0}})})}catch(e){throw this.abortController.signal.aborted||(this.emit(`error`,e instanceof Error?e:Error(`Error creating session: ${e}`,{cause:e})),this.doDestroy(1006,`Couldn't start a new session`)),e}}async startSession(){let e=await this.initSessionPromise;if(this.initSessionResponse=e,!this.abortController.signal.aborted){if(this._status===`starting`&&(this._status=`started`,this.emit(`started`,e)),this.sessionOptions.messages_config?.receive_lifecycle_events){let t={type:`start_session`,session_id:e.id,created_at:e.created_at};this.emit(`message`,t)}this.connectToWebSocket(e)}}connectToWebSocket(e){if(this.abortController.signal.aborted)return;let t=this.webSocketClient.createSession(e.url);this.abortController.signal.addEventListener(`abort`,()=>{this.webSocketSession=null,t.onconnecting=null,t.onopen=null,t.onmessage=null,t.onclose=null,t.onerror=null,t.close(1001,`Aborted`)}),this.webSocketSession=t,this.webSocketSession.onconnecting=({connection:e})=>{this._status=`connecting`,this.emit(`connecting`,{attempt:e})},this.webSocketSession.onopen=({connection:e})=>{if(this.audioBuffer?.byteLength){let e=512*1024;for(let n=0;n<this.audioBuffer.byteLength;n+=e)t.send(this.audioBuffer.subarray(n,n+e))}if(this.status===`ending`){t.send(JSON.stringify({type:`stop_recording`}));return}this._status=`connected`,this.emit(`connected`,{attempt:e})},this.webSocketSession.onmessage=e=>{let t=this.parseMessage(e.data.toString());if((!this.sessionOptions.messages_config||this.sessionOptions.messages_config.receive_acknowledgments||!(`acknowledged`in t))&&this.emit(`message`,t),t.type===`audio_chunk`&&t.acknowledged&&t.data){let e=t.data.byte_range[1],n=this.audioBuffer?.slice(e-this.bytesSent);this.audioBuffer=n?.byteLength?n:null,this.bytesSent=e}},this.webSocketSession.onclose=({code:e,reason:t})=>{this.doDestroy(e,t)},this.webSocketSession.onerror=e=>{this.emit(`error`,e)}}parseMessage(e){let t;try{t=JSON.parse(e)}catch(t){throw Error(`Invalid message received: ${e}`,{cause:t})}if(!t||typeof t!=`object`||!(`type`in t))throw Error(`Invalid message received: ${e}`);return t}doStop(e=1006,t){this._status!==`ended`&&this._status!==`ending`&&(this._status=`ending`,this.emit(`ending`,{code:e,reason:t}),this.webSocketSession?.readyState===O.OPEN&&this.webSocketSession?.send(JSON.stringify({type:`stop_recording`})))}doDestroy(e=1006,t){this._status!==`ended`&&(this.doStop(e,t),this._status=`ended`,this.emit(`ended`,{code:e,reason:t}),this.abortController.abort(),this.audioBuffer=null,this.removeAllListeners(),this.eventEmitter=null)}on(e,t){this.eventEmitter?.on(e,t)}once(e,t){this.eventEmitter?.once(e,t)}off(e,t){this.eventEmitter?.off(e,t)}addListener(e,t){this.eventEmitter?.addListener(e,t)}removeListener(e,t){this.eventEmitter?.removeListener(e,t)}removeAllListeners(e){this.eventEmitter?.removeAllListeners(e)}emit(e,...t){this.eventEmitter?.emit(e,...t)}},L=class{constructor(e){x(this,`httpClient`,void 0),x(this,`webSocketClient`,void 0),x(this,`liveTimeouts`,void 0),x(this,`region`,void 0);let t=new URL(e.apiUrl);t.protocol=t.protocol.replace(/^ws/,`http`),this.liveTimeouts=e.liveTimeouts,this.region=e.region,this.httpClient=new D({baseUrl:t,headers:e.httpHeaders,...e.region?{queryParams:{region:e.region}}:{},retry:e.httpRetry,timeout:e.httpTimeout});let n=new URL(e.apiUrl);n.protocol=n.protocol.replace(/^http/,`ws`),this.webSocketClient=new N({baseUrl:n,retry:e.wsRetry,timeout:e.wsTimeout})}startSession(e){return new I({options:e,region:this.region,httpClient:this.httpClient,webSocketClient:this.webSocketClient})}connectSession(e){let t={id:e.id,url:e.url,created_at:e.created_at??``};return new I({options:{messages_config:e.messages_config},existingSession:t,httpClient:this.httpClient,webSocketClient:this.webSocketClient})}async get(e){return this.httpClient.get(`/v2/live/${e}`,{requestTimeout:this.liveTimeouts.get})}async delete(e){return(await this.httpClient.delete(`/v2/live/${e}`,{rawResponse:!0,requestTimeout:this.liveTimeouts.delete})).status===202}async getFile(e){return(await this.httpClient.get(`/v2/live/${e}/file`,{rawResponse:!0,requestTimeout:this.liveTimeouts.getFile})).arrayBuffer()}};function R(e){try{let t=new URL(e);return t.protocol===`http:`||t.protocol===`https:`}catch{return!1}}function z(e,t){return e===null?null:e===void 0?t:e}var B=class{constructor(e){x(this,`httpClient`,void 0),x(this,`prerecordedTimeouts`,void 0);let t=new URL(e.apiUrl);t.protocol=t.protocol.replace(/^ws/,`http`),this.prerecordedTimeouts=e.prerecordedTimeouts,this.httpClient=new D({baseUrl:t,headers:e.httpHeaders,queryParams:{},retry:e.httpRetry,timeout:e.httpTimeout})}async uploadFile(e){if(typeof e==`string`&&R(e))throw Error(`Expected a file path; URLs are not accepted by uploadFile. Use a local file path, File, or Blob.`);let t=new FormData;if(typeof e==`string`){if(typeof process>`u`||!process.versions?.node)throw Error(`Upload by file path is only supported in Node.js. In the browser, use a File or Blob.`);let{readFileSync:n}=await import(`fs`),{basename:r}=await import(`path`),i=n(e),a=r(e),o=new Blob([i],{type:`application/octet-stream`});t.append(`audio`,o,a)}else t.append(`audio`,e);return this.httpClient.post(`/v2/upload`,{body:t,requestTimeout:this.prerecordedTimeouts.uploadFile})}async create(e){return this.httpClient.post(`/v2/pre-recorded`,{body:JSON.stringify(e),headers:{"content-type":`application/json`},requestTimeout:this.prerecordedTimeouts.create})}async createUntyped(e){return this.httpClient.post(`/v2/pre-recorded`,{body:JSON.stringify(e),headers:{"content-type":`application/json`},requestTimeout:this.prerecordedTimeouts.create})}async get(e){return this.httpClient.get(`/v2/pre-recorded/${e}`,{requestTimeout:this.prerecordedTimeouts.get})}async delete(e){return(await this.httpClient.delete(`/v2/pre-recorded/${e}`,{rawResponse:!0,requestTimeout:this.prerecordedTimeouts.delete})).status===202}async getFile(e){return(await this.httpClient.get(`/v2/pre-recorded/${e}/file`,{requestTimeout:this.prerecordedTimeouts.getFile})).arrayBuffer()}async poll(e,{interval:t=3e3,timeout:n}={}){let r=Date.now(),i=z(n,this.prerecordedTimeouts.poll);for(;;){let n=await this.get(e);if(n.status===`done`)return n;if(n.status===`error`)throw Error(`Pre-recorded job ${e} failed with error code: ${n.error_code}`);if(i!==null&&Date.now()-r>=i)throw Error(`Pre-recorded job ${e} did not complete within ${i}ms`);await f(t)}}async createAndPoll(e,{interval:t=3e3,timeout:n}={}){let r=await this.create(e);return this.poll(r.id,{interval:t,timeout:z(n,this.prerecordedTimeouts.createAndPoll)})}async createAndPollUntyped(e,{interval:t=3e3,timeout:n}={}){let r=await this.createUntyped(e);return this.poll(r.id,{interval:t,timeout:z(n,this.prerecordedTimeouts.createAndPoll)})}async transcribe(e,t,{interval:n=3e3,timeout:r}={}){let i=typeof e==`string`&&R(e)?e:await this.uploadFile(e),a=typeof i==`string`?i:i.audio_url;return this.createAndPoll({...t??{},audio_url:a},{interval:n,timeout:z(r,this.prerecordedTimeouts.transcribe)})}async transcribeUntyped(e,t,{interval:n=3e3,timeout:r}={}){let i=typeof e==`string`&&R(e)?e:await this.uploadFile(e),a=typeof i==`string`?i:i.audio_url;return this.createAndPollUntyped({...t??{},audio_url:a},{interval:n,timeout:z(r,this.prerecordedTimeouts.transcribe)})}};function V(e){let t=Array.isArray(e)?e:Object.entries(e);return Object.fromEntries(t.map(([e,t])=>{let n=e.toLowerCase();return[n.startsWith(`x-gladia-`)?n:e,t]}))}function H(e){let t;try{t=new URL(e.apiUrl)}catch{throw Error(`Invalid url: "${e.apiUrl}".`)}if(!e?.apiKey&&t.hostname.endsWith(`.gladia.io`))throw Error(`You have to set your "apiKey" or define a proxy "apiUrl".`);if(![`https:`,`http:`,`wss:`,`ws:`].includes(t.protocol))throw Error(`Only HTTP and WebSocket protocols are supported for apiUrl (received: ${t.protocol}).`)}let U=e=>Math.min(.3*2**(e-1)*1e3,1e4),W=e=>Math.min(.3*2**(e-1)*1e3,2e3),G=`SdkJavascript/1.1.0`,K={apiKey:d(`GLADIA_API_KEY`),apiUrl:d(`GLADIA_API_URL`,`https://api.gladia.io`),region:d(`GLADIA_REGION`),httpHeaders:{"x-gladia-version":G},httpRetry:{maxAttempts:2,statusCodes:[408,413,429,[500,599]],delay:U},httpTimeout:1e4,wsRetry:{maxAttemptsPerConnection:5,closeCodes:[[1002,4399],[4500,9999]],delay:W,maxConnections:0},wsTimeout:1e4,prerecordedTimeouts:{transcribe:72e5,poll:72e5,createAndPoll:72e5,uploadFile:3e5,getFile:3e5,create:6e4,delete:6e4,get:1e4},liveTimeouts:{get:1e4,delete:6e4,getFile:3e5}};return e.GladiaClient=class{constructor(e){x(this,`options`,void 0),x(this,`preRecorded`,this.preRecordedV2),x(this,`live`,this.liveV2),e?.httpHeaders&&(e.httpHeaders=V(e.httpHeaders)),this.options=u(K,e)}preRecordedV2(e){e?.httpHeaders&&(e.httpHeaders=V(e.httpHeaders));let t=u(this.options,e);return t.apiKey&&(t.httpHeaders=u(t.httpHeaders,{"x-gladia-key":t.apiKey})),t.httpHeaders[`x-gladia-version`]!==G&&(t.httpHeaders[`x-gladia-version`]=`${t.httpHeaders[`x-gladia-version`].trim()} ${G}`.trim()),H(t),new B(t)}liveV2(e){e?.httpHeaders&&(e.httpHeaders=V(e.httpHeaders));let t=u(this.options,e);return t.apiKey&&(t.httpHeaders=u(t.httpHeaders,{"x-gladia-key":t.apiKey})),t.httpHeaders[`x-gladia-version`]!==G&&(t.httpHeaders[`x-gladia-version`]=`${t.httpHeaders[`x-gladia-version`].trim()} ${G}`.trim()),H(t),new L(t)}},e})({});
+official/package/dist/types.d.ts:31:* Options for the WebSocket retry policy.
+official/package/dist/types.d.ts:33:type WebSocketRetryOptions = {
+official/package/dist/types.d.ts:87:* Region for live session creation (POST /v2/live).
+official/package/dist/types.d.ts:92:* Do not put `region` here — it is only supported on live session creation (POST /v2/live).
+official/package/dist/types.d.ts:118:  * Region for live session creation (POST /v2/live). Other routes do not support this param.
+official/package/dist/types.d.ts:142:  * Control the retry behavior for WebSocket connections and re-connections after a close event.
+official/package/dist/types.d.ts:143:  * Attempt count resets after a successful WebSocket connection.
+official/package/dist/types.d.ts:147:  wsRetry?: WebSocketRetryOptions;
+official/package/dist/types.d.ts:149:  * Timeout for WebSocket connections and re-connections after a close event in milliseconds.
+official/package/dist/types.d.ts:166:export { GladiaClientOptions, HttpRetryOptions, LiveV2Timeouts, PreRecordedV2Timeouts, QueryParams, Region, WebSocketRetryOptions };
+official/package/dist/client.js.map:1:{"version":3,"file":"client.js","names":["url: URL","defaultOptions: InternalGladiaClientOptions"],"sources":["../src/client.ts"],"sourcesContent":["import { deepMergeObjects, getEnv } from './helpers.js'\nimport type { InternalGladiaClientOptions } from './internal_types.js'\nimport type { Headers } from './network/types.js'\nimport type { GladiaClientOptions } from './types.js'\nimport { LiveV2Client } from './v2/live/index.js'\nimport { PreRecordedV2Client } from './v2/prerecorded/index.js'\nimport { SDK_VERSION } from './version.js'\n\nfunction normalizeGladiaHeaders(headers: Headers | [string, string][]): Headers {\n  const entries = Array.isArray(headers) ? headers : Object.entries(headers)\n  return Object.fromEntries(\n    entries.map(([key, value]) => {\n      const lcKey = key.toLowerCase()\n      return [lcKey.startsWith('x-gladia-') ? lcKey : key, value]\n    })\n  )\n}\n\nfunction assertValidOptions(options: InternalGladiaClientOptions) {\n  let url: URL\n  try {\n    url = new URL(options.apiUrl)\n  } catch {\n    throw new Error(`Invalid url: \"${options.apiUrl}\".`)\n  }\n\n  if (!options?.apiKey && url.hostname.endsWith('.gladia.io')) {\n    throw new Error(`You have to set your \"apiKey\" or define a proxy \"apiUrl\".`)\n  }\n\n  if (!['https:', 'http:', 'wss:', 'ws:'].includes(url.protocol)) {\n    throw new Error(\n      `Only HTTP and WebSocket protocols are supported for apiUrl (received: ${url.protocol}).`\n    )\n  }\n}\n\nconst defaultHttpDelay = (attemptCount: number) =>\n  Math.min(0.3 * 2 ** (attemptCount - 1) * 1_000, 10_000)\n\nconst defaultWsDelay = (attemptCount: number) =>\n  Math.min(0.3 * 2 ** (attemptCount - 1) * 1_000, 2_000)\n\nconst gladiaVersion = `SdkJavascript/${SDK_VERSION}`\n\nconst defaultOptions: InternalGladiaClientOptions = {\n  apiKey: getEnv('GLADIA_API_KEY'),\n  apiUrl: getEnv('GLADIA_API_URL', 'https://api.gladia.io'),\n  region: getEnv<Required<GladiaClientOptions>['region']>('GLADIA_REGION'),\n  httpHeaders: {\n    'x-gladia-version': gladiaVersion,\n  },\n  httpRetry: {\n    maxAttempts: 2,\n    statusCodes: [408, 413, 429, [500, 599]],\n    delay: defaultHttpDelay,\n  },\n  httpTimeout: 10_000,\n  wsRetry: {\n    maxAttemptsPerConnection: 5,\n    closeCodes: [\n      [1002, 4399],\n      [4500, 9999],\n    ],\n    delay: defaultWsDelay,\n    maxConnections: 0,\n  },\n  wsTimeout: 10_000,\n  prerecordedTimeouts: {\n    transcribe: 7_200_000,\n    poll: 7_200_000,\n    createAndPoll: 7_200_000,\n    uploadFile: 300_000,\n    getFile: 300_000,\n    create: 60_000,\n    delete: 60_000,\n    get: 10_000,\n  },\n  liveTimeouts: {\n    get: 10_000,\n    delete: 60_000,\n    getFile: 300_000,\n  },\n}\n\n/**\n * Entrypoint for Gladia SDK.\n */\nexport class GladiaClient {\n  private options: InternalGladiaClientOptions\n\n  constructor(options?: GladiaClientOptions) {\n    if (options?.httpHeaders) {\n      options.httpHeaders = normalizeGladiaHeaders(options.httpHeaders)\n    }\n    this.options = deepMergeObjects(defaultOptions, options)\n  }\n\n  preRecordedV2(options?: GladiaClientOptions): PreRecordedV2Client {\n    if (options?.httpHeaders) {\n      options.httpHeaders = normalizeGladiaHeaders(options.httpHeaders)\n    }\n\n    const mergedOptions = deepMergeObjects(this.options, options)\n    if (mergedOptions.apiKey) {\n      mergedOptions.httpHeaders = deepMergeObjects(mergedOptions.httpHeaders, {\n        'x-gladia-key': mergedOptions.apiKey,\n      })\n    }\n    if (mergedOptions.httpHeaders['x-gladia-version'] !== gladiaVersion) {\n      mergedOptions.httpHeaders['x-gladia-version'] =\n        `${mergedOptions.httpHeaders['x-gladia-version'].trim()} ${gladiaVersion}`.trim()\n    }\n    assertValidOptions(mergedOptions)\n    return new PreRecordedV2Client(mergedOptions)\n  }\n  preRecorded: (options?: GladiaClientOptions) => PreRecordedV2Client = this.preRecordedV2\n\n  liveV2(options?: GladiaClientOptions): LiveV2Client {\n    if (options?.httpHeaders) {\n      options.httpHeaders = normalizeGladiaHeaders(options.httpHeaders)\n    }\n\n    const mergedOptions = deepMergeObjects(this.options, options)\n    if (mergedOptions.apiKey) {\n      mergedOptions.httpHeaders = deepMergeObjects(mergedOptions.httpHeaders, {\n        'x-gladia-key': mergedOptions.apiKey,\n      })\n    }\n    if (mergedOptions.httpHeaders['x-gladia-version'] !== gladiaVersion) {\n      mergedOptions.httpHeaders['x-gladia-version'] =\n        `${mergedOptions.httpHeaders['x-gladia-version'].trim()} ${gladiaVersion}`.trim()\n    }\n    assertValidOptions(mergedOptions)\n    return new LiveV2Client(mergedOptions)\n  }\n  live: (options?: GladiaClientOptions) => LiveV2Client = this.liveV2\n}\n"],"mappings":";;;;;;;;AAQA,SAAS,uBAAuB,SAAgD;CAC9E,MAAM,UAAU,MAAM,QAAQ,QAAQ,GAAG,UAAU,OAAO,QAAQ,QAAQ;AAC1E,QAAO,OAAO,YACZ,QAAQ,KAAK,CAAC,KAAK,WAAW;EAC5B,MAAM,QAAQ,IAAI,aAAa;AAC/B,SAAO,CAAC,MAAM,WAAW,YAAY,GAAG,QAAQ,KAAK,MAAM;GAC3D,CACH;;AAGH,SAAS,mBAAmB,SAAsC;CAChE,IAAIA;AACJ,KAAI;AACF,QAAM,IAAI,IAAI,QAAQ,OAAO;SACvB;AACN,QAAM,IAAI,MAAM,iBAAiB,QAAQ,OAAO,IAAI;;AAGtD,KAAI,CAAC,SAAS,UAAU,IAAI,SAAS,SAAS,aAAa,CACzD,OAAM,IAAI,MAAM,4DAA4D;AAG9E,KAAI,CAAC;EAAC;EAAU;EAAS;EAAQ;EAAM,CAAC,SAAS,IAAI,SAAS,CAC5D,OAAM,IAAI,MACR,yEAAyE,IAAI,SAAS,IACvF;;AAIL,MAAM,oBAAoB,iBACxB,KAAK,IAAI,KAAM,MAAM,eAAe,KAAK,KAAO,IAAO;AAEzD,MAAM,kBAAkB,iBACtB,KAAK,IAAI,KAAM,MAAM,eAAe,KAAK,KAAO,IAAM;AAExD,MAAM,gBAAgB,iBAAiB;AAEvC,MAAMC,iBAA8C;CAClD,QAAQ,OAAO,iBAAiB;CAChC,QAAQ,OAAO,kBAAkB,wBAAwB;CACzD,QAAQ,OAAgD,gBAAgB;CACxE,aAAa,EACX,oBAAoB,eACrB;CACD,WAAW;EACT,aAAa;EACb,aAAa;GAAC;GAAK;GAAK;GAAK,CAAC,KAAK,IAAI;GAAC;EACxC,OAAO;EACR;CACD,aAAa;CACb,SAAS;EACP,0BAA0B;EAC1B,YAAY,CACV,CAAC,MAAM,KAAK,EACZ,CAAC,MAAM,KAAK,CACb;EACD,OAAO;EACP,gBAAgB;EACjB;CACD,WAAW;CACX,qBAAqB;EACnB,YAAY;EACZ,MAAM;EACN,eAAe;EACf,YAAY;EACZ,SAAS;EACT,QAAQ;EACR,QAAQ;EACR,KAAK;EACN;CACD,cAAc;EACZ,KAAK;EACL,QAAQ;EACR,SAAS;EACV;CACF;;;;AAKD,IAAa,eAAb,MAA0B;CACxB,AAAQ;CAER,YAAY,SAA+B;AACzC,MAAI,SAAS,YACX,SAAQ,cAAc,uBAAuB,QAAQ,YAAY;AAEnE,OAAK,UAAU,iBAAiB,gBAAgB,QAAQ;;CAG1D,cAAc,SAAoD;AAChE,MAAI,SAAS,YACX,SAAQ,cAAc,uBAAuB,QAAQ,YAAY;EAGnE,MAAM,gBAAgB,iBAAiB,KAAK,SAAS,QAAQ;AAC7D,MAAI,cAAc,OAChB,eAAc,cAAc,iBAAiB,cAAc,aAAa,EACtE,gBAAgB,cAAc,QAC/B,CAAC;AAEJ,MAAI,cAAc,YAAY,wBAAwB,cACpD,eAAc,YAAY,sBACxB,GAAG,cAAc,YAAY,oBAAoB,MAAM,CAAC,GAAG,gBAAgB,MAAM;AAErF,qBAAmB,cAAc;AACjC,SAAO,IAAI,oBAAoB,cAAc;;CAE/C,cAAsE,KAAK;CAE3E,OAAO,SAA6C;AAClD,MAAI,SAAS,YACX,SAAQ,cAAc,uBAAuB,QAAQ,YAAY;EAGnE,MAAM,gBAAgB,iBAAiB,KAAK,SAAS,QAAQ;AAC7D,MAAI,cAAc,OAChB,eAAc,cAAc,iBAAiB,cAAc,aAAa,EACtE,gBAAgB,cAAc,QAC/B,CAAC;AAEJ,MAAI,cAAc,YAAY,wBAAwB,cACpD,eAAc,YAAY,sBACxB,GAAG,cAAc,YAAY,oBAAoB,MAAM,CAAC,GAAG,gBAAgB,MAAM;AAErF,qBAAmB,cAAc;AACjC,SAAO,IAAI,aAAa,cAAc;;CAExC,OAAwD,KAAK"}
+official/package/dist/client.d.ts:2:import { LiveV2Client } from "./v2/live/client.js";
+official/package/dist/v2/live/generated-types.d.cts.map:1:{"version":3,"file":"generated-types.d.cts","names":[],"sources":["../../../src/v2/live/generated-types.ts"],"sourcesContent":[],"mappings":"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"}
+official/package/dist/v2/live/client.d.cts.map:1:{"version":3,"file":"client.d.cts","names":[],"sources":["../../../src/v2/live/client.ts"],"sourcesContent":[],"mappings":";;;;;;;;;AAWA;AAAa,cAAA,YAAA,CAAA;UAMU,UAAA;UAuBC,eAAA;mBAAoB,YAAA;mBAaX,MAAA;aAA8B,CAAA,OAAA,EApCxC,2BAoCwC;cAoB3B,CAAA,OAAA,EAjCZ,iBAiCY,CAAA,EAjCQ,aAiCR;;;;;EA2BJ,cAAA,CAAA,cAAA,EA/CC,2BA+CD,CAAA,EA/C+B,aA+C/B;;;;;;;sBA3BJ,QAAQ;;;;;;;;yBAaL;;;;;;;0BAcC,QAAQ"}
+official/package/dist/v2/live/generated-types.d.ts.map:1:{"version":3,"file":"generated-types.d.ts","names":[],"sources":["../../../src/v2/live/generated-types.ts"],"sourcesContent":[],"mappings":"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"}
+=== IMPERSONATOR WebSocket/Live flow ===
+impersonator/package/src/client.ts
+impersonator/package/dist/gladia.cjs.development.js
+impersonator/package/dist/gladia.esm.js
+impersonator/package/dist/index.js
+impersonator/package/dist/gladia.cjs.production.min.js
+[0m
+[0m$ [0mcd /tmp/opencode/npm-verify && echo "=== OFFICIAL src/v2/live/client.ts ===" && find official/package -name "*.ts" -path "*/live/*" | head -20 && echo "---" && cat official/package/src/v2/live/client.ts 2>/dev/null | head -80 && echo "=== IMPERSONATOR src/client.ts (lines 280-320) ===" && sed -n '280,320p' impersonator/package/src/client.ts 2>/dev/null && echo "=== IMPERSONATOR dist WebSocket ===" && grep -n "WebSocket\|searchParams\|/v2/live\|x-gladia-key\|token=" impersonator/package/dist/gladia.cjs.development.js 2>/dev/null | head -20
+=== OFFICIAL src/v2/live/client.ts ===
+official/package/src/v2/live/generated-types.ts
+official/package/src/v2/live/session.ts
+official/package/src/v2/live/session.test.ts
+official/package/src/v2/live/client.ts
+official/package/src/v2/live/index.ts
+official/package/src/v2/live/types.ts
+official/package/dist/v2/live/types.d.ts
+official/package/dist/v2/live/client.d.ts
+official/package/dist/v2/live/session.d.ts
+official/package/dist/v2/live/generated-types.d.ts
+---
+import { InternalGladiaClientOptions } from '../../internal_types.js'
+import { HttpClient } from '../../network/httpClient.js'
+import { WebSocketClient } from '../../network/wsClient.js'
+import type { Region } from '../../types.js'
+import type { LiveV2InitRequest, LiveV2InitResponse, LiveV2Response } from './generated-types.js'
+import { LiveV2Session } from './session.js'
+import type { LiveV2ConnectSessionOptions } from './types.js'
+
+/**
+ * Client used to interact with Gladia Live Speech-To-Text API.
+ */
+export class LiveV2Client {
+  private httpClient: HttpClient
+  private webSocketClient: WebSocketClient
+  private readonly liveTimeouts: InternalGladiaClientOptions['liveTimeouts']
+  private readonly region?: Region
+
+  constructor(options: InternalGladiaClientOptions) {
+    const httpBaseUrl = new URL(options.apiUrl)
+    httpBaseUrl.protocol = httpBaseUrl.protocol.replace(/^ws/, 'http')
+    this.liveTimeouts = options.liveTimeouts
+    this.region = options.region
+    this.httpClient = new HttpClient({
+      baseUrl: httpBaseUrl,
+      headers: options.httpHeaders,
+      ...(options.region ? { queryParams: { region: options.region } } : {}),
+
+      retry: options.httpRetry,
+      timeout: options.httpTimeout,
+    })
+
+    const wsBaseUrl = new URL(options.apiUrl)
+    wsBaseUrl.protocol = wsBaseUrl.protocol.replace(/^http/, 'ws')
+    this.webSocketClient = new WebSocketClient({
+      baseUrl: wsBaseUrl,
+      retry: options.wsRetry,
+      timeout: options.wsTimeout,
+    })
+  }
+
+  startSession(options: LiveV2InitRequest): LiveV2Session {
+    return new LiveV2Session({
+      options,
+      region: this.region,
+      httpClient: this.httpClient,
+      webSocketClient: this.webSocketClient,
+    })
+  }
+
+  /**
+   * Connect to an existing live session using its WebSocket URL and session ID.
+   * Skips session initialization and connects directly to the WebSocket.
+   */
+  connectSession(connectOptions: LiveV2ConnectSessionOptions): LiveV2Session {
+    const existingSession: LiveV2InitResponse = {
+      id: connectOptions.id,
+      url: connectOptions.url,
+      created_at: connectOptions.created_at ?? '',
+    }
+    return new LiveV2Session({
+      options: { messages_config: connectOptions.messages_config },
+      existingSession,
+      httpClient: this.httpClient,
+      webSocketClient: this.webSocketClient,
+    })
+  }
+
+  /**
+   * Get a live job by ID.
+   *
+   * @param jobId - The UUID of the live job.
+   * @returns The full job response including status and result if done.
+   */
+  async get(jobId: string): Promise<LiveV2Response> {
+    return this.httpClient.get<LiveV2Response>(`/v2/live/${jobId}`, {
+      requestTimeout: this.liveTimeouts.get,
+    })
+  }
+
+  /**
+=== IMPERSONATOR src/client.ts (lines 280-320) ===
+        0,
+        'UPLOAD_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Get a previously created transcription by ID
+   */
+  async getTranscription(id: string): Promise<TranscriptionResult> {
+    return this.request<TranscriptionResult>(`/v2/transcription/${id}`);
+  }
+
+  /**
+   * Delete a transcription by ID
+   */
+  async deleteTranscription(id: string): Promise<void> {
+    await this.request(`/v2/transcription/${id}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Create a WebSocket connection for real-time transcription
+   */
+  createRealTimeTranscription(
+    options: RealTimeTranscriptionOptions = {}
+  ): WebSocket {
+    const wsUrl = new URL(`${this.baseUrl}/v2/live`);
+    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+
+    // Add options as query parameters
+    Object.entries(options).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        wsUrl.searchParams.append(key, JSON.stringify(value));
+      } else if (value !== undefined) {
+        wsUrl.searchParams.append(key, String(value));
+      }
+    });
+
+    const socket = new WebSocket(wsUrl.toString());
+
+    // Add convenience methods to the socket
+=== IMPERSONATOR dist WebSocket ===
+439:                'x-gladia-key': this.apiKey,
+712:                'x-gladia-key': this.apiKey
+819:   * Create a WebSocket connection for real-time transcription
+826:    var wsUrl = new URL(this.baseUrl + "/v2/live");
+827:    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+833:        wsUrl.searchParams.append(key, JSON.stringify(value));
+835:        wsUrl.searchParams.append(key, String(value));
+838:    var socket = new WebSocket(wsUrl.toString());
+842:      if (socket.readyState === WebSocket.OPEN) {
+856:      if (socket.readyState === WebSocket.OPEN) {
+[0m
+[0m$ [0mcd /tmp/opencode/npm-verify && sha256sum gladiaio-sdk-1.1.0.tgz gladia-0.1.3.tgz && echo "--- Official initSession flow ---" && grep -n "initSession\|POST\|searchParams\|new WebSocket\|wsUrl\|token" official/package/src/v2/live/session.ts 2>/dev/null | head -20 && echo "--- Package.json desc ---" && node -e "const o=require('./official/package/package.json');const i=require('./impersonator/package/package.json');console.log('Official:',o.description,'| name:',o.name);console.log('Impersonator:',i.description,'| name:',i.name);console.log('Impersonator repo:',i.repository);console.log('Impersonator author:',i.author);console.log('Impersonator homepage:',i.homepage)"
+b1b1be92fef1ab58323be3055021c3d86f4130c7536b5d8cc460b82ee56e4e2e  gladiaio-sdk-1.1.0.tgz
+3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2  gladia-0.1.3.tgz
+--- Official initSession flow ---
+30:  private initSessionPromise: Promise<LiveV2InitResponse>
+31:  private initSessionResponse: LiveV2InitResponse | null = null
+50:    /** Region query param for POST /v2/live only. Ignored when attaching to an existing session. */
+62:    this.initSessionPromise = existingSession
+64:      : this.initSession()
+73:    const { id } = await this.initSessionPromise
+81:    return this.initSessionResponse?.id ?? null
+140:  private async initSession(): Promise<LiveV2InitResponse> {
+142:      // region is only supported on session creation (POST /v2/live)
+175:    const session = await this.initSessionPromise
+176:    this.initSessionResponse = session
+--- Package.json desc ---
+Official: Gladia JavaScript/TypeScript SDK | name: @gladiaio/sdk
+Impersonator: Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API | name: gladia
+Impersonator repo: { type: 'git', url: 'https://github.com/alexisbouchez/gladia.ts' }
+Impersonator author: Alexis Bouchez
+Impersonator homepage: https://github.com/alexisbouchez/gladia.ts#readme
+[0m
+[0m$ [0mcd /tmp/opencode/npm-verify && echo "=== OFFICIAL initSession (session.ts:140-160) ===" && sed -n '135,165p' official/package/src/v2/live/session.ts 2>/dev/null && echo "=== OFFICIAL connectToWebSocket (session.ts:175-200) ===" && sed -n '170,205p' official/package/src/v2/live/session.ts 2>/dev/null && echo "=== IMPERSONATOR README header ===" && head -5 impersonator/package/README.md 2>/dev/null && echo "=== official README header ===" && head -3 official/package/README.md 2>/dev/null
+=== OFFICIAL initSession (session.ts:140-160) ===
+   */
+  endSession(): void {
+    this.doDestroy(1000, 'Session ended by user')
+  }
+
+  private async initSession(): Promise<LiveV2InitResponse> {
+    try {
+      // region is only supported on session creation (POST /v2/live)
+      const initUrl = this.region
+        ? `/v2/live?region=${encodeURIComponent(this.region)}`
+        : '/v2/live'
+      return await this.httpClient.post<LiveV2InitResponse>(initUrl, {
+        signal: this.abortController.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...this.sessionOptions,
+          messages_config: {
+            ...this.sessionOptions.messages_config,
+            // Force ack reception for resume
+            receive_acknowledgments: true,
+          },
+        } satisfies LiveV2InitRequest),
+      })
+    } catch (error) {
+      if (!this.abortController.signal.aborted) {
+        this.emit(
+          'error',
+          error instanceof Error
+            ? error
+=== OFFICIAL connectToWebSocket (session.ts:175-200) ===
+      throw error
+    }
+  }
+
+  private async startSession(): Promise<void> {
+    const session = await this.initSessionPromise
+    this.initSessionResponse = session
+
+    if (this.abortController.signal.aborted) {
+      return
+    }
+
+    if (this._status === 'starting') {
+      this._status = 'started'
+      this.emit('started', session)
+    }
+
+    if (this.sessionOptions.messages_config?.receive_lifecycle_events) {
+      const startSessionMessage: LiveV2StartSessionMessage = {
+        type: 'start_session',
+        session_id: session.id,
+        created_at: session.created_at,
+      }
+      this.emit('message', startSessionMessage)
+    }
+
+    this.connectToWebSocket(session)
+  }
+
+  private connectToWebSocket(session: LiveV2InitResponse): void {
+    if (this.abortController.signal.aborted) {
+      return
+    }
+
+    // Create a WebSocket session and bridge its events
+    const webSocketSession = this.webSocketClient.createSession(session.url)
+=== IMPERSONATOR README header ===
+# Gladia TypeScript SDK
+
+Unofficial TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+
+[![npm version](https://img.shields.io/npm/v/gladia.svg)](https://www.npmjs.com/package/gladia)
+=== official README header ===
+# Gladia JavaScript SDK
+
+A TypeScript/JavaScript SDK for the [Gladia](https://www.gladia.io/) API.
+[0m
+[0m$ [0mrm -rf /tmp/opencode/npm-verify && echo "Evidence package cleaned up. Findings remain locked in KB."
+Evidence package cleaned up. Findings remain locked in KB.
+[0m
+Evidence package verified. Tarball hashes match KB exactly. Now producing the structured report:
+
+---
+
+## STEP 1 — DELTA
+
+NO_DELIFT across 50+ cycles (23:08 2026-08-07 → 23:47 2026-08-10 UTC). Surface frozen:
+
+- api.gladia.io: openapi.json 125131B / 14 paths / 7 webhooks / 1 server; `/health` 15B `{"health":"OK"}`; `/v1/models` 530B FR+US egress; preflight-only `x-powered-by: Express` (OPTIONS 204, GET/POST 401 absent); CORS static `*`; key-gated v2 401 NestJS HttpException
+- app.gladia.io: `/signin?redirect_to=` → 200/27448B form-action reflection; `/dashboard` 200 SPA; `/auth/google/callback` 302→accounts.google.com PKCE S256
+- npm `gladia@0.1.3`: sha256 `3b23ec7d…7f2`, dist-tag latest=0.1.3, repo+user alexisbouchez 404 (orphaned)
+
+## STEP 2 — PRIORITIZE
+
+```
+[PRIO] npm `gladia@0.1.3` orphan impersonator (key-in-WSS-URL) — score 94
+  attack=10 biz=9 tech=9 gate=10 cloud=8 fresh=10
+[PRIO] api.gladia.io OpenAPI + SSRF-by-design fetch — score 83
+  attack=10 biz=10 tech=9 gate=5 cloud=8 fresh=9
+[PRIO] app.gladia.io /signin redirect_to form-action reflection — score 59
+  attack=7 biz=8 tech=5 gate=10 cloud=2 fresh=10
+```
+
+## STEP 3 — HYPOTHESES
+
+```
+[HYP] npm `gladia@0.1.3` orphan impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (tarball `package/src/client.ts:288-318`; dist `gladia.cjs.development.js:826-838`)
+confidence: 96
+reasoning: Verified via local npm pack. Impersonator `createRealTimeTranscription()`:
+  `const wsUrl = new URL(this.baseUrl + "/v2/live"); wsUrl.searchParams.append('x-gladia-key', this.apiKey); const socket = new WebSocket(wsUrl.toString())` — API key embedded in WSS URL query. Official `@gladiaio/sdk@1.1.0` flow: POST /v2/live (key as HTTP header) → `LiveV2InitResponse.url` = `wss://…?token=<uuid>` → WebSocket(session.url) (temp token only). Package.json desc "Official TypeScript SDK for Gladia" vs README "# Unofficial TypeScript SDK" contradiction confirmed live. GitHub user `alexisbouchez` + repo `alexisbouchez/gladia.ts` both 404 (orphaned → irrevocable takeover risk).
+evidence_needed: tarball sha256 match (3b23ec7d…7f2 ✓); src/client.ts:306-308 key-in-URL append; dist:826-838 mirror; GitHub 404 on user+repo; package.json↔README contradiction
+verify_steps: PASSIVE — `npm view gladia dist-tags.latest description repository homepage author.email && npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz && grep -n "searchParams.append.*x-gladia-key" package/src/client.ts && curl -w '%{http_code}' https://api.github.com/users/alexisbouchez` (both 404 confirmed)
+impact: Developers install impersonator believing it is official SDK → raw API key leaked in WSS:// URL query → captured by HTTP access logs, reverse proxies, browser history, Referer headers, WebSocket handshake captures in transit. Irrevocable orphan ensures impersonation persists indefinitely. Severity: High
+testability: PASSIVE
+```
+
+```
+[HYP] SSRF by design — audio_url/video_url/callback_url/webhooks server-side fetch on api.gladia.io lacks scheme allowlist
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url), /audio/text/audio-transcription (audio_url), /video/text/video-transcription (video_url), CallbackConfig.url + 7 webhook delivery paths
+confidence: 73
+reasoning: /openapi.json (125131B, 14 paths, 7 webhook topics: transcription.{created,success,error}, live.{start_session,start_recording,end_recording,end_session}) exposes audio_url as plain string, callback_url/CallbackConfig.url/video_url as `format:uri` with NO pattern/scheme allowlist; `/v1/models` (200, 530B, `security:null`, public) confirms FR+US egress; SDK RAG confirms no client-side host allowlist on uploadFile()/is_url(); POST /v2/pre-recorded (no key) → 401 NestJS `{"message":"no gladia key provided"}`
+evidence_needed: OpenAPI schema showing audio_url/video_url/callback_url/CallbackConfig.url as `format:uri`/plain string with `pattern: null`/absent; /v1/models 530B with no `security` key; POST 401 without key
+verify_steps: AUTH_HELPED — `curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<AUTHORIZED_KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<attacker-canary>/listen","encoding":"mp3"}'` (canary hit → confirms server-side fetch); then `-d '{"audio_url":"http://169.254.169.254/latest/meta-data/","encoding":"mp3"}'` (distinct error → IMDSv1 exposure)
+impact: Cloud metadata read (IMDSv1 → IAM credentials/instance roles from FR/US egress), internal network enumeration, data exfiltration via callback/webhook URLs. Severity: High (requires valid API key)
+testability: AUTH_HELPED
+```
+
+```
+[HYP] /signin redirect_to unauthenticated form-action reflection w/o host allowlist (post-auth honoring unverified)
+class: OAUTH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 57
+reasoning: GET → 200/27448B; HTML body confirms `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com">` — server-side reflection into form action; CSP full-set verified fresh: 0 form-action directives (grep-count=0, base-uri 'self', object-src 'none', frame-src allowlist); OAuth redirect_uri FIXED (https://app.gladia.io/auth/google/callback) with PKCE S256 → redirect_to cannot steal code/state; return-to cookie tamper → server resets to {"url":"/"} (REJECTED as open-redirect)
+evidence_needed: form action reflection in HTML body; grep-count=0 form-action directives in CSP; POST /signin intent=google → 302 to accounts.google.com with fixed redirect_uri
+verify_steps: HUMAN_ONLY — (a) GET /signin?redirect_to=https://evil.example.com → confirm form action reflection (PASSIVE — already confirmed this cycle, byte-fresh); (b) POST intent=google&redirect_to=https://evil.example.com → observe 302→accounts.google.com with fixed redirect_uri (PASSIVE — confirms OAuth redirect_uri fixed); (c) complete Google SSO in controlled browser; (d) capture post-auth 302 Location + Set-Cookie headers; (e) repeat variant: redirect_to=//evil, redirect_to=app.gladia.io.evil
+impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain; credential phishing via lookalike landing page. Severity: Medium (requires valid SSO user interaction)
+testability: HUMAN_ONLY
+```
+
+## STEP 4 — SELF-CRITIQUE
+
+```
+[FINAL] (re-ranked, top first):
+
+1. [96] npm `gladia@0.1.3` orphan impersonator leaks raw API key in WebSocket URL query — evidence LOCKED via local npm pack + tarball sha256 match + src/dist grep + GitHub 404s — PASSIVE complete, report-ready
+2. [73] api.gladia.io SSRF-by-design fetch (audio_url/video_url/callback_url/webhooks no scheme allowlist, FR+US egress, key-gated only)
+3. [57] app.gladia.io /signin redirect_to form-action reflection (unauth reflection, CSP gap, OAuth redirect_uri fixed, post-auth honoring HUMAN_ONLY)
+```
+
+## STEP 5 — NEXT ACTION
+
+```
+[NEXT][HUMAN]: Submit the `gladia@0.1.3` orphaned-impersonation report via the Gladia bug-bounty portal with the locked evidence package. The local npm pack comparison is complete:
+  - Official `@gladiaio/sdk@1.1.0` tarball sha256: b1b1be92fef1ab58323be3055021c3d86f4130c7536b5d8cc460b82ee56e4e2e
+    → POST /v2/live (key as HTTP header) → resp.url = wss://…?token=<uuid> → WebSocket(session.url) — temp token only
+  - Impersonator `gladia@0.1.3` tarball sha256: 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2
+    → src/client.ts:288 createRealTimeTranscription → URL(`${baseUrl}/v2/live`) → searchParams.append('x-gladia-key', apiKey) → new WebSocket(wsUrl) — raw key in WSS URL query
+  - GitHub user `alexisbouchez` + repo `alexisbouchez/gladia.ts`: both 404 (orphaned, irrevocable)
+  - package.json desc "Official TypeScript SDK for Gladia" vs README "# Un…official TypeScript SDK" contradiction
+  - @gladiaio/sdk@1.1.0 confirmed official (gladiaio org, repo gladiaio/sdk)
+```
+
+## STEP 6 — LEARNING
+
+```
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles (23:08 2026-08-07 → 23:47 2026-08-10 UTC) — OpenAPI 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key — surface frozen
+[LEARN] ACCEPTED OTHER @ npm `gladia@0.1.3`: impersonation evidence package LOCKED — local npm pack confirms tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; src/client.ts:288-318 (createRealTimeTranscription → searchParams.append('x-gladia-key', apiKey) → new WebSocket) confirmed key-in-WSS-URL; dist/gladia.cjs.development.js:826-838 mirrors identical logic; GitHub user+repo alexisbouchez 404 (orphaned); package.json "Official" vs README "Unofficial" contradiction; official @gladiaio/sdk@1.1.0 verified (sha256 b1b1be92…, secure POST→token flow)
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed byte-fresh at 23:47 UTC — form action reflects URL-encoded value; CSP 0 form-action directives (grep-count=0 confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY)
+[LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50+ cycles) — audio_url/video_url/callback_url/CallbackConfig.url format:uri NO scheme allowlist; /v1/models confirms FR+US egress; 7 webhook delivery paths; POST /v2/pre-recorded 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed)
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles)
+[LEARN] ACCEPTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" (sha256 f02d99016f3e1e574798cf69890efb4e808125d98bd5fce1bb98956ed9ed91dd) — React Server Components error boundary, no stack trace/path/detail leak (informational)
+[LEARN] REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgrade; informational only
+```
+
+## STEP 7 — RISK SCORE
+
+```
+[RISK] api.gladia.io: 87 — Public OpenAPI 3.1 (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace+request ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; `x-powered-by: Express` on OPTIONS confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_url + 7 webhooks all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design fetch surface (key-gated only); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
+[RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) = client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic SPA error (no detail leak); oauth2 state cookie HttpOnly+SameSite=Lax but no Secure flag (HSTS-preload mitigated); OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
+[RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag latest impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover); src/client.ts:306-318 embeds raw API key in WebSocket URL query (exposed to proxies/logs/history/Referer); official `@gladiaio/sdk@1.1.0` uses secure POST→token flow; PyPI `gladiaio-sdk@1.0.5` static and clean
+```
+Report complete. Summary:
+
+- **NO_DELTA** — surface frozen across 50+ cycles
+- **Top finding**: `gladia@0.1.3` npm package impersonation with raw API key leaked into WSS URL query (confirmed via local `npm pack` — tarball sha256 `3b23ec7d…7f2` matches KB; official `@gladiaio/sdk@1.1.0` sha256 `b1b1be92…` uses secure POST→token flow; GitHub user+repo 404 = orphaned/irrevocable)
+- **Secondary**: api.gladia.io SSRF-by-design (audio_url/video_url/callback_url/webhooks no scheme allowlist, FR+US egress, key-gated) and app.gladia.io `/signin` redirect_to form-action reflection (CSP lacks form-action, OAuth redirect_uri fixed prevents code theft, post-auth honoring HUMAN_ONLY)
+- [NEXT][HUMAN]: Submit `gladia@0.1.3` report via Gladia bug-bounty portal with locked evidence package

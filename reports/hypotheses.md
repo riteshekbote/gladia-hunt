@@ -1489,3 +1489,24 @@
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 58+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
+
+## RANKED HYPOTHESES 2026-08-10 16:16:07 UTC
+- [96] npm: npm `gladia@0.1.3` orphan impersonator leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator at dist-tag latest leaks API keys via WebSocket URL query parameter (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-longcat.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via gladia.io/bug-bounty-report with evidence package: dist-tag latest=0.1.3, repo+user alexisbouchez
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles (23:08 2026-08-07 → 23:47 2026-08-10 UTC) — OpenAPI 125131B/14 paths/7 webhooks/1 serve
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: impersonation evidence package LOCKED — local npm pack confirms tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed byte-fresh at 23:47 UTC — form action reflects URL-encoded value; CSP 0 form-action dir
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50+ cycles) — audio_url/video_url/callback_url/CallbackConfig.url format:uri NO scheme allowlist; /v1/models con
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" (sha256 f02d99016f3e1e574798cf
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgra
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending.
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 58+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — dist-tag latest=0.1.3, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2`, src/clien
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differe

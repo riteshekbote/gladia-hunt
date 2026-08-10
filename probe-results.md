@@ -300,3 +300,7 @@ https://api.gladia.io -> HTTP 404
 ## 2026-08-10 15:21:18 UTC
 https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 16:16:10 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
