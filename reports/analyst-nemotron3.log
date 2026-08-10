@@ -7002,3 +7002,129 @@ class: OTHER
 asset: npm registry (gladia@0.1.3)  
 confidence: 96  
 reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:306–308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key
+===== ANALYST nemotron3 2026-08-10 20:08:26 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mnpm pack gladia@0.1.3 --dry-run 2>&1 | head -20
+npm notice
+npm notice 📦  gladia@0.1.3
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 9.0kB README.md
+npm notice 2.7kB dist/client.d.ts
+npm notice 36.7kB dist/gladia.cjs.development.js
+npm notice 34.2kB dist/gladia.cjs.development.js.map
+npm notice 17.2kB dist/gladia.cjs.production.min.js
+npm notice 28.4kB dist/gladia.cjs.production.min.js.map
+npm notice 36.6kB dist/gladia.esm.js
+npm notice 34.2kB dist/gladia.esm.js.map
+npm notice 68B dist/index.d.ts
+npm notice 190B dist/index.js
+npm notice 5.6kB dist/types.d.ts
+npm notice 1.7kB package.json
+npm notice 12.2kB src/client.ts
+npm notice 1.1kB src/index.ts
+npm notice 4.9kB src/types.ts
+npm notice Tarball Details
+[0m
+[0m$ [0mnpm pack gladia@0.1.3 --dry-run 2>&1 | grep -A5 "src/client.ts" && npm pack gladia@0.1.3 2>&1 | tail -5
+npm notice 12.2kB src/client.ts
+npm notice 1.1kB src/index.ts
+npm notice 4.9kB src/types.ts
+npm notice Tarball Details
+npm notice name: gladia
+npm notice version: 0.1.3
+npm notice shasum: cc96f84a200c0fd49a71e919391f9b659c39f3e9
+npm notice integrity: sha512-56NWQ9pEVyd/E[...]R1c6GaC3YBztw==
+npm notice total files: 16
+npm notice
+gladia-0.1.3.tgz
+[0m
+[0m$ [0mtar -xzf gladia-0.1.3.tgz package/src/client.ts && grep -n "x-gladia-key" package/src/client.ts && sha256sum gladia-0.1.3.tgz
+41:          'x-gladia-key': this.apiKey,
+237:          'x-gladia-key': this.apiKey,
+307:    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2  gladia-0.1.3.tgz
+[0m
+[0m$ [0mtar -xzf gladia-0.1.3.tgz package/README.md package/package.json && head -20 package/README.md && cat package/package.json | grep -A2 description
+# Gladia TypeScript SDK
+
+Unofficial TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+
+[![npm version](https://img.shields.io/npm/v/gladia.svg)](https://www.npmjs.com/package/gladia)
+[![GitHub](https://img.shields.io/github/license/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/issues)
+[![GitHub stars](https://img.shields.io/github/stars/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/stargazers)
+
+## Features
+
+- 🎯 Full TypeScript support with comprehensive type definitions
+- 🎙️ Asynchronous audio and video transcription
+- 🔄 Real-time transcription with WebSocket support
+- 🌍 Multi-language support (100+ languages)
+- 👥 Speaker diarization
+- 🔤 Translation capabilities
+- 📝 Audio summarization
+- 😊 Sentiment analysis
+- 🏷️ Named entity recognition
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "main": "dist/index.js",
+  "module": "dist/gladia.esm.js",
+[0m
+[0m$ [0mcurl -sI https://github.com/alexisbouchez/gladia.ts | head -1 && curl -sI https://github.com/alexisbouchez | head -1
+HTTP/2 404 
+HTTP/2 404
+[0m
+[0m$ [0mnpm view @gladiaio/sdk@1.1.0 dist.tarball 2>/dev/null | head -1 && npm view @gladiaio/sdk@1.1.0 repository.url 2>/dev/null
+https://registry.npmjs.org/@gladiaio/sdk/-/sdk-1.1.0.tgz
+git+https://github.com/gladiaio/sdk.git
+[0m
+[NEW] npm `gladia@0.1.3`: local `npm pack` reproduced independently — tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` verified; `src/client.ts:307` `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())` confirms API key leaked into wss:// URL query at runtime; README "Unofficial" vs package.json "Official" contradiction confirmed; GitHub repo+user `alexisbouchez` both 404 (orphaned)
+
+[PRIO] npm registry (gladia@0.1.3), 8.25, attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io, 7.15, attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=5
+[PRIO] app.gladia.io, 6.85, attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:307 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key=<key> query parameter — diverges from official SDK's token-after-init POST /v2/live flow, leaks key in URLs/logs/proxies
+evidence_needed: Document artifact-level findings (tarball sha256, README vs package.json contradiction, client.ts:307 key-in-URL); confirm no affiliation with Gladia
+verify_steps: RAG: Finalize report with tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, README "Unofficial" vs package.json "Official", client.ts:307 key-in-URL; HUMAN: Request Gladia security confirm no affiliation with alexisbouchez/softwarecitadel
+impact: Supply chain risk — developers install impersonated SDK leading to credential theft via key-in-URL logs/proxies; severity High
+testability: RAG
+
+[HYP] SSRF via audio_url/video_url/callback_url server-side fetch + webhook delivery
+class: SSRF
+asset: api.gladia.io
+confidence: 73
+reasoning: OpenAPI spec frozen 50+ cycles confirms /v2/pre-recorded and /v2/live accept audio_url/video_url/callback_url as format:uri/plain string with no scheme allowlist; /v1/models exposes FR/US datacenter regions for egress targeting; webhooks key enumerates 7 outbound POST topics to client-supplied URLs; NestJS-on-Express backend likely follows redirects; SDK source confirms no host allowlist/metadata-blocklist/redirect-limit validation forwarded to API
+evidence_needed: Confirm server-side fetch behavior with internal metadata URLs (169.254.169.254), localhost, private CIDRs; verify redirect following and callback_url/webhook SSRF
+verify_steps: AUTH_HELPED: POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: <valid_key>" -H "Content-Type: application/json" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/","callback_url":"http://169.254.169.254/latest/meta-data/"}'
+impact: Cloud metadata access, internal service enumeration, potential data exfiltration via callback; severity High
+testability: AUTH_HELPED
+
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 65
+reasoning: /signin?redirect_to= reflects value into form action for https://, //, bare-host, confusing-subdomain (app.gladia.io.evil), path-only variants — confirmed live fresh; CSP lacks form-action directive restricting POST targets; Google-only OAuth limits exploitability but no host allowlist enforced on reflection at unauthenticated layer; post-auth honoring unverified (AUTH_HELPED)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+
+[PARKED] None — all three hypotheses meet confidence ≥40, have concrete verify_steps, and are not on REJECTED list.
+
+[FINAL] 1) Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL (npm registry, 96, OTHER) 2) SSRF via audio_url/video_url/callback_url server-side fetch (api.gladia.io, 73, SSRF) 3) Post-auth open redirect via reflected redirect_to on signin form action (app.gladia.io, 65, OATH)
+
+[NEXT] HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via Gladia bug-bounty portal with evidence package (tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.json "Official" contradiction, src/client.ts:307 raw x-gladia-key in wss:// URL query)
+
+[LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 60+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring is sole unverified gate (HUMAN_ONLY)
+[LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST 401 NestJS key-gated — SSRF-by-design surface persists, AUTH_HELPED
+
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; NestJS-on-Express backend; high business value; potential SSRF via audio_url/video_url/callback_url with no scheme validation; datacenter regions exposed; 7 webhook callback topics | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased

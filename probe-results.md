@@ -317,3 +317,7 @@ https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=
 ## 2026-08-10 19:18:45 UTC
 https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 20:08:28 UTC
+https://registry.npmjs.org/gladia -> 200 len=19076 type=application/json
+https://api.gladia.io/v2/pre-recorded -> HTTP 401

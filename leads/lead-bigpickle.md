@@ -3471,3 +3471,31 @@ evidence_needed: post-auth 302 Location to external host after successful signin
 verify_steps: AUTH_HELPED — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
 impact: post-auth phishing redirect → Medium
 testability: AUTH_HELPED
+## 2026-08-10 20:06:04 UTC [api] (model bigpickle)
+[HYP] `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia` 0.1.3
+confidence: 96
+reasoning: dist-tag latest=0.1.3 + description "Official TypeScript SDK"; repo alexisbouchez/gladia.ts + user 404 (orphaned, irrevocable); local npm pack reproduced sha256 `3b23ec7d…7f2`; src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(...)`; README "Unofficial" vs package.json "Official"; adjacent-namespace all-404 (isolated).
+evidence_needed: Gladia affiliation verdict — submission is the only remaining step.
+verify_steps: PASSIVE complete (metadata fresh, tarball sha256 verified, GitHub 404). Submit.
+impact: devs run unofficial code; raw keys exposed in WS URL query (logs/referrers) → Medium
+testability: PASSIVE
+[HYP] SSRF via audio_url/video_url fetch + webhook/callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url, video_url, callback_config.url; 7 webhook topics)
+confidence: 73
+reasoning: openapi byte-frozen 60+ cycles (125131B/14 paths/7 webhooks/single server); URL fields format:uri/plain string no scheme allowlist; /v1/models 530B confirms FR+US egress; POST re-confirmed 401/144 NestJS fresh — key sole gate.
+evidence_needed: key-gated fetch where server error/timing reflects reachability of a self-owned canary, or callback POST received.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key, POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>"}`; repeat video_url + callback_config.url + webhook URL; ≥2x FR/US; self-owned data only.
+impact: cloud-metadata + internal read from API origin → High (key-gated)
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin (form-action reflection, email/password + Google OAuth paths)
+confidence: 50
+reasoning: reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: AUTH_HELPED — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → Medium
+testability: AUTH_HELPED
