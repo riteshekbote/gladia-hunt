@@ -328,3 +328,7 @@ https://registry.npmjs.org/gladia -> 200 len=19076 type=application/json
 
 ## 2026-08-10 22:01:57 UTC
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 22:38:13 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
