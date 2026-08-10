@@ -196,3 +196,8 @@
   - | Q7 Triager accept? | CONDITIONAL — only if injection demonstrated with valid key |
   - | `https://app.gladia.io.evil.example.com` | ERR | DNS resolution fails — not a valid Gladia asset |
   - | **VALID** | 1 | npm `gladia`@0.1.3 impersonation |
+
+- 3 lead(s) marked VALID at 2026-08-10 10:45:01 UTC
+  - | VALID | 2 | npm `gladia`@0.1.3 impersonation + API key harvesting via WS URL query param |
+  - | HOLD | 4 | SSRF (audio_url), IDOR (/{id}/file), WS token in URL, /v1/history query injection — all need AUTH_HELPED (valid API key) |
+  - - GitHub repo 404 confirmed for alexisbouchez/gladia.ts — strengthens VALID verdict for npm impersonation
