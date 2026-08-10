@@ -318,3 +318,10 @@
 - NEW api.gladia.io POST /v2/pre-recorded (no key) → 401 `{"message":"no gladia key provided","request_id":"…"}` NestJS HttpException shape confirmed fresh (timestamp 2026-08-10T14:xx UTC)
 - NEW app.gladia.io /signin?redirect_to=https://evil.example.com → 200, CSP captured full set, `0 form-action directives` confirmed (grep-count=0)
 - NEW app.gladia.io /auth/google/callback (no params) → 302 → accounts.google.com full OAuth 2.0 PKCE S256 init (client_id, fixed redirect_uri, code_challenge, state) confirmed
+
+## 2026-08-10 15:21:16 UTC
+- NEW npm `gladia@0.1.3` tarball `package/src/client.ts:307` confirms `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())` — API key leaked into wss:// URL query at r
+- NEW api.gladia.io OpenAPI `webhooks` key confirmed (7 topics: transcription.{created,success,error}, live.{start_session,start_recording,end_recording,end_session}) — all POST to client-supplied URLs, `fo
+- NEW api.gladia.io POST /v2/pre-recorded (no key) → 401 `{"message":"no gladia key provided","request_id":"…"}` NestJS HttpException shape confirmed fresh (timestamp 2026-08-10T14:xx UTC)
+- NEW app.gladia.io /signin?redirect_to=https://evil.example.com → 200, CSP captured full set, `0 form-action directives` confirmed (grep-count=0)
+- NEW app.gladia.io /auth/google/callback (no params) → 302 → accounts.google.com full OAuth 2.0 PKCE S256 init (client_id, fixed redirect_uri, code_challenge, state) confirmed
