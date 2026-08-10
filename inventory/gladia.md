@@ -331,3 +331,6 @@
 ## 2026-08-10 17:16:05 UTC
 
 ## 2026-08-10 18:17:03 UTC
+
+## 2026-08-10 19:18:43 UTC
+- NEW npm `gladia@0.1.3`: local `npm pack gladia@0.1.3` reproduced independently — tarball sha256 `3b23ec7d…7f2`, `package/src/client.ts:307` `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` + `:318

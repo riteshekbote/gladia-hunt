@@ -3145,3 +3145,12 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST 401 NestJS key-gated — SSRF-by-design surface persists, AUTH_HELPED
 [LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; NestJS-on-Express backend; high business value; potential SSRF via audio_url/video_url/callback_url with no scheme validation; datacenter regions exposed; 7 webhook callback topics | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+## 2026-08-10 19:18:31 UTC [app] (model nemotron3)
+[PRIO] npm registry (gladia@0.1.3), 8.25, attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10  
+[PRIO] api.gladia.io, 7.15, attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=5  
+[PRIO] app.gladia.io, 6.85, attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query  
+class: OTHER  
+asset: npm registry (gladia@0.1.3)  
+confidence: 96  
+reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:306–308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key
