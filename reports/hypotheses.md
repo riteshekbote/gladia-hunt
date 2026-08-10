@@ -1340,3 +1340,18 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static & byte-fresh — dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, repo+user al
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh across 50+ cycles — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri
+
+## RANKED HYPOTHESES 2026-08-10 06:23:21 UTC
+- [95] npm: `gladia@0.1.3` orphaned impersonation at dist-tag latest (raw API key in WS URL) (from reports/hypotheses-bigpickle.txt)
+- [95] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): RAG: Finalize npm `gladia`@0.1.3 report with tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, README "Unofficial" vs package.j
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Unchanged from prior cycle — submit `gladia@0.1.3` report via the program's bug-bounty submission channel (tarball sha256 `3b23ec7d7a763abc04c52db232d157
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 54th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POS
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` unchanged, dist-tag latest=0.1.3, repo+us
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed this cycle (28th+ cycle) — /openapi.json 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, prefl
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh confirmed this cycle — sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, dist-tag latest=0.1.3, 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection byte-fresh confirmed (200/27448B, form action reflects URL-encoded value, 0 form-action directive
