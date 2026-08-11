@@ -205,6 +205,29 @@ def main():
             repo.create_issue(title=title, body=body, labels=labels)
             created += 1
 
+    confirmed_assets = []
+    for f in files:
+        text = f.read_text(errors="ignore")
+        for m in re.finditer(r'^\[CONFIRMED\]\s*(.*)$', text, re.M):
+            confirmed_assets.append(m.group(1).strip())
+    confirmed_low = ' '.join(a.lower() for a in confirmed_assets)
+
+    verified_now = 0
+    for iss in existing:
+        if iss.state != "open":
+            continue
+        if "verified" in {l.name for l in iss.labels}:
+            continue
+        low = (iss.title + " " + (iss.body or "")).lower()
+        if confirmed_low and (any(a and a.lower()[:40] in low for a in confirmed_assets) or confirmed_low[:40] in low):
+            try:
+                iss.edit(labels=list({l.name for l in iss.labels} | {"verified"}))
+                iss.create_comment("Auto-verified: [CONFIRMED] evidence present in latest analyst lead.")
+                verified_now += 1
+            except Exception:
+                pass
+    print(f"auto-verified issues: {verified_now}")
+
     rejected = []
     for f in files:
         text = f.read_text(errors="ignore")
@@ -226,7 +249,7 @@ def main():
     dup_closed = 0
     for fp, isslist in by_fp.items():
         if len(isslist) > 1:
-            keep = min(isslist, key=lambda i: i.created_at)
+            keep = min(isslist, key=lambda i: i.number)
             for dup in isslist:
                 if dup != keep and dup.state == "open":
                     try:
@@ -245,7 +268,7 @@ def main():
         groups.setdefault(key, []).append(i)
     for key, isslist in groups.items():
         if len(isslist) > 1:
-            keep = min(isslist, key=lambda i: i.created_at)
+            keep = min(isslist, key=lambda i: i.number)
             for dup in isslist:
                 if dup != keep:
                     try:
