@@ -118,7 +118,7 @@ def issue_fingerprint(iss):
     return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
 
 
-def ensure_label(name):
+def ensure_label(repo, name):
     color = {"pending": "d4c5f9", "false-positive": "7057ff", "verified": "0e8a16",
              "reported": "fbca04", "duplicate": "b60205",
              "high-confidence": "1d76db", "bug-bounty": "5319e7",
@@ -162,7 +162,7 @@ def main():
     all_labels = ["bug-bounty", "ai-hypothesis", "pending", "false-positive", TARGET] \
         + [f"model-{m}" for m in models] + [f"confidence-{c}" for c in confs]
     for l in all_labels:
-        ensure_label(l)
+        ensure_label(repo, l)
 
     try:
         existing = list(repo.get_issues(state="all", labels=["bug-bounty"]))
