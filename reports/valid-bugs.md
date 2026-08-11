@@ -271,3 +271,6 @@
 
 - 1 lead(s) marked VALID at 2026-08-11 10:50:11 UTC
   - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | npm impersonation, already reported 9× |
+
+- 1 lead(s) marked VALID at 2026-08-11 12:35:28 UTC
+  - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | Supply-chain impersonation — already reported 9+ times since 2026-08-07 |
