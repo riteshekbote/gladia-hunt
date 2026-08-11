@@ -274,3 +274,15 @@
 
 - 1 lead(s) marked VALID at 2026-08-11 12:35:28 UTC
   - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | Supply-chain impersonation — already reported 9+ times since 2026-08-07 |
+
+- 10 lead(s) marked VALID at 2026-08-11 14:16:08 UTC
+  - | Q6 | **YES** | Supply-chain impersonation + credential-leak code is a valid class, not best-practice/self-XSS/info-disclosure-of-public-data. |
+  - ### Verdict: **VALID (DUPLICATE)**
+  - | Q6 | **YES** | SSRF is a valid class. |
+  - ### Verdict: **HOLD** — Real SSRF surface confirmed by public OpenAPI spec (`format:uri`, no scheme allowlist), but requires AUTH_HELPED testing (valid API key + POST with internal URL) to prove. Per 
+  - | Q6 | **YES** | Open redirect is valid class. |
+  - | Q4 | **NO** | Requires valid key + cross-account {id} testing. AUTH_HELPED. Spec does not indicate per-resource ownership validation, but this is speculation. |
+  - | Q6 | **YES** | IDOR is valid class. |
+  - ### Verdict: **HOLD** — Plausible surface, requires AUTH_HELPED testing (valid key + known other-user {id}).
+  - | Q6 | **YES** | Token-in-URL is a valid design-level security concern. |
+  - | 1 | npm `gladia@0.1.3` impersonation + credential-leak | npm registry (SDK ecosystem) | **VALID (DUPLICATE)** | Supply-chain squat, orphaned repo, API key in WS URL. Already reported 9+ times. |
