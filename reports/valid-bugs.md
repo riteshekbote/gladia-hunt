@@ -234,3 +234,23 @@
   - | Q6 Not rejected? | YES — valid vulnerability class |
   - **Verdict: VALID (DUPLICATE)** — Same npm `gladia`@0.1.3 impersonation + API key harvesting finding already confirmed as VALID. The probe data (npm registry 200, repo 404) is consistent evidence but d
   - | H | `registry.npmjs.org/gladia` (200) | **VALID (DUPLICATE)** | Already reported; not novel |
+
+- 18 lead(s) marked VALID at 2026-08-11 04:12:29 UTC
+  - | 1 | npm `gladia`@0.1.3 impersonation / supply-chain squat with API key exfil via WS URL | npm registry (MEDIUM) | **VALID** | Verified fact; passive proof complete; repo 404 (irrevocable); dist-tag 
+  - | 2 | SSRF via audio_url/video_url/callback_url server-side fetch | api.gladia.io (HIGHEST) | **HOLD** | In-scope, real impact, design confirmed — but proof requires AUTH_HELPED (valid API key + POST)
+  - | 3 | IDOR on `/{id}/file` download endpoints | api.gladia.io (HIGHEST) | **HOLD** | Needs valid key + cross-account test; UUID guessing infeasible without owned IDs |
+  - | 4 | WebSocket auth token in URL query parameter | api.gladia.io (HIGHEST) | **HOLD** | Design confirmed via public spec; proving actual leakage requires valid key |
+  - | 5 | Query-param injection on `/v1/history` (custom_metadata, arrays) | api.gladia.io (HIGHEST) | **HOLD** | Spec confirms object/array params; needs valid key to test injection — AUTH_HELPED |
+  - | Q5 Novel? | YES — not previously reported to Gladia (per valid-bugs.md, this is the only confirmed finding) |
+  - | Q6 Not rejected? | YES — supply-chain impersonation + credential harvesting is a valid vulnerability class |
+  - | Q4 Passive proof? | NO — OpenAPI spec confirms design (audio_url, video_url, CallbackConfigDto.url all `format:uri` with no scheme allowlist). Proving actual server-side fetch requires POST with val
+  - | Q6 Not rejected? | YES — SSRF is a valid vulnerability class |
+  - | Q7 Triager accept? | CONDITIONAL — only if reachability demonstrated with valid key |
+  - | Q2 Reachable? | NO for cross-account — requires valid API key + known resource ID owned by another user; UUID-based IDs make guessing infeasible |
+  - | Q6 Not rejected? | YES — IDOR is a valid vulnerability class |
+  - | Q2 Reachable? | PARTIAL — token-in-URL design visible in public OpenAPI spec; actual token generation requires valid API key |
+  - | Q4 Passive proof? | PARTIAL — design confirmed via public spec (`wss://api.gladia.io/v2/live?token=<uuid>`); proving actual leakage requires valid key to init session and inspect Referer headers |
+  - | Q6 Not rejected? | YES — credential leakage via URL is a valid vulnerability class |
+  - | Q4 Passive proof? | NO — requires valid API key to test injection strings |
+  - | Q6 Not rejected? | YES — injection is a valid vulnerability class |
+  - | Q7 Triager accept? | CONDITIONAL — only if injection demonstrated with valid key |
