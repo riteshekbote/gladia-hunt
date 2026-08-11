@@ -368,3 +368,6 @@
 - NEW None since 09:43 UTC — surface remains frozen across all targets (80+ drift-negative cycles on api.gladia.io, byte-fresh signin reflection on app.gladia.io, static orphaned impersonation on npm)
 
 ## 2026-08-11 11:32:55 UTC
+
+## 2026-08-11 12:44:23 UTC
+- NEW None — all surfaces frozen (api.gladia.io openapi.json 125131B/14 paths/7 webhooks etag W/"1e8cb-...", app.gladia.io signin reflection + CSP gap byte-identical, npm gladia@0.1.3 shasum cc96f84a... unc
