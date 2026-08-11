@@ -175,8 +175,19 @@ def main():
             by_fp.setdefault(fp, []).append(i)
     print("existing issues:", len(existing))
 
-    created = updated = 0
+    # in-run dedup: same fingerprint multiple times in this batch -> keep first
+    seen_fp = set()
+    uniq_blocks = []
     for b in blocks:
+        fp = fingerprint(b)
+        if fp not in seen_fp:
+            seen_fp.add(fp)
+            uniq_blocks.append(b)
+    if len(uniq_blocks) != len(blocks):
+        print(f"in-run dedup: {len(blocks)} -> {len(uniq_blocks)}")
+
+    created = updated = 0
+    for b in uniq_blocks:
         conf = _conf(b)
         fp = fingerprint(b)
         title = f"[{conf}%] {b['title'][:90]}"
