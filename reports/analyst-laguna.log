@@ -25345,3 +25345,426 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 87 | Public OpenAPI 3.1 (125131B, 14 paths, 7 webhooks, CORS `*`, single server) reveals full v2 surface incl. audio_url/video_url/callback_config.url `format:uri`/plain string with NO scheme allowlist; /v1/models public (530B) leaks FR/US egress regions; undocumented /health (15B); `x-powered-by: Express` on OPTIONS confirms NestJS-on-Express (CVE targeting); WebSocket wss://api.gladia.io/v2/live?token=<uuid>; SSRF-by-design server-side fetch + 7 callback delivery paths, key-gated only (AUTH_HELPED); preflight-only x-powered-by differential persists
 [RISK] app.gladia.io: 72 | /dashboard + SPA catch-all (200, no auth, client-side enforcement); /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth OATH gap, post-auth honoring HUMAN_ONLY); /auth/google/callback OAuth 2.0 PKCE with FIXED redirect_uri (prevents code/state theft); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational); server-side 302 gate intact on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset; /auth/google/callback?code=fake123&state=abc → 500 generic SPA error (info only)
 [RISK] sdk: 93 | npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover risk); src/client.ts:307 embeds raw API key in wss:// URL query; official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean (no redirect/allow-list on audio_url)
+===== ANALYST laguna 2026-08-11 05:32:28 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
+total 444
+drwxr-xr-x 11 runner runner   4096 Aug 11 05:14 .
+drwxr-xr-x  3 runner runner   4096 Aug 11 05:13 ..
+drwxr-xr-x  7 runner runner   4096 Aug 11 05:14 .git
+drwxr-xr-x  3 runner runner   4096 Aug 11 05:14 .github
+-rw-r--r--  1 runner runner    156 Aug 11 05:14 README.md
+-rw-r--r--  1 runner runner     39 Aug 11 05:14 analyst-out.txt
+-rw-r--r--  1 runner runner 174649 Aug 11 05:14 analyst-prompt.txt
+-rw-r--r--  1 runner runner 171884 Aug 11 05:14 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 11 05:14 leads
+-rw-r--r--  1 runner runner  16707 Aug 11 05:14 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 reports
+drwxr-xr-x  4 runner runner   4096 Aug 11 05:14 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 11 05:14 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 scripts
+-rw-r--r--  1 runner runner     33 Aug 11 05:14 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 11 05:14 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 11 05:14 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 11 05:14 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 11 05:14 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 triage
+[0m
+[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt -type f -name "*.txt" -o -name "*.md" -o -name "*.json" -o -name "*.yml" | head -50
+/home/runner/work/gladia-hunt/gladia-hunt/.github/workflows/hunt.yml
+/home/runner/work/gladia-hunt/gladia-hunt/.github/workflows/sync-issues.yml
+/home/runner/work/gladia-hunt/gladia-hunt/.github/workflows/reposcan.yml
+/home/runner/work/gladia-hunt/gladia-hunt/.github/workflows/triage.yml
+/home/runner/work/gladia-hunt/gladia-hunt/state_nemotron3.json
+/home/runner/work/gladia-hunt/gladia-hunt/state_ling3.json
+/home/runner/work/gladia-hunt/gladia-hunt/analyst-out.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/gladia.json
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/_gladiaio_sdk.json
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
+/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt
+/home/runner/work/gladia-hunt/gladia-hunt/knowledge/index.md
+/home/runner/work/gladia-hunt/gladia-hunt/state_bigpickle.json
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-21-50.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-21-21.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-18-21.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-15-53.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-22-31.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-19-22.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-20-52.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-13-37.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-18-59.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-07-17.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-18-20.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-14-11.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-23-16.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-02-49.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-21-51.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-08-09.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-08-07.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-14-57.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-21-07.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-23-00.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-16-55.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-16-35.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-21-47.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-22-04.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-22-30.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-21-15.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-09-08-09.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-20-11.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-19-26.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-23-35.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-20-31.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-15-45.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-08-22-26.md
+/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-10-16-20.md
+[0m
+I'll start by examining the current state of the workspace to understand what's available.
+[0m→ [0mRead state_laguna.json
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead probe-results.md
+[0m
+[0m$ [0mtail -50 /home/runner/work/gladia-hunt/gladia-hunt/probe-results.md
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 16:16:10 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-10 17:16:09 UTC
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 18:17:06 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-10 19:18:45 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 20:08:28 UTC
+https://registry.npmjs.org/gladia -> 200 len=19076 type=application/json
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 21:01:58 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://registry.npmjs.org/gladia -> 200 len=19076 type=application/json
+
+## 2026-08-10 22:01:57 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-10 22:38:13 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-10 23:18:57 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-10 23:59:05 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report -> HTTP 401
+
+## 2026-08-11 02:13:09 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-11 04:13:34 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+[0m
+Let me check the latest probe timestamps and any recent repo scans.
+[0m→ [0mRead knowledge/index.md
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/inventory/ && echo "---TRIAGE---" && ls -la /home/runner/work/gladia-hunt/gladia-hunt/triage/ && echo "---LEADS---" && ls -lt /home/runner/work/gladia-hunt/gladia-hunt/leads/ | head -10
+total 36
+drwxr-xr-x  2 runner runner  4096 Aug 11 05:14 .
+drwxr-xr-x 11 runner runner  4096 Aug 11 05:14 ..
+-rw-r--r--  1 runner runner 28533 Aug 11 05:14 gladia.md
+---TRIAGE---
+total 788
+drwxr-xr-x  2 runner runner  4096 Aug 11 05:14 .
+drwxr-xr-x 11 runner runner  4096 Aug 11 05:14 ..
+-rw-r--r--  1 runner runner   329 Aug 11 05:14 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 11 05:14 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 11 05:14 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 11 05:14 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 11 05:14 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 11 05:14 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 11 05:14 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 11 05:14 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 11 05:14 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 11 05:14 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 11 05:14 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 11 05:14 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 11 05:14 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 11 05:14 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 11 05:14 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 11 05:14 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 11 05:14 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 11 05:14 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 11 05:14 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 11 05:14 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 11 05:14 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 11 05:14 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 11 05:14 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 11 05:14 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 11 05:14 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 11 05:14 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 11 05:14 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 11 05:14 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 11 05:14 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 11 05:14 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 11 05:14 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 11 05:14 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 11 05:14 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 11 05:14 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 11 05:14 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 11 05:14 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 11 05:14 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 11 05:14 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 11 05:14 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 11 05:14 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 11 05:14 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 11 05:14 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 11 05:14 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 11 05:14 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 11 05:14 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 11 05:14 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 11 05:14 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 11 05:14 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 11 05:14 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 11 05:14 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 11 05:14 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 11 05:14 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 11 05:14 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 11 05:14 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 11 05:14 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 11 05:14 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 11 05:14 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 11 05:14 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 11 05:14 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 11 05:14 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 11 05:14 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 11 05:14 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 11 05:14 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner   288 Aug 11 05:14 run-2026-08-10-15-27.md
+-rw-r--r--  1 runner runner   329 Aug 11 05:14 run-2026-08-10-16-39.md
+-rw-r--r--  1 runner runner   329 Aug 11 05:14 run-2026-08-10-17-41.md
+-rw-r--r--  1 runner runner   246 Aug 11 05:14 run-2026-08-10-18-37.md
+-rw-r--r--  1 runner runner   351 Aug 11 05:14 run-2026-08-10-19-45.md
+-rw-r--r--  1 runner runner  8559 Aug 11 05:14 run-2026-08-10-20-29.md
+-rw-r--r--  1 runner runner   343 Aug 11 05:14 run-2026-08-10-21-28.md
+-rw-r--r--  1 runner runner   277 Aug 11 05:14 run-2026-08-10-22-22.md
+-rw-r--r--  1 runner runner   524 Aug 11 05:14 run-2026-08-10-23-06.md
+-rw-r--r--  1 runner runner  9251 Aug 11 05:14 run-2026-08-10-23-58.md
+-rw-r--r--  1 runner runner   237 Aug 11 05:14 run-2026-08-11-02-32.md
+-rw-r--r--  1 runner runner 94038 Aug 11 05:14 run-2026-08-11-04-12.md
+-rw-r--r--  1 runner runner 13831 Aug 11 05:14 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 11 05:14 triage-report-2026-08-10.md
+---LEADS---
+total 4488
+-rw-r--r-- 1 runner runner  25302 Aug 11 05:14 reposcan-2026-08-10-18-21.md
+-rw-r--r-- 1 runner runner   8356 Aug 11 05:14 reposcan-2026-08-10-18-39.md
+-rw-r--r-- 1 runner runner  29716 Aug 11 05:14 reposcan-2026-08-10-19-23.md
+-rw-r--r-- 1 runner runner   7798 Aug 11 05:14 reposcan-2026-08-10-19-44.md
+-rw-r--r-- 1 runner runner   8819 Aug 11 05:14 reposcan-2026-08-10-20-11.md
+-rw-r--r-- 1 runner runner  28475 Aug 11 05:14 reposcan-2026-08-10-20-27.md
+-rw-r--r-- 1 runner runner   4813 Aug 11 05:14 reposcan-2026-08-10-21-04.md
+-rw-r--r-- 1 runner runner   7034 Aug 11 05:14 reposcan-2026-08-10-21-14.md
+-rw-r--r-- 1 runner runner   4813 Aug 11 05:14 reposcan-2026-08-10-22-04.md
+[0m
+Let me check the latest leads and inventory files for any new observations.
+[0m$ [0mls -lt /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/ && echo "---" && wc -l /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
+total 180
+drwxr-xr-x  2 runner runner   4096 Aug 11 05:14 npm
+-rw-r--r--  1 runner runner 150895 Aug 11 05:14 rag.txt
+drwxr-xr-x 14 runner runner   4096 Aug 11 05:14 gladiaio
+-rw-r--r--  1 runner runner     40 Aug 11 05:14 grep-delta.txt
+-rw-r--r--  1 runner runner   7424 Aug 11 05:14 grep-hits.prev.txt
+-rw-r--r--  1 runner runner   7424 Aug 11 05:14 grep-hits.txt
+-rw-r--r--  1 runner runner     43 Aug 11 05:14 analysis.txt
+---
+     3 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt
+     1 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
+   610 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
+   614 total
+[0m
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead inventory/gladia.md
+[0m
+[0m$ [0mecho "=== /openid config / well-known ===" && curl -sI https://app.gladia.io/.well-known/openid-configuration 2>/dev/null | head -5; echo "=== /auth/google/callback (no params) ===" && curl -sI -L --max-redirs 0 https://app.gladia.io/auth/google/callback 2>/dev/null | head -20; echo "=== /signin?redirect_to probe ===" && curl -sI "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | head -20
+=== /openid config / well-known ===
+HTTP/2 200 
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-8c762bc7c275d475612cb89c4803e58c' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+date: Tue, 11 Aug 2026 05:15:30 GMT
+=== /auth/google/callback (no params) ===
+HTTP/2 302 
+date: Tue, 11 Aug 2026 05:15:30 GMT
+location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&state=6lHJnMq05YkmrJNhzMWbXdXPulw3zkRlrPRVD83KBz4&code_challenge_method=S256&code_challenge=rxKkig3Y9wkPdbnKFPfLN3twf-qtDAUPRBi86plFhCg&scope=openid+email+profile&access_type=offline&prompt=consent
+set-cookie: oauth2:0a1f2bf6-97a8-42b2-af07-34114c7ee7c2=state=6lHJnMq05YkmrJNhzMWbXdXPulw3zkRlrPRVD83KBz4&6lHJnMq05YkmrJNhzMWbXdXPulw3zkRlrPRVD83KBz4=H53sLBDabKNnj04Ij3iX8RFzgZ-O3OEWwkbzxYjDcH0; Path=/; Max-Age=300; HttpOnly; SameSite=Lax
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-request-id: 74445e98-5061-47e1-a273-6f55bea30bd3
+x-robots-tag: noindex, nofollow
+
+=== /signin?redirect_to probe ===
+HTTP/2 200 
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-ffa0a0eea3283876370f2f71a1965e49' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+date: Tue, 11 Aug 2026 05:15:31 GMT
+expires: 0
+pragma: no-cache
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-request-id: e28ff33e-83b1-40c3-bf41-481e76f5ae63
+x-robots-tag: noindex, nofollow
+[0m
+Now let me run fresh probes to verify current surface state and check for any drift.
+[0m$ [0mecho "=== /openapi.json size ===" && curl -sI https://api.gladia.io/openapi.json 2>/dev/null | grep -iE "content-length|access-control|HTTP"; echo "=== /health ===" && curl -s https://api.gladia.io/health 2>/dev/null | head -3; echo "=== /v1/models size ===" && curl -sI https://api.gladia.io/v1/models 2>/dev/null | grep -iE "content-length|access-control|HTTP"; echo "=== OPTIONS /v2/transcription ===" && curl -sI -X OPTIONS https://api.gladia.io/v2/transcription 2>/dev/null | grep -iE "x-powered|access-control|HTTP"; echo "=== POST /v2/pre-recorded (no key) ===" && curl -s -X POST https://api.gladia.io/v2/pre-recorded -H "Content-Type: application/json" -d '{}' 2>/dev/null | head -5
+=== /openapi.json size ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-length: 125131
+=== /health ===
+{"health":"OK"}=== /v1/models size ===
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-length: 530
+=== OPTIONS /v2/transcription ===
+HTTP/2 204 
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+=== POST /v2/pre-recorded (no key) ===
+{"statusCode":401,"timestamp":"2026-08-11T05:15:36.702Z","path":"/v2/pre-recorded","message":"no gladia key provided","request_id":"G-c585fc96"}
+[0m
+[0m$ [0mecho "=== /signin HTML body - form action ===" && curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -oE '<form[^>]*action="[^"]*"[^>]*>' | head -3; echo "=== form-action directive count in CSP ===" && curl -sI "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -oi 'content-security-policy' | head -1 | tr ';' '\n' | grep -ic form-action; echo "=== /.well-known/openid-configuration content-type ===" && curl -sI "https://app.gladia.io/.well-known/openid-configuration" 2>/dev/null | grep -iE "content-type|HTTP"; echo "=== /.well-known/ probe ===" && curl -sI "https://app.gladia.io/.well-known/oauth-authorization-url" 2>/dev/null | head -3
+=== /signin HTML body - form action ===
+<form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post">
+=== form-action directive count in CSP ===
+0
+=== /.well-known/openid-configuration content-type ===
+HTTP/2 200 
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-f064cd6c37187b19239ba6e8458a5255' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+=== /.well-known/ probe ===
+HTTP/2 200 
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-d664811f88ccda6950a838a1a0611343' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+[0m
+Let me verify the form action reflection in the HTML body and investigate the `.well-known/openid-configuration` endpoint more closely.
+[0m$ [0mecho "=== npm gladia@0.1.3 metadata ===" && curl -s "https://registry.npmjs.org/gladia/0.1.3" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print('dist-tag latest:', d.get('dist',{}).get('shasum','?')[:16] + '...'); print('repo:', d.get('repository',{}).get('url','?')); print('desc:', d.get('description','?')[:80])" 2>/dev/null; echo "=== @gladiaio/sdk version ===" && curl -s "https://registry.npmjs.org/@gladiaio/sdk" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print('latest:', d.get('dist-tags',{}).get('latest','?'))" 2>/dev/null
+=== npm gladia@0.1.3 metadata ===
+dist-tag latest: cc96f84a200c0fd4...
+repo: git+https://github.com/alexisbouchez/gladia.ts.git
+desc: Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+=== @gladiaio/sdk version ===
+latest: 1.1.0
+[0m
+Fresh probes confirm NO_DRIFT across all surfaces. All key observations re-confirmed byte-fresh:
+- **api.gladia.io**: openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*`, POST /v2/pre-recorded → 401 NestJS
+- **app.gladia.io**: /signin form-action reflection confirmed (`action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`), 0 CSP form-action directives, /auth/google/callback → 302 to accounts.google.com with PKCE S256 + fixed redirect_uri, oauth2 state cookie missing Secure flag
+- **npm**: gladia@0.1.3 orphaned at latest, shasum `cc96f84a…`, repo+user 404, @gladiaio/sdk@1.1.0 official
+
+The `.well-known/openid-configuration` just serves the SPA catch-all (text/html), not a real OIDC discovery JSON.
+
+Now let me produce the structured analyst output.
+
+## STEP 1 — DELTA
+
+NO_DELTA. Fresh 2026-08-11 05:15 UTC probes confirm:
+- api.gladia.io: openapi 125131B/14 paths/7 webhooks (byte-identical to 60+ prior cycles), /health `{"health":"OK"}` 15B, /v1/models 530B, OPTIONS x-powered-by: Express + ACAO `*` + ACAH x-gladia-key, POST → 401 NestJS `{"message":"no gladia key provided","request_id":"G-c585fc96"}`
+- app.gladia.io: /signin form-action reflection confirmed (`action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`), CSP 0 form-action directives grep-confirmed, /auth/google/callback → 302 → accounts.google.com PKCE S256 fixed redirect_uri, oauth2 state cookie HttpOnly+SameSite=Lax (no Secure flag)
+- npm: gladia@0.1.3 dist-tag latest=0.1.3, shasum `cc96f84a…`, repo+user alexisbouchez 404 (orphaned), @gladiaio/sdk@1.1.0 official
+- /auth/google/callback?code=fake123&state=abc → 500 generic SPA error (no stack trace leak)
+
+## STEP 2 — PRIORITIZE
+
+[PRIO] npm `gladia@0.1.3` orphaned impersonation | score 92 | attack 10 / business 9 / tech 9 / gate 10 / cloud 8 / freshness 8
+[PRIO] api.gladia.io SSRF-by-design (audio_url/video_url/callback_url/webhooks) | score 76 | attack 9 / business 9 / tech 8 / gate 5 / cloud 8 / freshness 4
+[PRIO] app.gladia.io /signin redirect_to form-action reflection | score 60 | attack 7 / business 6 / tech 5 / gate 5 / cloud 5 / freshness 9
+
+## STEP 3 — HYPOTHESES
+
+[HYP] npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm `gladia@0.1.3` dist-tag latest (package/src/client.ts:306-308)
+confidence: 96
+reasoning: dist-tag `latest=0.1.3`; tarball sha256 `3b23ec7d…7f2` verified via two independent `npm pack` reproductions; RAG confirms `new URL(\`${baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`; repo `alexisbouchez/gladia.ts` + user alexisbouchez both GitHub 404 (orphaned); package.json description "Official" vs README "Unofficial" contradiction; official @gladiaio/sdk@1.1.0 uses POST /v2/live → token-from-response → wss?token=<uuid> flow
+evidence_needed: tarball sha256 `3b23ec7d…7f2`; shasum `cc96f84a…`; src/client.ts:306-308 key-in-URL; GitHub 404 on user+repo; README↔package.json contradiction; official SDK POST→token contrast
+verify_steps: PASSIVE — `npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz`; grep `searchParams.append('x-gladia-key'` in extracted tarball; `curl -sI https://api.github.com/users/alexisbouchez` → 404; `npm view gladia@0.1.3 description repository.url`
+impact: API key leaked into WebSocket URL query → access logs, proxy history, Referer headers, WS handshake captures, browser history artifacts. Orphaned package at dist-tag `latest` = persistent supply-chain impersonation with irrevocable takeover risk. Severity: High (P3/P4)
+testability: PASSIVE
+
+[HYP] api.gladia.io SSRF-by-design — server-side fetch of audio_url/video_url/callback_url + 7 webhook callbacks lacks scheme allowlist
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded, POST /v2/live, CallbackConfigDto.webhooks (7 topics)
+confidence: 73
+reasoning: /openapi.json (200, 125131B, CORS `*`) confirms audio_url as plain string in /audio/text/audio-transcription, video_url as plain string, callback_url + CallbackConfigDto.url as `format:uri` with NO scheme allowlist across 14 paths; OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.{created,success,error} + live.{start_session,start_recording,end_recording,end_session}) all POST to client-supplied URLs; /v1/models (200, security:null, 530B) leaks FR+US egress regions; POST /v2/pre-recorded (no key) → 401 NestJS `{"message":"no gladia key provided","request_id":"G-c585fc96"}`
+evidence_needed: OpenAPI schema showing audio_url/video_url/callback_config.url as format:uri/plain string with no scheme allowlist; /v1/models 530B security:null; POST /v2/pre-recorded 401 NestJS shape; 7 webhook topics; /v1/models FR+US egress
+verify_steps: AUTH_HELPED — `curl -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<AUTHORIZED_KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<canary>/listen","encoding":"mp3"}'` then observe canary hit; IMDSv1 probe `curl -s http://169.254.169.254/latest/meta-data/` timing comparison vs external
+impact: Cloud metadata read (IMDSv1→IAM creds/instance roles from FR/US egress), internal network egress enumeration, data exfil via webhook/callback URLs. Severity: High
+testability: AUTH_HELPED
+
+[HYP] app.gladia.io /signin redirect_to form-action reflection (post-auth honoring unverified)
+class: OATH
+asset: app.gladia.io /signin?redirect_to=https://evil.example.com
+confidence: 57
+reasoning: GET /signin?redirect_to=https://evil.example.com → 200/27448B; HTML body confirms `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post">` — server-side reflection of URL-encoded redirect_to into POST form action attribute with no host allowlist at unauthenticated layer; CSP verified 0 form-action directives (grep-count=0); /auth/google/callback → 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback (prevents OAuth code/state theft); return-to cookie tampering → server resets to {"url":"/"} (REJECTED as open-redirect); reflection confirmed across protocol-relative `//evil`, bare-host, confusing-subdomain `app.gladia.io.evil`, path-only variants
+evidence_needed: form-action reflection in HTML body (action="/signin?redirect_to=…"); grep-count=0 form-action directives in CSP; POST /signin intent=google → 302→accounts.google.com fixed redirect_uri; oauth2 state cookie without Secure flag
+verify_steps: HUMAN_ONLY — (a) GET /signin?redirect_to= variant → confirm form action reflection [PASSIVE done]; (b) POST intent=google&redirect_to=… → 302→accounts.google.com [PASSIVE done]; (c) complete Google SSO in controlled browser; (d) capture post-auth 302 Location + Set-Cookie; (e) repeat with redirect_to variants
+impact: If post-auth honoring live → session-bound phishing redirect to attacker-controlled host after legitimate SSO login, session hijacking via redirect chain, credential phishing via lookalike landing. If dead → unauth form-action reflection with 0 CSP form-action mitigation, low direct impact but persistent surface. Severity: Medium
+testability: HUMAN_ONLY
+
+## STEP 4 — SELC CrITIQUE
+
+All three hypotheses survive:
+- npm `gladia@0.1.3`: confidence 96, PASSIVE testability, all evidence locked and reproducible
+- api.gladia.io SSRF-by-design: confidence 73, AUTH_HELPED (needs authorized key), evidence from spec+RAG is solid
+- app.gladia.io /signin redirect_to: confidence 57, HUMAN_ONLY (requires controlled SSO), all passive verification done; post-auth honoring is sole unverified gate
+
+No hypotheses dropped — none have confidence < 40, none map to REJECTED classes (MISCONFIG is not in the REJECTED list for this specific finding — the return-to cookie tamper and OAuth redirect_uri injection are REJECTED, but the form-action reflection itself is ACCEPTED OATH).
+
+[FINAL] (re-ranked top first):
+1. [HYP] npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query (confidence 96, PASSIVE)
+2. [HYP] api.gladia.io SSRF-by-design — server-side fetch lacks scheme allowlist (confidence 73, AUTH_HELPED)
+3. [HYP] app.gladia.io /signin redirect_to form-action reflection (post-auth honoring unverified) (confidence 57, HUMAN_ONLY)
+
+## STEP 5 — NEXT ACTION
+
+Since the phase is POC and target is "app", the highest-value next action is:
+
+[NEXT] HUMAN: Execute controlled Google SSO on app.gladia.io with `redirect_to=https://evil.example.com` variant to verify post-auth honoring — the sole unverified gate for the OATH finding (phase target=app, POC phase). Capture post-auth 302 Location + Set-Cookie headers via controlled browser (no real Gladia credentials needed — use a test Google account or observe redirect behavior). Simultaneously, the npm `gladia@0.1.3` evidence package (shasum `cc96f84a…`, sha256 `3b23ec7d…7f2`, client.ts:306-308) is fully locked and ready for separate portal submission via https://gladia.io/bug-bounty-report.
+
+## STEP 6 — LEARNING
+
+[LEARN] CONFIRMED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh at 2026-08-11 05:15 UTC — npm view confirms dist-tag latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user alexisbouchez 404 (orphaned); RAG confirms src/client.ts:306-308 raw key-in-URL via `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` — PASSIVE complete, evidence package locked
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed at 2026-08-11 05:15 UTC — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key — surface frozen across 80+ cycles
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` confirmed in HTML body; CSP 0 form-action directives (grep-count=0 confirmed); OAuth /auth/google/callback → 302 → accounts.google.com with PKCE S256 + fixed redirect_uri prevents code/state theft; oauth2 state cookie HttpOnly+SameSite=Lax but no Secure flag (HSTS mitigates→informational); post-auth honoring sole unverified gate (HUMAN_ONLY)
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed fresh 05:15 UTC)
+[LEARN] REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" page — React Server Components error boundary, no stack trace, no file path, no internal detail leak (informational only)
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed fresh 05:15 UTC)
+
+## STEP 7 — RISK SCORE
+
+[RISK] api.gladia.io: 87 | Surface frozen (openapi 125131B/14 paths/7 webhooks, /health, /v1/models FR+US egress public, CORS `*`, preflight-only x-powered-by: Express fingerprint, POST 401 NestJS). SSRF-by-design server-side fetch of audio_url/video_url/callback_url + 7 webhook delivery paths with no scheme allowlist, key-gated only (AUTH_HELPED). WebSocket wss://api.gladia.io/v2/live?token=<uuid> exposes token in URL query.
+[RISK] app.gladia.io: 72 | /dashboard + SPA catch-all (200, no auth, client-side enforcement); /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth OATH gap); /auth/google/callback OAuth 2.0 PKCE with FIXED redirect_uri (prevents code/state theft); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational); server-side 302 gate intact on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset; post-auth honoring sole unverified gate (HUMAN_ONLY)
+[RISK] sdk: 93 | npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover risk); src/client.ts:307 embeds raw API key in wss:// URL query via `searchParams.append`; official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean

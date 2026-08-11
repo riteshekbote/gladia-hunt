@@ -1749,3 +1749,26 @@
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models 
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differe
+
+## RANKED HYPOTHESES 2026-08-11 05:32:28 UTC
+- [96] npm: npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [95] npm: npm: `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the `gladia@0.1.3` orphaned-impersonation report via the confirmed disclosure portal `gladia.io/bug-bounty-report` with the locked evidence packag
+- NEXT(hypotheses-laguna.txt): HUMAN: Execute controlled Google SSO on app.gladia.io with `redirect_to=https://evil.example.com` variant to verify post-auth honoring — the sole unverified gat
+- NEXT(hypotheses-longcat.txt): HUMAN: Submit `gladia@0.1.3` orphaned-impersonation report via gladia.io/bug-bounty-report with locked evidence package: dist-tag latest=0.1.3, repo+user alexis
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed with fresh probes this cycle — openapi 200/125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh re-verified — latest=0.1.3, shasum cc96f84a…, repo alexisbouchez/gladia.ts, desc "Officia
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — action reflects URL-encoded value, 0 CSP form-action directives; OAuth redirect_uri F
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen — audio_url/callback_url format:uri/plain string NO scheme allowlist; 7 webhook topics; /v1/models FR/US egress; POST
+- LEARN: ACCEPTED OTHER @ gladia.io: /bug-bounty-report confirmed as the auth-gated disclosure portal (301→www→401) — the submission channel for the locked report.
+- LEARN: CONFIRMED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh at 2026-08-11 05:15 UTC — npm view confirms dist-tag latest=0.1.3, shasum `cc96f84a200c0
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed at 2026-08-11 05:15 UTC — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-on
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` confirme
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" page — React Server Components
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed fresh 05:15 UTC)
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending. Evidence package locked and verified across 60+ cycles.
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differe
