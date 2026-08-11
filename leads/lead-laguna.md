@@ -3950,3 +3950,4 @@ class: SSRF
 asset: api.gladia.io POST /v2/pre-recorded, POST /v2/live, CallbackConfigDto.webhooks (7 topics)
 confidence: 73
 reasoning: /openapi.json (200, 125131B, CORS `*`) confirms audio_url as plain string in /audio/text/audio-transcription, video_url as plain string in /video/text/video-transcription, callback_url + CallbackConfigDto.url as `format:uri` with NO scheme allowlist across 14 paths; OpenAPI 3.1 `webhooks` key enumerates 7 outbound
+## 2026-08-11 08:40:46 UTC [app] (model laguna)
