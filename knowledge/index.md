@@ -606,3 +606,4 @@
 - 2026-08-11 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*` — surface frozen
 - 2026-08-11 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 CSP form-action directives confirmed; OAuth redirect_uri FIXED; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY)
 - 2026-08-11 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (tamper-reset confirmed).
+- 2026-08-11 No class newly proven dead or alive this cycle — zero probes run (surface frozen across 80+ cycles; per program conclusion further PROBE adds no signal until authorized key or HUMAN OAuth test).

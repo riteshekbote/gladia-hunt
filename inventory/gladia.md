@@ -373,3 +373,6 @@
 - NEW None — all surfaces frozen (api.gladia.io openapi.json 125131B/14 paths/7 webhooks etag W/"1e8cb-...", app.gladia.io signin reflection + CSP gap byte-identical, npm gladia@0.1.3 shasum cc96f84a... unc
 
 ## 2026-08-11 14:00:51 UTC
+
+## 2026-08-11 15:12:29 UTC
+- NEW NO_DELTA — all surfaces frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io signin redirect_to reflection + CSP gap byte-identical;
