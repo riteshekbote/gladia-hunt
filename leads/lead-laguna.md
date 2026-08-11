@@ -3932,3 +3932,21 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 87 | Surface frozen (openapi 125131B/14 paths/7 webhooks, /health, /v1/models FR/US egress public, CORS `*`, preflight-only x-powered-by: Express fingerprint, POST 401 NestJS). SSRF-by-design server-side fetch of audio_url/video_url/callback_url + 7 webhook delivery paths with no scheme allowlist, key-gated only (AUTH_HELPED). WebSocket wss://api.gladia.io/v2/live?token=<uuid> exposes token in URL query.
 [RISK] app.gladia.io: 72 | /dashboard + SPA catch-all (200, no auth, client-side enforcement); /signin redirect_to reflects URL-encoded into form action with 0 CSP form-action directives (unauth OATH gap); /auth/google/callback OAuth 2.0 PKCE with FIXED redirect_uri (prevents code/state theft); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational); server-side 302 gate intact on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset; post-auth honoring sole unverified gate (HUMAN_ONLY)
 [RISK] sdk: 93 | npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user alexisbouchez 404, irrevocable takeover risk); src/client.ts:307 embeds raw API key in wss:// URL query; official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean (no redirect/allow-list on audio_url)
+## 2026-08-11 07:41:13 UTC [app] (model laguna)
+[PRIO] npm `gladia@0.1.3` @ dist-tag latest (orphaned impersonator leaking raw API key in wss:// URL query)
+[PRIO] api.gladia.io OpenAPI /v2/pre-recorded + /v2/live + 7 webhook callbacks (SSRF-by-design)
+[PRIO] app.gladia.io /signin?redirect_to= form-action reflection (post-auth honoring unverified)
+[HYP] npm `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm `gladia@0.1.3` dist-tag latest (tarball `package/src/client.ts:306-308`)
+confidence: 96
+reasoning: dist-tag latest=0.1.3; shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` unchanged across 60+ cycles; GitHub user+repo `alexisbouchez` 404 (orphaned/irrevocable); RAG confirms `new URL(\`${baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())` — raw API key embedded in wss:// URL query; package.json description "Official" vs README "# Unofficial TypeScript SDK" contradiction; official @gladiaio/sdk@1.1.0 uses secure POST /v2/live → token-from-response → wss?token=<uuid> flow, verified via RAG of packages/sdk-js/client.ts
+evidence_needed: shasum `cc96f84a…`, sha256 `3b23ec7d…7f2`; src/client.ts:306-308 key-in-url via searchParams.append('x-gladia-key'); GitHub 404 on user+repo; README↔package.json "Unofficial/Official" contradiction; @glodiaio/sdk 1.1.0 secure POST→token contrast
+verify_steps: PASSIVE — `npm view gladia@0.1.3 dist-tag description repository.url dist.shasum`; `curl -sI https://api.github.com/users/alexisbouchez` → 404; `curl -sI https://api.github.com/repos/alexisbouchez/gladia.ts` → 404; fetch tarball `npm pack gladia@0.1.3` → `grep "searchParams.append('x-gladia-key'" package/src/client.ts`
+impact: API key leaked into WebSocket URL query → access logs, proxy history, Referer, WS handshake captures, browser history, CDN/ALB logs. Orphaned package at dist-tag latest = persistent supply-chain impersonation with irrevocable takeover risk (anyone can re-register username and push malicious code under the "Official" name). Severity: High (P3/P4)
+testability: PASSIVE
+[HYP] api.gladia.io SSRF-by-design — server-side fetch of audio_url/video_url/callback_url + 7 webhook callbacks lacks scheme allowlist
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded, POST /v2/live, CallbackConfigDto.webhooks (7 topics)
+confidence: 73
+reasoning: /openapi.json (200, 125131B, CORS `*`) confirms audio_url as plain string in /audio/text/audio-transcription, video_url as plain string in /video/text/video-transcription, callback_url + CallbackConfigDto.url as `format:uri` with NO scheme allowlist across 14 paths; OpenAPI 3.1 `webhooks` key enumerates 7 outbound
