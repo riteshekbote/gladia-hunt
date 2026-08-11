@@ -3770,3 +3770,4 @@ testability: AUTH_HELPED
 [RISK] app.gladia.io: 72 — /dashboard + SPA catch-all 200 without auth (client-side enforcement); /signin redirect_to reflects into form action with 0 CSP form-action directives (unauth OATH gap); OAuth 2.0 PKCE S256 with FIXED redirect_uri (code/state theft blocked); oauth2 cookie no Secure flag (HSTS-preload mitigated, informational); 500 on bogus callback leaks nothing (RSC error boundary); 302 gate intact on /apikeys,/transcriptions,/settings.
 [RISK] sdk: 93 — npm `gladia`@0.1.3 at dist-tag `latest` impersonates official SDK (package.json "Official" vs README "Unofficial"); orphaned (repo+user 404, irrevocable takeover); src/client.ts:307 embeds raw API key in WebSocket URL query (proxies/logs/Referer/history exposure); official @gladiaio/sdk@1.1.0 uses secure POST→token flow; PyPI gladiaio-sdk@1.0.5 static and clean.
 ## 2026-08-11 02:10:46 UTC [api] (model bigpickle)
+## 2026-08-11 03:56:19 UTC [api] (model bigpickle)

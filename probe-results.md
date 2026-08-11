@@ -345,3 +345,7 @@ https://gladia.io/bug-bounty-report -> HTTP 401
 ## 2026-08-11 02:13:09 UTC
 https://api.gladia.io/v2/pre-recorded -> HTTP 401
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-11 04:13:34 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
