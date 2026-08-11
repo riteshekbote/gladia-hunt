@@ -254,3 +254,17 @@
   - | Q4 Passive proof? | NO — requires valid API key to test injection strings |
   - | Q6 Not rejected? | YES — injection is a valid vulnerability class |
   - | Q7 Triager accept? | CONDITIONAL — only if injection demonstrated with valid key |
+
+- 12 lead(s) marked VALID at 2026-08-11 05:35:29 UTC
+  - **Verdict: VALID**
+  - | **Q4** | **NO** — requires valid `x-gladia-key` to POST; cannot prove reachability of 169.254.169.254 or internal hosts without a key |
+  - | **Q7** | **NO** — without a valid key, no triager can accept an unproven SSRF hypothesis |
+  - **Verdict: HOLD** — AUTH_HELPED; cannot verify without valid API key. Request program-provided trial key or authorized testing window.
+  - | **Q4** | **NO** — cannot observe token format/lifetime without valid API key |
+  - **Verdict: HOLD** — AUTH_HELPED; architectural concern but cannot prove exploitation without valid key.
+  - | **Q4** | **NO** — requires valid key + cross-user testing |
+  - **Verdict: HOLD** — AUTH_HELPED; cannot verify without valid API key.
+  - | 1 | npm `gladia@0.1.3` impersonation | **VALID** | Orphaned package, false "Official" claim, key-leak code path |
+  - | 2 | SSRF via audio_url/video_url/callback_url | **HOLD** | AUTH_HELPED — needs valid API key |
+  - | 6 | WebSocket token in URL | **HOLD** | AUTH_HELPED — needs valid key to prove leakage |
+  - | 8 | IDOR on /{id}/file | **HOLD** | AUTH_HELPED — needs valid key |
