@@ -398,3 +398,8 @@
 
 ## 2026-08-11 23:03:40 UTC
 - CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (Google Forms, auth-gated via Google
+
+## 2026-08-11 23:54:36 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → Google Forms `1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI` (auth-gated via Google, third-party out of scope) — submission c
+- CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (Google Forms, auth-gated via Google

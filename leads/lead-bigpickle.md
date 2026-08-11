@@ -4543,3 +4543,44 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 88 cycles.
 [RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri, tamper-reset return-to cookie, HSTS preload.
 [RISK] sdk: 55 — orphaned `gladia@0.1.3` sitting at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
+## 2026-08-11 23:53:10 UTC [api] (model bigpickle)
+[CHANGED] gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → Google Forms `1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI` (auth-gated via Google, third-party out of scope) — submission channel now confirmed as a Google Form, not an in-app portal.
+[PRIO] npm `gladia@0.1.3` orphaned impersonation (dist-tag latest, key-in-wss-URL): 6.25 = attack 5 + business 8 + tech 6 + gate 10 + cloud 1 + fresh 5
+[PRIO] api.gladia.io POST /v2/pre-recorded SSRF-by-design (audio_url/video_url/callback_config.url, 7 webhook topics): 6.30 = attack 7 + business 7 + tech 7 + gate 3 + cloud 8 + fresh 5
+[PRIO] app.gladia.io /signin post-auth redirect_to honoring (form-action reflection): 5.00 = attack 5 + business 6 + tech 6 + gate 5 + cloud 1 + fresh 5
+[HYP] npm `gladia@0.1.3` orphaned impersonator leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry `gladia` 0.1.3 (dist-tag latest)
+confidence: 96
+reasoning: dist-tag latest=0.1.3, dist-shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, tarball sha256 `3b23ec7d…7f2`; GitHub user+repo alexisbouchez both 404 (orphaned, irrevocable); src/client.ts:306–308 `searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())` — raw key in wss:// URL query.
+evidence_needed: all captured (tarball sha256, dist-shasum, source lines, orphan proof) — evidence package locked across 80+ cycles.
+verify_steps: PASSIVE complete — HUMAN submits locked evidence via `gladia.io/bug-bounty-report` (confirmed 302 → Google Form `1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI`).
+impact: devs running `npm i gladia` leak API keys into wss:// URL query (proxy/logs/browser history); orphaned dist-tag latest = irrevocable takeover. Severity: High.
+testability: PASSIVE
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url plain string, video_url, callback_config.url format:uri; 7 webhook topics)
+confidence: 73
+reasoning: openapi frozen 125131B/14 paths/7 webhooks — audio_url/callback_config.url have NO scheme allowlist; /v1/models 530B public confirms FR/US egress; no-key POST → 401/144 NestJS — key sole gate.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each webhook topic; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin (form-action reflection; Google OAuth path)
+confidence: 50
+reasoning: reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
+[PARKED] none — all 3 hypotheses ≥ confidence 40, none on the REJECTED class list (OAuth redirect_uri injection and return-to cookie tampering are distinct closed classes), all have concrete verify_steps.
+[FINAL] 1. npm `gladia@0.1.3` (96, PASSIVE, evidence complete) — 2. SSRF /v2/pre-recorded (73, AUTH_HELPED) — 3. app.gladia.io post-auth redirect_to (50, HUMAN_ONLY).
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via `gladia.io/bug-bounty-report` — now confirmed to resolve (301→302) to Google Forms `docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (needs Google auth). Include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, src/client.ts:306–308 key-in-wss-URL, GitHub user+repo `alexisbouchez` 404, README "Unofficial" vs package.json "Official", dist-tag latest=0.1.3. In the same submission request an authorized x-gladia-key + permission for a self-owned SSRF canary (audio_url/video_url/callback_config.url, ≥2× FR/US) to unblock the top api.gladia.io POC, and a test Google account to close the post-auth redirect_to gate.
+[LEARN] ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report submission channel resolves to Google Forms (third-party, out of scope) — redirect chain fully mapped (301→www→302→form); no new in-scope surface, delivery path for the locked report now confirmed.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes this cycle (openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/530B) — 88th frozen cycle, nothing new.
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh this cycle — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives; post-auth honoring still HUMAN_ONLY gate.
+[RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 88 cycles.
+[RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri, tamper-reset return-to cookie, HSTS preload.
+[RISK] sdk: 55 — orphaned `gladia@0.1.3` sitting at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
