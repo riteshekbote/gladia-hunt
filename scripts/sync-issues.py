@@ -8,11 +8,45 @@ GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
 TARGET = os.environ.get("TARGET_NAME", "hunt")
 MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
 
-g = Github(TOKEN)
-repo = g.get_repo(REPO)
-
 STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
 KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
+
+
+def split_inline(title):
+    """Extract inline attributes from a single-line lead of the form:
+    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
+    Attribute matches are removed; the title is cut at the first attribute."""
+    attrs = {}
+    pats = [
+        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
+        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
+        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
+        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
+        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
+        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
+        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
+        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
+    ]
+    cut = None
+    for pat, key, transform in pats:
+        m = re.search(pat, title, re.I)
+        if m:
+            v = m.group(1).strip()
+            if transform:
+                v = transform(v)
+            if key not in attrs:
+                attrs[key] = v
+            cut = m.start() if cut is None else min(cut, m.start())
+    if cut is not None:
+        t = title[:cut]
+    else:
+        t = title
+    t = re.sub(r'^\s*[:,\s-]+\s*', '', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+    return t, attrs
+
 
 def parse_blocks(text, model):
     blocks, lines, i = [], text.splitlines(), 0
@@ -21,7 +55,8 @@ def parse_blocks(text, model):
         if not m:
             i += 1
             continue
-        b = {"title": m.group(1).strip(), "model": model}
+        raw_title = m.group(1).strip()
+        b = {"title": raw_title, "model": model}
         j = i + 1
         while j < len(lines):
             l = lines[j].strip()
@@ -31,10 +66,16 @@ def parse_blocks(text, model):
             if kv:
                 b[kv.group(1).lower()] = kv.group(2).strip()
             j += 1
-        if "<" not in str(b.get("title", "")):
+        if "<" not in str(raw_title):
+            if not any(k in b for k in ('class', 'asset', 'confidence', 'reasoning', 'verify_steps')):
+                clean, attrs = split_inline(raw_title)
+                b['title'] = clean
+                for k, v in attrs.items():
+                    b.setdefault(k.lower(), v)
             blocks.append(b)
         i = j
     return blocks
+
 
 def norm_asset(a):
     a = (a or "").strip().lower().strip("`")
@@ -44,20 +85,38 @@ def norm_asset(a):
     a = re.sub(r'\s+', ' ', a).strip()
     return a[:120]
 
+
+def norm_title(t):
+    t = re.sub(r'^\[\d+%\]\s*', '', t or "")
+    t = re.sub(r'[^a-z0-9]+', ' ', t.lower()).strip()
+    return t
+
+
 def fingerprint(b):
     a = norm_asset(b.get("asset", ""))
     c = (b.get("class", "OTHER") or "OTHER").strip().lower()[:20]
-    return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    if a:
+        return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    # no asset -> include normalized title so distinct leads get distinct fps
+    t = norm_title(b.get("title", ""))
+    return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
+
 
 def issue_fingerprint(iss):
     body = iss.body or ""
     m = re.search(r'^## Target\n`(.*)`', body, re.M)
     if not m:
-        return None
+        m = re.search(r'<!-- fingerprint:([0-9a-f]{12}) -->', body)
+        return m.group(1) if m else None
     mc = re.search(r'^## Class\n(.*)$', body, re.M)
     a = norm_asset(m.group(1))
     c = (mc.group(1).strip().lower()[:20] if mc else "other")
-    return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    if a:
+        return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    mt = re.search(r'^## Title\n(.*)$', body, re.M) or re.search(r'## Title\n(.*)$', body, re.M)
+    t = norm_title(mt.group(1) if mt else "")
+    return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
+
 
 def ensure_label(name):
     color = {"pending": "d4c5f9", "false-positive": "7057ff", "verified": "0e8a16",
@@ -70,7 +129,10 @@ def ensure_label(name):
         repo.create_label(name, color)
         print("label created:", name)
 
+
 def main():
+    g = Github(TOKEN)
+    repo = g.get_repo(REPO)
     files = sorted(Path(".").glob(GLOB))
     print(f"processing {len(files)} files: {GLOB}")
     blocks = []
@@ -109,9 +171,6 @@ def main():
     by_fp = {}
     for i in existing:
         fp = issue_fingerprint(i)
-        if not fp:
-            m = re.search(r'<!-- fingerprint:([0-9a-f]{12}) -->', i.body or "")
-            fp = m.group(1) if m else None
         if fp:
             by_fp.setdefault(fp, []).append(i)
     print("existing issues:", len(existing))
@@ -125,6 +184,7 @@ def main():
                   f"model-{b['model']}", f"confidence-{conf//10*10}"] \
             + (["high-confidence"] if conf >= 80 else [])
         body = (f"<!-- fingerprint:{fp} -->\n\n"
+                f"## Title\n{b.get('title','')}\n\n"
                 f"## Target\n`{b.get('asset','?')}`\n\n"
                 f"## Class\n{b.get('class','OTHER')}\n\n"
                 f"## Confidence\n{conf}/100\n\n"
@@ -176,11 +236,6 @@ def main():
                     except Exception:
                         pass
 
-    def norm_title(t):
-        t = re.sub(r'^\[\d+%\]\s*', '', t or "")
-        t = re.sub(r'[^a-z0-9]+', ' ', t.lower()).strip()
-        return t
-
     title_closed = 0
     groups = {}
     for i in existing:
@@ -202,4 +257,5 @@ def main():
 
     print(f"SUMMARY created={created} updated={updated} closed_rejected={closed} dup_closed={dup_closed} title_closed={title_closed}")
 
-main()
+if __name__ == "__main__":
+    main()
