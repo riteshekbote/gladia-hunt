@@ -268,3 +268,6 @@
   - | 2 | SSRF via audio_url/video_url/callback_url | **HOLD** | AUTH_HELPED — needs valid API key |
   - | 6 | WebSocket token in URL | **HOLD** | AUTH_HELPED — needs valid key to prove leakage |
   - | 8 | IDOR on /{id}/file | **HOLD** | AUTH_HELPED — needs valid key |
+
+- 1 lead(s) marked VALID at 2026-08-11 10:50:11 UTC
+  - | G | `registry.npmjs.org/gladia` → 200 | **VALID (DUPLICATE)** | npm impersonation, already reported 9× |
