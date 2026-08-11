@@ -643,3 +643,4 @@
 - 2026-08-11 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending. Evidence package locked and verified across 80+ cycles. Reposcan 21:30 UTC delta: 0 new hit lines.
 - 2026-08-11 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (80+ cycles) — audio_url/video_url/callback_config.url format:uri/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED).
 - 2026-08-11 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 80+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen.
+- 2026-08-11 No class newly proven dead or alive this cycle — zero probes run (surface frozen across 80+ cycles at 22:03 UTC probe; per program conclusion further PROBE adds no signal until authorized key or HUMAN OAuth test).
