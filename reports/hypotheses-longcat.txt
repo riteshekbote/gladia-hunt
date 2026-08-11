@@ -1,4 +1,4 @@
-## 2026-08-11 16:12:42 UTC [sdk] (model longcat)
+## 2026-08-11 17:15:44 UTC [sdk] (model longcat)
 [PRIO] npm `gladia@0.1.3` (orphaned impersonator) — score 9.1 | attack:10 business:9 tech:8 gate:10 cloud:6 fresh:10
 [PRIO] api.gladia.io POST /v2/pre-recorded (SSRF surface) — score 7.6 | attack:9 business:9 tech:8 gate:2 cloud:8 fresh:8
 [PRIO] app.gladia.io /signin (redirect_to reflection) — score 7.0 | attack:7 business:8 tech:6 gate:8 cloud:2 fresh:9
@@ -6,7 +6,7 @@
 class: OTHER
 asset: npm registry — `gladia@0.1.3`
 confidence: 95
-reasoning: package.json description = "Official TypeScript SDK for Gladia" but README.md = "# Unofficial TypeScript SDK". Source repo alexisbouchez/gladia.ts + GitHub user both 404 (orphaned, irrevocable takeover). Tarball-confirmed src/client.ts:306–308: `new URL(`${this.baseUrl}/v2/live`)` → `.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())`. Diverges from official @gladiaio/sdk POST /v2-live → token-from-response → wss?token=<uuid> flow. dist-tag latest=0.1.3 persists.
+reasoning: package.json description = "Official TypeScript SDK for Gladia" but README.md = "# Unofficial TypeScript SDK". Source repo alexisbouchez/gladia.ts + GitHub user both 404 (orphaned, irrevocable takeover). Tarball-confirmed src/client.ts:306–308: `new URL(`${this.baseUrl}/v2/live`)` → `.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())`. Diverges from official @gladiaio/sdk POST /v2/live → token-from-response → wss?token=<uuid> flow. dist-tag latest=0.1.3 persists.
 evidence_needed: Complete — sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, GitHub 404, tarball RAG all confirmed across 80+ cycles.
 verify_steps: PASSIVE complete — `npm view gladia@0.1.3` (metadata) + `npm pack gladia@0.1.3` (tarball extraction → grep client.ts for searchParams.append) + `curl -sI https://api.github.com/repos/alexisbouchez/gladia.ts` (404) + `curl -sI https://api.github.com/users/alexisbouchez` (404).
 impact: Supply-chain API key harvesting — any WS URL logger/proxy sees raw x-gladia-key. Orphaned account enables malicious update to dist-tag latest. Official SDK trust undermined. Severity: High (P3/P4).
@@ -17,7 +17,7 @@ asset: api.gladia.io POST /v2/pre-recorded
 confidence: 55
 reasoning: OpenAPI spec (125131B, CORS *) exposes audio_url as `format:uri` with no scheme allowlist on /v2/pre-recorded. CallbackConfigDto.url also `format:uri` no allowlist. SDK RAG confirms no client-side validation. /v1/models confirms FR+US datacenter egress.
 evidence_needed: Valid Gladia API key to submit POST with audio_url pointing to internal endpoint.
-verify_steps: AUTH_HELPED: Obtain x-gladia-key → `curl -sk -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: $KEY" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/iam/security-credentials/"}' → observe response / error / callback behavior.
+verify_steps: AUTH_HELPED: Obtain x-gladia-key → `curl -sk -X POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key: $KEY" -d '{"audio_url":"http://169.254.169.254/latest/meta-data/iam/security-credentials/"}' → observe response/error/callback behavior.
 impact: Server-side request forgery enabling AWS/GCP metadata theft or internal network scan. Severity: High (with valid key).
 testability: AUTH_HELPED
 [HYP] app.gladia.io: /signin redirect_to form-action reflection → post-auth open redirect
@@ -29,7 +29,7 @@ evidence_needed: Authenticated session with redirect_to set, observe post-creden
 verify_steps: HUMAN_ONLY: Register/login to app.gladia.io initiating from /signin?redirect_to=https://evil.example.com → observe post-auth redirect target.
 impact: Post-auth open redirect enabling phishing (user auths, lands on attacker page). Severity: Low-Medium (requires victim to authenticate, but CSP gap means no browser-level mitigation).
 testability: HUMAN_ONLY
-[PARKED] (none)
+[PARKED] (none — all 3 hypotheses survive: confidence ≥ 40, classes not on REJECTED list, concrete verify_steps present)
 [FINAL]
 [NEXT] HUMAN: Submit `gladia@0.1.3` orphaned-impersonation report via https://gladia.io/bug-bounty-report (confirmed auth-gated portal, returns 401 unauthenticated) with locked evidence package:
 [LEARN] ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending. Evidence package locked and verified across 80+ cycles.
