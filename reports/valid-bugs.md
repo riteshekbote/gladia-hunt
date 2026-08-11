@@ -314,3 +314,25 @@
   - | Q6 Not rejected? | YES — credential leakage via URL is a valid class |
   - | Q6 Not rejected? | YES — open redirect is a valid vulnerability class |
   - | VALID | 0 (1 duplicate of previously-reported finding) |
+
+- 26 lead(s) marked VALID at 2026-08-11 23:31:23 UTC
+  - | Q5 | **NO** | Already confirmed VALID in 9+ prior triage runs (first 2026-08-07 21:04). |
+  - | Q6 | **YES** | Supply-chain impersonation + credential-leak code is a valid class, not info-disclosure/best-practice/self-XSS. |
+  - ### Verdict: **VALID (DUPLICATE)** — Already reported 9+ times since 2026-08-07.
+  - | Q2 | **PARTIAL** | All v2 endpoints are key-gated (401 without `x-gladia-key`). Reachable only by users with a valid API key (low-priv self-service). |
+  - | Q4 | **NO** | Proving actual server-side fetch requires `POST` with valid key + canary/internal URL + observing error/timing. OpenAPI spec confirms *design* (`format:uri`, no scheme allowlist) but d
+  - | Q6 | **YES** | SSRF is a valid class. |
+  - | Q7 | **CONDITIONAL** | Triager accepts only IF reachability demonstrated with valid key. Without proof → HOLD. |
+  - ### Verdict: **HOLD** — AUTH_HELPED. In-scope, real impact, design confirmed. Cannot prove with passive GET/HEAD only. Needs valid API key + non-destructive canary fetch.
+  - | Q2 | **NO** | Key-gated (401 without key). Cross-account testing requires two valid keys. UUID-based IDs make unauthenticated guessing infeasible. |
+  - | Q4 | **NO** | Requires valid key + owned resource ID + cross-account test. Spec does not expose ownership-binding logic. |
+  - | Q6 | **YES** | IDOR is a valid class. |
+  - ### Verdict: **HOLD** — AUTH_HELPED. Needs valid key + cross-account test. Spec is opaque on ownership binding.
+  - | Q2 | **PARTIAL** | Token-in-URL design visible in public OpenAPI spec. Actual token generation requires valid `x-gladia-key`. |
+  - | Q4 | **PARTIAL** | Design confirmed via public spec (no auth needed). Proving actual token theft/leakage requires valid key to init session and inspect Referer. |
+  - | Q6 | **YES** | Credential leakage via URL is a valid class (not just "best practice"). |
+  - ### Verdict: **HOLD** — Design confirmed via public spec. Architectural weakness with real implications, but proving actual token theft requires valid key. Lower priority than SSRF.
+  - | Q4 | **NO** | Requires valid key to test injection strings (`custom_metadata[__proto__][x]=1`, etc.). |
+  - | Q6 | **YES** | Injection is a valid class. |
+  - | Q7 | **NO** | Spec-only; no evidence of actual injection without valid key. |
+  - ### Verdict: **HOLD** — AUTH_HELPED. Spec confirms complex query parsing surface; needs valid key to test injection.
