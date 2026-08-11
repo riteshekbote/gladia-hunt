@@ -286,3 +286,12 @@
   - ### Verdict: **HOLD** — Plausible surface, requires AUTH_HELPED testing (valid key + known other-user {id}).
   - | Q6 | **YES** | Token-in-URL is a valid design-level security concern. |
   - | 1 | npm `gladia@0.1.3` impersonation + credential-leak | npm registry (SDK ecosystem) | **VALID (DUPLICATE)** | Supply-chain squat, orphaned repo, API key in WS URL. Already reported 9+ times. |
+
+- 7 lead(s) marked VALID at 2026-08-11 18:45:05 UTC
+  - **Verdict: HOLD — out of program scope.** Real supply-chain risk exists, but the asset (npm `gladia`) is not in scope. Should be reported to npm/GitHub directly, not Gladia's program. If operator expa
+  - | **Q2 Reachable?** | Partially — OpenAPI spec is public (14 paths documented), but all data endpoints return 401 NestJS HttpException without valid `x-gladia-key`. |
+  - **Verdict: HOLD — AUTH_HELPED.** Real SSRF surface exists per spec, but cannot be confirmed passively. Requires valid `x-gladia-key`. If operator provides a trial key or approves active testing, recla
+  - | **Q4 Proof without invasive?** | **No** — confirming the actual redirect requires a valid authenticated session. Unauthenticated reflection alone is not exploitable (user isn't logged in). |
+  - | **Q2 Reachable?** | Partially — endpoints are key-gated (401 without valid `x-gladia-key`). |
+  - | **Q4 Proof without invasive?** | **No** — requires valid key to test cross-account isolation. |
+  - **Verdict: HOLD — AUTH_HELPED.** Untestable without valid API key. Same gating issue as Lead 2.
