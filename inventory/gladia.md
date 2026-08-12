@@ -403,3 +403,7 @@
 - NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
 - CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → Google Forms `1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI` (auth-gated via Google, third-party out of scope) — submission c
 - CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (Google Forms, auth-gated via Google
+
+## 2026-08-12 01:47:46 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report submission channel fully mapped (301→www→302→Google Forms); no new in-scope surface, delivery path for locked report confirmed

@@ -451,3 +451,8 @@ https://gladia.io/bug-bounty-report` -> HTTP 404
 https://www.gladia.io/bug-bounty-report` -> HTTP 404
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
 https://gladia.io/bug-bounty-report -> HTTP 401
+
+## 2026-08-12 01:47:51 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
