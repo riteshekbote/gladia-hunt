@@ -5051,3 +5051,22 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 91 drift-negative cycles.
 [RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri, tamper-reset return-to cookie, HSTS preload.
 [RISK] sdk: 55 — orphaned `gladia@0.1.3` at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
+## 2026-08-12 18:11:57 UTC [api] (model bigpickle)
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi frozen 125131B/14 paths/7 webhooks; audio_url/video_url plain string + CallbackConfig.url `format:uri`, NO scheme allowlist; /v1/models 530B public confirms FR/US egress; fresh no-key POST → 401/144 NestJS, key sole gate.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each of 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → class REJECTED); return-to cookie tamper-reset → `{"url":"/"}` REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
