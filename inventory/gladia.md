@@ -407,3 +407,13 @@
 ## 2026-08-12 01:47:46 UTC
 - NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
 - CHANGED gladia.io/bug-bounty-report submission channel fully mapped (301→www→302→Google Forms); no new in-scope surface, delivery path for locked report confirmed
+
+## 2026-08-12 04:01:18 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report submission channel fully mapped (301→www→302→Google Forms); no new in-scope surface, delivery path for locked report confirmed
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle: api.gladia.io openapi 125131B/CORS `*`/401 NestJS/x-powered-by Express (OPTIONS-only); app.gladia.io /signin form-action reflection + CSP 0 
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle: api.gladia.io openapi 125131B/CORS `*`/401 NestJS/x-powered-by Express (OPTIONS-only); app.gladia.io /signin form-action reflection + CSP 0 
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle.

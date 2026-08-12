@@ -2216,3 +2216,45 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 80+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
 - LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+
+## RANKED HYPOTHESES 2026-08-12 04:01:18 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `gladia@0.1.3` orphaned impersonation report via Gladia bug-bounty portal (https://gladia.io/bug-bounty-report → redirects to Google Form) with ev
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Google Form `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 80+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook d
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+- LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — supply-chain API key harvesting + irrevocable account takeover, report-ready, evidence locked acro
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (80+ cycles) — audio_url/video_url/callback_config.url format:uri/plain string NO scheme allowlist; 7 webhook del
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 80+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+- LEARN: NO_DELTA — surface frozen across 80+ cycles: api.gladia.io /openapi.json 125131B/CORS `*`/14 paths/7 webhooks, /health 15B, /v1/models 530B (FR/US egress), OPTI
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — local `npm pack` confirmed sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3e
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection confirmed byte-fresh — `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.c
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen — /openapi.json (200, 125131B, CORS `*`, 14 paths, 7 webhooks) confirms audio_url/video_url as plain string no scheme
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: E
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/apikeys?redirect_to=…"}`) tampering does NOT yield open redirect — server res
+- LEARN: NO_DELTA — surface frozen across 80+ cycles: api.gladia.io /openapi.json 125131B/CORS `*`/14 paths/7 webhooks, /health 15B, /v1/models 530B (FR/US egress), OPTI
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — local `npm pack` confirmed sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3e
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection confirmed byte-fresh — `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.c
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen — /openapi.json (200, 125131B, CORS `*`, 14 paths, 7 webhooks) confirms audio_url/video_url as plain string no scheme
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: E
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/apikeys?redirect_to=…"}`) tampering does NOT yield open redirect — server res
+- LEARN: NO_DELTA — surface frozen across 80+ cycles; api.gladia.io openapi 125131B/CORS `*`/14 paths/7 webhooks; app.gladia.io /signin reflection byte-fresh + CSP 0 for
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation confirmed via local `npm pack` — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh — `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen — audio_url/video_url/callback_url no scheme allowlist; 7 webhooks; /v1/models FR/US egress; OPTIONS x-powered-by: Ex
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 80+ cycles — surface frozen.
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri+PKCE S256.
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to `{"url":"/"}`.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes this cycle (openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/5
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh this cycle (200/27448B, action reflects URL-encoded value, 0 form-action CS
