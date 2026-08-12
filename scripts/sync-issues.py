@@ -1,4 +1,5 @@
 import os, re, hashlib
+from difflib import SequenceMatcher
 from pathlib import Path
 from github import Github
 
@@ -10,6 +11,8 @@ MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
 
 STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
 KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
+
+TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
 
 
 def split_inline(title):
@@ -103,17 +106,25 @@ def fingerprint(b):
 
 
 def issue_fingerprint(iss):
+    """Return the canonical fingerprint for an existing issue.
+
+    The stored <!-- fingerprint:xxx --> comment is the single source of
+    truth: it was computed from the original lead and is stable across
+    runs. Only fall back to recomputing from the body for issues created
+    before the comment existed."""
     body = iss.body or ""
+    m = re.search(r'<!-- fingerprint:([0-9a-f]{12}) -->', body)
+    if m:
+        return m.group(1)
     m = re.search(r'^## Target\n`(.*)`', body, re.M)
     if not m:
-        m = re.search(r'<!-- fingerprint:([0-9a-f]{12}) -->', body)
-        return m.group(1) if m else None
+        return None
     mc = re.search(r'^## Class\n(.*)$', body, re.M)
     a = norm_asset(m.group(1))
     c = (mc.group(1).strip().lower()[:20] if mc else "other")
     if a:
         return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
-    mt = re.search(r'^## Title\n(.*)$', body, re.M) or re.search(r'## Title\n(.*)$', body, re.M)
+    mt = re.search(r'^## Title\n(.*)$', body, re.M)
     t = norm_title(mt.group(1) if mt else "")
     return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
 
@@ -128,6 +139,36 @@ def ensure_label(repo, name):
     except Exception:
         repo.create_label(name, color)
         print("label created:", name)
+
+
+def best_title_match(block, open_issues, by_title_index):
+    """Fuzzy-match a drifted no-asset lead against open issues.
+
+    Returns the issue whose normalized title is most similar to the
+    block title (same class, above TITLE_SIM_THRESHOLD), or None."""
+    bt = norm_title(block.get("title", ""))
+    if not bt:
+        return None
+    bc = (block.get("class", "OTHER") or "OTHER").strip().lower()[:20]
+    best, best_ratio = None, 0.0
+    for iss in open_issues:
+        if iss.state != "open":
+            continue
+        i_class = "other"
+        mc = re.search(r'^## Class\n(.*)$', iss.body or "", re.M)
+        if mc:
+            i_class = mc.group(1).strip().lower()[:20]
+        if i_class != bc:
+            continue
+        it = norm_title(iss.title)
+        if not it:
+            continue
+        r = SequenceMatcher(None, bt, it).ratio()
+        if r > best_ratio:
+            best, best_ratio = iss, r
+    if best and best_ratio >= TITLE_SIM_THRESHOLD:
+        return best
+    return None
 
 
 def main():
@@ -173,7 +214,8 @@ def main():
         fp = issue_fingerprint(i)
         if fp:
             by_fp.setdefault(fp, []).append(i)
-    print("existing issues:", len(existing))
+    open_issues = [i for i in existing if i.state == "open"]
+    print("existing issues:", len(existing), "open:", len(open_issues))
 
     # in-run dedup: same fingerprint multiple times in this batch -> keep first
     seen_fp = set()
@@ -187,6 +229,7 @@ def main():
         print(f"in-run dedup: {len(blocks)} -> {len(uniq_blocks)}")
 
     created = updated = 0
+    fuzzy_matched = 0
     for b in uniq_blocks:
         conf = _conf(b)
         fp = fingerprint(b)
@@ -213,6 +256,24 @@ def main():
                 iss.edit(labels=list(new))
                 updated += 1
         else:
+            # no exact fingerprint match: try fuzzy title match against
+            # open issues before creating a duplicate (handles title drift
+            # in asset-less leads across model runs)
+            match = best_title_match(b, open_issues, None)
+            if match is not None:
+                cur = {l.name for l in match.labels}
+                new = set(labels) | cur
+                if new != cur:
+                    match.edit(labels=list(new))
+                try:
+                    match.create_comment(
+                        f"Fuzzy-matched to lead (title similarity ≥ {TITLE_SIM_THRESHOLD}). "
+                        "No new issue created. If this is a genuinely different finding, "
+                        "reword the title so it differs in the first ~6 words.")
+                except Exception:
+                    pass
+                fuzzy_matched += 1
+                continue
             repo.create_issue(title=title, body=body, labels=labels)
             created += 1
 
@@ -289,7 +350,8 @@ def main():
                     except Exception:
                         pass
 
-    print(f"SUMMARY created={created} updated={updated} closed_rejected={closed} dup_closed={dup_closed} title_closed={title_closed}")
+    print(f"SUMMARY created={created} updated={updated} fuzzy_matched={fuzzy_matched} "
+          f"closed_rejected={closed} dup_closed={dup_closed} title_closed={title_closed}")
 
 if __name__ == "__main__":
     main()
