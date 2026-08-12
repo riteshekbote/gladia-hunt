@@ -1,20 +1,41 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Triage Results**
+### Classification Tables
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder) |
-| **ENDPOINT_LEAK** | *(none)* — all URLs point to production `*.gladia.io` domains |
-| **INTERESTING** | `npm/gladia.json` — unofficial `gladia@0.1.3` package claiming "Official TypeScript SDK" but sourced from personal repo `alexisbouchez/gladia.ts` (orphaned, GitHub 404); already **KNOWN ACCEPTED** finding (tracked 80+ cycles, report-ready) |
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-**Verdict**
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot |
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures for vocabulary validation |
+| gladia-quiz-app/* | multiple | Demo app (Halloween quiz) — user-supplied keys via localStorage only |
+| compare-stt/* | multiple | Comparison tool — demo/test providers, no embedded keys |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `gladia@0.1.3` orphaned impersonation (npm) | **no** — already accepted, evidence locked, portal submission pending |
-| Any new secret/endpoint in scanned repos | **no** — DELTA = 0 new hits; all other hits are legitimate SDK usage, test fixtures, or public marketing links |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Classification |
+|------|------|----------|----------------|
+| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public production API (not a leak) |
+| Multiple files | — | `api.gladia.io`, `app.gladia.io`, `www.gladia.io` | All public production hosts |
 
-**Summary**: No new reportable findings. The scan re-confirms the known orphaned `gladia@0.1.3` impersonator package (supply-chain risk: API key leaked in WebSocket URL query, README↔package.json contradiction, GitHub 404) and legitimate usage of official `@gladiaio/sdk` across Gladia repos.
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| npm/gladia.json | 1 | **Impersonator package** `gladia@0.1.3` — description "Official TypeScript SDK", repo `alexisbouchez/gladia.ts` (personal, 404), maintainer `softwarecitadel@gmail.com`, README "Unofficial" vs package.json "Official" contradiction, src/client.ts embeds raw `x-gladia-key` in WSS URL query — **ALREADY ACCEPTED** (80+ cycles) |
+| gladia-quiz-app/app/layout.tsx | 43 | CDN reference to `@gladiaio/sdk@0.5.2` (old version) via unpkg |
+| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — official contact metadata |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonator | **yes** | Orphaned package (repo+user 404), dist-tag `latest` persists, embeds raw API key in WSS URL query (`x-gladia-key`), contradicts itself (README "Unofficial" vs package.json "Official"), diverges from official `@gladiaio/sdk` secure flow — **evidence package locked, report-ready, portal submission pending** |
+| All other hits | **no** | Test fixtures, demo apps, public endpoints, or already-triaged findings (NO_DRIFT across 80+ cycles for api.gladia.io/app.gladia.io surfaces) |
+
+**Summary**: Zero new findings this scan (DELTA=0). The sole reportable candidate remains the orphaned `gladia@0.1.3` npm package — already validated across 80+ cycles with local `npm pack` reproduction confirming key-in-URL behavior and GitHub 404 (irrevocable takeover risk). No secrets, new endpoints, or surface changes detected.
