@@ -2292,3 +2292,12 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh 06:55 UTC (openapi 200/125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B) — 90t
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: openapi etag rotation (content-hash of per-fetch dynamic examples) is not surface drift — size/paths/webhooks stable, consis
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh (action reflects URL-encoded value, 0 form-action CSP directives) — unauth 
+
+## RANKED HYPOTHESES 2026-08-12 08:24:49 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Google Form (chain from gladia.io/bug-bounty-report, Google-auth-gated) 
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google OAuth SSO flow on app.gladia.io/signin?redirect_to=https://evil.example.com using a controlled test Google account; capture the post-auth
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh 08:22 UTC (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, OPTIONS 204 xpb=Ex
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh (action reflects URL-encoded value, CSP full-set re-captured still 0 form-a
+- LEARN: RISK assessment unchanged across 80+ cycles — all surfaces frozen; api.gladia.io SSRF surface persists (AUTH_HELPED, requires valid API key for POC); app.gladia
