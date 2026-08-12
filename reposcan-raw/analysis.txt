@@ -1,21 +1,125 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mcat << 'EOF'
+# TRIAGE RESULTS: gladiaio/ static scan + npm metadata
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | None |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot fixture) |
-| **ENDPOINT_LEAK** | None — all URLs point to official `*.gladia.io` domains |
-| **INTERESTING** | `npm/gladia.json` — orphaned impersonator package (`gladia@0.1.3`, repo `alexisbouchez/gladia.ts` 404, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query) — **already ACCEPTED in KB** |
+## CLASSIFICATION TABLE
 
-### Verdict
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| (none) | - | - | No hardcoded credentials found. The `sk-********` in gladiaflow/src/screenshots/Gallery.tsx:17 is a masked placeholder. |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `gladia@0.1.3` npm impersonation | **no** (already accepted, evidence package locked, report-ready via portal) |
-| Any hardcoded secret in scanned repos | **no** (zero real secrets found) |
-| New endpoint/internal URL leaks | **no** (all URLs are official production domains) |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures for vocabulary validation |
+| gladiaflow/src/lib/customVocabulary.ts | 8-9 | Example vocabulary term "gladiaflow" |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 56,94 | Client-side localStorage demo (user-provided key) |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 70,74 | Demo transcription hook using user key |
 
-**Summary**: DELTA = 0 new hits. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonator) is already triaged, evidence-locked, and portal-submission-pending. No new reportable findings in this scan.
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public API base) |
+| compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage (public auth scheme) |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` (public dashboard) |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public key management) |
+| gladia-quiz-app/app/layout.tsx | 43 | `unpkg.com/@gladiaio/sdk@0.5.2` (public CDN) |
+| compare-stt/next.config.ts | 38,44 | `www.gladia.io` rewrite destinations (public marketing) |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/npm/gladia.json | 1 | **Orphaned impersonator package** `gladia@0.1.3` — claims "Official" in package.json, repo=alexisbouchez/gladia.ts (404), README="Unofficial", src/client.ts:306-308 embeds raw `x-gladia-key` in wss:// URL query |
+| reposcan-raw/npm/_gladiaio_sdk.json | 1 | Official `@gladiaio/sdk@1.1.0` — clean, from gladiaio/sdk monorepo |
+| gladia-quiz-app/lib/gladia-client.ts | 1 | `GLADIA_API_KEY_STORAGE = 'gladia_api_key'` localStorage key (client-side only) |
+
+---
+
+## VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package | Supply-chain / Impersonation | **YES** | Orphaned package (repo+user 404), "Official" vs "Unofficial" contradiction, leaks API key in WebSocket URL query param (`x-gladia-key`), diverges from official SDK's secure POST→token flow. **Already ACCEPTED in knowledge base (2026-08-07 through 2026-08-12), evidence package locked, report-ready via https://gladia.io/bug-bounty-report** |
+| api.gladia.io SSRF-by-design | SSRF | **YES (AUTH_HELPED)** | OpenAPI spec: `audio_url`/`video_url`/`callback_url`/`CallbackConfig.url` all `format:uri` with NO scheme allowlist; 7 webhook delivery topics; `/v1/models` confirms FR/US egress. Key-gated (401). **Already ACCEPTED, frozen across 90+ NO_DRIFT cycles** |
+| app.gladia.io `/signin?redirect_to=` reflection | OAuth / Redirect | **YES (HUMAN_ONLY)** | Unauthenticated reflection into form `action`; CSP lacks `form-action` directive (0 occurrences); OAuth `redirect_uri` FIXED + PKCE S256 blocks code/state theft; return-to cookie tamper-reset confirmed. Post-auth honoring = sole unverified gate. **Already ACCEPTED, frozen** |
+| @gladiaio/sdk@1.1.0 | Supply-chain | NO | Official package from gladiaio/sdk monorepo, clean |
+| All other hits | Config/Reference | NO | Public endpoints, SDK imports, test fixtures, client-side demos — no secrets, no new surface |
+
+---
+
+## SUMMARY
+- **0 new findings** this scan (DELTA: 0 hit lines)
+- **3 pre-existing ACCEPTED findings** remain valid and report-ready:
+  1. `gladia@0.1.3` orphaned impersonation (P3/P4 supply-chain)
+  2. api.gladia.io SSRF-by-design (AUTH_HELPED, needs valid key for PoC)
+  3. app.gladia.io `/signin` redirect_to reflection + CSP gap (HUMAN_ONLY for post-auth)
+- **Surface frozen** across 90+ probe cycles (api.gladia.io NO_DRIFT, app.gladia.io NO_DRIFT, npm metadata static)
+- **Passive recon exhausted** — no further signal without authorized API key (for SSRF PoC) or human OAuth flow test (for post-auth redirect_to honoring)
+EOF
+# TRIAGE RESULTS: gladiaio/ static scan + npm metadata
+
+## CLASSIFICATION TABLE
+
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| (none) | - | - | No hardcoded credentials found. The `sk-********` in gladiaflow/src/screenshots/Gallery.tsx:17 is a masked placeholder. |
+
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures for vocabulary validation |
+| gladiaflow/src/lib/customVocabulary.ts | 8-9 | Example vocabulary term "gladiaflow" |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 56,94 | Client-side localStorage demo (user-provided key) |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 70,74 | Demo transcription hook using user key |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public API base) |
+| compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage (public auth scheme) |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` (public dashboard) |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public key management) |
+| gladia-quiz-app/app/layout.tsx | 43 | `unpkg.com/@gladiaio/sdk@0.5.2` (public CDN) |
+| compare-stt/next.config.ts | 38,44 | `www.gladia.io` rewrite destinations (public marketing) |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/npm/gladia.json | 1 | **Orphaned impersonator package** `gladia@0.1.3` — claims "Official" in package.json, repo=alexisbouchez/gladia.ts (404), README="Unofficial", src/client.ts:306-308 embeds raw `x-gladia-key` in wss:// URL query |
+| reposcan-raw/npm/_gladiaio_sdk.json | 1 | Official `@gladiaio/sdk@1.1.0` — clean, from gladiaio/sdk monorepo |
+| gladia-quiz-app/lib/gladia-client.ts | 1 | `GLADIA_API_KEY_STORAGE = 'gladia_api_key'` localStorage key (client-side only) |
+
+---
+
+## VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package | Supply-chain / Impersonation | **YES** | Orphaned package (repo+user 404), "Official" vs "Unofficial" contradiction, leaks API key in WebSocket URL query param (`x-gladia-key`), diverges from official SDK's secure POST→token flow. **Already ACCEPTED in knowledge base (2026-08-07 through 2026-08-12), evidence package locked, report-ready via https://gladia.io/bug-bounty-report** |
+| api.gladia.io SSRF-by-design | SSRF | **YES (AUTH_HELPED)** | OpenAPI spec: `audio_url`/`video_url`/`callback_url`/`CallbackConfig.url` all `format:uri` with NO scheme allowlist; 7 webhook delivery topics; `/v1/models` confirms FR/US egress. Key-gated (401). **Already ACCEPTED, frozen across 90+ NO_DRIFT cycles** |
+| app.gladia.io `/signin?redirect_to=` reflection | OAuth / Redirect | **YES (HUMAN_ONLY)** | Unauthenticated reflection into form `action`; CSP lacks `form-action` directive (0 occurrences); OAuth `redirect_uri` FIXED + PKCE S256 blocks code/state theft; return-to cookie tamper-reset confirmed. Post-auth honoring = sole unverified gate. **Already ACCEPTED, frozen** |
+| @gladiaio/sdk@1.1.0 | Supply-chain | NO | Official package from gladiaio/sdk monorepo, clean |
+| All other hits | Config/Reference | NO | Public endpoints, SDK imports, test fixtures, client-side demos — no secrets, no new surface |
+
+---
+
+## SUMMARY
+- **0 new findings** this scan (DELTA: 0 hit lines)
+- **3 pre-existing ACCEPTED findings** remain valid and report-ready:
+  1. `gladia@0.1.3` orphaned impersonation (P3/P4 supply-chain)
+  2. api.gladia.io SSRF-by-design (AUTH_HELPED, needs valid key for PoC)
+  3. app.gladia.io `/signin` redirect_to reflection + CSP gap (HUMAN_ONLY for post-auth)
+- **Surface frozen** across 90+ probe cycles (api.gladia.io NO_DRIFT, app.gladia.io NO_DRIFT, npm metadata static)
+- **Passive recon exhausted** — no further signal without authorized API key (for SSRF PoC) or human OAuth flow test (for post-auth redirect_to honoring)
+[0m
+Done. **0 new findings** this scan (DELTA: 0 hit lines). All 617 hits classified — only the three pre-existing ACCEPTED findings remain report-ready:
+
+1. **`gladia@0.1.3` orphaned impersonation** (supply-chain, P3/P4) — repo+user 404, "Official" vs "Unofficial" contradiction, leaks API key in wss:// URL query (`x-gladia-key`), evidence locked, report via `https://gladia.io/bug-bounty-report`
+2. **api.gladia.io SSRF-by-design** (AUTH_HELPED) — `audio_url`/`video_url`/`callback_url`/`CallbackConfig.url` all `format:uri` no scheme allowlist; 7 webhook topics; FR/US egress; key-gated
+3. **app.gladia.io `/signin?redirect_to=` reflection** (HUMAN_ONLY) — unauth form-action reflection, CSP lacks `form-action` directive, OAuth `redirect_uri` FIXED+PKCE blocks theft, post-auth honoring sole unverified gate
+
+Surface frozen across 90+ NO_DRIFT cycles. Passive recon exhausted.
