@@ -4682,3 +4682,4 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec exposes full v2 surface incl. SSRF-by-design no-scheme-allowlist fetch + 7 webhook callbacks + FR/US egress; CORS `*`; WebSocket token-in-URL; undocumented /health; x-powered-by Express fingerprint; NestJS-on-Express; key-gated only.
 [RISK] app.gladia.io: 58 reason: /signin redirect_to form-action reflection + CSP 0 form-action directives (gap); /dashboard SPA 200 without auth; server-side 302 gate on protected paths; OAuth PKCE fixed-redirect_uri; return-to tamper-reset REJECTED; post-auth honoring HUMAN_ONLY.
 [RISK] sdk: 85 reason: Official SDKs clean; THIRD-PARTY `gladia@0.1.3` at dist-tag latest leaks API key in wss:// URL query (src/client.ts:307); orphaned (repo+user 404, irrevocable takeover risk); README↔package.json contradiction; report-ready.
+## 2026-08-12 05:30:02 UTC [app] (model laguna)

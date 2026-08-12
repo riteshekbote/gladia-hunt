@@ -1683,3 +1683,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: **48** — redirect_to reflection + CSP form-action gap (0 directives) + SPA catch-all exposing shell without auth. OAuth redirect_uri FIXED (PKCE S256) prevents code theft. Post-auth honoring unverified (HUMAN_ONLY). Return-to cookie tamper-reset REJECTED. Lowest risk of three.
 [RISK] sdk: **72** — Orphaned impersonator `gladia@0.1.3` at dist-tag latest actively placing API keys in WebSocket URL queries where they can be logged/proxied. Irrevocable account takeover (GitHub user+repo 404) enables malicious updates. Official SDK supply-chain trust undermined. **Highest actionable risk in program** — report-ready, evidence locked, submission channel now mapped to Google Form.
 ## 2026-08-12 03:51:52 UTC [sdk] (model longcat)
+## 2026-08-12 05:28:06 UTC [sdk] (model longcat)

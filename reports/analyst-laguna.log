@@ -30025,3 +30025,876 @@ Analysis complete. Here's the summary of this cycle:
 - src/client.ts:307-318 — API key embedded in WebSocket URL query via `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`
 - app.gladia.io CSP — 0 `form-action` directives (confirmed via header grep)
 - app.gladia.io /auth/google/callback — 302 to accounts.google.com with PKCE S256, fixed redirect_uri
+===== ANALYST laguna 2026-08-12 05:30:10 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la
+total 512
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 .
+drwxr-xr-x  3 runner runner   4096 Aug 12 05:27 ..
+drwxr-xr-x  7 runner runner   4096 Aug 12 05:28 .git
+drwxr-xr-x  3 runner runner   4096 Aug 12 05:27 .github
+-rw-r--r--  1 runner runner    156 Aug 12 05:27 README.md
+-rw-r--r--  1 runner runner     39 Aug 12 05:28 analyst-out.txt
+-rw-r--r--  1 runner runner 206601 Aug 12 05:28 analyst-prompt.txt
+-rw-r--r--  1 runner runner 203460 Aug 12 05:28 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 12 05:27 leads
+-rw-r--r--  1 runner runner  21506 Aug 12 05:27 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 reports
+drwxr-xr-x  4 runner runner   4096 Aug 12 05:27 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 12 05:27 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 scripts
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 triage
+[0m
+I'll start by checking the working directory to understand the environment, then proceed with the analysis steps.
+[0m$ [0mgit log --oneline -5 2>/dev/null; echo "---"; cat README.md 2>/dev/null | head -50
+32bb1ec triage 2026-08-12-05-10
+---
+# gladia-hunt
+24/7 multi-model bug-hunting automation for Gladia — api.gladia.io (Highest), app.gladia.io (High), official SDKs (Medium), gladia.io (Low)
+[0m
+[0m→ [0mRead README.md
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mls -la scripts inventory leads reports triage knowledge
+inventory:
+total 44
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 32901 Aug 12 05:27 gladia.md
+
+knowledge:
+total 188
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 180298 Aug 12 05:27 index.md
+
+leads:
+total 5720
+drwxr-xr-x  2 runner runner  12288 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 619821 Aug 12 05:27 lead-bigpickle.md
+-rw-r--r--  1 runner runner 873601 Aug 12 05:27 lead-laguna.md
+-rw-r--r--  1 runner runner   5402 Aug 12 05:27 lead-ling3.md
+-rw-r--r--  1 runner runner 228613 Aug 12 05:27 lead-longcat.md
+-rw-r--r--  1 runner runner 677309 Aug 12 05:27 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug 12 05:27 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug 12 05:27 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug 12 05:27 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug 12 05:27 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug 12 05:27 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug 12 05:27 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug 12 05:27 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug 12 05:27 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug 12 05:27 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug 12 05:27 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug 12 05:27 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug 12 05:27 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug 12 05:27 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug 12 05:27 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug 12 05:27 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug 12 05:27 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug 12 05:27 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug 12 05:27 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug 12 05:27 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug 12 05:27 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug 12 05:27 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug 12 05:27 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug 12 05:27 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug 12 05:27 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug 12 05:27 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug 12 05:27 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug 12 05:27 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug 12 05:27 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug 12 05:27 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug 12 05:27 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug 12 05:27 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug 12 05:27 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug 12 05:27 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug 12 05:27 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug 12 05:27 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug 12 05:27 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug 12 05:27 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug 12 05:27 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug 12 05:27 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug 12 05:27 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug 12 05:27 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-17-55.md
+-rw-r--r--  1 runner runner   5821 Aug 12 05:27 reposcan-2026-08-08-18-00.md
+-rw-r--r--  1 runner runner   6816 Aug 12 05:27 reposcan-2026-08-08-18-20.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-18-52.md
+-rw-r--r--  1 runner runner   7054 Aug 12 05:27 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  27131 Aug 12 05:27 reposcan-2026-08-08-19-30.md
+-rw-r--r--  1 runner runner   9467 Aug 12 05:27 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-20-03.md
+-rw-r--r--  1 runner runner   6737 Aug 12 05:27 reposcan-2026-08-08-20-14.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-20-31.md
+-rw-r--r--  1 runner runner   8762 Aug 12 05:27 reposcan-2026-08-08-20-52.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-21-03.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-08-21-21.md
+-rw-r--r--  1 runner runner   7872 Aug 12 05:27 reposcan-2026-08-08-21-47.md
+-rw-r--r--  1 runner runner  27610 Aug 12 05:27 reposcan-2026-08-08-21-54.md
+-rw-r--r--  1 runner runner   7642 Aug 12 05:27 reposcan-2026-08-08-22-26.md
+-rw-r--r--  1 runner runner  11379 Aug 12 05:27 reposcan-2026-08-08-22-28.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  26885 Aug 12 05:27 reposcan-2026-08-08-23-39.md
+-rw-r--r--  1 runner runner   6380 Aug 12 05:27 reposcan-2026-08-09-00-05.md
+-rw-r--r--  1 runner runner  28494 Aug 12 05:27 reposcan-2026-08-09-02-29.md
+-rw-r--r--  1 runner runner  14401 Aug 12 05:27 reposcan-2026-08-09-04-03.md
+-rw-r--r--  1 runner runner   8639 Aug 12 05:27 reposcan-2026-08-09-05-19.md
+-rw-r--r--  1 runner runner   8541 Aug 12 05:27 reposcan-2026-08-09-06-06.md
+-rw-r--r--  1 runner runner  79446 Aug 12 05:27 reposcan-2026-08-09-06-09.md
+-rw-r--r--  1 runner runner   6133 Aug 12 05:27 reposcan-2026-08-09-07-17.md
+-rw-r--r--  1 runner runner   8300 Aug 12 05:27 reposcan-2026-08-09-08-09.md
+-rw-r--r--  1 runner runner   7946 Aug 12 05:27 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  27400 Aug 12 05:27 reposcan-2026-08-09-09-55.md
+-rw-r--r--  1 runner runner  27610 Aug 12 05:27 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner   9192 Aug 12 05:27 reposcan-2026-08-09-10-31.md
+-rw-r--r--  1 runner runner   7230 Aug 12 05:27 reposcan-2026-08-09-10-38.md
+-rw-r--r--  1 runner runner   6487 Aug 12 05:27 reposcan-2026-08-09-11-10.md
+-rw-r--r--  1 runner runner   7854 Aug 12 05:27 reposcan-2026-08-09-11-46.md
+-rw-r--r--  1 runner runner   6024 Aug 12 05:27 reposcan-2026-08-09-12-17.md
+-rw-r--r--  1 runner runner   7839 Aug 12 05:27 reposcan-2026-08-09-12-19.md
+-rw-r--r--  1 runner runner   7712 Aug 12 05:27 reposcan-2026-08-09-13-33.md
+-rw-r--r--  1 runner runner   8882 Aug 12 05:27 reposcan-2026-08-09-14-16.md
+-rw-r--r--  1 runner runner  77508 Aug 12 05:27 reposcan-2026-08-09-14-23.md
+-rw-r--r--  1 runner runner   8689 Aug 12 05:27 reposcan-2026-08-09-15-02.md
+-rw-r--r--  1 runner runner   7849 Aug 12 05:27 reposcan-2026-08-09-15-35.md
+-rw-r--r--  1 runner runner   8080 Aug 12 05:27 reposcan-2026-08-09-15-48.md
+-rw-r--r--  1 runner runner   8373 Aug 12 05:27 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner   7541 Aug 12 05:27 reposcan-2026-08-09-16-35.md
+-rw-r--r--  1 runner runner  10447 Aug 12 05:27 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-09-17-16.md
+-rw-r--r--  1 runner runner   7883 Aug 12 05:27 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner   8455 Aug 12 05:27 reposcan-2026-08-09-18-07.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-09-18-38.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-18-59.md
+-rw-r--r--  1 runner runner   8249 Aug 12 05:27 reposcan-2026-08-09-19-22.md
+-rw-r--r--  1 runner runner  10364 Aug 12 05:27 reposcan-2026-08-09-19-45.md
+-rw-r--r--  1 runner runner   8634 Aug 12 05:27 reposcan-2026-08-09-19-58.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-09-20-07.md
+-rw-r--r--  1 runner runner   9349 Aug 12 05:27 reposcan-2026-08-09-20-40.md
+-rw-r--r--  1 runner runner   7800 Aug 12 05:27 reposcan-2026-08-09-20-53.md
+-rw-r--r--  1 runner runner   7117 Aug 12 05:27 reposcan-2026-08-09-21-15.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-21-40.md
+-rw-r--r--  1 runner runner   6483 Aug 12 05:27 reposcan-2026-08-09-21-50.md
+-rw-r--r--  1 runner runner   7453 Aug 12 05:27 reposcan-2026-08-09-22-03.md
+-rw-r--r--  1 runner runner   8738 Aug 12 05:27 reposcan-2026-08-09-22-30.md
+-rw-r--r--  1 runner runner   8713 Aug 12 05:27 reposcan-2026-08-09-22-44.md
+-rw-r--r--  1 runner runner  27904 Aug 12 05:27 reposcan-2026-08-09-23-03.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-09-23-09.md
+-rw-r--r--  1 runner runner   8541 Aug 12 05:27 reposcan-2026-08-09-23-47.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-00-42.md
+-rw-r--r--  1 runner runner   9436 Aug 12 05:27 reposcan-2026-08-10-01-42.md
+-rw-r--r--  1 runner runner   6733 Aug 12 05:27 reposcan-2026-08-10-03-08.md
+-rw-r--r--  1 runner runner   7669 Aug 12 05:27 reposcan-2026-08-10-03-32.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-10-04-52.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-05-13.md
+-rw-r--r--  1 runner runner   6726 Aug 12 05:27 reposcan-2026-08-10-06-25.md
+-rw-r--r--  1 runner runner   6981 Aug 12 05:27 reposcan-2026-08-10-06-43.md
+-rw-r--r--  1 runner runner  53466 Aug 12 05:27 reposcan-2026-08-10-08-09.md
+-rw-r--r--  1 runner runner   8442 Aug 12 05:27 reposcan-2026-08-10-08-18.md
+-rw-r--r--  1 runner runner   7031 Aug 12 05:27 reposcan-2026-08-10-09-51.md
+-rw-r--r--  1 runner runner   7337 Aug 12 05:27 reposcan-2026-08-10-09-59.md
+-rw-r--r--  1 runner runner  12443 Aug 12 05:27 reposcan-2026-08-10-10-57.md
+-rw-r--r--  1 runner runner   9378 Aug 12 05:27 reposcan-2026-08-10-11-13.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-11-49.md
+-rw-r--r--  1 runner runner   8085 Aug 12 05:27 reposcan-2026-08-10-12-03.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-12-44.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-13-37.md
+-rw-r--r--  1 runner runner  12311 Aug 12 05:27 reposcan-2026-08-10-14-11.md
+-rw-r--r--  1 runner runner  27650 Aug 12 05:27 reposcan-2026-08-10-14-47.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-15-24.md
+-rw-r--r--  1 runner runner   8165 Aug 12 05:27 reposcan-2026-08-10-15-45.md
+-rw-r--r--  1 runner runner   6861 Aug 12 05:27 reposcan-2026-08-10-16-20.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-16-35.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-17-19.md
+-rw-r--r--  1 runner runner   9122 Aug 12 05:27 reposcan-2026-08-10-17-40.md
+-rw-r--r--  1 runner runner  25302 Aug 12 05:27 reposcan-2026-08-10-18-21.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-10-18-39.md
+-rw-r--r--  1 runner runner  29716 Aug 12 05:27 reposcan-2026-08-10-19-23.md
+-rw-r--r--  1 runner runner   7798 Aug 12 05:27 reposcan-2026-08-10-19-44.md
+-rw-r--r--  1 runner runner   8819 Aug 12 05:27 reposcan-2026-08-10-20-11.md
+-rw-r--r--  1 runner runner  28475 Aug 12 05:27 reposcan-2026-08-10-20-27.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-21-04.md
+-rw-r--r--  1 runner runner   7034 Aug 12 05:27 reposcan-2026-08-10-21-14.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-22-04.md
+-rw-r--r--  1 runner runner   8244 Aug 12 05:27 reposcan-2026-08-10-22-40.md
+-rw-r--r--  1 runner runner  12146 Aug 12 05:27 reposcan-2026-08-10-22-51.md
+-rw-r--r--  1 runner runner   9315 Aug 12 05:27 reposcan-2026-08-10-23-21.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-23-35.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-11-00-03.md
+-rw-r--r--  1 runner runner   6985 Aug 12 05:27 reposcan-2026-08-11-00-08.md
+-rw-r--r--  1 runner runner  14706 Aug 12 05:27 reposcan-2026-08-11-02-17.md
+-rw-r--r--  1 runner runner  27724 Aug 12 05:27 reposcan-2026-08-11-02-30.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-04-29.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-05-48.md
+-rw-r--r--  1 runner runner  25909 Aug 12 05:27 reposcan-2026-08-11-06-14.md
+-rw-r--r--  1 runner runner   7844 Aug 12 05:27 reposcan-2026-08-11-06-32.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-07-42.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-11-07-50.md
+-rw-r--r--  1 runner runner   7734 Aug 12 05:27 reposcan-2026-08-11-08-43.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-08-55.md
+-rw-r--r--  1 runner runner  12110 Aug 12 05:27 reposcan-2026-08-11-09-46.md
+-rw-r--r--  1 runner runner   9279 Aug 12 05:27 reposcan-2026-08-11-10-00.md
+-rw-r--r--  1 runner runner  27686 Aug 12 05:27 reposcan-2026-08-11-10-41.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-10-58.md
+-rw-r--r--  1 runner runner   8526 Aug 12 05:27 reposcan-2026-08-11-11-35.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-11-51.md
+-rw-r--r--  1 runner runner   6785 Aug 12 05:27 reposcan-2026-08-11-12-46.md
+-rw-r--r--  1 runner runner  26859 Aug 12 05:27 reposcan-2026-08-11-13-04.md
+-rw-r--r--  1 runner runner   7171 Aug 12 05:27 reposcan-2026-08-11-14-05.md
+-rw-r--r--  1 runner runner  11407 Aug 12 05:27 reposcan-2026-08-11-14-36.md
+-rw-r--r--  1 runner runner  26168 Aug 12 05:27 reposcan-2026-08-11-15-17.md
+-rw-r--r--  1 runner runner  53702 Aug 12 05:27 reposcan-2026-08-11-15-47.md
+-rw-r--r--  1 runner runner  28998 Aug 12 05:27 reposcan-2026-08-11-16-18.md
+-rw-r--r--  1 runner runner  27166 Aug 12 05:27 reposcan-2026-08-11-16-43.md
+-rw-r--r--  1 runner runner  12596 Aug 12 05:27 reposcan-2026-08-11-17-21.md
+-rw-r--r--  1 runner runner  26740 Aug 12 05:27 reposcan-2026-08-11-17-43.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-18-16.md
+-rw-r--r--  1 runner runner   8904 Aug 12 05:27 reposcan-2026-08-11-18-39.md
+-rw-r--r--  1 runner runner   5001 Aug 12 05:27 reposcan-2026-08-11-19-32.md
+-rw-r--r--  1 runner runner   7041 Aug 12 05:27 reposcan-2026-08-11-19-47.md
+-rw-r--r--  1 runner runner  25390 Aug 12 05:27 reposcan-2026-08-11-20-15.md
+-rw-r--r--  1 runner runner   7708 Aug 12 05:27 reposcan-2026-08-11-20-43.md
+-rw-r--r--  1 runner runner   5520 Aug 12 05:27 reposcan-2026-08-11-21-11.md
+-rw-r--r--  1 runner runner  27172 Aug 12 05:27 reposcan-2026-08-11-21-30.md
+-rw-r--r--  1 runner runner  11777 Aug 12 05:27 reposcan-2026-08-11-22-08.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-22-25.md
+-rw-r--r--  1 runner runner  12028 Aug 12 05:27 reposcan-2026-08-11-23-06.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-23-15.md
+-rw-r--r--  1 runner runner   8561 Aug 12 05:27 reposcan-2026-08-11-23-57.md
+-rw-r--r--  1 runner runner   8038 Aug 12 05:27 reposcan-2026-08-12-00-03.md
+-rw-r--r--  1 runner runner   6044 Aug 12 05:27 reposcan-2026-08-12-01-49.md
+-rw-r--r--  1 runner runner   7414 Aug 12 05:27 reposcan-2026-08-12-02-45.md
+-rw-r--r--  1 runner runner   8521 Aug 12 05:27 reposcan-2026-08-12-04-03.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-12-04-29.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-latest.md
+
+reports:
+total 7308
+drwxr-xr-x  2 runner runner    4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner    4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 1946687 Aug 12 05:27 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 3543287 Aug 12 05:27 analyst-laguna.log
+-rw-r--r--  1 runner runner   24408 Aug 12 05:27 analyst-ling3.log
+-rw-r--r--  1 runner runner  310768 Aug 12 05:27 analyst-longcat.log
+-rw-r--r--  1 runner runner 1213185 Aug 12 05:27 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    5788 Aug 12 05:27 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   45078 Aug 12 05:27 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 12 05:27 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 12 05:27 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner      51 Aug 12 05:27 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  345698 Aug 12 05:27 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 12 05:27 valid-bugs.md
+
+scripts:
+total 20
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 11379 Aug 12 05:27 sync-issues.py
+
+triage:
+total 1088
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 12 05:27 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 12 05:27 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 12 05:27 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 12 05:27 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 12 05:27 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 12 05:27 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 12 05:27 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 12 05:27 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 12 05:27 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 12 05:27 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 12 05:27 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 12 05:27 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 12 05:27 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 12 05:27 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 12 05:27 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 12 05:27 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 12 05:27 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 12 05:27 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 12 05:27 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 12 05:27 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 12 05:27 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 12 05:27 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 12 05:27 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 12 05:27 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 12 05:27 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 12 05:27 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 12 05:27 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 12 05:27 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 12 05:27 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 12 05:27 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 12 05:27 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 12 05:27 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 12 05:27 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 12 05:27 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 12 05:27 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 12 05:27 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 12 05:27 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 12 05:27 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 12 05:27 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 12 05:27 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 12 05:27 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 12 05:27 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 12 05:27 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 12 05:27 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 12 05:27 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 12 05:27 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 12 05:27 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 12 05:27 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 12 05:27 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 12 05:27 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 12 05:27 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 12 05:27 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 12 05:27 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 12 05:27 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 12 05:27 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 12 05:27 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 12 05:27 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner   288 Aug 12 05:27 run-2026-08-10-15-27.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-10-16-39.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-10-17-41.md
+-rw-r--r--  1 runner runner   246 Aug 12 05:27 run-2026-08-10-18-37.md
+-rw-r--r--  1 runner runner   351 Aug 12 05:27 run-2026-08-10-19-45.md
+-rw-r--r--  1 runner runner  8559 Aug 12 05:27 run-2026-08-10-20-29.md
+-rw-r--r--  1 runner runner   343 Aug 12 05:27 run-2026-08-10-21-28.md
+-rw-r--r--  1 runner runner   277 Aug 12 05:27 run-2026-08-10-22-22.md
+-rw-r--r--  1 runner runner   524 Aug 12 05:27 run-2026-08-10-23-06.md
+-rw-r--r--  1 runner runner  9251 Aug 12 05:27 run-2026-08-10-23-58.md
+-rw-r--r--  1 runner runner   237 Aug 12 05:27 run-2026-08-11-02-32.md
+-rw-r--r--  1 runner runner 94038 Aug 12 05:27 run-2026-08-11-04-12.md
+-rw-r--r--  1 runner runner 10441 Aug 12 05:27 run-2026-08-11-05-35.md
+-rw-r--r--  1 runner runner   306 Aug 12 05:27 run-2026-08-11-06-41.md
+-rw-r--r--  1 runner runner   302 Aug 12 05:27 run-2026-08-11-07-59.md
+-rw-r--r--  1 runner runner   282 Aug 12 05:27 run-2026-08-11-09-26.md
+-rw-r--r--  1 runner runner 25960 Aug 12 05:27 run-2026-08-11-10-50.md
+-rw-r--r--  1 runner runner 16158 Aug 12 05:27 run-2026-08-11-11-37.md
+-rw-r--r--  1 runner runner  2520 Aug 12 05:27 run-2026-08-11-12-35.md
+-rw-r--r--  1 runner runner 29107 Aug 12 05:27 run-2026-08-11-14-16.md
+-rw-r--r--  1 runner runner   268 Aug 12 05:27 run-2026-08-11-15-26.md
+-rw-r--r--  1 runner runner   352 Aug 12 05:27 run-2026-08-11-16-42.md
+-rw-r--r--  1 runner runner   323 Aug 12 05:27 run-2026-08-11-17-45.md
+-rw-r--r--  1 runner runner 69204 Aug 12 05:27 run-2026-08-11-18-45.md
+-rw-r--r--  1 runner runner 32556 Aug 12 05:27 run-2026-08-11-19-53.md
+-rw-r--r--  1 runner runner   332 Aug 12 05:27 run-2026-08-11-20-37.md
+-rw-r--r--  1 runner runner   200 Aug 12 05:27 run-2026-08-11-21-31.md
+-rw-r--r--  1 runner runner   484 Aug 12 05:27 run-2026-08-11-22-27.md
+-rw-r--r--  1 runner runner 16653 Aug 12 05:27 run-2026-08-11-23-31.md
+-rw-r--r--  1 runner runner 31213 Aug 12 05:27 run-2026-08-12-00-47.md
+-rw-r--r--  1 runner runner   210 Aug 12 05:27 run-2026-08-12-03-14.md
+-rw-r--r--  1 runner runner   210 Aug 12 05:27 run-2026-08-12-05-10.md
+-rw-r--r--  1 runner runner 13831 Aug 12 05:27 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 12 05:27 triage-report-2026-08-10.md
+-rw-r--r--  1 runner runner 11303 Aug 12 05:27 triage-report-2026-08-11.md
+[0m
+[0m$ [0mcat state_laguna.json; echo "---OUT---"; cat analyst-out.txt
+{"phase": "POC", "target": "app"}---OUT---
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la
+total 512
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 .
+drwxr-xr-x  3 runner runner   4096 Aug 12 05:27 ..
+drwxr-xr-x  7 runner runner   4096 Aug 12 05:28 .git
+drwxr-xr-x  3 runner runner   4096 Aug 12 05:27 .github
+-rw-r--r--  1 runner runner    156 Aug 12 05:27 README.md
+-rw-r--r--  1 runner runner     39 Aug 12 05:28 analyst-out.txt
+-rw-r--r--  1 runner runner 206601 Aug 12 05:28 analyst-prompt.txt
+-rw-r--r--  1 runner runner 203460 Aug 12 05:28 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 knowledge
+drwxr-xr-x  2 runner runner  12288 Aug 12 05:27 leads
+-rw-r--r--  1 runner runner  21506 Aug 12 05:27 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 reports
+drwxr-xr-x  4 runner runner   4096 Aug 12 05:27 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 12 05:27 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 scripts
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 12 05:27 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 triage
+[0m
+I'll start by checking the working directory to understand the environment, then proceed with the analysis steps.
+[0m$ [0mgit log --oneline -5 2>/dev/null; echo "---"; cat README.md 2>/dev/null | head -50
+32bb1ec triage 2026-08-12-05-10
+---
+# gladia-hunt
+24/7 multi-model bug-hunting automation for Gladia — api.gladia.io (Highest), app.gladia.io (High), official SDKs (Medium), gladia.io (Low)
+[0m
+[0m→ [0mRead README.md
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mls -la scripts inventory leads reports triage knowledge
+inventory:
+total 44
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 32901 Aug 12 05:27 gladia.md
+
+knowledge:
+total 188
+drwxr-xr-x  2 runner runner   4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 180298 Aug 12 05:27 index.md
+
+leads:
+total 5720
+drwxr-xr-x  2 runner runner  12288 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner   4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 619821 Aug 12 05:27 lead-bigpickle.md
+-rw-r--r--  1 runner runner 873601 Aug 12 05:27 lead-laguna.md
+-rw-r--r--  1 runner runner   5402 Aug 12 05:27 lead-ling3.md
+-rw-r--r--  1 runner runner 228613 Aug 12 05:27 lead-longcat.md
+-rw-r--r--  1 runner runner 677309 Aug 12 05:27 lead-nemotron3.md
+-rw-r--r--  1 runner runner  28327 Aug 12 05:27 reposcan-2026-08-07-18-33.md
+-rw-r--r--  1 runner runner   8024 Aug 12 05:27 reposcan-2026-08-07-18-53.md
+-rw-r--r--  1 runner runner   8961 Aug 12 05:27 reposcan-2026-08-07-19-26.md
+-rw-r--r--  1 runner runner  78572 Aug 12 05:27 reposcan-2026-08-07-19-31.md
+-rw-r--r--  1 runner runner   9684 Aug 12 05:27 reposcan-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner   9765 Aug 12 05:27 reposcan-2026-08-07-20-06.md
+-rw-r--r--  1 runner runner  75509 Aug 12 05:27 reposcan-2026-08-07-20-57.md
+-rw-r--r--  1 runner runner   9522 Aug 12 05:27 reposcan-2026-08-07-21-07.md
+-rw-r--r--  1 runner runner   6985 Aug 12 05:27 reposcan-2026-08-07-21-51.md
+-rw-r--r--  1 runner runner   7172 Aug 12 05:27 reposcan-2026-08-07-22-03.md
+-rw-r--r--  1 runner runner  12043 Aug 12 05:27 reposcan-2026-08-07-22-31.md
+-rw-r--r--  1 runner runner   8476 Aug 12 05:27 reposcan-2026-08-07-23-02.md
+-rw-r--r--  1 runner runner   7227 Aug 12 05:27 reposcan-2026-08-07-23-16.md
+-rw-r--r--  1 runner runner  28098 Aug 12 05:27 reposcan-2026-08-07-23-52.md
+-rw-r--r--  1 runner runner   7425 Aug 12 05:27 reposcan-2026-08-07-23-55.md
+-rw-r--r--  1 runner runner  12064 Aug 12 05:27 reposcan-2026-08-08-00-44.md
+-rw-r--r--  1 runner runner   7986 Aug 12 05:27 reposcan-2026-08-08-00-46.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-02-49.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-03-04.md
+-rw-r--r--  1 runner runner   7304 Aug 12 05:27 reposcan-2026-08-08-04-05.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-05-13.md
+-rw-r--r--  1 runner runner   8409 Aug 12 05:27 reposcan-2026-08-08-06-03.md
+-rw-r--r--  1 runner runner  14418 Aug 12 05:27 reposcan-2026-08-08-06-11.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-07-12.md
+-rw-r--r--  1 runner runner   8580 Aug 12 05:27 reposcan-2026-08-08-07-28.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-08-07.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-08-59.md
+-rw-r--r--  1 runner runner   7604 Aug 12 05:27 reposcan-2026-08-08-09-07.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-09-49.md
+-rw-r--r--  1 runner runner   7262 Aug 12 05:27 reposcan-2026-08-08-10-02.md
+-rw-r--r--  1 runner runner   8411 Aug 12 05:27 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner   9600 Aug 12 05:27 reposcan-2026-08-08-10-33.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-11-01.md
+-rw-r--r--  1 runner runner  10290 Aug 12 05:27 reposcan-2026-08-08-11-19.md
+-rw-r--r--  1 runner runner   8662 Aug 12 05:27 reposcan-2026-08-08-11-42.md
+-rw-r--r--  1 runner runner   8044 Aug 12 05:27 reposcan-2026-08-08-11-53.md
+-rw-r--r--  1 runner runner   6629 Aug 12 05:27 reposcan-2026-08-08-12-05.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-12-22.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-13-16.md
+-rw-r--r--  1 runner runner   9675 Aug 12 05:27 reposcan-2026-08-08-13-25.md
+-rw-r--r--  1 runner runner   8784 Aug 12 05:27 reposcan-2026-08-08-14-04.md
+-rw-r--r--  1 runner runner   5827 Aug 12 05:27 reposcan-2026-08-08-14-06.md
+-rw-r--r--  1 runner runner  27965 Aug 12 05:27 reposcan-2026-08-08-14-53.md
+-rw-r--r--  1 runner runner   7350 Aug 12 05:27 reposcan-2026-08-08-14-57.md
+-rw-r--r--  1 runner runner  30447 Aug 12 05:27 reposcan-2026-08-08-15-20.md
+-rw-r--r--  1 runner runner   9212 Aug 12 05:27 reposcan-2026-08-08-15-24.md
+-rw-r--r--  1 runner runner   6602 Aug 12 05:27 reposcan-2026-08-08-15-53.md
+-rw-r--r--  1 runner runner   7489 Aug 12 05:27 reposcan-2026-08-08-15-54.md
+-rw-r--r--  1 runner runner   7497 Aug 12 05:27 reposcan-2026-08-08-16-54.md
+-rw-r--r--  1 runner runner   8256 Aug 12 05:27 reposcan-2026-08-08-17-10.md
+-rw-r--r--  1 runner runner   7537 Aug 12 05:27 reposcan-2026-08-08-17-30.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-17-55.md
+-rw-r--r--  1 runner runner   5821 Aug 12 05:27 reposcan-2026-08-08-18-00.md
+-rw-r--r--  1 runner runner   6816 Aug 12 05:27 reposcan-2026-08-08-18-20.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-18-52.md
+-rw-r--r--  1 runner runner   7054 Aug 12 05:27 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  27131 Aug 12 05:27 reposcan-2026-08-08-19-30.md
+-rw-r--r--  1 runner runner   9467 Aug 12 05:27 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-20-03.md
+-rw-r--r--  1 runner runner   6737 Aug 12 05:27 reposcan-2026-08-08-20-14.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-20-31.md
+-rw-r--r--  1 runner runner   8762 Aug 12 05:27 reposcan-2026-08-08-20-52.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-08-21-03.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-08-21-21.md
+-rw-r--r--  1 runner runner   7872 Aug 12 05:27 reposcan-2026-08-08-21-47.md
+-rw-r--r--  1 runner runner  27610 Aug 12 05:27 reposcan-2026-08-08-21-54.md
+-rw-r--r--  1 runner runner   7642 Aug 12 05:27 reposcan-2026-08-08-22-26.md
+-rw-r--r--  1 runner runner  11379 Aug 12 05:27 reposcan-2026-08-08-22-28.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  26885 Aug 12 05:27 reposcan-2026-08-08-23-39.md
+-rw-r--r--  1 runner runner   6380 Aug 12 05:27 reposcan-2026-08-09-00-05.md
+-rw-r--r--  1 runner runner  28494 Aug 12 05:27 reposcan-2026-08-09-02-29.md
+-rw-r--r--  1 runner runner  14401 Aug 12 05:27 reposcan-2026-08-09-04-03.md
+-rw-r--r--  1 runner runner   8639 Aug 12 05:27 reposcan-2026-08-09-05-19.md
+-rw-r--r--  1 runner runner   8541 Aug 12 05:27 reposcan-2026-08-09-06-06.md
+-rw-r--r--  1 runner runner  79446 Aug 12 05:27 reposcan-2026-08-09-06-09.md
+-rw-r--r--  1 runner runner   6133 Aug 12 05:27 reposcan-2026-08-09-07-17.md
+-rw-r--r--  1 runner runner   8300 Aug 12 05:27 reposcan-2026-08-09-08-09.md
+-rw-r--r--  1 runner runner   7946 Aug 12 05:27 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  27400 Aug 12 05:27 reposcan-2026-08-09-09-55.md
+-rw-r--r--  1 runner runner  27610 Aug 12 05:27 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner   9192 Aug 12 05:27 reposcan-2026-08-09-10-31.md
+-rw-r--r--  1 runner runner   7230 Aug 12 05:27 reposcan-2026-08-09-10-38.md
+-rw-r--r--  1 runner runner   6487 Aug 12 05:27 reposcan-2026-08-09-11-10.md
+-rw-r--r--  1 runner runner   7854 Aug 12 05:27 reposcan-2026-08-09-11-46.md
+-rw-r--r--  1 runner runner   6024 Aug 12 05:27 reposcan-2026-08-09-12-17.md
+-rw-r--r--  1 runner runner   7839 Aug 12 05:27 reposcan-2026-08-09-12-19.md
+-rw-r--r--  1 runner runner   7712 Aug 12 05:27 reposcan-2026-08-09-13-33.md
+-rw-r--r--  1 runner runner   8882 Aug 12 05:27 reposcan-2026-08-09-14-16.md
+-rw-r--r--  1 runner runner  77508 Aug 12 05:27 reposcan-2026-08-09-14-23.md
+-rw-r--r--  1 runner runner   8689 Aug 12 05:27 reposcan-2026-08-09-15-02.md
+-rw-r--r--  1 runner runner   7849 Aug 12 05:27 reposcan-2026-08-09-15-35.md
+-rw-r--r--  1 runner runner   8080 Aug 12 05:27 reposcan-2026-08-09-15-48.md
+-rw-r--r--  1 runner runner   8373 Aug 12 05:27 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner   7541 Aug 12 05:27 reposcan-2026-08-09-16-35.md
+-rw-r--r--  1 runner runner  10447 Aug 12 05:27 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-09-17-16.md
+-rw-r--r--  1 runner runner   7883 Aug 12 05:27 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner   8455 Aug 12 05:27 reposcan-2026-08-09-18-07.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-09-18-38.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-18-59.md
+-rw-r--r--  1 runner runner   8249 Aug 12 05:27 reposcan-2026-08-09-19-22.md
+-rw-r--r--  1 runner runner  10364 Aug 12 05:27 reposcan-2026-08-09-19-45.md
+-rw-r--r--  1 runner runner   8634 Aug 12 05:27 reposcan-2026-08-09-19-58.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-09-20-07.md
+-rw-r--r--  1 runner runner   9349 Aug 12 05:27 reposcan-2026-08-09-20-40.md
+-rw-r--r--  1 runner runner   7800 Aug 12 05:27 reposcan-2026-08-09-20-53.md
+-rw-r--r--  1 runner runner   7117 Aug 12 05:27 reposcan-2026-08-09-21-15.md
+-rw-r--r--  1 runner runner  27448 Aug 12 05:27 reposcan-2026-08-09-21-40.md
+-rw-r--r--  1 runner runner   6483 Aug 12 05:27 reposcan-2026-08-09-21-50.md
+-rw-r--r--  1 runner runner   7453 Aug 12 05:27 reposcan-2026-08-09-22-03.md
+-rw-r--r--  1 runner runner   8738 Aug 12 05:27 reposcan-2026-08-09-22-30.md
+-rw-r--r--  1 runner runner   8713 Aug 12 05:27 reposcan-2026-08-09-22-44.md
+-rw-r--r--  1 runner runner  27904 Aug 12 05:27 reposcan-2026-08-09-23-03.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-09-23-09.md
+-rw-r--r--  1 runner runner   8541 Aug 12 05:27 reposcan-2026-08-09-23-47.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-00-42.md
+-rw-r--r--  1 runner runner   9436 Aug 12 05:27 reposcan-2026-08-10-01-42.md
+-rw-r--r--  1 runner runner   6733 Aug 12 05:27 reposcan-2026-08-10-03-08.md
+-rw-r--r--  1 runner runner   7669 Aug 12 05:27 reposcan-2026-08-10-03-32.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-10-04-52.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-05-13.md
+-rw-r--r--  1 runner runner   6726 Aug 12 05:27 reposcan-2026-08-10-06-25.md
+-rw-r--r--  1 runner runner   6981 Aug 12 05:27 reposcan-2026-08-10-06-43.md
+-rw-r--r--  1 runner runner  53466 Aug 12 05:27 reposcan-2026-08-10-08-09.md
+-rw-r--r--  1 runner runner   8442 Aug 12 05:27 reposcan-2026-08-10-08-18.md
+-rw-r--r--  1 runner runner   7031 Aug 12 05:27 reposcan-2026-08-10-09-51.md
+-rw-r--r--  1 runner runner   7337 Aug 12 05:27 reposcan-2026-08-10-09-59.md
+-rw-r--r--  1 runner runner  12443 Aug 12 05:27 reposcan-2026-08-10-10-57.md
+-rw-r--r--  1 runner runner   9378 Aug 12 05:27 reposcan-2026-08-10-11-13.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-11-49.md
+-rw-r--r--  1 runner runner   8085 Aug 12 05:27 reposcan-2026-08-10-12-03.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-12-44.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-13-37.md
+-rw-r--r--  1 runner runner  12311 Aug 12 05:27 reposcan-2026-08-10-14-11.md
+-rw-r--r--  1 runner runner  27650 Aug 12 05:27 reposcan-2026-08-10-14-47.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-10-15-24.md
+-rw-r--r--  1 runner runner   8165 Aug 12 05:27 reposcan-2026-08-10-15-45.md
+-rw-r--r--  1 runner runner   6861 Aug 12 05:27 reposcan-2026-08-10-16-20.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-16-35.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-17-19.md
+-rw-r--r--  1 runner runner   9122 Aug 12 05:27 reposcan-2026-08-10-17-40.md
+-rw-r--r--  1 runner runner  25302 Aug 12 05:27 reposcan-2026-08-10-18-21.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-10-18-39.md
+-rw-r--r--  1 runner runner  29716 Aug 12 05:27 reposcan-2026-08-10-19-23.md
+-rw-r--r--  1 runner runner   7798 Aug 12 05:27 reposcan-2026-08-10-19-44.md
+-rw-r--r--  1 runner runner   8819 Aug 12 05:27 reposcan-2026-08-10-20-11.md
+-rw-r--r--  1 runner runner  28475 Aug 12 05:27 reposcan-2026-08-10-20-27.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-21-04.md
+-rw-r--r--  1 runner runner   7034 Aug 12 05:27 reposcan-2026-08-10-21-14.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-22-04.md
+-rw-r--r--  1 runner runner   8244 Aug 12 05:27 reposcan-2026-08-10-22-40.md
+-rw-r--r--  1 runner runner  12146 Aug 12 05:27 reposcan-2026-08-10-22-51.md
+-rw-r--r--  1 runner runner   9315 Aug 12 05:27 reposcan-2026-08-10-23-21.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-10-23-35.md
+-rw-r--r--  1 runner runner  27382 Aug 12 05:27 reposcan-2026-08-11-00-03.md
+-rw-r--r--  1 runner runner   6985 Aug 12 05:27 reposcan-2026-08-11-00-08.md
+-rw-r--r--  1 runner runner  14706 Aug 12 05:27 reposcan-2026-08-11-02-17.md
+-rw-r--r--  1 runner runner  27724 Aug 12 05:27 reposcan-2026-08-11-02-30.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-04-29.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-05-48.md
+-rw-r--r--  1 runner runner  25909 Aug 12 05:27 reposcan-2026-08-11-06-14.md
+-rw-r--r--  1 runner runner   7844 Aug 12 05:27 reposcan-2026-08-11-06-32.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-07-42.md
+-rw-r--r--  1 runner runner   8356 Aug 12 05:27 reposcan-2026-08-11-07-50.md
+-rw-r--r--  1 runner runner   7734 Aug 12 05:27 reposcan-2026-08-11-08-43.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-08-55.md
+-rw-r--r--  1 runner runner  12110 Aug 12 05:27 reposcan-2026-08-11-09-46.md
+-rw-r--r--  1 runner runner   9279 Aug 12 05:27 reposcan-2026-08-11-10-00.md
+-rw-r--r--  1 runner runner  27686 Aug 12 05:27 reposcan-2026-08-11-10-41.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-10-58.md
+-rw-r--r--  1 runner runner   8526 Aug 12 05:27 reposcan-2026-08-11-11-35.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-11-51.md
+-rw-r--r--  1 runner runner   6785 Aug 12 05:27 reposcan-2026-08-11-12-46.md
+-rw-r--r--  1 runner runner  26859 Aug 12 05:27 reposcan-2026-08-11-13-04.md
+-rw-r--r--  1 runner runner   7171 Aug 12 05:27 reposcan-2026-08-11-14-05.md
+-rw-r--r--  1 runner runner  11407 Aug 12 05:27 reposcan-2026-08-11-14-36.md
+-rw-r--r--  1 runner runner  26168 Aug 12 05:27 reposcan-2026-08-11-15-17.md
+-rw-r--r--  1 runner runner  53702 Aug 12 05:27 reposcan-2026-08-11-15-47.md
+-rw-r--r--  1 runner runner  28998 Aug 12 05:27 reposcan-2026-08-11-16-18.md
+-rw-r--r--  1 runner runner  27166 Aug 12 05:27 reposcan-2026-08-11-16-43.md
+-rw-r--r--  1 runner runner  12596 Aug 12 05:27 reposcan-2026-08-11-17-21.md
+-rw-r--r--  1 runner runner  26740 Aug 12 05:27 reposcan-2026-08-11-17-43.md
+-rw-r--r--  1 runner runner   4813 Aug 12 05:27 reposcan-2026-08-11-18-16.md
+-rw-r--r--  1 runner runner   8904 Aug 12 05:27 reposcan-2026-08-11-18-39.md
+-rw-r--r--  1 runner runner   5001 Aug 12 05:27 reposcan-2026-08-11-19-32.md
+-rw-r--r--  1 runner runner   7041 Aug 12 05:27 reposcan-2026-08-11-19-47.md
+-rw-r--r--  1 runner runner  25390 Aug 12 05:27 reposcan-2026-08-11-20-15.md
+-rw-r--r--  1 runner runner   7708 Aug 12 05:27 reposcan-2026-08-11-20-43.md
+-rw-r--r--  1 runner runner   5520 Aug 12 05:27 reposcan-2026-08-11-21-11.md
+-rw-r--r--  1 runner runner  27172 Aug 12 05:27 reposcan-2026-08-11-21-30.md
+-rw-r--r--  1 runner runner  11777 Aug 12 05:27 reposcan-2026-08-11-22-08.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-22-25.md
+-rw-r--r--  1 runner runner  12028 Aug 12 05:27 reposcan-2026-08-11-23-06.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-11-23-15.md
+-rw-r--r--  1 runner runner   8561 Aug 12 05:27 reposcan-2026-08-11-23-57.md
+-rw-r--r--  1 runner runner   8038 Aug 12 05:27 reposcan-2026-08-12-00-03.md
+-rw-r--r--  1 runner runner   6044 Aug 12 05:27 reposcan-2026-08-12-01-49.md
+-rw-r--r--  1 runner runner   7414 Aug 12 05:27 reposcan-2026-08-12-02-45.md
+-rw-r--r--  1 runner runner   8521 Aug 12 05:27 reposcan-2026-08-12-04-03.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-2026-08-12-04-29.md
+-rw-r--r--  1 runner runner  27381 Aug 12 05:27 reposcan-latest.md
+
+reports:
+total 7308
+drwxr-xr-x  2 runner runner    4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner    4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 1946687 Aug 12 05:27 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 3543287 Aug 12 05:27 analyst-laguna.log
+-rw-r--r--  1 runner runner   24408 Aug 12 05:27 analyst-ling3.log
+-rw-r--r--  1 runner runner  310768 Aug 12 05:27 analyst-longcat.log
+-rw-r--r--  1 runner runner 1213185 Aug 12 05:27 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    5788 Aug 12 05:27 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   45078 Aug 12 05:27 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 12 05:27 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 12 05:27 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner      51 Aug 12 05:27 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  345698 Aug 12 05:27 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 12 05:27 valid-bugs.md
+
+scripts:
+total 20
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner 11379 Aug 12 05:27 sync-issues.py
+
+triage:
+total 1088
+drwxr-xr-x  2 runner runner  4096 Aug 12 05:27 .
+drwxr-xr-x 11 runner runner  4096 Aug 12 05:28 ..
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 12 05:27 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 12 05:27 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 12 05:27 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 12 05:27 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 12 05:27 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 12 05:27 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 12 05:27 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 12 05:27 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 12 05:27 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 12 05:27 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 12 05:27 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 12 05:27 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 12 05:27 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 12 05:27 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 12 05:27 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 12 05:27 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 12 05:27 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 12 05:27 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 12 05:27 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 12 05:27 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 12 05:27 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 12 05:27 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 12 05:27 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 12 05:27 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 12 05:27 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 12 05:27 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 12 05:27 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 12 05:27 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 12 05:27 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 12 05:27 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 12 05:27 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 12 05:27 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 12 05:27 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 12 05:27 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 12 05:27 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 12 05:27 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 12 05:27 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 12 05:27 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 12 05:27 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 12 05:27 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 12 05:27 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 12 05:27 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 12 05:27 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 12 05:27 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 12 05:27 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 12 05:27 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 12 05:27 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 12 05:27 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 12 05:27 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 12 05:27 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 12 05:27 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 12 05:27 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 12 05:27 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 12 05:27 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 12 05:27 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 12 05:27 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 12 05:27 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 12 05:27 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner   288 Aug 12 05:27 run-2026-08-10-15-27.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-10-16-39.md
+-rw-r--r--  1 runner runner   329 Aug 12 05:27 run-2026-08-10-17-41.md
+-rw-r--r--  1 runner runner   246 Aug 12 05:27 run-2026-08-10-18-37.md
+-rw-r--r--  1 runner runner   351 Aug 12 05:27 run-2026-08-10-19-45.md
+-rw-r--r--  1 runner runner  8559 Aug 12 05:27 run-2026-08-10-20-29.md
+-rw-r--r--  1 runner runner   343 Aug 12 05:27 run-2026-08-10-21-28.md
+-rw-r--r--  1 runner runner   277 Aug 12 05:27 run-2026-08-10-22-22.md
+-rw-r--r--  1 runner runner   524 Aug 12 05:27 run-2026-08-10-23-06.md
+-rw-r--r--  1 runner runner  9251 Aug 12 05:27 run-2026-08-10-23-58.md
+-rw-r--r--  1 runner runner   237 Aug 12 05:27 run-2026-08-11-02-32.md
+-rw-r--r--  1 runner runner 94038 Aug 12 05:27 run-2026-08-11-04-12.md
+-rw-r--r--  1 runner runner 10441 Aug 12 05:27 run-2026-08-11-05-35.md
+-rw-r--r--  1 runner runner   306 Aug 12 05:27 run-2026-08-11-06-41.md
+-rw-r--r--  1 runner runner   302 Aug 12 05:27 run-2026-08-11-07-59.md
+-rw-r--r--  1 runner runner   282 Aug 12 05:27 run-2026-08-11-09-26.md
+-rw-r--r--  1 runner runner 25960 Aug 12 05:27 run-2026-08-11-10-50.md
+-rw-r--r--  1 runner runner 16158 Aug 12 05:27 run-2026-08-11-11-37.md
+-rw-r--r--  1 runner runner  2520 Aug 12 05:27 run-2026-08-11-12-35.md
+-rw-r--r--  1 runner runner 29107 Aug 12 05:27 run-2026-08-11-14-16.md
+-rw-r--r--  1 runner runner   268 Aug 12 05:27 run-2026-08-11-15-26.md
+-rw-r--r--  1 runner runner   352 Aug 12 05:27 run-2026-08-11-16-42.md
+-rw-r--r--  1 runner runner   323 Aug 12 05:27 run-2026-08-11-17-45.md
+-rw-r--r--  1 runner runner 69204 Aug 12 05:27 run-2026-08-11-18-45.md
+-rw-r--r--  1 runner runner 32556 Aug 12 05:27 run-2026-08-11-19-53.md
+-rw-r--r--  1 runner runner   332 Aug 12 05:27 run-2026-08-11-20-37.md
+-rw-r--r--  1 runner runner   200 Aug 12 05:27 run-2026-08-11-21-31.md
+-rw-r--r--  1 runner runner   484 Aug 12 05:27 run-2026-08-11-22-27.md
+-rw-r--r--  1 runner runner 16653 Aug 12 05:27 run-2026-08-11-23-31.md
+-rw-r--r--  1 runner runner 31213 Aug 12 05:27 run-2026-08-12-00-47.md
+-rw-r--r--  1 runner runner   210 Aug 12 05:27 run-2026-08-12-03-14.md
+-rw-r--r--  1 runner runner   210 Aug 12 05:27 run-2026-08-12-05-10.md
+-rw-r--r--  1 runner runner 13831 Aug 12 05:27 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 12 05:27 triage-report-2026-08-10.md
+-rw-r--r--  1 runner runner 11303 Aug 12 05:27 triage-report-2026-08-11.md
+[0m
+[0m
+[0m→ [0mRead probe-results.md
+[0m→ [0mRead inventory/gladia.md[90m [limit=180][0m
+[0m
+[0m$ [0mwhich curl npm node python3 2>/dev/null; echo "---curl version---"; curl --version 2>/dev/null | head -1
+/usr/bin/curl
+/usr/local/bin/npm
+/usr/local/bin/node
+/usr/bin/python3
+---curl version---
+curl 8.5.0 (x86_64-pc-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.10
+[0m
+Let me examine the inventory and established surface, then run fresh probes.
+I have curl, npm, node available. State is POC/target=app. Let me run fresh passive probes (≤1 rps, GET/HEAD) to check for drift and verify the open leads.
+[0m$ [0mset -e
+echo "=== api.gladia.io /openapi.json etag ==="
+curl -s -D - -o /dev/null https://api.gladia.io/openapi.json 2>/dev/null | grep -iE 'HTTP/|etag|content-length|access-control'
+sleep 1
+echo "=== api.gladia.io /health ==="
+curl -s -D - -o /dev/null https://api.gladia.io/health 2>/dev/null | grep -iE 'HTTP/|content-length|health'
+curl -s https://api.gladia.io/health 2>/dev/null
+echo ""
+sleep 1
+echo "=== api.gladia.io /v1/models ==="
+curl -s -o /tmp/models.out -D /tmp/models.hdr https://api.gladia.io/v1/models 2>/dev/null
+grep -iE 'HTTP/|content-length|access-control' /tmp/models.hdr
+wc -c /tmp/models.out
+sleep 1
+echo "=== api.gladia.io / (root) ==="
+curl -s -D - -o /dev/null https://api.gladia.io/ 2>/dev/null | grep -iE 'HTTP/|content-type|access-control'
+=== api.gladia.io /openapi.json etag ===
+
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 40 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+[0m$ [0mecho "=== openapi etag ==="; curl -s -m 10 -D - -o /dev/null https://api.gladia.io/openapi.json 2>/dev/null | grep -iE 'HTTP/|etag|content-length|access-control-allow-origin'
+=== openapi etag ===
+
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 20 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+[0m$ [0mcurl -v -m 8 https://api.gladia.io/health 2>&1 | head -30
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host api.gladia.io:443 was resolved.
+* IPv6: (none)
+* IPv4: 51.83.23.162
+*   Trying 51.83.23.162:443...
+* Connected to api.gladia.io (51.83.23.162) port 443
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+*  CAfile: /etc/ssl/certs/ca-certificates.crt
+*  CApath: /etc/ssl/certs
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [88 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [155 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [15 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [4090 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [264 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [36 bytes data]
+[0m
+Network works. Let me run each probe individually saving to temp files to avoid timeout issues.
+[0m$ [0mcurl -s -m 15 -D /tmp/h1.txt -o /tmp/openapi.json https://api.gladia.io/openapi.json; echo "exit=$?"; grep -iE 'HTTP/|etag|content-length|access-control-allow-origin' /tmp/h1.txt; echo "---sha---"; sha256sum /tmp/openapi.json
+(no output)
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 30 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -sI -m 8 https://api.gladia.io/health > /tmp/h_health.txt 2>&1; echo "exit=$?"; cat /tmp/h_health.txt; echo "===BODY==="; curl -s -m 8 https://api.gladia.io/health; echo "" failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
