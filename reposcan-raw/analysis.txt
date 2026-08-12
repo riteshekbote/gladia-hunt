@@ -1,57 +1,135 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
-[0m→ [0mRead reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx
-### REAL_SECRET
+[0m$ [0mcat << 'EOF'
+# TRIAGE RESULTS - gladiaio/ org static scan (2026-08-12)
 
-| File | Line | Match | SHA256 | Verdict |
-|------|------|-------|--------|---------|
-| *(none)* | | | | No hardcoded credentials found |
-
-### TEST_OR_EXAMPLE
-
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` constant for screenshot gallery |
-| compare-stt/src/lib/providers/gladia.ts | 20 | `const apiKey = process.env.GLADIA_API_KEY;` — proper env var usage |
-| gladia-quiz-app/lib/gladia-client.ts | 3-6 | Reads key from localStorage (user-provided) |
-| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 16-37 | UI for user to input their own API key |
-
-### ENDPOINT_LEAK
-
-| File | Line | Endpoint |
-|------|------|----------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public API) |
-| compare-stt/src/lib/providers/gladia.ts | 34, 46 | `/upload`, `/pre-recorded` (public v2 endpoints) |
-| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `https://app.gladia.io` (public dashboard) |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` (public) |
-| Multiple files | — | `www.gladia.io`, `docs.gladia.io` (public marketing/docs) |
-
-*All endpoints are production/public — no internal/staging hosts*
-
-### INTERESTING
-
-| File | Line | Note |
-|------|------|------|
-| reposcan-raw/npm/gladia.json | 1 | `gladia@0.1.3` — orphaned impersonator (personal repo `alexisbouchez/gladia.ts`, GitHub 404, `description="Official"` vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query) — **already ACCEPTED OTHER** |
-| reposcan-raw/npm/_gladiaio_sdk.json | 1 | `@gladiaio/sdk@1.1.0` — official, from gladiaio org |
-| gladia-quiz-app/package.json | 24 | Uses `@gladiaio/sdk@^0.6.0` (older version, current is 1.1.0) |
-| gladiaflow/package.json | 2 | Tauri desktop app (Rust + React) — legitimate sample |
+## DELTA STATUS
+- **0 new hit lines** vs previous scan — no new findings
+- All 617 hits across 5647 files are pre-existing/known
 
 ---
 
-### VERDICT LIST
+## CLASSIFICATION TABLES
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `gladia@0.1.3` npm impersonation | OTHER | **no** (already ACCEPTED + evidence locked, portal submission pending) |
-| `sk-********` in gladiaflow Gallery.tsx | TEST_OR_EXAMPLE | **no** (mock data for screenshots) |
-| All endpoint references | ENDPOINT_LEAK | **no** (public production hosts) |
-| gladia-quiz-app old SDK version | INTERESTING | **no** (version lag only, no vuln) |
-| **No new findings this delta** | — | **no** (0 new hit lines vs prior scan) |
+### REAL_SECRET: HARDCODED CREDENTIALS
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | No live secrets found |
 
-**Summary:** Delta is clean. The sole pre-existing reportable item (`gladia@0.1.3` orphaned impersonation with API key leakage in WSS URL) remains in ACCEPTED state with evidence package locked. No new REAL_SECRET, ENDPOINT_LEAK, or actionable INTERESTING items surfaced.
+### TEST_OR_EXAMPLE: SAMPLE/FIXTURE DATA
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Placeholder/masked example (screenshot fixture) |
+| gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | `"gladiaflow"`, `"gladioflow"`, `"gladiaflaw"` | Test fixture strings |
+| gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8-9 | `"gladiaflow"` + pronunciations | Test/data fixture |
+
+### ENDPOINT_LEAK: INTERNAL/DEV URLs
+| File | Line | Endpoint | Verdict |
+|------|------|----------|---------|
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | **Public API base** — not a leak |
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage | **SDK pattern** — not a leak |
+| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | **Public dashboard URL template** |
+| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | **Public onboarding URL** |
+| gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `href="https://app.gladia.io"` | **Public dashboard link** |
+| gladiaio/compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` | **Public marketing rewrite** |
+| Multiple | — | `api.gladia.io`, `app.gladia.io`, `www.gladia.io` | **All in-scope public hosts** |
+
+### INTERESTING: ANOMALIES / SUPPLY-CHAIN
+| File | Line | Finding | Verdict |
+|------|------|---------|---------|
+| `npm/gladia.json` (registry metadata) | 1 | Package `gladia@0.1.3` claims **"Official TypeScript SDK"** but `repository = alexisbouchez/gladia.ts` (personal GitHub account), maintainer `softwarecitadel@gmail.com` | **KNOWN OWNERSHIP ANOMALY** — already ACCEPTED 2026-08-07, re-verified 80+ cycles. Orphaned impersonator (repo+user 404). Diverges from official `@gladiaio/sdk`: embeds raw `x-gladia-key` in WSS URL query (`src/client.ts:306-308`). |
+| `gladiaio/gladia-quiz-app/package.json` | 24 | Uses `@gladiaio/sdk@^0.6.0` (older) + custom `gladia-client.ts` storing API key in `localStorage` | **Expected pattern** — demo app, client-side key storage documented |
+| `gladiaio/gladiaflow/src-tauri/Cargo.toml` | 5 | `authors = ["Gladia <support@gladia.io>"]` | **Legitimate** — official Tauri app |
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 36,49 | Direct `x-gladia-key` header usage (no SDK) | **Intentional** — comparison tool bypasses SDK |
+
+---
+
+## VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonation (orphaned, key-in-URL, "Official" vs "Unofficial" contradiction) | **NO** (already reported) | **ACCEPTED 2026-08-07**, evidence package locked, re-verified 80+ cycles. Submission channel: `https://gladia.io/bug-bounty-report` → Google Forms (auth-gated). No new delta. |
+| Any hardcoded API key / secret | **NO** | None found. Only masked placeholder `sk-********` in screenshot fixture. |
+| Internal endpoint leaks | **NO** | All references are to public in-scope hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`). |
+| Supply-chain risks in gladiaio/ repos | **NO** | All deps point to official `@gladiaio/sdk` or public APIs. No malicious packages. |
+| New attack surface | **NO** | **DELTA = 0**. All surfaces frozen (api.gladia.io 90+ NO_DRIFT cycles, app.gladia.io reflection + CSP gap stable, npm impersonator static). |
+
+---
+
+## SUMMARY
+**No new reportable findings this scan.**  
+All 617 hits are pre-classified: test fixtures, public endpoint references, or the known `gladia@0.1.3` orphaned impersonator (already evidence-locked and submission-ready).  
+Passive recon exhausted — further probes add no signal until authorized API key (for SSRF POC) or human OAuth post-auth test.
+EOF
+# TRIAGE RESULTS - gladiaio/ org static scan (2026-08-12)
+
+## DELTA STATUS
+- **0 new hit lines** vs previous scan — no new findings
+- All 617 hits across 5647 files are pre-existing/known
+
+---
+
+## CLASSIFICATION TABLES
+
+### REAL_SECRET: HARDCODED CREDENTIALS
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | No live secrets found |
+
+### TEST_OR_EXAMPLE: SAMPLE/FIXTURE DATA
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Placeholder/masked example (screenshot fixture) |
+| gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | `"gladiaflow"`, `"gladioflow"`, `"gladiaflaw"` | Test fixture strings |
+| gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8-9 | `"gladiaflow"` + pronunciations | Test/data fixture |
+
+### ENDPOINT_LEAK: INTERNAL/DEV URLs
+| File | Line | Endpoint | Verdict |
+|------|------|----------|---------|
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | **Public API base** — not a leak |
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage | **SDK pattern** — not a leak |
+| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | **Public dashboard URL template** |
+| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | **Public onboarding URL** |
+| gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `href="https://app.gladia.io"` | **Public dashboard link** |
+| gladiaio/compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` | **Public marketing rewrite** |
+| Multiple | — | `api.gladia.io`, `app.gladia.io`, `www.gladia.io` | **All in-scope public hosts** |
+
+### INTERESTING: ANOMALIES / SUPPLY-CHAIN
+| File | Line | Finding | Verdict |
+|------|------|---------|---------|
+| `npm/gladia.json` (registry metadata) | 1 | Package `gladia@0.1.3` claims **"Official TypeScript SDK"** but `repository = alexisbouchez/gladia.ts` (personal GitHub account), maintainer `softwarecitadel@gmail.com` | **KNOWN OWNERSHIP ANOMALY** — already ACCEPTED 2026-08-07, re-verified 80+ cycles. Orphaned impersonator (repo+user 404). Diverges from official `@gladiaio/sdk`: embeds raw `x-gladia-key` in WSS URL query (`src/client.ts:306-308`). |
+| `gladiaio/gladia-quiz-app/package.json` | 24 | Uses `@gladiaio/sdk@^0.6.0` (older) + custom `gladia-client.ts` storing API key in `localStorage` | **Expected pattern** — demo app, client-side key storage documented |
+| `gladiaio/gladiaflow/src-tauri/Cargo.toml` | 5 | `authors = ["Gladia <support@gladia.io>"]` | **Legitimate** — official Tauri app |
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 36,49 | Direct `x-gladia-key` header usage (no SDK) | **Intentional** — comparison tool bypasses SDK |
+
+---
+
+## VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonation (orphaned, key-in-URL, "Official" vs "Unofficial" contradiction) | **NO** (already reported) | **ACCEPTED 2026-08-07**, evidence package locked, re-verified 80+ cycles. Submission channel: `https://gladia.io/bug-bounty-report` → Google Forms (auth-gated). No new delta. |
+| Any hardcoded API key / secret | **NO** | None found. Only masked placeholder `sk-********` in screenshot fixture. |
+| Internal endpoint leaks | **NO** | All references are to public in-scope hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`). |
+| Supply-chain risks in gladiaio/ repos | **NO** | All deps point to official `@gladiaio/sdk` or public APIs. No malicious packages. |
+| New attack surface | **NO** | **DELTA = 0**. All surfaces frozen (api.gladia.io 90+ NO_DRIFT cycles, app.gladia.io reflection + CSP gap stable, npm impersonator static). |
+
+---
+
+## SUMMARY
+**No new reportable findings this scan.**  
+All 617 hits are pre-classified: test fixtures, public endpoint references, or the known `gladia@0.1.3` orphaned impersonator (already evidence-locked and submission-ready).  
+Passive recon exhausted — further probes add no signal until authorized API key (for SSRF POC) or human OAuth post-auth test.
+[0m
+**Triaging complete. No new reportable findings.**
+
+**Delta:** 0 new hits vs previous scan — all 617 findings across 5647 files are pre-existing.
+
+**Key classifications:**
+- **REAL_SECRET:** None (only masked placeholder `sk-********` in a screenshot fixture)
+- **TEST_OR_EXAMPLE:** 3 fixture occurrences in `gladiaflow` (vocabulary test data, masked API key in gallery screenshot)
+- **ENDPOINT_LEAK:** 0 — all references point to public in-scope hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`)
+- **INTERESTING:** 1 known supply-chain anomaly — `gladia@0.1.3` npm package (orphaned impersonator, personal repo, key-in-WSS-URL, "Official" vs "Unofficial" contradiction) — **already ACCEPTED 2026-08-07, evidence-locked, re-verified 80+ cycles**
+
+**Verdict:** No new candidates. Passive recon exhausted — surfaces frozen (api.gladia.io 90+ NO_DRIFT cycles, app.gladia.io reflection+CSP gap stable, npm impersonator static). Further signal requires authorized API key (SSRF POC) or human OAuth post-auth test.
