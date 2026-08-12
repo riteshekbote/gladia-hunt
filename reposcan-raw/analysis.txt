@@ -1,13 +1,38 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-report.md
-Wrote file successfully.
-[0m
-Done. Wrote triage report to `triage-report.md`.
+### Classification Table
 
-**Summary:**
-- **0 new REAL_SECRET** findings
-- **0 new reportable candidates** — all 617 hits are benign: test/example code, public API/dashboard URLs, config files, or the already-known `gladia@0.1.3` npm impersonation package
-- The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a masked placeholder (8 asterisks), not a live credential
-- The `gladia@0.1.3` supply-chain impersonation (personal repo, claims "Official", orphaned GitHub user) remains the sole actionable finding — **already ACCEPTED across 80+ cycles**, evidence locked, report-ready via the bug-bounty portal (Google Forms, auth-gated)
+| Category | File | Line | Finding |
+|----------|------|------|---------|
+| **TEST_OR_EXAMPLE** | reposcan-raw/gladiaio/gladia-quiz-app/package.json | 24 | `@gladiaio/sdk` dependency in example app |
+| | reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5,70,74 | Example SDK usage (import, client creation, live session) |
+| | reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | LocalStorage key name for API key storage (example) |
+| | reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx | 47,56 | Example component using localStorage for API key |
+| | reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9,94 | Example input component, link to app.gladia.io |
+| | reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked placeholder `apiKey: "sk-********"` (not real) |
+| | reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures for vocabulary editor |
+| | reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8,9 | Example vocabulary terms |
+| | reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test slugs including "gladia" |
+| | reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | Provider implementation using public API endpoint |
+| **ENDPOINT_LEAK** | reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | Rewrite rules to public www.gladia.io (marketing) |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | Public site origin constant |
+| | reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 43 | Unpkg CDN reference to @gladiaio/sdk@0.5.2 |
+| **INTERESTING** | reposcan-raw/npm/gladia.json | 1 | **Known impersonation**: `gladia@0.1.3` claims "Official" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com |
+| | reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | Tauri app identifier `io.gladia.gladiaflow`, author `Gladia <support@gladia.io>` |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config with public API base |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|-----------------|--------|
+| `gladia@0.1.3` npm impersonation | **no** | Already **ACCEPTED OTHER** in knowledge base (2026-08-07 through 2026-08-12, 80+ cycles confirmed). Orphaned package, repo+user 404, key-in-URL in src/client.ts:306-308. Evidence package locked, report-ready via bug-bounty portal. |
+| Hardcoded API keys | **no** | Only masked placeholder `sk-********` in screenshot — no live credentials. |
+| Internal/staging endpoints | **no** | All URLs point to public `api.gladia.io`, `app.gladia.io`, `www.gladia.io`. |
+| Supply-chain anomalies beyond `gladia@0.1.3` | **no** | Adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, @gladia/*, @gladiaio/*); maintainer `softwarecitadel` only controls unrelated `@softwarecitadel/girouette`. Isolated impersonator. |
+| New secrets in gladiaio repos | **no** | Delta: **0 new hit lines** vs previous scan. All hits are example/test/code-reference patterns. |
+
+**Summary**: No new reportable findings. The sole anomaly (`gladia@0.1.3` orphaned impersonation with API key leakage in WebSocket URL) is already triaged, evidence-locked, and submission-pending via the program's bug-bounty portal (redirects to Google Forms). Surface frozen across 80+ NO_DRIFT cycles.
