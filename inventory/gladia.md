@@ -450,3 +450,7 @@
 ## 2026-08-12 19:36:46 UTC
 
 ## 2026-08-12 20:24:09 UTC
+
+## 2026-08-12 21:11:56 UTC
+- NEW None — surface frozen across 90+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP 0 form-action; npm gladia@0
+- CHANGED None — all observations re-confirmed byte-fresh this cycle; no new endpoints, headers, or npm metadata changes
