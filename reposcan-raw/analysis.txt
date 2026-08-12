@@ -1,25 +1,99 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the 14 new delta hits and the broader grep context, here's my classification:
+[0m$ [0mcat << 'EOF'
+# Classification of DELTA hits (14 new lines since last scan)
 
-### Classification Table
+## REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none) | - | - | No hardcoded credentials found in delta |
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot component) |
-| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` — `const GLADIA_BASE = "https://api.gladia.io/v2"` (public API base, already known) |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289` — `@ai-sdk/gladia` workspace link; `vercel-ai/tsconfig.json:70` — `"path": "packages/gladia"` (local package aliasing in vercel-ai repo) |
+## TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| gladia-quiz-app/app/layout.tsx | 43 | `src="https://unpkg.com/@gladiaio/sdk@0.5.2"` | CDN reference to old SDK version |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9 | `import { GLADIA_API_KEY_STORAGE }` | Import statement |
+| gladia-quiz-app/components/HalloweenQuiz.tsx | 47 | `useState<string \| null>(null)` | API key state initialization |
+| gladia-quiz-app/components/HalloweenQuiz.tsx | 56 | `localStorage.getItem('gladia_api_key')` | Reading user-provided key from storage |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 5 | `import { createGladiaClient, getStoredApiKey }` | Import statement |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 70 | `createGladiaClient(apiKey)` | Client instantiation with variable |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 74 | `gladia.liveV2().startSession({})` | Live session start call |
+| gladia-quiz-app/lib/gladia-client.ts | 1 | `export const GLADIA_API_KEY_STORAGE = 'gladia_api_key'` | Storage key constant |
+| gladia-quiz-app/package-lock.json | 11 | `"@gladiaio/sdk": "^0.6.0"` | Dependency version |
+| gladia-quiz-app/package.json | 24 | `"@gladiaio/sdk": "^0.6.0"` | Dependency version |
+| npm/_gladiaio_sdk.json | 1 | Official SDK registry metadata | Known official package |
 
-All 14 delta lines are **benign**: mailto links, public GitHub/gladia.io URLs, lockfile entries, and TS config paths. No credentials, internal endpoints, or secrets.
+## ENDPOINT_LEAK
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| gladia-quiz-app/app/layout.tsx | 7 | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app')` | Public Vercel deployment URL |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `href="https://app.gladia.io"` | Link to official dashboard (public) |
 
-### Verdict
+## INTERESTING
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| npm/gladia.json | 1 | `{"_id":"gladia","dist-tags":{"latest":"0.1.3"},...}` | Unofficial `gladia` package (impersonation anomaly — repo alexisbouchez/gladia.ts, personal account, description "Official" vs README "Unofficial", src/client.ts embeds raw x-gladia-key in wss:// URL query). Already tracked as ACCEPTED OTHER in knowledge base. |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `gladiaflow/src/screenshots/Gallery.tsx:17` (masked `sk-********`) | **no** — test fixture placeholder |
-| `compare-stt/src/lib/providers/gladia.ts` (public API base + header name) | **no** — known public surface |
-| `vercel-ai` workspace package aliasing (`@ai-sdk/gladia` + `packages/gladia`) | **no** — monorepo dev config, not a supply-chain issue |
+---
 
-**Summary**: Zero reportable findings in this delta. The `gladia@0.1.3` orphaned impersonation (already ACCEPTED, report-ready) remains the sole supply-chain anomaly. All API/dash surfaces remain frozen (NO_DRIFT 90+ cycles).
+# SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| gladia-quiz-app API key handling | TEST_OR_EXAMPLE | no |
+| gladia-halloween-quiz.vercel.app deployment URL | ENDPOINT_LEAK | no (public) |
+| app.gladia.io link in component | ENDPOINT_LEAK | no (public) |
+| npm `gladia@0.1.3` package metadata | INTERESTING | **no** (already ACCEPTED OTHER, report-ready, portal submission pending) |
+| @gladiaio/sdk@0.6.0 / 0.5.2 references | TEST_OR_EXAMPLE | no |
+
+**SUMMARY**: No new reportable findings in this delta. The unofficial `gladia@0.1.3` impersonation package remains the sole reportable candidate (already evidence-locked and portal-ready per 2026-08-10+ knowledge base entries). All other hits are benign code patterns, public endpoints, or version references.
+EOF
+# Classification of DELTA hits (14 new lines since last scan)
+
+## REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none) | - | - | No hardcoded credentials found in delta |
+
+## TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| gladia-quiz-app/app/layout.tsx | 43 | `src="https://unpkg.com/@gladiaio/sdk@0.5.2"` | CDN reference to old SDK version |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9 | `import { GLADIA_API_KEY_STORAGE }` | Import statement |
+| gladia-quiz-app/components/HalloweenQuiz.tsx | 47 | `useState<string \| null>(null)` | API key state initialization |
+| gladia-quiz-app/components/HalloweenQuiz.tsx | 56 | `localStorage.getItem('gladia_api_key')` | Reading user-provided key from storage |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 5 | `import { createGladiaClient, getStoredApiKey }` | Import statement |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 70 | `createGladiaClient(apiKey)` | Client instantiation with variable |
+| gladia-quiz-app/hooks/useGladiaTranscription.ts | 74 | `gladia.liveV2().startSession({})` | Live session start call |
+| gladia-quiz-app/lib/gladia-client.ts | 1 | `export const GLADIA_API_KEY_STORAGE = 'gladia_api_key'` | Storage key constant |
+| gladia-quiz-app/package-lock.json | 11 | `"@gladiaio/sdk": "^0.6.0"` | Dependency version |
+| gladia-quiz-app/package.json | 24 | `"@gladiaio/sdk": "^0.6.0"` | Dependency version |
+| npm/_gladiaio_sdk.json | 1 | Official SDK registry metadata | Known official package |
+
+## ENDPOINT_LEAK
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| gladia-quiz-app/app/layout.tsx | 7 | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app')` | Public Vercel deployment URL |
+| gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | `href="https://app.gladia.io"` | Link to official dashboard (public) |
+
+## INTERESTING
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| npm/gladia.json | 1 | `{"_id":"gladia","dist-tags":{"latest":"0.1.3"},...}` | Unofficial `gladia` package (impersonation anomaly — repo alexisbouchez/gladia.ts, personal account, description "Official" vs README "Unofficial", src/client.ts embeds raw x-gladia-key in wss:// URL query). Already tracked as ACCEPTED OTHER in knowledge base. |
+
+---
+
+# SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| gladia-quiz-app API key handling | TEST_OR_EXAMPLE | no |
+| gladia-halloween-quiz.vercel.app deployment URL | ENDPOINT_LEAK | no (public) |
+| app.gladia.io link in component | ENDPOINT_LEAK | no (public) |
+| npm `gladia@0.1.3` package metadata | INTERESTING | **no** (already ACCEPTED OTHER, report-ready, portal submission pending) |
+| @gladiaio/sdk@0.6.0 / 0.5.2 references | TEST_OR_EXAMPLE | no |
+
+**SUMMARY**: No new reportable findings in this delta. The unofficial `gladia@0.1.3` impersonation package remains the sole reportable candidate (already evidence-locked and portal-ready per 2026-08-10+ knowledge base entries). All other hits are benign code patterns, public endpoints, or version references.
+[0m
+**Classification complete.** No new `REAL_SECRET` findings in this delta. The unofficial `gladia@0.1.3` npm package (impersonation anomaly with API key leakage in WebSocket URL) remains the only reportable candidate — already evidence-locked and portal-ready per prior cycles. All other hits are benign: SDK version references, public dashboard links, a Vercel deployment URL, and standard API key handling code (user-provided via localStorage, not hardcoded).
