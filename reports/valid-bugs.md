@@ -336,3 +336,14 @@
   - | Q6 | **YES** | Injection is a valid class. |
   - | Q7 | **NO** | Spec-only; no evidence of actual injection without valid key. |
   - ### Verdict: **HOLD** — AUTH_HELPED. Spec confirms complex query parsing surface; needs valid key to test injection.
+
+- 9 lead(s) marked VALID at 2026-08-12 00:47:54 UTC
+  - | Q2 Reachability | ⚠️ Key-gated — all /v2 endpoints return 401 without valid `x-gladia-key`. Attacker needs a legitimate (paid/trial) API key to reach the fetch logic. |
+  - | Q5 Novelty | Valid class for this asset type |
+  - | Q7 Acceptable? | ❌ NO — AUTH_HELPED only; cannot be validated passively. Requires valid key + active POST. `passive_first: true` in scope.yml prohibits invasive testing without program approval. |
+  - **Verdict: HOLD — plausible SSRF surface per OpenAPI spec, but untestable without a valid API key and POST submission. Does not pass Q4 (read-only proof). Defer to an authorized key-gated test with pr
+  - | Q2 Reachability | ⚠️ Token only issued to authenticated users (valid `x-gladia-key` required to call `/v2/live/init`) |
+  - | Q4 Proof (read-only) | ❌ NO — the OpenAPI spec *describes* the token-in-URL pattern, but actually observing a live token requires `POST /v2/live/init` with a valid key (write action). No passive GET
+  - | Q2 Reachability | ⚠️ Key-gated — `/v2/transcription/{id}/file` returns 401 without valid key |
+  - | Q4 Proof (read-only) | ❌ NO — requires: (1) a valid API key, (2) creating a transcription as User A, (3) attempting to download as User B. All involve state changes / authenticated actions. |
+  - | Q5 Novelty | Valid class |
