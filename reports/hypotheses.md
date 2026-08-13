@@ -2679,3 +2679,10 @@
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
 - LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
 - LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
+
+## RANKED HYPOTHESES 2026-08-13 11:52:29 UTC
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: Post-auth open redirect via reflected redirect_to on app.gladia.io /signin (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on app.gladia.io/signin?redirect_to=https://evil.example.com using a controlled test Google account; after OAuth callback completes a
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-
+- LEARN: No class newly proven dead or alive this cycle — probe set (11:0x UTC) byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1
