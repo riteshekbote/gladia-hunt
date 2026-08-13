@@ -13,6 +13,7 @@ STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
 KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
 
 TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
+COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
 
 
 def split_inline(title):
@@ -89,6 +90,19 @@ def norm_asset(a):
     return a[:120]
 
 
+def coarse_target(a):
+    """Bare scheme+host+path of an asset (drops credentials, queries, parens)."""
+    a = (a or "").strip().lower()
+    a = re.sub(r'^`+|`+$', '', a)
+    a = re.sub(r'^\[(get|post|put|patch|delete|head|options)s?\][\s,]+', '', a)
+    m = re.match(r'^(?:https?://)?([^/\s()]+)(/[^\s()]*)?', a)
+    if not m:
+        return ""
+    host, path = m.group(1), m.group(2) or ""
+    host = re.sub(r'^www\.', '', host)
+    path = path.rstrip('/')
+    return host + path if path and path != "/" else host
+
 def norm_title(t):
     t = re.sub(r'^\[\d+%\]\s*', '', t or "")
     t = re.sub(r'[^a-z0-9]+', ' ', t.lower()).strip()
@@ -141,7 +155,7 @@ def ensure_label(repo, name):
         print("label created:", name)
 
 
-def best_title_match(block, open_issues, by_title_index):
+def best_title_match(block, issues, by_title_index):
     """Fuzzy-match a drifted no-asset lead against open issues.
 
     Returns the issue whose normalized title is most similar to the
@@ -151,9 +165,7 @@ def best_title_match(block, open_issues, by_title_index):
         return None
     bc = (block.get("class", "OTHER") or "OTHER").strip().lower()[:20]
     best, best_ratio = None, 0.0
-    for iss in open_issues:
-        if iss.state != "open":
-            continue
+    for iss in issues:
         i_class = "other"
         mc = re.search(r'^## Class\n(.*)$', iss.body or "", re.M)
         if mc:
@@ -170,6 +182,34 @@ def best_title_match(block, open_issues, by_title_index):
         return best
     return None
 
+
+def coarse_match(b, all_issues):
+    """Same target+class and similar title (>= COARSE_SIM_THRESHOLD) ->
+    treat as the same finding, even if the stored issue is closed."""
+    bt = norm_title(b.get("title", ""))
+    if not bt:
+        return None
+    ctarget = coarse_target(b.get("asset", ""))
+    if not ctarget:
+        return None
+    bc = (b.get("class", "OTHER") or "OTHER").strip().lower()[:20]
+    best, best_ratio = None, 0.0
+    for iss in all_issues:
+        m = re.search(r'^## Target\n`(.*)`', iss.body or "", re.M)
+        if not m:
+            continue
+        if coarse_target(m.group(1)) != ctarget:
+            continue
+        mc = re.search(r'^## Class\n(.*)$', iss.body or "", re.M)
+        i_class = (mc.group(1).strip().lower()[:20] if mc else "other")
+        if i_class != bc:
+            continue
+        r = SequenceMatcher(None, bt, norm_title(iss.title)).ratio()
+        if r > best_ratio:
+            best, best_ratio = iss, r
+    if best and best_ratio >= COARSE_SIM_THRESHOLD:
+        return best
+    return None
 
 def main():
     g = Github(TOKEN)
@@ -215,6 +255,7 @@ def main():
         if fp:
             by_fp.setdefault(fp, []).append(i)
     open_issues = [i for i in existing if i.state == "open"]
+    closed_issues = [i for i in existing if i.state != "open"]
     print("existing issues:", len(existing), "open:", len(open_issues))
 
     # in-run dedup: same fingerprint multiple times in this batch -> keep first
@@ -270,6 +311,37 @@ def main():
                         f"Fuzzy-matched to lead (title similarity ≥ {TITLE_SIM_THRESHOLD}). "
                         "No new issue created. If this is a genuinely different finding, "
                         "reword the title so it differs in the first ~6 words.")
+                except Exception:
+                    pass
+                fuzzy_matched += 1
+                continue
+            # re-discovery of a CLOSED (rejected/duplicate) finding with a
+            # drifted asset field: same title+class -> do not re-create
+            closed_match = best_title_match(b, closed_issues, None)
+            if closed_match is not None:
+                try:
+                    closed_match.create_comment(
+                        "Re-discovered in a later analyst lead; kept closed (title matched "
+                        f"a previously closed issue at similarity ≥ {TITLE_SIM_THRESHOLD}).")
+                except Exception:
+                    pass
+                fuzzy_matched += 1
+                continue
+            # same bare target+class with a similar title -> duplicate
+            coarse = coarse_match(b, existing)
+            if coarse is not None:
+                cur = {l.name for l in coarse.labels}
+                new = set(labels) | cur
+                if new != cur:
+                    try:
+                        coarse.edit(labels=list(new))
+                    except Exception:
+                        pass
+                try:
+                    coarse.create_comment(
+                        f"Coarse-matched to {('#' + str(coarse.number)) if coarse.number else 'issue'} "
+                        f"(same target+class, title similarity ≥ {COARSE_SIM_THRESHOLD}). "
+                        "No new issue created.")
                 except Exception:
                     pass
                 fuzzy_matched += 1
