@@ -593,3 +593,9 @@ https://api.gladia.io/v2/pre-recorded -> HTTP 401
 https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
 https://gladia.io/bug-bounty-report` -> HTTP 404
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-13 10:56:29 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
