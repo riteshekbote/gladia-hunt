@@ -26418,3 +26418,337 @@ STEP 7 — RISK SCORE
 - [RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 90+ drift-negative cycles.
 - [RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri, tamper-reset return-to cookie, HSTS preload.
 - [RISK] sdk: 55 — orphaned `gladia@0.1.3` at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
+===== ANALYST bigpickle 2026-08-13 09:50:39 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la && ls reports/ 2>/dev/null
+total 572
+drwxr-xr-x 11 runner runner   4096 Aug 13 09:48 .
+drwxr-xr-x  3 runner runner   4096 Aug 13 09:48 ..
+drwxr-xr-x  7 runner runner   4096 Aug 13 09:48 .git
+drwxr-xr-x  3 runner runner   4096 Aug 13 09:48 .github
+-rw-r--r--  1 runner runner    156 Aug 13 09:48 README.md
+-rw-r--r--  1 runner runner     32 Aug 13 09:48 analyst-out.txt
+-rw-r--r--  1 runner runner 230238 Aug 13 09:48 analyst-prompt.txt
+-rw-r--r--  1 runner runner 227097 Aug 13 09:48 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 knowledge
+drwxr-xr-x  2 runner runner  20480 Aug 13 09:48 leads
+-rw-r--r--  1 runner runner  26986 Aug 13 09:48 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 reports
+drwxr-xr-x  4 runner runner   4096 Aug 13 09:48 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 13 09:48 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 scripts
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 triage
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+valid-bugs.md
+[0m
+[0m$ [0mcat probe-results.md | tail -60
+## 2026-08-12 20:24:14 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 21:12:01 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 22:06:42 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 23:00:45 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-13 00:00:39 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-13 01:56:37 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io -> HTTP 404
+
+## 2026-08-13 04:09:50 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io -> HTTP 404
+
+## 2026-08-13 05:46:10 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://gladia.io/bug-bounty-report` -> HTTP 404
+
+## 2026-08-13 07:17:27 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+
+## 2026-08-13 08:43:45 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+[0m
+[0m$ [0mcat reports/hypotheses-bigpickle.txt | head -80
+## 2026-08-13 08:42:58 UTC [api] (model bigpickle)
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi re-probed fresh 200/125131B/14 paths/7 webhooks — audio_url/video_url plain string + CallbackConfig.url `format:uri`, NO scheme allowlist; 7 webhook delivery topics to client-supplied URLs; /v1/models 530B public confirms FR/US egress; no-key POST → 401/144 NestJS, key sole gate.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each of 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh across 90+ cycles (form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → class REJECTED); return-to cookie tamper-reset → `{"url":"/"}` REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-auth-gated). Include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, src/client.ts:306–308 key-in-wss-URL (`searchParams.append('x-gladia-key', apiKey)` → `new WebSocket`), GitHub user+repo `alexisbouchez` 404 (irrevocable), README↔package.json "Unofficial/Official" contradiction, dist-tag latest=0.1.3. In the same submission request an authorized x-gladia-key + self-owned SSRF canary permission (audio_url/video_url/callback_config.url, ≥2× FR/US) to unblock the top POC (73), and a test Google account to close the post-auth redirect_to gate (50). No further PROBE adds signal — surface frozen 90+ cycles, fresh probes byte-identical.
+[0m
+[0m$ [0mcat reports/valid-bugs.md 2>/dev/null | head -40; echo "---"; cat analyst-out.txt
+# Validated Bugs
+
+- 2026-08-07 ~17:50 UTC — SEED STATE: 0 valid bugs. Pipeline not yet run; initial hypotheses in reports/hypotheses.md are recon-based and UNVALIDATED.
+
+- 8 lead(s) marked VALID at 2026-08-07 21:04:32 UTC
+  - | Q2 | ⚠️ PARTIAL | Endpoints are key-gated (401 without x-gladia-key); need valid key to reach fetch logic |
+  - | Q4 | ❌ NO | Verify steps require `POST` with valid x-gladia-key + canary/metadata URLs — not GET/HEAD only |
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact, but cannot be proven with passive GET/HEAD only. Requires AUTH_HELPED testing: valid API key + POST with canary/metadata URLs to det
+  - | Q2 | ⚠️ PARTIAL | Endpoints are key-gated (401 without key); need valid key + cross-user resource to test |
+  - | Q4 | ❌ NO | Cannot prove without valid API key + owned resource IDs to test cross-account access |
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact (cross-account data access), but requires AUTH_HELPED testing: valid API key + owned transcription ID + attempt to access another use
+  - | Q2 | ⚠️ PARTIAL | Token-in-URL design is visible in public OpenAPI spec, but actual token generation requires valid API key |
+  - | 1 | SSRF via audio_url/video_url | api.gladia.io | **HOLD** | In-scope, real impact, but requires AUTH_HELPED (valid key + POST) |
+
+- 14 lead(s) marked VALID at 2026-08-08 06:01:23 UTC
+  - | Q2 | Reachable? | ⚠️ PARTIAL — Endpoints return 401 without x-gladia-key; fetch logic only reachable with valid API key |
+  - | Q4 | Passive proof? | ❌ NO — Verify steps require `POST` with valid x-gladia-key + canary/metadata URLs to detect server-side fetch behavior. OpenAPI spec confirms design (format:uri, no scheme allo
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact, but cannot be proven with passive GET/HEAD only. Requires AUTH_HELPED testing: valid API key + POST with canary/metadata URLs to det
+  - | Q2 | Reachable? | ⚠️ PARTIAL — Key-gated; need valid key + cross-user resource ID to test |
+  - | Q4 | Passive proof? | ❌ NO — Cannot prove without valid API key + owned resource IDs to test cross-account access |
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact (cross-account data access), but requires AUTH_HELPED testing: valid API key + owned transcription ID + attempt to access another use
+  - **Verdict: VALID** — Verified supply-chain impersonation. The npm `gladia` package (v0.1.3, dist-tag latest) claims "Official TypeScript SDK for Gladia" in its registry description, but its README say
+  - | Q2 | Reachable? | ⚠️ PARTIAL — Token-in-URL design visible in public OpenAPI spec, but actual token generation requires valid API key |
+  - | Q4 | Passive proof? | ❌ NO — Requires valid API key to test injection |
+  - **Verdict: HOLD** — In-scope, real potential impact, but requires AUTH_HELPED testing with valid API key to confirm injection.
+  - | 1 | SSRF via audio_url/callback_url | api.gladia.io | **HOLD** | Requires AUTH_HELPED (valid key + POST) |
+  - | 2 | IDOR on /{id}/file | api.gladia.io | **HOLD** | Requires AUTH_HELPED (valid key + cross-user resource) |
+  - | 4 | npm `gladia` impersonation | npm registry | **VALID** | Verified fact, supply-chain risk, passive proof complete |
+  - | 10 | /v1/history query injection | api.gladia.io | **HOLD** | Requires AUTH_HELPED (valid key) |
+
+- 16 lead(s) marked VALID at 2026-08-08 07:21:35 UTC
+  - **Verdict: ✅ VALID**
+  - | **Q2 Reachability** | **PARTIAL** — all SSRF-capable endpoints are key-gated (401 without `x-gladia-key`). CORS `*` allows cross-origin but **without credentials**, so an attacker cannot present a v
+  - | **Q4 Proof (read-only)** | **NO** — requires a valid `x-gladia-key` to POST `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` and observe reachability signal. Cannot prove without AUTH_HELP
+  - | **Q7 Reasonable triager** | **CONDITIONAL** — a triager would accept IF a valid key is obtained and reachability is demonstrated. Without proof, HOLD. |
+  - | **Q4 Proof (read-only)** | **PARTIAL** — the *design* is confirmed via OpenAPI spec (`wss://api.gladia.io/v2/live?token=<uuid>`). Proving actual token theft/leakage requires a valid key to init a se
+  - **Verdict: ⏸️ HOLD** — Design confirmed via public OpenAPI spec (no auth needed to read spec). The token-in-URL pattern is a genuine weakness. However, proving actual token theft or session hijacking 
+  - | **Q2 Reachability** | **NO** — all `/{id}/file` endpoints are key-gated (401 without key). Cross-account testing requires two valid keys. |
+  - | **Q4 Proof (read-only)** | **NO** — requires valid key + cross-account testing. AUTH_HELPED. |
+  - | **Q6 Not rejected** | **YES** — IDOR is a valid vulnerability class. |
+---
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la && ls reports/ 2>/dev/null
+total 572
+drwxr-xr-x 11 runner runner   4096 Aug 13 09:48 .
+drwxr-xr-x  3 runner runner   4096 Aug 13 09:48 ..
+drwxr-xr-x  7 runner runner   4096 Aug 13 09:48 .git
+drwxr-xr-x  3 runner runner   4096 Aug 13 09:48 .github
+-rw-r--r--  1 runner runner    156 Aug 13 09:48 README.md
+-rw-r--r--  1 runner runner     32 Aug 13 09:48 analyst-out.txt
+-rw-r--r--  1 runner runner 230238 Aug 13 09:48 analyst-prompt.txt
+-rw-r--r--  1 runner runner 227097 Aug 13 09:48 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 knowledge
+drwxr-xr-x  2 runner runner  20480 Aug 13 09:48 leads
+-rw-r--r--  1 runner runner  26986 Aug 13 09:48 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 reports
+drwxr-xr-x  4 runner runner   4096 Aug 13 09:48 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 13 09:48 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 scripts
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 13 09:48 state_nemotron3.json
+drwxr-xr-x  2 runner runner   4096 Aug 13 09:48 triage
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+valid-bugs.md
+[0m
+[0m$ [0mcat probe-results.md | tail -60
+## 2026-08-12 20:24:14 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 21:12:01 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 22:06:42 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 23:00:45 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-13 00:00:39 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-13 01:56:37 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io -> HTTP 404
+
+## 2026-08-13 04:09:50 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io -> HTTP 404
+
+## 2026-08-13 05:46:10 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://gladia.io/bug-bounty-report` -> HTTP 404
+
+## 2026-08-13 07:17:27 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+
+## 2026-08-13 08:43:45 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+[0m
+[0m$ [0mcat reports/hypotheses-bigpickle.txt | head -80
+## 2026-08-13 08:42:58 UTC [api] (model bigpickle)
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi re-probed fresh 200/125131B/14 paths/7 webhooks — audio_url/video_url plain string + CallbackConfig.url `format:uri`, NO scheme allowlist; 7 webhook delivery topics to client-supplied URLs; /v1/models 530B public confirms FR/US egress; no-key POST → 401/144 NestJS, key sole gate.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each of 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh across 90+ cycles (form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → class REJECTED); return-to cookie tamper-reset → `{"url":"/"}` REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-auth-gated). Include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, src/client.ts:306–308 key-in-wss-URL (`searchParams.append('x-gladia-key', apiKey)` → `new WebSocket`), GitHub user+repo `alexisbouchez` 404 (irrevocable), README↔package.json "Unofficial/Official" contradiction, dist-tag latest=0.1.3. In the same submission request an authorized x-gladia-key + self-owned SSRF canary permission (audio_url/video_url/callback_config.url, ≥2× FR/US) to unblock the top POC (73), and a test Google account to close the post-auth redirect_to gate (50). No further PROBE adds signal — surface frozen 90+ cycles, fresh probes byte-identical.
+[0m
+[0m
+STEP 1 — DELTA: NO_DELTA — fresh probe set (08:43:45 UTC) byte-identical to 90+ frozen cycles: `POST /v2/pre-recorded` → 401 key-gated, `/auth/google/callback` → 200 SPA shell, `github.com/alexisbouchez/gladia.ts.git` → 404 (orphaned, irrevocable), `gladia.io/bug-bounty-report` → 401 (auth-gated). No new endpoints, headers, or npm metadata changes.
+
+STEP 2 — PRIORITIZE:
+[PRIO] npm `gladia@0.1.3`: 63 — attack 5, business 7, tech 6, gate 10 (public registry, no auth), cloud 1, fresh 8
+[PRIO] api.gladia.io POST /v2/pre-recorded: 57 — attack 7, business 8, tech 5, gate 1 (key-gated 401 NestJS), cloud 8, fresh 2
+[PRIO] app.gladia.io /signin redirect_to: 47 — attack 4, business 6, tech 5, gate 6 (unauth reflection), cloud 2, fresh 3
+
+STEP 3 — HYPOTHESES:
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi re-probed fresh 200/125131B/14 paths/7 webhooks — audio_url/video_url plain string + CallbackConfig.url `format:uri`, NO scheme allowlist; 7 webhook delivery topics to client-supplied URLs; /v1/models 530B public confirms FR/US egress; no-key POST → 401/144 NestJS, key sole gate.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each of 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh across 90+ cycles (form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → class REJECTED); return-to cookie tamper-reset → `{"url":"/"}` REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
+
+STEP 4 — SELF-CRITIQUE:
+[PARKED] none — both hypotheses ≥40 with concrete verify_steps; neither class on the REJECTED list (OAuth redirect_uri injection REJECTED ≠ this OATH reflection; distinct class).
+[FINAL] 1. SSRF /v2/pre-recorded (73, AUTH_HELPED) — 2. app.gladia.io post-auth redirect_to (50, HUMAN_ONLY). Both ≥40, neither class REJECTED, concrete verify_steps intact. The [96] npm impersonation is a confirmed finding (report-ready), not a hypothesis.
+
+STEP 5 — NEXT ACTION:
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-auth-gated). Include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, src/client.ts:306–308 key-in-wss-URL (`searchParams.append('x-gladia-key', apiKey)` → `new WebSocket`), GitHub user+repo `alexisbouchez` 404 (irrevocable), README↔package.json "Unofficial/Official" contradiction, dist-tag latest=0.1.3. In the same submission request an authorized x-gladia-key + self-owned SSRF canary permission (audio_url/video_url/callback_config.url, ≥2× FR/US) to unblock the top POC (73), and a test Google account to close the post-auth redirect_to gate (50). No further PROBE adds signal — surface frozen 90+ cycles, fresh probes byte-identical.
+
+STEP 6 — LEARNING:
+[LEARN] No class newly proven dead or alive this cycle — probe set (08:43:45 UTC) byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*`, POST/GET 401 NestJS, signin 27448B reflection, npm gladia latest=0.1.3 sha256 `3b23…7f2`); per program conclusion further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+
+STEP 7 — RISK SCORE:
+[RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 90+ drift-negative cycles.
+[RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri (PKCE S256), tamper-reset return-to cookie, HSTS preload.
+[RISK] sdk: 55 — orphaned `gladia@0.1.3` at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
