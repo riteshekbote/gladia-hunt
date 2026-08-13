@@ -2572,3 +2572,18 @@
 - LEARN: CONFIRMED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh at 01:44 UTC — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example
 - LEARN: REJECTED MISCONFIG @ app.gladia.io: /api/v1/* paths (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) all return 200 SPA shell (no real authent
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage confirmed this cycle.
+
+## RANKED HYPOTHESES 2026-08-13 04:09:46 UTC
+- [96] npm: Orphaned npm package `gladia@0.1.3` impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 80+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by:
+- LEARN: CONFIRMED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, repo+user alexisbouchez 404, src/
+- LEARN: CONFIRMED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` (200/27
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgra
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage confirmed.
+- LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report → 301 → www → 302 → Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes — openapi 200/125131B, /signin reflection 200/27448B byte-identical to 90+ frozen cycl
