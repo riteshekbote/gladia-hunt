@@ -1,21 +1,19 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+| Category | File | Line | Classification | Notes |
+|----------|------|------|----------------|-------|
+| **INTERESTING** | reposcan-raw/npm/gladia.json | 1 | INTERESTING | Orphaned impersonator package `gladia@0.1.3` — description "Official" but README "Unofficial", repo `alexisbouchez/gladia.ts` + user 404, src/client.ts embeds raw `x-gladia-key` in WSS URL query. Already tracked (ACCEPTED OTHER, 80+ cycles). |
+| **TEST_OR_EXAMPLE** | reposcan-raw/npm/_gladiaio_sdk.json | 1 | TEST_OR_EXAMPLE | Official `@gladiaio/sdk@1.1.0` registry metadata. |
+| **TEST_OR_EXAMPLE** | reposcan-raw/gladiaio/gladia-quiz-app/* | 10+ | TEST_OR_EXAMPLE | Sample app: imports, localStorage key, CDN unpkg ref, UI components — no secrets. |
+| **TEST_OR_EXAMPLE** | reposcan-raw/gladiaio/gladiaflow/* | 20+ | TEST_OR_EXAMPLE | Tauri/React app: config, tests, masked `sk-********` in screenshot (test fixture), public URLs. |
+| **TEST_OR_EXAMPLE** | reposcan-raw/gladiaio/compare-stt/* | 15+ | TEST_OR_EXAMPLE | Comparison site: provider configs, public API base `https://api.gladia.io/v2`, header names, rewrite rules, seed data. |
+| **ENDPOINT_LEAK** | — | — | — | None. All URLs reference public production hosts (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io`). |
+| **REAL_SECRET** | — | — | — | None. No live credentials, API keys, or tokens found in source. |
 
-| Category | Hits (delta) | Files |
-|----------|---------------|-------|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | 14 | `gladiaio/gladia-quiz-app` (14 files: layout, components, hooks, lib, package.json, package-lock) |
-| ENDPOINT_LEAK | 0 | — |
-| INTERESTING | 0 | — |
+**Verdict**
 
-## Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `gladiaio/gladia-quiz-app` (quiz app sample code) | TEST_OR_EXAMPLE | **no** |
-| `npm/@gladiaio/sdk` metadata | TEST_OR_EXAMPLE | **no** |
-| `npm/gladia` metadata | TEST_OR_EXAMPLE | **no** |
-
-**Summary**: All 14 new hits are test/example code from the `gladia-quiz-app` demo application and its npm dependencies. No hardcoded secrets, internal endpoints, or leaked credentials found in the delta.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonator | **yes** | Orphaned package (GitHub user+repo 404), dist-tag `latest=0.1.3` persists, embeds raw API key in WebSocket URL query (`x-gladia-key`), contradicts official `@gladiaio/sdk` secure flow. Evidence package locked (sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`). Report via https://gladia.io/bug-bounty-report (Google Forms, Google SSO). |
+| All other hits | no | Test fixtures, sample code, public endpoint references, config only.
