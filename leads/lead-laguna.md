@@ -5968,3 +5968,7 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 100 — public OpenAPI spec (125131B, 14 paths, 7 webhooks, CORS `*`) with SSRF-by-design (no scheme allowlist, FR/US egress, webhook delivery), preflight-only x-powered-by: Express, undocumented /health, WebSocket token-in-URL, NestJS-on-Express, key-gated (401).
 [RISK] app.gladia.io: 64 — /signin redirect_to form-action reflection (0 CSP form-action directives) at unauth layer; OAuth PKCE fixed redirect_uri mitigates code/state theft; oauth2 state cookie Secure flag missing (HSTS mitigates→informational); post-auth honoring sole unverified gate (HUMAN_ONLY).
 [RISK] sdk: 87 — Official SDKs (@gladiaio/sdk@1.1.0, gladiaio-sdk@1.0.5) clean/generated from spec; npm `gladia@0.1.3` at dist-tag latest impersonates official with raw API key leaked in wss:// URL query (sha256 `3b23ec7d…7f2`, orphaned repo+user 404, irrevocable namespace takeover risk).
+## 2026-08-13 23:44:04 UTC [app] (model laguna)
+[PRIO] npm `gladia@0.1.3` (dist-tag latest): score 92 — attack 10, business 10, tech 9, gate 10, cloud 0, fresh 10
+[PRIO] api.gladia.io /v2/pre-recorded + /openapi.json: score 83 — attack 10, business 10, tech 8, gate 2, cloud 10, fresh 10
+[PRIO] app.gladia.io /signin?redirect_to: score 62 — attack 6, business 6, tech 5, gate 10, cloud 3, fresh 10
