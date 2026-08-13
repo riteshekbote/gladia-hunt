@@ -1,288 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF' > /tmp/classify.py
-import json
-import hashlib
-
-# Parse the scan hits
-hits = """
-reposcan-raw/npm/gladia.json:1: {"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia","dist-tags":{"latest":"0.1.3"},"versions":{"0.1.0":{"name":"gladia","version":"0.1.0","keywords":["gladia","speech-to-text","transcription","aud
-reposcan-raw/npm/_gladiaio_sdk.json:1: {"_id":"@gladiaio/sdk","_rev":"129-8d16ae11f6d0f01320400f5fcaa4e9e8","name":"@gladiaio/sdk","dist-tags":{"latest":"1.1.0"},"versions":{"0.1.0":{"name":"@gladiaio/sdk","version":"0.1.0","keywords":["gladia","sdk","typescr
-reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json:11: "@gladiaio/sdk": "^0.6.0",
-reposcan-raw/gladiaio/gladia-quiz-app/package.json:24: "@gladiaio/sdk": "^0.6.0",
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:5: import { createGladiaClient, getStoredApiKey } from '../lib/gladia-client';
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:70: const gladia = createGladiaClient(apiKey);
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:74: const liveSession = gladia.liveV2().startSession({
-reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:1: export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
-reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:7: metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),
-reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:43: src="https://unpkg.com/@gladiaio/sdk@0.5.2"
-reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:47: const [gladiaApiKey, setGladiaApiKey] = useState<string | null>(null);
-reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:56: const stored = localStorage.getItem('gladia_api_key');
-reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:9: import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';
-reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:94: href="https://app.gladia.io"
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
-reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
-reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
-reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
-reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
-reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
-reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
-reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
-reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:37: url: "https://www.gladia.io/blog/best-speech-to-text-apis",
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:46: url: "https://www.gladia.io/blog/best-open-source-speech-to-text-models",
-reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:148: gladia: "Gladia",
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:5: process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:20: export const CITATION_DOMAIN = "www.gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:3: const GLADIA_BASE = "https://api.gladia.io/v2";
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:36: headers: { "x-gladia-key": apiKey },
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:49: "x-gladia-key": apiKey,
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
-"""
-
-# Classify each hit
-for line in hits.strip().split('\n'):
-    if not line.strip():
-        continue
-    parts = line.split(':', 2)
-    if len(parts) < 3:
-        continue
-    file_path = parts[0]
-    line_num = parts[1]
-    content = parts[2]
-    
-    # Classification logic
-    category = "TEST_OR_EXAMPLE"
-    reason = ""
-    
-    # Check for real secrets (API keys, tokens)
-    if 'sk-' in content and '********' not in content and 'sk_live' not in content:
-        category = "REAL_SECRET"
-        reason = "Potential live API key pattern"
-    elif 'sk-********' in content:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Masked API key in screenshot/example"
-    elif 'x-gladia-key' in content and 'apiKey' in content:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Header usage pattern, no actual key"
-    elif 'apiKey' in content and ('const' in content or 'let' in content or 'useState' in content) and 'null' in content:
-        category = "TEST_OR_EXAMPLE"
-        reason = "API key state variable initialized to null"
-    elif 'GLADIA_API_KEY_STORAGE' in content:
-        category = "TEST_OR_EXAMPLE"
-        reason = "LocalStorage key name constant"
-    elif 'https://api.gladia.io' in content or 'https://app.gladia.io' in content:
-        category = "ENDPOINT_LEAK"
-        reason = "Production endpoint reference"
-    elif 'https://www.gladia.io' in content or 'https://gladia.io' in content:
-        category = "ENDPOINT_LEAK"
-        reason = "Production website reference"
-    elif 'gladia' in content.lower() and ('test' in file_path.lower() or '.test.' in file_path or 'example' in content.lower() or 'screenshot' in file_path.lower()):
-        category = "TEST_OR_EXAMPLE"
-        reason = "Test/example file or content"
-    elif 'package.json' in file_path or 'package-lock.json' in file_path:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Dependency declaration"
-    elif 'gladia-quiz-app' in file_path or 'gladiaflow' in file_path or 'compare-stt' in file_path:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Sample/demo application code"
-    elif 'npm/gladia.json' in file_path:
-        category = "INTERESTING"
-        reason = "Unofficial npm package claiming to be official (impersonation)"
-    elif 'npm/_gladiaio_sdk.json' in file_path:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Official SDK package metadata"
-    elif 'tauri' in file_path and '.conf.json' in file_path:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Tauri config for desktop app"
-    elif 'Cargo.toml' in file_path:
-        category = "TEST_OR_EXAMPLE"
-        reason = "Rust package manifest"
-    elif 'next.config.ts' in file_path:
-        category = "ENDPOINT_LEAK"
-        reason = "Next.js config with production rewrites"
-    elif 'vercel' in content.lower():
-        category = "TEST_OR_EXAMPLE"
-        reason = "Vercel deployment reference"
-    else:
-        category = "TEST_OR_EXAMPLE"
-        reason = "General reference/code"
-    
-    print(f"{file_path}:{line_num} | {category} | {reason} | {content[:80]}")
-
-EOF
-python3 /tmp/classify.py
-reposcan-raw/npm/gladia.json:1 | INTERESTING | Unofficial npm package claiming to be official (impersonation) |  {"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia","di
-reposcan-raw/npm/_gladiaio_sdk.json:1 | TEST_OR_EXAMPLE | Official SDK package metadata |  {"_id":"@gladiaio/sdk","_rev":"129-8d16ae11f6d0f01320400f5fcaa4e9e8","name":"@g
-reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json:11 | TEST_OR_EXAMPLE | Dependency declaration |  "@gladiaio/sdk": "^0.6.0",
-reposcan-raw/gladiaio/gladia-quiz-app/package.json:24 | TEST_OR_EXAMPLE | Dependency declaration |  "@gladiaio/sdk": "^0.6.0",
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:5 | TEST_OR_EXAMPLE | Sample/demo application code |  import { createGladiaClient, getStoredApiKey } from '../lib/gladia-client';
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:70 | TEST_OR_EXAMPLE | Sample/demo application code |  const gladia = createGladiaClient(apiKey);
-reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:74 | TEST_OR_EXAMPLE | Sample/demo application code |  const liveSession = gladia.liveV2().startSession({
-reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:1 | TEST_OR_EXAMPLE | LocalStorage key name constant |  export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
-reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:7 | TEST_OR_EXAMPLE | Sample/demo application code |  metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),
-reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx:43 | TEST_OR_EXAMPLE | Sample/demo application code |  src="https://unpkg.com/@gladiaio/sdk@0.5.2"
-reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:47 | TEST_OR_EXAMPLE | Sample/demo application code |  const [gladiaApiKey, setGladiaApiKey] = useState<string | null>(null);
-reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx:56 | TEST_OR_EXAMPLE | Sample/demo application code |  const stored = localStorage.getItem('gladia_api_key');
-reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:9 | TEST_OR_EXAMPLE | LocalStorage key name constant |  import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';
-reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx:94 | ENDPOINT_LEAK | Production endpoint reference |  href="https://app.gladia.io"
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2 | TEST_OR_EXAMPLE | Dependency declaration |  "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:8 | TEST_OR_EXAMPLE | Dependency declaration |  "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package.json:2 | TEST_OR_EXAMPLE | Dependency declaration |  "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4 | TEST_OR_EXAMPLE | Sample/demo application code |  import "./gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264 | TEST_OR_EXAMPLE | Sample/demo application code |  invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274 | TEST_OR_EXAMPLE | Sample/demo application code |  invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284 | TEST_OR_EXAMPLE | Sample/demo application code |  invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17 | TEST_OR_EXAMPLE | Masked API key in screenshot/example |  apiKey: "sk-********",
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3 | TEST_OR_EXAMPLE | Test/example file or content |  import "../gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11 | TEST_OR_EXAMPLE | Sample/demo application code |  export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21 | TEST_OR_EXAMPLE | Test/example file or content |  expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27 | TEST_OR_EXAMPLE | Test/example file or content |  expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34 | TEST_OR_EXAMPLE | Test/example file or content |  normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8 | TEST_OR_EXAMPLE | Sample/demo application code |  value: "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9 | TEST_OR_EXAMPLE | Sample/demo application code |  pronunciations: ["gladioflow", "gladiaflaw"],
-reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14 | TEST_OR_EXAMPLE | Sample/demo application code |  "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
-reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19 | ENDPOINT_LEAK | Production endpoint reference |  return `https://app.gladia.io/transcriptions/live/${sessionId}`;
-reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 | ENDPOINT_LEAK | Production endpoint reference |  const API_KEYS_URL = "https://app.gladia.io/apikeys";
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3 | TEST_OR_EXAMPLE | Sample/demo application code |  "identifier": "io.gladia.gladiaflow.dev",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5 | TEST_OR_EXAMPLE | Sample/demo application code |  "identifier": "io.gladia.gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2 | TEST_OR_EXAMPLE | Sample/demo application code |  name = "gladiaflow"
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5 | TEST_OR_EXAMPLE | Sample/demo application code |  authors = ["Gladia <support@gladia.io>"]
-reposcan-raw/gladiaio/compare-stt/test-providers.ts:8 | TEST_OR_EXAMPLE | Test/example file or content |  const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics"
-reposcan-raw/gladiaio/compare-stt/next.config.ts:38 | ENDPOINT_LEAK | Production website reference |  destination: "https://www.gladia.io/compare-stt-apis",
-reposcan-raw/gladiaio/compare-stt/next.config.ts:44 | ENDPOINT_LEAK | Production website reference |  destination: "https://www.gladia.io/compare-stt-apis/:path",
-reposcan-raw/gladiaio/compare-stt/next.config.ts:51 | TEST_OR_EXAMPLE | Sample/demo application code |  // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
-reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10 | TEST_OR_EXAMPLE | Sample/demo application code |  { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:37 | ENDPOINT_LEAK | Production website reference |  url: "https://www.gladia.io/blog/best-speech-to-text-apis",
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:46 | ENDPOINT_LEAK | Production website reference |  url: "https://www.gladia.io/blog/best-open-source-speech-to-text-models",
-reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2 | TEST_OR_EXAMPLE | Sample/demo application code |  * Tracking IDs — keep in sync with gladia-marketing
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2 | TEST_OR_EXAMPLE | Sample/demo application code |  import { transcribeWithGladia } from "./providers/gladia";
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25 | TEST_OR_EXAMPLE | Sample/demo application code |  gladia: transcribeWithGladia,
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:148 | TEST_OR_EXAMPLE | Sample/demo application code |  gladia: "Gladia",
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:5 | ENDPOINT_LEAK | Production website reference |  process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:20 | TEST_OR_EXAMPLE | Sample/demo application code |  export const CITATION_DOMAIN = "www.gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10 | TEST_OR_EXAMPLE | Sample/demo application code |  { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#94
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:3 | ENDPOINT_LEAK | Production endpoint reference |  const GLADIA_BASE = "https://api.gladia.io/v2";
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:36 | TEST_OR_EXAMPLE | Header usage pattern, no actual key |  headers: { "x-gladia-key": apiKey },
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:49 | TEST_OR_EXAMPLE | Header usage pattern, no actual key |  "x-gladia-key": apiKey,
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9 | TEST_OR_EXAMPLE | Sample/demo application code |  } from "@/components/tracking/gladia-analytics";
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87 | ENDPOINT_LEAK | Production website reference |  <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" class
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45 | ENDPOINT_LEAK | Production website reference |  <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72 | ENDPOINT_LEAK | Production website reference |  <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107 | ENDPOINT_LEAK | Production website reference |  <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" class
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68 | TEST_OR_EXAMPLE | Sample/demo application code |  href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#qu
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156 | ENDPOINT_LEAK | Production website reference |  href="https://gladia.io"
+[0m✗ [0mInvalid Tool
+The arguments provided to the tool are invalid: Invalid input for tool bash: JSON parsing failed: Text: {"command": "cat << 'EOF'\n# DELTA HITS CLASSIFICATION (14 new lines)\n\n## REAL_SECRET\n| File | Line | SHA256 | Context |\n|------|------|--------|---------|\n| (none) | - | - | No hardcoded credentials found in delta |\n\n## TEST_OR_EXAMPLE\n| File | Line | Notes |\n|------|------|-------|\n| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 2368 | pnpm lockfile local package ref |\n| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289 | pnpm lockfile npm package ref |\n| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 291 | pnpm lockfile local link |\n| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | TS config path mapping |\n| reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment referencing marketing GTM |\n| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Placeholder `sk-********` in screenshot |\n\n## ENDPOINT_LEAK\n| File | Line | Notes |\n|------|------|-------|\n| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | Public API base `https://api.gladia.io/v2` (known, in scope) |\n| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36 | Header name `x-gladia-key` with variable `apiKey` (.
+Error message: JSON Parse error: Unterminated string
 [0m
-### REAL_SECRET
-| File | Line | Reason | Content |
-|------|------|--------|---------|
-| *(none)* | | | |
+# DELTA HITS CLASSIFICATION (14 new lines since last scan)
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason | Content |
+## REAL_SECRET
+| File | Line | SHA256 | Context |
 |------|------|--------|---------|
-| reposcan-raw/npm/_gladiaio_sdk.json | 1 | Official SDK package metadata | `{"_id":"@gladiaio/sdk",...` |
-| reposcan-raw/gladiaio/gladia-quiz-app/package-lock.json | 11 | Dependency declaration | `"@gladiaio/sdk": "^0.6.0",` |
-| reposcan-raw/gladiaio/gladia-quiz-app/package.json | 24 | Dependency declaration | `"@gladiaio/sdk": "^0.6.0",` |
-| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5 | Sample/demo application code | `import { createGladiaClient...` |
-| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 70 | Sample/demo application code | `const gladia = createGladiaClient(apiKey);` |
-| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 74 | Sample/demo application code | `const liveSession = gladia.liveV2()...` |
-| reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts | 1 | LocalStorage key name constant | `export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';` |
-| reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 7 | Sample/demo application code | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app'),` |
-| reposcan-raw/gladiaio/gladia-quiz-app/app/layout.tsx | 43 | Sample/demo application code | `src="https://unpkg.com/@gladiaio/sdk@0.5.2"` |
-| reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx | 47 | Sample/demo application code | `const [gladiaApiKey, setGladiaApiKey] = useState<string \| null>(null);` |
-| reposcan-raw/gladiaio/gladia-quiz-app/components/HalloweenQuiz.tsx | 56 | Sample/demo application code | `const stored = localStorage.getItem('gladia_api_key');` |
-| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 9 | LocalStorage key name constant | `import { GLADIA_API_KEY_STORAGE } from '../lib/gladia-client';` |
-| reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2 | Dependency declaration | `"name": "gladiaflow",` |
-| reposcan-raw/gladiaio/gladiaflow/package-lock.json | 8 | Dependency declaration | `"name": "gladiaflow",` |
-| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | Dependency declaration | `"name": "gladiaflow",` |
-| reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 4 | Sample/demo application code | `import "./gladia-tokens.css";` |
-| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 264 | Sample/demo application code | `invoke("close_gladia_session").catch(console.error);` |
-| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 274 | Sample/demo application code | `invoke("close_gladia_session").catch(console.error);` |
-| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 284 | Sample/demo application code | `invoke("close_gladia_session").catch(console.error);` |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked API key in screenshot/example | `apiKey: "sk-********",` |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | Test/example file or content | `import "../gladia-tokens.css";` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | Sample/demo application code | `export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21 | Test/example file or content | `expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 27 | Test/example file or content | `expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 34 | Test/example file or content | `normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8 | Sample/demo application code | `value: "gladiaflow",` |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 9 | Sample/demo application code | `pronunciations: ["gladioflow", "gladiaflaw"],` |
-| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | Sample/demo application code | `"https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";` |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | Sample/demo application code | `"identifier": "io.gladia.gladiaflow.dev",` |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | Sample/demo application code | `"identifier": "io.gladia.gladiaflow",` |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2 | Sample/demo application code | `name = "gladiaflow"` |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | Sample/demo application code | `authors = ["Gladia <support@gladia.io>"]` |
-| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test/example file or content | `const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics"...` |
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 51 | Sample/demo application code | `// PostHog reverse proxy — same hosts as gladia-marketing vercel.json.` |
-| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Sample/demo application code | `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2 | Sample/demo application code | `import { transcribeWithGladia } from "./providers/gladia";` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 25 | Sample/demo application code | `gladia: transcribeWithGladia,` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 148 | Sample/demo application code | `gladia: "Gladia",` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 20 | Sample/demo application code | `export const CITATION_DOMAIN = "www.gladia.io"` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Sample/demo application code | `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#94...` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36 | Header usage pattern, no actual key | `headers: { "x-gladia-key": apiKey },` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 49 | Header usage pattern, no actual key | `"x-gladia-key": apiKey,` |
-| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 9 | Sample/demo application code | `} from "@/components/tracking/gladia-analytics";` |
-| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68 | Sample/demo application code | `href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#qu...` |
+| (none) | - | - | No hardcoded credentials found in delta |
 
-### ENDPOINT_LEAK
-| File | Line | Reason | Content |
-|------|------|--------|---------|
-| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | Production endpoint reference | `href="https://app.gladia.io"` |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | Production endpoint reference | `return \`https://app.gladia.io/transcriptions/live/${sessionId}\`;` |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | Production endpoint reference | `const API_KEYS_URL = "https://app.gladia.io/apikeys";` |
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38 | Production website reference | `destination: "https://www.gladia.io/compare-stt-apis",` |
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 44 | Production website reference | `destination: "https://www.gladia.io/compare-stt-apis/:path",` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37 | Production website reference | `url: "https://www.gladia.io/blog/best-speech-to-text-apis",` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 46 | Production website reference | `url: "https://www.gladia.io/blog/best-open-source-speech-to-text-models",` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5 | Production website reference | `process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | Production endpoint reference | `const GLADIA_BASE = "https://api.gladia.io/v2";` |
-| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 87 | Production website reference | `<a href="https://www.gladia.io" target="_blank"...` |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45 | Production website reference | `<a href="https://gladia.io" target="_blank"...` |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 72 | Production website reference | `<ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />` |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 107 | Production website reference | `<a href="https://www.gladia.io" target="_blank"...` |
-| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 156 | Production website reference | `href="https://gladia.io"` |
+## TEST_OR_EXAMPLE
+| File | Line | Notes |
+|------|------|-------|
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 2368 | pnpm lockfile local package ref |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289 | pnpm lockfile npm package ref `@ai-sdk/gladia` |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 291 | pnpm lockfile local link `../../packages/gladia` |
+| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | TS config path mapping `packages/gladia` |
+| reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment referencing marketing GTM stack |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Placeholder `sk-********` in screenshot component |
+| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test slugs array `["gladia", "deepgram", ...]` |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data `{ name: "Gladia", slug: "gladia" }` |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config with public logo/color |
+| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | Package name `gladiaflow` |
+| reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2,8 | Lockfile package name |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2,5 | Crate name `gladiaflow`, author `Gladia <support@gladia.io>` |
 
-### INTERESTING
-| File | Line | Reason | Content |
-|------|------|--------|---------|
-| reposcan-raw/npm/gladia.json | 1 | Unofficial npm package claiming to be official (impersonation) | `{"_id":"gladia","_rev":"4-d0214ef116ff0426b738c29cf2a97cf1","name":"gladia",...` |
+## ENDPOINT_LEAK
+| File | Line | Notes |
+|------|------|-------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | Public API base `https://api.gladia.io/v2` (known, in scope) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | Header name `x-gladia-key` with variable `apiKey` (no hardcoded value) |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | Vercel rewrites to `https://www.gladia.io/compare-stt-apis` (marketing) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | Deep link `https://app.gladia.io/transcriptions/live/{sessionId}` (public app) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` (public app) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | Docs link `https://docs.gladia.io/...` (public) |
+
+## INTERESTING
+| File | Line | Notes |
+|------|------|-------|
+| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 172 | `mailto:privacy@gladia.io` contact |
+| reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | `mailto:privacy@gladia.io?subject=Apply...` contact |
+| reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 490 | `href="https://gladia.io"` public site |
+| reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 513 | GitHub issues link |
+| reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 80 | GitHub repo link |
+| reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270,341,427 | Triple ref to `gladiaio/normalization` quick-start |
+| reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | SEO schema `url: "https://gladia.io"` |
+| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | `NEXT_PUBLIC_SITE_ORIGIN=https://www.gladia.io`, `CITATION_DOMAIN=www.gladia.io` |
+| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog URLs `https://www.gladia.io/blog/...` |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289 | `@ai-sdk/gladia` in lockfile (Vercel AI SDK integration) |
 
 ---
 
-### VERDICT LIST
+# VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| `gladia@0.1.3` npm package (reposcan-raw/npm/gladia.json) | **yes** | **Confirmed orphaned impersonation** — Package claims "Official TypeScript SDK for Gladia" but repository is `alexisbouchez/gladia.ts` (personal GitHub account, now 404). Maintainer `softwarecitadel@gmail.com` unaffiliated with Gladia. Source code embeds raw API key in WebSocket URL query param (`x-gladia-key`), diverging from official SDK's secure POST `/v2/live` → token flow. Dist-tag `latest=0.1.3` persists. **Previously ACCEPTED in knowledge base (2026-08-07 through 2026-08-13), evidence package locked, report-ready.** |
-| All other hits | **no** | All are TEST_OR_EXAMPLE (sample apps, test files, dependency declarations, masked keys) or ENDPOINT_LEAK (public production URLs in docs/config — not sensitive). No hardcoded live credentials found. |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| REAL_SECRET (any) | **no** | Zero hardcoded secrets in delta or full scan |
+| `gladia@0.1.3` npm impersonation | **yes** (pre-existing) | Orphaned package, `alexisbouchez/gladia.ts` 404, `description="Official"` vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query — **already ACCEPTED OTHER, report-ready** |
+| api.gladia.io SSRF-by-design (audio_url/callback_url no scheme allowlist) | **yes** (pre-existing) | Spec frozen 90+ cycles, key-gated only — **already ACCEPTED SSRF, AUTH_HELPED** |
+| app.gladia.io `/signin?redirect_to=` form-action reflection + CSP gap | **yes** (pre-existing) | 0 `form-action` directives, OAuth redirect_uri FIXED + PKCE blocks code theft, post-auth honoring = HUMAN_ONLY — **already ACCEPTED OATH** |
+| api.gladia.io NO_DRIFT surface freeze | **no** | 90+ cycles byte-identical — confirmed frozen, nothing new |
+| gladia.io bug-bounty-report → Google Forms | **no** | Submission channel confirmed, out-of-scope third party |
+
+**Summary**: Delta adds **zero new reportable findings**. All 14 new hits are benign (public links, build configs, test data, placeholder values). Pre-existing accepted findings remain valid and report-ready.
