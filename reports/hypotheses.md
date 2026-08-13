@@ -2807,3 +2807,13 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — form action reflects URL-encoded value; CSP has 0 form-action directives; OAuth redir
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
 - LEARN: No class newly proven dead or alive this cycle — probe set byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/mo
+
+## RANKED HYPOTHESES 2026-08-13 21:59:54 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on app.gladia.io/signin?redirect_to=https://evil.example.com using a controlled test Google account; capture the immediate post-auth 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks/single server, /health 15B, /v1
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — local `npm pack` reproduces sha256 `3b23ec7d…7f2`, src/client.ts:306-308 embeds raw x-g
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — form action reflects URL-encoded value (200/27448B), 0 CSP form-action directives (gr
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (tamper-reset confirmed m
