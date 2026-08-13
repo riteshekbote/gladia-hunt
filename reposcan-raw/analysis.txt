@@ -1,4 +1,76 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[91m[1mError: [0mError from provider (Console): Upstream request failed: [404] Provider returned error
+[0m$ [0mls -la reposcan-raw/gladiaio/ 2>/dev/null | head -20
+total 56
+drwxr-xr-x 14 runner runner 4096 Aug 13 04:26 .
+drwxr-xr-x  4 runner runner 4096 Aug 13 04:26 ..
+drwxr-xr-x  9 runner runner 4096 Aug 13 04:26 compare-stt
+drwxr-xr-x  9 runner runner 4096 Aug 13 04:26 docs
+drwxr-xr-x  7 runner runner 4096 Aug 13 04:26 gladia-cli
+drwxr-xr-x 11 runner runner 4096 Aug 13 04:26 gladia-quiz-app
+drwxr-xr-x 11 runner runner 4096 Aug 13 04:26 gladia-samples
+drwxr-xr-x  9 runner runner 4096 Aug 13 04:26 gladiaflow
+drwxr-xr-x  7 runner runner 4096 Aug 13 04:26 n8n-nodes-gladia
+drwxr-xr-x  8 runner runner 4096 Aug 13 04:26 normalization
+drwxr-xr-x  9 runner runner 4096 Aug 13 04:26 realtime-multilingual-asr-router
+drwxr-xr-x 10 runner runner 4096 Aug 13 04:26 sdk
+drwxr-xr-x  7 runner runner 4096 Aug 13 04:26 skills
+drwxr-xr-x 18 runner runner 4096 Aug 13 04:26 vercel-ai
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx[90m [offset=1, limit=20][0m
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx[90m [offset=1, limit=40][0m
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx[90m [offset=1, limit=30][0m
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=2360, limit=30][0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=1, limit=40][0m
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/tsconfig.json[90m [offset=65, limit=15][0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Match | SHA256 | Verdict |
+|------|------|-------|--------|---------|
+| *(none found in delta)* | | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Match | Context |
+|------|------|-------|---------|
+| `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | Mock settings object `MOCK_SETTINGS` with clearly masked placeholder |
+
+#### ENDPOINT_LEAK
+| File | Line | Match | Context |
+|------|------|-------|---------|
+| `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2";` | Public API base URL (already documented in knowledge base) |
+| `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts` | 36 | `headers: { "x-gladia-key": apiKey }` | Header name reference, not a secret |
+| `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts` | 49 | `"x-gladia-key": apiKey` | Header name reference, not a secret |
+| `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `const API_KEYS_URL = "https://app.gladia.io/apikeys";` | Public dashboard URL |
+| `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public dashboard URL pattern |
+
+#### INTERESTING
+| File | Line | Match | Why Interesting |
+|------|------|-------|-----------------|
+| `reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml` | 2368 | `packages/gladia:` | Local workspace package `@ai-sdk/gladia` in Vercel AI SDK monorepo (not published to npm as separate package) |
+| `reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml` | 289 | `'@ai-sdk/gladia':` | Provider package name in lockfile |
+| `reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml` | 291 | `version: link:../../packages/gladia` | Local filesystem link to provider implementation |
+| `reposcan-raw/gladiaio/vercel-ai/tsconfig.json` | 70 | `"path": "packages/gladia"` | TypeScript project reference to local Gladia provider |
+| `reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json` | 5 | `"identifier": "io.gladia.gladiaflow"` | Tauri app bundle identifier (metadata) |
+| `reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json` | 3 | `"identifier": "io.gladia.gladiaflow.dev"` | Dev variant bundle identifier |
+| `reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml` | 5 | `authors = ["Gladia <support@gladia.io>"]` | Package metadata with official support email |
+| `reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx` | 5 | `Same tag stack as gladia-marketing` | Confirms shared analytics/GTM stack with marketing site |
+| `reposcan-raw/gladiaio/compare-stt/next.config.ts` | 38,44 | `destination: "https://www.gladia.io/compare-stt-apis"` | Next.js rewrite to marketing subpath (known architecture) |
+
+---
+
+### Short Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladiaflow/src/screenshots/Gallery.tsx:17` `sk-********` | TEST_OR_EXAMPLE | **no** | Clearly masked placeholder in `MOCK_SETTINGS` test fixture |
+| `compare-stt/src/lib/providers/gladia.ts` API base/header refs | ENDPOINT_LEAK | **no** | Public API endpoint + header names already documented in knowledge base |
+| `gladiaflow` Tauri bundle identifiers / metadata | INTERESTING | **no** | Standard app metadata, no sensitive data |
+| `vercel-ai/packages/gladia` local provider package | INTERESTING | **no** | Internal Vercel AI SDK provider implementation (local workspace), not a Gladia-owned secret |
+| All other delta hits (mailto:, github.com, gladia.io URLs, lockfile entries, tsconfig paths) | ENDPOINT_LEAK/INTERESTING | **no** | Public references, config, or documentation links |
+
+---
+
+### Summary
+**No new reportable findings in this delta.** The 14 new hit lines are all public URLs, email links, GitHub references, lockfile entries, TypeScript config paths, or a masked test placeholder. The `vercel-ai/packages/gladia` provider is an internal Vercel AI SDK workspace package (not a Gladia secret). The previously known `gladia@0.1.3` npm impersonation anomaly (orphaned personal repo, `sha256:3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`) remains the sole reportable supply-chain candidate — already **ACCEPTED** and evidence-locked per knowledge base.
