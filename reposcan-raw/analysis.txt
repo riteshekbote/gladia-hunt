@@ -1,93 +1,34 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Triage Results: gladiaio Repos Static Scan
+### Classification Table
 
-### Classification Tables
+| Category | File:Line | Evidence |
+|----------|-----------|----------|
+| **ENDPOINT_LEAK** | gladia-quiz-app/app/layout.tsx:43 | `src="https://unpkg.com/@gladiaio/sdk@0.5.2"` — public CDN reference to old SDK version |
+| **ENDPOINT_LEAK** | gladia-quiz-app/app/layout.tsx:7 | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app')` — public Vercel demo deployment |
+| **ENDPOINT_LEAK** | gladia-quiz-app/components/GladiaApiKeyInput.tsx:94 | `href="https://app.gladia.io"` — link to official dashboard (known public) |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/GladiaApiKeyInput.tsx:9 | Import of `GLADIA_API_KEY_STORAGE` constant |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/HalloweenQuiz.tsx:47 | `useState<string \| null>(null)` — API key state init, no hardcoded value |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/HalloweenQuiz.tsx:56 | `localStorage.getItem('gladia_api_key')` — reads user-provided key |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:5 | Import of `createGladiaClient`, `getStoredApiKey` |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:70 | `createGladiaClient(apiKey)` — variable usage |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:74 | `gladia.liveV2().startSession({` — SDK usage pattern |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/lib/gladia-client.ts:1 | `export const GLADIA_API_KEY_STORAGE = 'gladia_api_key'` — localStorage key name constant |
+| **INTERESTING** | npm/_gladiaio_sdk.json:1 | Official `@gladiaio/sdk` registry metadata — latest `1.1.0` confirmed |
+| **INTERESTING** | npm/gladia.json:1 | Unofficial `gladia@0.1.3` registry metadata — impersonator package still at latest |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/package-lock.json:11 | `"@gladiaio/sdk": "^0.6.0"` — lockfile dependency range |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app/package.json:24 | `"@gladiaio/sdk": "^0.6.0"` — package.json dependency range |
 
-| Category | Count |
-|----------|-------|
-| REAL_SECRET | 0 |
-| TEST_OR_EXAMPLE | 31 |
-| ENDPOINT_LEAK | 24 |
-| INTERESTING | 4 |
+### Verdict List
 
----
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| Unpkg CDN reference (@gladiaio/sdk@0.5.2) | **no** | Public CDN URL, outdated version reference only |
+| Vercel demo deployment URL | **no** | Public-facing demo app, not internal |
+| app.gladia.io dashboard link | **no** | Known public endpoint, in scope but not a leak |
+| All code patterns (imports, state, localStorage, SDK usage) | **no** | Standard application code, no hardcoded secrets |
+| Official @gladiaio/sdk@1.1.0 metadata | **no** | Confirms official package current version (tracking only) |
+| Unofficial gladia@0.1.3 metadata | **no** | **Known duplicate** — already ACCEPTED 2026-08-07 as orphaned impersonator (personal repo, GitHub 404, key-in-WSS-URL). No new signal. |
 
-### REAL_SECRET (0)
-*No hardcoded credentials found.*
-
----
-
-### TEST_OR_EXAMPLE (31)
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slugs array for comparison testing |
-| compare-stt/prisma/seed.ts | 10 | Seed data: `{ name: "Gladia", slug: "gladia" }` |
-| compare-stt/src/lib/providers.ts | 10 | Provider config object (references `apiKey` variable) |
-| compare-stt/src/lib/transcribe.ts | 2, 25, 148 | Import/usage of `transcribeWithGladia` helper |
-| compare-stt/src/lib/providers/gladia.ts | 36, 49 | Header pattern `"x-gladia-key": apiKey` (variable, not literal) |
-| gladiaflow/package.json | 2 | Package name |
-| gladiaflow/package-lock.json | 2, 8 | Lockfile entries |
-| gladiaflow/src-tauri/Cargo.toml | 2 | Crate name |
-| gladiaflow/src/main.tsx | 4 | CSS import |
-| gladiaflow/src/App.tsx | 264, 274, 284 | Tauri invoke calls |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | **Masked placeholder** `apiKey: "sk-********"` |
-| gladiaflow/src/screenshots/main.tsx | 3 | CSS import |
-| gladiaflow/src/lib/customVocabulary.ts | 8, 9 | Vocabulary test data |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Jest test expectations |
-| gladiaflow/src/lib/dictationStats.ts | 11 | LocalStorage key constant |
-
----
-
-### ENDPOINT_LEAK (24)
-| File | Line | Endpoint/Pattern |
-|------|------|------------------|
-| compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` rewrites |
-| compare-stt/src/app/layout.tsx | 87 | `https://www.gladia.io` |
-| compare-stt/src/app/terms/page.tsx | 45, 72, 107 | `gladia.io`, `www.gladia.io/legal/terms-of-use` |
-| compare-stt/src/app/methodology/page.tsx | 80, 490, 513 | GitHub repo, `gladia.io`, GitHub issues |
-| compare-stt/src/app/about/page.tsx | 68, 156, 172 | GitHub normalization, `gladia.io`, `mailto:privacy@gladia.io` |
-| compare-stt/src/components/hero-provider-logos.tsx | 7 | `mailto:privacy@gladia.io` |
-| compare-stt/src/components/arena-page.tsx | 270, 341, 427 | GitHub normalization repo (×3) |
-| compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | `https://gladia.io` |
-| compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN` default, `CITATION_DOMAIN` |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` |
-| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` |
-| gladiaflow/src-tauri/tauri.dev.conf.json | 3 | `identifier: "io.gladia.gladiaflow.dev"` |
-| gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` |
-
----
-
-### INTERESTING (4)
-| File | Line | Note |
-|------|------|------|
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | References GTM stack shared with marketing site |
-| compare-stt/src/lib/tracking.ts | 2 | "Tracking IDs — keep in sync with gladia-marketing" |
-| vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked to local `packages/gladia` (unofficial Vercel AI SDK adapter?) |
-| vercel-ai/tsconfig.json | 70 | Path mapping to `packages/gladia` |
-
----
-
-## Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** | Masked placeholder, not a real key |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** | Appears to be local package link for Vercel AI SDK integration; no secret material |
-| All endpoint URLs | ENDPOINT_LEAK | **no** | Public API/marketing/docs URLs — expected in SDK/example code |
-| All test/provider/seed code | TEST_OR_EXAMPLE | **no** | Standard test fixtures and examples |
-| `support@gladia.io` in Cargo.toml | ENDPOINT_LEAK | **no** | Public support email |
-
----
-
-## Summary
-
-**No reportable findings this cycle.**  
-- **0 REAL_SECRET** — no live credentials, API keys, or tokens found  
-- **0 new hits** vs previous scan (delta = 0)  
-- All hits are expected code patterns: test fixtures, public endpoint references, configuration, and masked placeholders  
-- The `gladia@0.1.3` npm impersonation anomaly (tracked separately in RAG) is **not** present in these repo scans — it exists only on the npm registry
+**Summary**: 0 new reportable findings. The 14 delta hits are all benign code patterns, public URLs, or previously documented npm metadata. The `gladia@0.1.3` impersonator package remains the sole supply-chain anomaly (already triaged and report-ready).
