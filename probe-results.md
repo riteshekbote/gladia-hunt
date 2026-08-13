@@ -621,3 +621,10 @@ https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=
 
 ## 2026-08-13 16:30:32 UTC
 
+
+## 2026-08-13 17:22:25 UTC
+https://github.com/alexisbouchez/gladia.ts.git` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://gladia.io/bug-bounty-report` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
