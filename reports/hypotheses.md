@@ -2762,3 +2762,13 @@
 - LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection confirmed byte-fresh — form action reflects URL-encoded value; CSP has 0 form-action directives; O
 - LEARN: No class newly proven dead or alive this cycle — probe set (17:1x UTC) byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks/1 server, /health
+
+## RANKED HYPOTHESES 2026-08-13 19:32:45 UTC
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: Post-auth open redirect via reflected redirect_to on app.gladia.io /signin (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on app.gladia.io/signin?redirect_to=https://evil.example.com using a controlled test Google account; capture the immediate post-auth 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google-
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: E
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — local `npm pack` reproduces sha256 `3b23ec7d…7f2`, src/client.ts:306-308 key-in-URL con
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection confirmed byte-fresh (200/27448B, action reflects URL-encoded value); CSP has 0 form-a
+- LEARN: No class newly proven dead or alive this cycle — probe set byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/mo
