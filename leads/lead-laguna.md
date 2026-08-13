@@ -5692,3 +5692,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 64 — /signin redirect_to form-action reflection (0 CSP form-action directives) at unauth layer; /dashboard SPA 200 without auth (client-side enforcement); OAuth PKCE fixed redirect_uri mitigates code/state theft; oauth2 state cookie Secure flag missing (HSTS mitigates→informational); post-auth redirect_to honoring sole unverified gate (HUMAN_ONLY).
 [RISK] sdk: 87 — Official SDKs (@gladiaio/sdk@1.1.0, gladiaio-sdk@1.0.5) clean/generated from public spec; npm `gladia@0.1.3` at dist-tag `latest` impersonates official SDK with raw API key leaked in wss:// URL query (sha256 `3b23ec7d…7f2`, orphaned repo+user 404, irrevocable namespace takeover risk, supply-chain key harvesting, P3/High).
 ## 2026-08-13 15:13:57 UTC [app] (model laguna)
+## 2026-08-13 16:14:27 UTC [app] (model laguna)
