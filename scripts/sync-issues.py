@@ -381,6 +381,8 @@ def main():
     for iss in existing:
         if iss.state != "open":
             continue
+        if "verified" in {l.name for l in iss.labels}:
+            continue
         low = (iss.title + " " + (iss.body or "")).lower()
         if any(a.lower()[:30] in low for a in rejected):
             try:
@@ -393,7 +395,8 @@ def main():
     dup_closed = 0
     for fp, isslist in by_fp.items():
         if len(isslist) > 1:
-            keep = min(isslist, key=lambda i: i.number)
+            verified_ones = [i for i in isslist if "verified" in {l.name for l in i.labels}]
+            keep = verified_ones[0] if verified_ones else min(isslist, key=lambda i: i.number)
             for dup in isslist:
                 if dup != keep and dup.state == "open":
                     try:
@@ -412,7 +415,8 @@ def main():
         groups.setdefault(key, []).append(i)
     for key, isslist in groups.items():
         if len(isslist) > 1:
-            keep = min(isslist, key=lambda i: i.number)
+            verified_ones = [i for i in isslist if "verified" in {l.name for l in i.labels}]
+            keep = verified_ones[0] if verified_ones else min(isslist, key=lambda i: i.number)
             for dup in isslist:
                 if dup != keep:
                     try:
