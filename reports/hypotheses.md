@@ -2562,3 +2562,13 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified — dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2` reproduced via local `npm pack
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh — 0 form-action CSP directives (grep-count=0); OAuth redirect_uri FIXED + P
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook d
+
+## RANKED HYPOTHESES 2026-08-13 01:56:33 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on app.gladia.io with `redirect_to=https://evil.example.com` set, then capture the post-auth 302 Location + Set-Cookie headers to ver
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed at 01:44 UTC (2026-08-13) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-
+- LEARN: CONFIRMED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh at 01:44 UTC — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, repo alexisbouchez/g
+- LEARN: CONFIRMED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh at 01:44 UTC — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: /api/v1/* paths (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) all return 200 SPA shell (no real authent
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage confirmed this cycle.
