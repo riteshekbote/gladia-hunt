@@ -3149,3 +3149,11 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection stays byte-fresh (200/27448B, 0 CSP form-action directives, form action reflects URL-encoded value
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified again — signin sha256 differs from prior only by per-request nonce/state-uuid whi
 - LEARN: No class newly proven dead or alive this cycle — NO_DELTA across 90+ cycles; all existing ACCEPTED findings remain alive, all REJECTED classes remain dead. Furt
+
+## RANKED HYPOTHESES 2026-08-14 20:46:41 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via `https://gladia.io/bug-bounty-report` (→ 301→www.gladia.io→302→Google Forms, Google-SS
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google 
+- LEARN: No class newly proven dead or alive this cycle — NO_DELTA across 90+ cycles; all existing ACCEPTED findings remain alive, all REJECTED classes remain dead. Furt

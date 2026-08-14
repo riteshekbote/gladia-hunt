@@ -537,3 +537,10 @@
 ## 2026-08-14 19:35:21 UTC
 
 ## 2026-08-14 20:13:52 UTC
+
+## 2026-08-14 20:46:41 UTC
+- CHANGED 2026-08-14 20:13:52 UTC inventory timestamp registered; all prior knowledge + leads carried forward.
+- CHANGED npm `gladia@0.1.3` confirmation block now references two local `npm pack` reproductions (18:17 + 20:08 UTC) of sha256 `3b23ec7d…7f2` — strengthens reproducibility claim.
+- CHANGED `/auth/google/callback` confirmed as full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — was earlier 200 S
+- CHANGED oauth2 state cookie now observed as `oauth2:<uuid>` (per-request fresh UUID naming) with `HttpOnly; SameSite=Lax` but missing `Secure` flag (HSTS preload mitigates→informational).
+- NEW `/api/v1/*` SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html (no real authenticated API at unauth layer) — client-side enfor
