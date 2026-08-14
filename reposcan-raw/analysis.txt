@@ -1,22 +1,49 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+## Classification Tables
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot component) |
-| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` — `https://api.gladia.io/v2` (public API base, already in OpenAPI spec) |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` + `tsconfig.json` — local `packages/gladia` workspace reference (internal monorepo package, not the npm impersonator `gladia@0.1.3`) |
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *none* | — | — | No hardcoded credentials with signs of life found |
 
-## Verdict
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Test provider slugs array including "gladia" |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider in comparison tool |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config for Gladia in comparison tool |
+| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2,25,148 | Gladia provider import/usage in comparison tool |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked placeholder `apiKey: "sk-********"` in screenshot component |
 
-| Candidate | Reportable? | Reason |
-|-----------|-------------|--------|
-| Masked `sk-********` in screenshot | **NO** | Obvious placeholder/test fixture |
-| Public API base URL `api.gladia.io/v2` | **NO** | Already documented in OpenAPI spec |
-| Local workspace package reference | **NO** | Internal monorepo structure, not a secret or leak |
-| All mailto/github/website links | **NO** | Public references |
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44,51 | `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite, not internal |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base (documented in OpenAPI) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header usage | Public auth header per spec |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/` | Public dashboard link |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard link |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/` | Public docs link |
 
-**REPORT_CANDIDATE: no** — Zero new reportable findings in this delta. The only known supply-chain anomaly remains the pre-existing `gladia@0.1.3` orphaned impersonation package (already ACCEPTED, evidence package locked, portal submission pending).
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291 | `@ai-sdk/gladia` linked as local package `../../packages/gladia` |
+| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | Path mapping to `packages/gladia` (internal provider package) |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8-9 | Vocabulary term "gladiaflow" with pronunciations |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Tests for vocabulary validation |
+
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE | Rationale |
+|-----------|----------|------------------|-----------|
+| `gladia@0.1.3` npm package (personal repo, "Official" vs "Unofficial" contradiction, key-in-wss-URL) | SUPPLY_CHAIN | **yes** | Already ACCEPTED in KB (orphaned impersonation, sha256 `3b23ec7d…7f2`, GitHub 404, report-ready) |
+| Hardcoded secrets in scanned repos | SECRET | **no** | No live credentials found; only masked placeholder in screenshot |
+| Internal endpoint leaks | ENDPOINT_LEAK | **no** | All endpoints are public (api.gladia.io, app.gladia.io, www.gladia.io, docs.gladia.io) |
+| Vercel AI SDK Gladia provider (`@ai-sdk/gladia` in vercel-ai) | SUPPLY_CHAIN | **no** | Official integration in Gladia's own vercel-ai repo; not a third-party confusion |
+
+**Summary**: No new reportable findings from this scan delta. The only live supply-chain issue remains the previously accepted `gladia@0.1.3` orphaned impersonation package (already evidence-locked and report-ready via https://gladia.io/bug-bounty-report). All scanned repos are official Gladia org repositories with expected references to their own public services.
