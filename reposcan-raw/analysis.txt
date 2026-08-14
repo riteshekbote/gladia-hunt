@@ -1,34 +1,40 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+## Classification Tables
 
-| Category | File:Line | Evidence |
-|----------|-----------|----------|
-| **ENDPOINT_LEAK** | gladia-quiz-app/app/layout.tsx:43 | `src="https://unpkg.com/@gladiaio/sdk@0.5.2"` — public CDN reference to old SDK version |
-| **ENDPOINT_LEAK** | gladia-quiz-app/app/layout.tsx:7 | `metadataBase: new URL('https://gladia-halloween-quiz.vercel.app')` — public Vercel demo deployment |
-| **ENDPOINT_LEAK** | gladia-quiz-app/components/GladiaApiKeyInput.tsx:94 | `href="https://app.gladia.io"` — link to official dashboard (known public) |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/GladiaApiKeyInput.tsx:9 | Import of `GLADIA_API_KEY_STORAGE` constant |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/HalloweenQuiz.tsx:47 | `useState<string \| null>(null)` — API key state init, no hardcoded value |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/components/HalloweenQuiz.tsx:56 | `localStorage.getItem('gladia_api_key')` — reads user-provided key |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:5 | Import of `createGladiaClient`, `getStoredApiKey` |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:70 | `createGladiaClient(apiKey)` — variable usage |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/hooks/useGladiaTranscription.ts:74 | `gladia.liveV2().startSession({` — SDK usage pattern |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/lib/gladia-client.ts:1 | `export const GLADIA_API_KEY_STORAGE = 'gladia_api_key'` — localStorage key name constant |
-| **INTERESTING** | npm/_gladiaio_sdk.json:1 | Official `@gladiaio/sdk` registry metadata — latest `1.1.0` confirmed |
-| **INTERESTING** | npm/gladia.json:1 | Unofficial `gladia@0.1.3` registry metadata — impersonator package still at latest |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/package-lock.json:11 | `"@gladiaio/sdk": "^0.6.0"` — lockfile dependency range |
-| **TEST_OR_EXAMPLE** | gladia-quiz-app/package.json:24 | `"@gladiaio/sdk": "^0.6.0"` — package.json dependency range |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder |
+| reposcan-raw/gladiaio/gladia-quiz-app/package.json | 24 | `@gladiaio/sdk: ^0.6.0` — dependency |
+| reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | 5,70,74 | SDK usage example |
+| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | Tauri app metadata |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | Provider implementation using public API |
 
-### Verdict List
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` — **public** API base (not internal) |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | Redirects to `www.gladia.io` — public marketing |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| Unpkg CDN reference (@gladiaio/sdk@0.5.2) | **no** | Public CDN URL, outdated version reference only |
-| Vercel demo deployment URL | **no** | Public-facing demo app, not internal |
-| app.gladia.io dashboard link | **no** | Known public endpoint, in scope but not a leak |
-| All code patterns (imports, state, localStorage, SDK usage) | **no** | Standard application code, no hardcoded secrets |
-| Official @gladiaio/sdk@1.1.0 metadata | **no** | Confirms official package current version (tracking only) |
-| Unofficial gladia@0.1.3 metadata | **no** | **Known duplicate** — already ACCEPTED 2026-08-07 as orphaned impersonator (personal repo, GitHub 404, key-in-WSS-URL). No new signal. |
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/npm/gladia.json | 1 | **Known impersonator**: `gladia@0.1.3` — personal repo, "Official" in package.json vs "Unofficial" in README, key-in-WSS-URL |
+| reposcan-raw/gladiaio/gladia-quiz-app/components/GladiaApiKeyInput.tsx | 94 | Links to `https://app.gladia.io` (legit) |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` — legit Tauri bundle ID |
 
-**Summary**: 0 new reportable findings. The 14 delta hits are all benign code patterns, public URLs, or previously documented npm metadata. The `gladia@0.1.3` impersonator package remains the sole supply-chain anomaly (already triaged and report-ready).
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `gladia@0.1.3` npm impersonation | INTERESTING | **no** (already ACCEPTED 2026-08-07, evidence package locked, portal submission pending) |
+| `sk-********` in gladiaflow screenshot | TEST_OR_EXAMPLE | no (masked placeholder) |
+| Public API references (`api.gladia.io/v2`, `app.gladia.io`) | ENDPOINT_LEAK | no (public endpoints, not internal) |
+| SDK usage in gladiaio org repos | TEST_OR_EXAMPLE | no (legitimate usage examples) |
+| Tauri bundle identifiers | INTERESTING | no (legitimate app identifiers) |
+
+**Summary**: DELTA = 0 new hits. All findings are either previously accepted (npm impersonator) or benign test/example/public references. No new reportable candidates.
