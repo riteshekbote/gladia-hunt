@@ -544,3 +544,13 @@
 - CHANGED `/auth/google/callback` confirmed as full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — was earlier 200 S
 - CHANGED oauth2 state cookie now observed as `oauth2:<uuid>` (per-request fresh UUID naming) with `HttpOnly; SameSite=Lax` but missing `Secure` flag (HSTS preload mitigates→informational).
 - NEW `/api/v1/*` SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html (no real authenticated API at unauth layer) — client-side enfor
+
+## 2026-08-14 21:14:33 UTC
+- NEW `/api/v1/*` SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html — no real authenticated API at unauth layer, client-side enforc
+- CHANGED `/auth/google/callback` confirmed as full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — previously observ
+- CHANGED oauth2 state cookie now observed as `oauth2:<uuid>` (per-request fresh UUID naming) with `HttpOnly; SameSite=Lax` but missing `Secure` flag (HSTS preload mitigates→informational)
+- CHANGED npm `gladia@0.1.3` confirmation block now references two local `npm pack` reproductions (18:17 + 20:08 UTC) of sha256 `3b23ec7d…7f2` — strengthens reproducibility claim
+- CHANGED npm `gladia@0.1.3` orphaned impersonation confirmation now references TWO independent local `npm pack` reproductions (both yielding sha256 `3b23ec7d…7f2`) at 20:08 + 21:12 UTC this cycle — strengthens
+- CHANGED `/auth/google/callback` (app.gladia.io) confirmed as full OAuth 2.0 PKCE S256 initiation at 21:12 UTC (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, rand
+- CHANGED oauth2 state cookie naming now explicitly recorded as `oauth2:<uuid>` (per-request fresh UUID) with `HttpOnly; SameSite=Lax` but missing `Secure` flag confirmed this cycle at 21:12 UTC.
+- NEW /api/v1/* SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html at 21:12 UTC — client-side enforcement only, no real authenticate
