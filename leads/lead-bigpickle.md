@@ -5927,3 +5927,24 @@ evidence_needed: post-auth 302 Location to external host after successful signin
 verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
 impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
 testability: HUMAN_ONLY
+## 2026-08-14 06:44:16 UTC [api] (model bigpickle)
+impact: consumers' API keys exposed to access logs/analytics on every wss connect; irrevocable supply-chain takeover once orphaned repo claimed. Severity: Medium/High.
+testability: PASSIVE
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: frozen 125131B spec confirms audio_url/video_url plain string + CallbackConfig.url `format:uri`, no scheme allowlist; /v1/models 530B public confirms FR/US egress; 7 webhook topics POST to client-supplied URLs; no-key POST → 401/144 NestJS, key sole gate (re-confirmed).
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + each of 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh (200/27448B, action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`); CSP 0 form-action directives; OAuth hardened (PKCE S256, FIXED redirect_uri → that subclass REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
