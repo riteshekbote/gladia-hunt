@@ -3001,3 +3001,20 @@
 - [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
 - NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google 
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: no new class proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 200/125131B/14 paths
+
+## RANKED HYPOTHESES 2026-08-14 13:44:47 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via the confirmed Gladia bug-bounty portal — https://gladia.io/bug-bounty-report (301→www.gl
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook d
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+- LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
+- LEARN: No new class proven dead or alive this cycle (NO_DELTA across 90+ cycles); all existing ACCEPTED findings remain alive, all REJECTED classes remain dead.
+- LEARN: REJECTED MISCONFIG @ reposcan: 13:15 UTC run byte-identical to 12:15 UTC — 0 new hit lines (617/5647), verdict REPORT_CANDIDATE no, `sk-********` masked placeho
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: no new class proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 200/125131B/14 paths
