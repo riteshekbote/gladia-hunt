@@ -1,70 +1,28 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [limit=30, offset=280][0m
-[0m✱ [0mGlob "reposcan-raw/gladiaio/vercel-ai/packages/gladia/**/*"[90m 24 matches[0m
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-provider.ts
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-config.ts
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-initiate.json
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-upload.json
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-result.json
-Based on my analysis of all 617 hits across 5647 files (0 new hits since last scan), here are the classifications:
+### Classification of 14 Delta Hits
+
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | gladia-quiz-app (demo app): layout.tsx:43 (unpkg SDK ref), layout.tsx:7 (Vercel demo URL), HalloweenQuiz.tsx:47/56 (API key state + localStorage), GladiaApiKeyInput.tsx:9/94 (storage key import + dashboard link), useGladiaTranscription.ts:5/70/74 (client creation + live session), gladia-client.ts:1 (storage key const), package.json:24 / package-lock.json:11 (SDK ^0.6.0 dep) |
+| **ENDPOINT_LEAK** | *(none new — all refs to known public `api.gladia.io`, `app.gladia.io`, `www.gladia.io`)* |
+| **INTERESTING** | `npm/gladia.json:1` — registry metadata for unofficial `gladia@0.1.3` (personal repo `alexisbouchez/gladia.ts`, maintainer `softwarecitadel@gmail.com`, description "Official" vs README "Unofficial") — **already ACCEPTED in KB** as orphaned impersonation |
+
+### Broader Grep Context (notable non-delta)
+- `gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********"` — **placeholder/masked** (not a live secret)
+- Multiple `https://app.gladia.io/apikeys`, `/transcriptions/live/...` — known public routes
+- `compare-stt/src/lib/providers/gladia.ts:36/49` — uses `x-gladia-key` header correctly per spec
 
 ---
 
-### **REAL_SECRET** — *none found*
-No hardcoded credentials, API keys, or tokens with signs of life. All key-like values are masked placeholders (`sk-********`, `sk-example`) or read from environment variables.
-
----
-
-### **TEST_OR_EXAMPLE** — *sample/test/fixture data (not reportable)*
-
-| File | Line | Context |
-|------|------|---------|
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — masked placeholder for screenshot mock data |
-| `gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` — example value for screenshot |
-| `gladiaflow/src/screenshots/main.tsx` | 3 | Import of `gladia-tokens.css` — styling only |
-| `compare-stt/test-providers.ts` | 8 | `SLUGS = ["gladia", "deepgram", ...]` — comparison test slugs |
-| `compare-stt/src/lib/providers/gladia.ts` | 20 | `const apiKey = process.env.GLADIA_API_KEY` — proper env var usage |
-| `vercel-ai/packages/gladia/src/__fixtures__/gladia-initiate.json` | 1-4 | Mock UUID + result_url fixture |
-| `vercel-ai/packages/gladia/src/__fixtures__/gladia-upload.json` | 1-11 | Mock audio_url + metadata fixture |
-| `vercel-ai/packages/gladia/src/__fixtures__/gladia-result.json` | 1-520 | Mock transcription result fixture |
-
----
-
-### **ENDPOINT_LEAK** — *internal/dev/staging URLs, API endpoints (all production, not leaks)*
-
-| File | Line | Context |
-|------|------|---------|
-| `compare-stt/next.config.ts` | 38, 44 | Rewrite destinations to `www.gladia.io` (marketing site) |
-| `compare-stt/next.config.ts` | 51 | Comment: PostHog reverse proxy for marketing |
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` — **production** API base |
-| `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | `x-gladia-key` header usage — normal SDK pattern |
-| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` — **production** app URL |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` — **production** app URL |
-| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/...` — **production** docs URL |
-| `vercel-ai/packages/gladia/src/gladia-provider.ts` | 70 | `url: ({ path }) => \`https://api.gladia.io${path}\`` — **production** API |
-
----
-
-### **INTERESTING** — *unusual/notable items*
-
-| File | Line | Context |
-|------|------|---------|
-| `vercel-ai/pnpm-lock.yaml` | 289-291 | `@ai-sdk/gladia` as workspace package (`link:../../packages/gladia`) — official Vercel AI SDK provider for Gladia (legitimate) |
-| `npm: gladia@0.1.3` | (registry) | Claims "Official TypeScript SDK" but repo = `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com` — **orphaned impersonation** (previously ACCEPTED OTHER in knowledge base, report-ready) |
-| `compare-stt/` (entire repo) | — | Gladia-owned STT comparison site referencing Gladia APIs — legitimate marketing/comparison tool |
-| `gladiaflow/` (entire repo) | — | Tauri desktop app for Gladia dictation — legitimate product |
-
----
-
-### **VERDICT**
+### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm package (orphaned impersonation) | **yes** | Pre-existing finding (ACCEPTED OTHER 2026-08-07+), evidence locked: sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, GitHub user+repo 404, embeds raw API key in WSS URL query, contradicts README "Unofficial" vs package.json "Official" |
-| All other hits | **no** | Test fixtures, production endpoints, legitimate references, or marketing links — no new secrets, no new surface |
+| Unofficial `gladia@0.1.3` npm package | **no** | Already ACCEPTED in KB (orphaned impersonation, evidence locked, report-ready via bug-bounty portal) |
+| Demo app `gladia-quiz-app` SDK usage | **no** | Example code showing proper client-side key handling (localStorage, no hardcoded secrets) |
+| Any hardcoded credential | **no** | None found in delta or broader scan |
 
-**Delta since last scan: 0 new hit lines** — surface fully frozen, no new findings.
+**No new reportable findings this cycle.** The supply-chain surface is static; the only anomaly (`gladia@0.1.3`) is already triaged and submission-pending.
