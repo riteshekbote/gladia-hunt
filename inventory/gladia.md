@@ -556,3 +556,5 @@
 - NEW /api/v1/* SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html at 21:12 UTC — client-side enforcement only, no real authenticate
 
 ## 2026-08-14 21:44:55 UTC
+
+## 2026-08-14 22:03:16 UTC

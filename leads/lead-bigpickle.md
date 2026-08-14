@@ -6543,3 +6543,41 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 90+ drift-negative cycles.
 [RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri (PKCE S256), tamper-reset return-to cookie, HSTS preload.
 [RISK] sdk: 55 — orphaned `gladia@0.1.3` at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
+## 2026-08-14 22:02:01 UTC [api] (model bigpickle)
+[PRIO] npm registry `gladia@0.1.3` (dist-tag latest): priority 6.3 — attack 6, business 7, tech 5, gate 10, cloud 4, fresh 4 (orphaned impersonator, raw key in wss URL, report-ready, surface static)
+[PRIO] api.gladia.io POST /v2/pre-recorded (audio_url/video_url/callback_config.url): priority 6.2 — attack 7, business 8, tech 6, gate 3, cloud 7, fresh 4 (SSRF-by-design, FR/US egress, key sole gate)
+[PRIO] app.gladia.io /signin (redirect_to form-action reflection): priority 5.2 — attack 5, business 6, tech 6, gate 7, cloud 2, fresh 3 (unauth reflection + CSP gap, post-auth honoring HUMAN_ONLY)
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+confidence: 96
+reasoning: tarball sha256 `3b23ec7d…7f2` reproduced via local `npm pack` (two independent runs 20:08 + 21:12 UTC); src/client.ts:306-308 `searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`; package.json "Official" vs README "Unofficial"; GitHub user+repo `alexisbouchez` both 404 (orphaned/irrevocable); dist-tag latest persists 90+ cycles.
+evidence_needed: none — evidence package locked, PASSIVE complete.
+verify_steps: PASSIVE — complete; HUMAN submission pending via gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated).
+impact: consumers' API keys exposed to access logs/analytics on every wss connect; irrevocable supply-chain takeover once orphaned repo claimed. Severity: Medium/High.
+testability: PASSIVE
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: frozen spec — audio_url/video_url plain string + CallbackConfig.url `format:uri`, no scheme allowlist; 7 webhook topics POST to client-supplied URLs; /v1/models public confirms FR/US egress; no-key POST → 401/144 NestJS, key sole gate (no bypass in 90+ cycles).
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + 7 webhook topics; ≥2× FR/US; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+[HYP] redirect_to honored post-auth to external host (open redirect)
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: reflection byte-fresh (200/27448B, action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 0 form-action CSP directives); OAuth hardened (PKCE S256, FIXED redirect_uri → that subclass REJECTED); return-to cookie tamper-reset REJECTED — only post-auth honoring unverified.
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set.
+verify_steps: HUMAN_ONLY — complete signin with `?redirect_to=https://evil.example.com` + `//evil` + `app.gladia.io.evil` variants; capture Location + Set-Cookie.
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium.
+testability: HUMAN_ONLY
+[PARKED] (none)
+[FINAL] 1. npm `gladia@0.1.3` impersonation (96, PASSIVE/report-ready) — 2. SSRF /v2/pre-recorded (73, AUTH_HELPED) — 3. app.gladia.io post-auth redirect_to (50, HUMAN_ONLY).
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed channel (gladia.io/bug-bounty-report → 301→www→302→Google Forms, Google SSO auth-gated). Include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, src/client.ts:306-308 key-in-wss-URL (`searchParams.append('x-gladia-key', apiKey)` → `new WebSocket`), GitHub user+repo `alexisbouchez` 404 (irrevocable), README↔package.json "Unofficial/Official" contradiction, dist-tag latest=0.1.3, dual-reproduction note (20:08 + 21:12 UTC `npm pack`). In the same submission request an authorized x-gladia-key + self-owned SSRF canary (audio_url/video_url/callback_config.url, ≥2× FR/US) to unblock the top POC (73), and a test Google account to close the post-auth redirect_to gate (50). No further PROBE — surface byte-identical across 90+ cycles (re-verified fresh 21:43 UTC this cycle).
+[LEARN] No class newly proven dead or alive this cycle — NO_DELTA across 90+ cycles; all existing ACCEPTED findings remain alive, all REJECTED classes remain dead. Further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+[RISK] api.gladia.io: 48 — full public OpenAPI (v2 surface + 7 webhook delivery paths), SSRF-by-design fetch fields with no scheme allowlist and FR/US egress, but key-gated (401 NestJS) with no bypass found after 90+ drift-negative cycles.
+[RISK] app.gladia.io: 42 — unauth form-action redirect_to reflection + absent form-action CSP directive + client-side-only SPA enforcement; mitigated by fixed OAuth redirect_uri (PKCE S256), tamper-reset return-to cookie, HSTS preload.
+[RISK] sdk: 55 — orphaned `gladia@0.1.3` at dist-tag latest leaks raw keys into wss:// URL query and is irrevocably takable; official `@gladiaio/sdk`/`gladiaio-sdk` verified clean, so exposure concentrates in the impersonator's consumers.
