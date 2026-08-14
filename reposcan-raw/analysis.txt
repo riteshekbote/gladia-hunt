@@ -1,57 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
-# Triaging Results: gladiaio/ org static scan (2026-08-14)
+**Triage Summary: NO NEW CANDIDATES**
 
-## Category: REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none found)* | - | - | No hardcoded live credentials detected in this scan |
+**Delta:** 0 new hit lines vs previous scan — surface frozen.
 
-## Category: TEST_OR_EXAMPLE
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in screenshot/component demo |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36, 49 | `"x-gladia-key": apiKey` | Variable reference, not hardcoded secret |
+---
 
-## Category: ENDPOINT_LEAK
-| File | Line | Endpoint | Verdict |
-|------|------|----------|---------|
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (known, in scope) |
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing rewrite destination (public) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public dashboard URL pattern (known) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL (known) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public docs URL (known) |
+### Classification of Full Grep Hits (Context Only)
 
-## Category: INTERESTING
-| File | Line | Finding | Verdict |
-|------|------|---------|---------|
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291 | `@ai-sdk/gladia` linked to local `packages/gladia` | Vercel AI SDK integration (monorepo reference) |
-| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | `"path": "packages/gladia"` | Same monorepo structure |
-| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | `"name": "gladiaflow"` | Tauri desktop app (Rust/React) |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2, 5 | `name = "gladiaflow"`, `authors = ["Gladia <support@gladia.io>"]` | Official desktop client |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | `"identifier": "io.gladia.gladiaflow"` | Bundle ID for app store |
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **TEST_OR_EXAMPLE** | `compare-stt/test-providers.ts:8`, `prisma/seed.ts:10`, `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********` masked), vocabulary test fixtures | Benign — sample/test data |
+| **ENDPOINT_LEAK** (public) | `compare-stt/next.config.ts` rewrites to `gladia.io`, `compare-stt/src/lib/providers/gladia.ts` → `https://api.gladia.io/v2` + `x-gladia-key` header, various marketing links to `gladia.io`/`github.com/gladiaio` | Known public endpoints — already in scope baseline |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` references `@ai-sdk/gladia` workspace package | Known monorepo structure — no secret |
+| **REAL_SECRET** | **None** | — |
 
-## VERDICT LIST
+---
 
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| Hardcoded API keys | REAL_SECRET | **no** | None found; only masked placeholder `sk-********` in screenshot component |
-| Public API endpoints | ENDPOINT_LEAK | **no** | All endpoints are public/production (api.gladia.io, app.gladia.io, docs.gladia.io) — already in baseline |
-| `gladia` npm package (0.1.3) impersonation | INTERESTING | **yes** (KNOWN) | Previously ACCEPTED: orphaned package from `alexisbouchez/gladia.ts` (personal, 404), description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query — evidence package locked, report-ready |
-| `@gladiaio/sdk` official package | INTERESTING | **no** | Confirmed official from gladiaio/sdk monorepo, version 1.1.0 static |
-| Vercel AI SDK integration (`@ai-sdk/gladia`) | INTERESTING | **no** | Local monorepo package reference, not published separately |
-| Tauri desktop app (`gladiaflow`) | INTERESTING | **no** | Official Gladia desktop client, public repo |
+### Verdict List
 
-## SUMMARY
-- **0 new REAL_SECRET findings** this scan (delta: 0 new hit lines)
-- **1 pre-existing CRITICAL supply-chain issue**: `gladia@0.1.3` orphaned impersonation (report-ready, portal submission pending via https://gladia.io/bug-bounty-report → Google Forms)
-- **All API endpoints referenced are public production surfaces** already documented in baseline
-- **No new surface drift** detected — api.gladia.io frozen at 125131B/14 paths/7 webhooks across 90+ NO_DRIFT cycles
-- **Passive recon exhausted** — further probing adds no signal without authorized API key (for SSRF POC) or human OAuth test (post-auth redirect_to honoring)
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| New hardcoded secrets | **no** (0 hits) |
+| New endpoint leaks | **no** (all public/known) |
+| New npm supply-chain anomalies | **no** (`gladia@0.1.3` orphaned impersonation already ACCEPTED 2026-08-07) |
+| New SDK/repo issues | **no** |
 
-EOF
-cat /tmp/triage_results.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Conclusion:** Passive recon exhausted. No new signal across 90+ frozen cycles. The only reportable item remains the pre-existing `gladia@0.1.3` orphaned impersonation (evidence package locked, portal submission pending via `gladia.io/bug-bounty-report`).
