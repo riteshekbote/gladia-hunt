@@ -3,32 +3,20 @@
 [0m
 ## Classification Table
 
-| File:Line | Hit | Category | Notes |
-|-----------|-----|----------|-------|
-| reposcan-raw/npm/gladia.json:1 | `gladia@0.1.3` package metadata | **INTERESTING** | Orphaned impersonator package (personal repo `alexisbouchez/gladia.ts`, GitHub 404, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in wss:// URL query) — **already ACCEPTED in KB** |
-| reposcan-raw/npm/_gladiaio_sdk.json:1 | `@gladiaio/sdk@1.1.0` metadata | **TEST_OR_EXAMPLE** | Official SDK, no anomaly |
-| gladiaio/gladia-quiz-app/package*.json | `@gladiaio/sdk@^0.6.0` | **TEST_OR_EXAMPLE** | Outdated version reference in demo app |
-| gladiaio/gladia-quiz-app/lib/gladia-client.ts:1 | `GLADIA_API_KEY_STORAGE` | **TEST_OR_EXAMPLE** | localStorage key name for demo |
-| gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts | SDK usage | **TEST_OR_EXAMPLE** | Demo transcription hook |
-| gladiaio/gladia-quiz-app/components/*.tsx | API key input, stored key | **TEST_OR_EXAMPLE** | Demo UI components |
-| gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17 | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** | Masked example key in screenshot |
-| gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | Test fixtures | **TEST_OR_EXAMPLE** | Unit test data |
-| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19 | `app.gladia.io/transcriptions/live/` | **ENDPOINT_LEAK** | Public app URL pattern (known) |
-| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 | `app.gladia.io/apikeys` | **ENDPOINT_LEAK** | Public app URL (known) |
-| gladiaio/gladiaflow/src-tauri/*.json | Tauri app identifiers | **INTERESTING** | Desktop app config (`io.gladia.gladiaflow`), no secrets |
-| gladiaio/compare-stt/src/lib/providers/gladia.ts:3 | `https://api.gladia.io/v2` | **ENDPOINT_LEAK** | Public API base (known) |
-| gladiaio/compare-stt/src/lib/providers/gladia.ts:36,49 | `x-gladia-key` header | **ENDPOINT_LEAK** | Known auth header (public spec) |
-| gladiaio/compare-stt/next.config.ts:38,44 | `www.gladia.io/compare-stt-apis` | **ENDPOINT_LEAK** | Public marketing redirect (known) |
-| gladiaio/compare-stt/test-providers.ts:8 | Provider slugs array | **TEST_OR_EXAMPLE** | Comparison test fixtures |
-| gladiaio/compare-stt/src/lib/providers.ts:10 | Provider config | **TEST_OR_EXAMPLE** | Comparison metadata |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot component) |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` — `https://api.gladia.io/v2` (public API base, already in OpenAPI spec) |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` + `tsconfig.json` — local `packages/gladia` workspace reference (internal monorepo package, not the npm impersonator `gladia@0.1.3`) |
 
 ## Verdict
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonator | **no** | Already ACCEPTED in KB (2026-08-07 through 2026-08-14); evidence package locked; portal submission pending via `gladia.io/bug-bounty-report` |
-| Hardcoded secrets | **no** | None found — only masked example `sk-********` |
-| New endpoint leaks | **no** | All URLs are public/known surfaces (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`) |
-| SDK version drift | **no** | `@gladiaio/sdk@^0.6.0` in quiz app is stale but not a vuln |
+| Candidate | Reportable? | Reason |
+|-----------|-------------|--------|
+| Masked `sk-********` in screenshot | **NO** | Obvious placeholder/test fixture |
+| Public API base URL `api.gladia.io/v2` | **NO** | Already documented in OpenAPI spec |
+| Local workspace package reference | **NO** | Internal monorepo structure, not a secret or leak |
+| All mailto/github/website links | **NO** | Public references |
 
-**Summary**: Zero new reportable findings. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonator) is already triaged, reproduced, and queued for disclosure. All other hits are test fixtures, demo code, or references to public endpoints.
+**REPORT_CANDIDATE: no** — Zero new reportable findings in this delta. The only known supply-chain anomaly remains the pre-existing `gladia@0.1.3` orphaned impersonation package (already ACCEPTED, evidence package locked, portal submission pending).
