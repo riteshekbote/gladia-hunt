@@ -554,3 +554,5 @@
 - CHANGED `/auth/google/callback` (app.gladia.io) confirmed as full OAuth 2.0 PKCE S256 initiation at 21:12 UTC (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, rand
 - CHANGED oauth2 state cookie naming now explicitly recorded as `oauth2:<uuid>` (per-request fresh UUID) with `HttpOnly; SameSite=Lax` but missing `Secure` flag confirmed this cycle at 21:12 UTC.
 - NEW /api/v1/* SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html at 21:12 UTC — client-side enforcement only, no real authenticate
+
+## 2026-08-14 21:44:55 UTC
