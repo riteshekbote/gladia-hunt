@@ -3700,3 +3700,8 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `webhooks` key enumerates 7 outbound topics posting to client-supplied URLs — reinforces callback-delivery SSRF surf
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP lacks form-action directive (0 occurrences grep-confirmed) — enables /signin form-action reflection (gap, not oversight)
 - LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
+
+## RANKED HYPOTHESES 2026-08-15 15:50:35 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed portal https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Go
