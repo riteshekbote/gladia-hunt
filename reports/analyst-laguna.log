@@ -49702,3 +49702,264 @@ NO_DELTA — surface frozen across 90+ cycles; no class newly proven dead or ali
 [RISK] api.gladia.io: 55 — SSRF-by-design fetch surface (audio_url/video_url/callback/webhooks, no scheme allowlist) persists but key-gated with no bypass in 90+ cycles; preflight-only x-powered-by: Express fingerprint + CORS `*` confirmed byte-fresh; /openapi.json publicly exposed (125131B, 14 paths, 7 webhooks).
 [RISK] app.gladia.io: 45 — /signin redirect_to form-action reflection + CSP gap persist (0 form-action directives); OAuth redirect_uri FIXED (PKCE S256) + return-to tamper-reset close two escalation paths; oauth2 state cookie missing Secure flag (HSTS mitigates → informational).
 [RISK] sdk: 65 — `gladia@0.1.3` at dist-tag `latest` actively impersonates official SDK, orphaned namespace (irrevocable, GitHub user+repo 404), leaks raw API keys into WebSocket URLs via `searchParams.append`; `@glidiaio/sdk@1.1.0` and `gladiaio-sdk@1.0.5` verified clean.
+===== ANALYST laguna 2026-08-15 20:12:23 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+I'll examine the repository structure and recent state to confirm there's nothing new before producing my analysis.
+[0m$ [0mgit log --oneline -5 2>/dev/null; echo "---"; git diff --stat HEAD~1 2>/dev/null; echo "---"; ls -la
+f4c5775 triage 2026-08-15-20-04
+---
+---
+total 696
+drwxr-xr-x 11 runner runner   4096 Aug 15 20:10 .
+drwxr-xr-x  3 runner runner   4096 Aug 15 20:10 ..
+drwxr-xr-x  7 runner runner   4096 Aug 15 20:10 .git
+drwxr-xr-x  3 runner runner   4096 Aug 15 20:10 .github
+-rw-r--r--  1 runner runner    156 Aug 15 20:10 README.md
+-rw-r--r--  1 runner runner    155 Aug 15 20:11 analyst-out.txt
+-rw-r--r--  1 runner runner 281122 Aug 15 20:10 analyst-prompt.txt
+-rw-r--r--  1 runner runner 277981 Aug 15 20:10 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 15 20:10 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 15 20:10 knowledge
+drwxr-xr-x  2 runner runner  20480 Aug 15 20:10 leads
+-rw-r--r--  1 runner runner  46991 Aug 15 20:10 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 15 20:10 reports
+drwxr-xr-x  4 runner runner   4096 Aug 15 20:10 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 15 20:10 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 15 20:10 scripts
+-rw-r--r--  1 runner runner     33 Aug 15 20:10 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 15 20:10 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 15 20:10 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 15 20:10 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 15 20:10 state_nemotron3.json
+drwxr-xr-x  2 runner runner  12288 Aug 15 20:10 triage
+[0m
+[0m$ [0mls -lt triage/ | head -5; echo "---"; ls -lt reports/ | head -5; echo "---"; ls -lt leads/ | head -5
+total 1444
+-rw-r--r-- 1 runner runner   210 Aug 15 20:10 run-2026-08-15-18-08.md
+-rw-r--r-- 1 runner runner   210 Aug 15 20:10 run-2026-08-15-18-52.md
+-rw-r--r-- 1 runner runner   210 Aug 15 20:10 run-2026-08-15-19-19.md
+-rw-r--r-- 1 runner runner   210 Aug 15 20:10 run-2026-08-15-19-42.md
+---
+total 11132
+-rw-r--r-- 1 runner runner  583350 Aug 15 20:10 hypotheses.md
+-rw-r--r-- 1 runner runner   39458 Aug 15 20:10 valid-bugs.md
+-rw-r--r-- 1 runner runner 2009990 Aug 15 20:10 analyst-nemotron3.log
+-rw-r--r-- 1 runner runner    5128 Aug 15 20:10 hypotheses-bigpickle.txt
+---
+total 9628
+-rw-r--r-- 1 runner runner   10919 Aug 15 20:10 reposcan-2026-08-15-18-41.md
+-rw-r--r-- 1 runner runner   12713 Aug 15 20:10 reposcan-2026-08-15-19-04.md
+-rw-r--r-- 1 runner runner   12304 Aug 15 20:10 reposcan-2026-08-15-19-33.md
+-rw-r--r-- 1 runner runner   12501 Aug 15 20:10 reposcan-2026-08-15-19-35.md
+[0m
+[0m→ [0mRead triage/run-2026-08-15-19-42.md
+[0m
+[0m$ [0mls -lt inventory/ knowledge/ | head -10
+inventory/:
+total 44
+-rw-r--r-- 1 runner runner 41844 Aug 15 20:10 gladia.md
+
+knowledge/:
+total 256
+-rw-r--r-- 1 runner runner 260979 Aug 15 20:10 index.md
+[0m
+[0m$ [0mgrep -c "NEW\|CHANGED\|NO_DELTA" knowledge/index.md; echo "---tail---"; tail -100 knowledge/index.md
+8
+---tail---
+- 2026-08-14 No class newly proven dead or alive this cycle — NO_DELTA across 90+ cycles; all existing ACCEPTED findings remain alive, all REJECTED classes remain dead. Further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key.
+- 2026-08-14 ACCEPTED MISCONFIG @ app.gladia.io: /signin form-action reflection byte-fresh (body 27448B) + CSP 0 form-action directives (grep-count=0) confirmed fresh at 17:36 UTC — CSP gap persists (not oversight); OAuth redirect_uri FIXED + PKCE S256 REJECTED; return-to cookie tamper-reset REJECTED.
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-confirmed — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404, sha256 `3b23ec7d…7f2` reproduced locally, src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — PASSIVE complete, report-ready.
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: no new class proven dead or alive this cycle — fresh probes (openapi 200/125131B, /health 15B, /v1/models 530B, signin 27448B reflection, OPTIONS 204 xpb=Express+ACAO `*`) byte-identical to 90+ prior cycles; per program conclusion further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen, no new endpoints/headers; per-instance codegen fingerprint falsified (etag rotates via dynamic example timestamps, not instance identity).
+- 2026-08-14 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models confirms FR/US egress; POST 401 NestJS key-gated only — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — form action reflects URL-encoded value; CSP has 0 form-action directives (grep-count=0); OAuth redirect_uri FIXED + PKCE S256 prevents code/state theft; return-to cookie tamper-reset REJECTED — post-auth honoring sole unverified gate (HUMAN_ONLY).
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproduced locally, repo+user alexisbouchez 404, src/client.ts:306-308 raw key-in-URL; @gladiaio/sdk@1.1.0 confirmed official — PASSIVE complete, report-ready.
+- 2026-08-14 No class newly proven dead or alive this cycle — NO_DELTA; all existing ACCEPTED findings remain alive, all REJECTED classes remain dead; per program conclusion further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified at 2026-08-14 18:4x UTC — dist-tag latest=0.1.3 static, description "Official", repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproduced locally; src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — PASSIVE verified.
+- 2026-08-14 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models confirms FR+US egress; POST 401 NestJS key-gated only — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — form action reflects URL-encoded value; CSP 0 form-action directives (grep-count=0); /auth/google/callback → 302 accounts.google.com PKCE S256 FIXED redirect_uri prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY).
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed at 2026-08-14 18:4x UTC — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key — surface frozen across 90+ cycles.
+- 2026-08-14 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 20:09 UTC — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, POST /v2/pre-recorded 401/144B NestJS (request_id G-86a65006), OPTIONS x-powered-by: Express (preflight-only) — surface frozen across 90+ cycles, nothing new.
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified at 20:09 UTC — `npm pack` reproduces sha256 3b23ec7d…7f2 exactly; src/client.ts:306-308 confirmed key-in-URL; dist-tag latest=0.1.3, shasum cc96f84a…, repo+user 404 — PASSIVE verified, evidence package locked.
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection stays byte-fresh (200/27448B, 0 CSP form-action directives, form action reflects URL-encoded value) at 20:09 UTC; OAuth redirect_uri FIXED + PKCE S256 blocks code/state theft; return-to cookie tamper-reset REJECTED — post-auth honoring sole gate (HUMAN_ONLY).
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified again — signin sha256 differs from prior only by per-request nonce/state-uuid while size 27448B stays byte-stable; size+path-count is the robust drift check, not full-body hash.
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 21:12 UTC — openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/530B, OPTIONS 204 x-powered-by=Express + ACAO `*` + ACAH x-gladia-key, POST 401/144B NestJS `{"message":"no gladia key provided","request_id":"G-834bef3c"}` — surface frozen across 90+ cycles.
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation strengthened by second local `npm pack` reproduction this cycle (21:12 UTC) yielding sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` identical to prior run — reproducibility confirmed, PASSIVE evidence package locked.
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh 21:12 UTC (200/27448B, 0 CSP form-action directives confirmed grep-count=0 on CSP header); /auth/google/callback now 302→accounts.google.com full PKCE S256 initiation (client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — OAuth code/state theft still REJECTED; return-to cookie tamper-reset REJECTED; post-auth honoring remains HUMAN_ONLY.
+- 2026-08-14 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed byte-fresh 21:12 UTC).
+- 2026-08-14 REJECTED MISCONFIG @ app.gladia.io: /api/v1/* paths return 200 SPA shell, no authenticated API exposed at unauth layer — client-side enforcement only, not a finding class.
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 21:12 UTC — openapi 200/125131B/14 paths/7 webhooks, /health 200/15B, /v1/models 200/530B, OPTIONS 204 x-powered-by=Express + ACAO `*` + ACAH x-gladia-key, POST 401/144 NestJS
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation strengthened by second local `npm pack` reproduction this cycle (21:12 UTC) yielding sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` — reproducibility confirmed
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection byte-fresh 21:12 UTC (200/27448B, 0 CSP form-action directives confirmed grep-count=0) — unauth reflection persists, post-auth honoring still HUMAN_ONLY
+- 2026-08-14 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` (tamper-reset confirmed)
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 21:43 UTC — openapi 200/125131B/14 paths/7 webhooks, /health 200/15B {"health":"OK"}, /v1/models 200/530B, OPTIONS 204 x-powered-by: Express + ACAO `*` + ACAH x-gladia-key, POST 401/144 NestJS — surface frozen across 90+ cycles.
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: CSP grep-count=0 on form-action confirmed fresh 21:43 UTC — `form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflection byte-stable at 27448B across cycles.
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified at 21:43 UTC — npm view: latest=0.1.3, description "Official", repo git+https://github.com/alexisbouchez/gladia.ts.git confirmed 404 — PASSIVE evidence package stable.
+- 2026-08-14 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — openapi 200/125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, OPTIONS 204 x-powered-by: Express + ACAO `*` + ACAH x-gladia-key, POST 401/144B NestJS `{"message":"no gladia key provided"}` — surface frozen across 90+ cycles.
+- 2026-08-14 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified at 22:39 UTC — npm view dist-tag latest=0.1.3, repo+user alexisbouchez 404, second local npm pack reproduction of sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` confirms PASSIVE evidence package reproducible; src/client.ts:306-308 raw key-in-wss URL confirmed via RAG.
+- 2026-08-14 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh at 22:39 UTC — 0 CSP form-action directives (grep-count=0 reconfirmed); /auth/google/callback now full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com, FIXED redirect_uri, code_challenge S256); return-to cookie tamper-reset REJECTED; post-auth honoring sole remaining unverified gate (HUMAN_ONLY).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+- 2026-08-15 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending
+- 2026-08-15 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST 401 NestJS key-gated — SSRF-by-design surface persists, AUTH_HELPED
+- 2026-08-15 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring is sole unverified gate (HUMAN_ONLY)
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed)
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles)
+- 2026-08-15 ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh 02:38 UTC — openapi 200/125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B, /v1/models 530B, preflight-only x-powered-by: Express (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen across 90+ cycles.
+- 2026-08-15 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified at 02:38 UTC — npm view confirms latest=0.1.3, description "Official", repo git+https://github.com/alexisbouchez/gladia.ts.git (404); sha256 3b23ec7d…7f2 reproducible; src/client.ts:306-308 raw key-in-wss URL confirmed via RAG — report-ready, PASSIVE complete.
+- 2026-08-15 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh 02:38 UTC — 200/27448B, 0 CSP form-action directives confirmed; OAuth redirect_uri FIXED + PKCE S256 prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole remaining unverified gate (HUMAN_ONLY).
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed fresh).
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (tamper-reset confirmed 90+ cycles).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*`, POST 401 NestJS — no new endpoints or header changes detected.
+- 2026-08-15 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh re-verified — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproducible across three independent local `npm pack` runs, src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — PASSIVE evidence package locked, report-ready.
+- 2026-08-15 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B confirms FR/US egress; POST /v2/pre-recorded 401 NestJS key-gated only — SSRF-by-design surface persists (AUTH_HELPED).
+- 2026-08-15 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection confirmed byte-fresh at 2026-08-15 05:15 UTC round — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` (200/27448B), 0 CSP form-action directives (grep-count=0); /auth/google/callback → 302 → accounts.google.com full PKCE S256 + FIXED redirect_uri prevents code/state theft (REJECTED class); return-to cookie tamper → server resets to `{"url":"/"}` (REJECTED); post-auth honoring remains sole unverified gate (HUMAN_ONLY).
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` (tamper-reset confirmed 90+ cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh — openapi 200/125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B, /v1/models 530B — surface frozen across 90+ cycles.
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256 (S256 code_challenge, random state, client_id `352060113328-fnk8shoffbkh10imc3adc5lllclv21ha`); no code/state theft path (re-confirmed fresh 05:12 UTC).
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets tampered value to `{"url":"/"}` (tamper-reset confirmed across 90+ cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgrade to informational only; cookie name `oauth2:<uuid>` uses fresh per-request UUID.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key, POST 401 NestJS — surface frozen, no new endpoints or header changes.
+- 2026-08-15 No class newly proven dead or alive this cycle — NO_DELTA across 90+ cycles; all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin reflection 27448B, npm latest=0.1.3); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard — no new surface.
+- 2026-08-15 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh — dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2` reproduced across three independent local npm pack runs, repo+user alexisbouchez 404 (orphaned/irrevocable), src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — report-ready.
+- 2026-08-15 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery topics; /v1/models confirms FR+US egress; POST /v2/pre-recorded 401 NestJS key-gated only — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-15 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (90+ cycles) — 0 CSP form-action directives (gap confirmed); OAuth redirect_uri FIXED + PKCE S256 prevents code/state theft; return-to cookie tamper-reset REJECTED — post-auth honoring sole unverified gate (HUMAN_ONLY).
+- 2026-08-15 ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report → 301 → www → 302 → Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`, GitHub 404/404); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum cc96f84a…); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, 90+ cycles confirmed not a separate vuln class.
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (90+ cycles confirmed).
+- 2026-08-15 REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only.
+- 2026-08-15 REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA error page, no internal detail leak — not a vuln class.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B `{"health":"OK"}` endpoint returns 200 — not in OpenAPI spec (90+ cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinforces callback-delivery SSRF surface.
+- 2026-08-15 REJECTED MISCONFIG @ app.gladia.io: per-instance codegen fingerprint falsified — etag rotates due to dynamic example timestamps, not surface drift (90+ cycles).
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} on tamper (tamper-reset confirmed 90+ cycles).
+- 2026-08-15 REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgrade to informational only.
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus/debug/Spring Boot Actuator; surface dead.
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B {"health":"OK"} endpoint returns 200 — not in OpenAPI spec (90+ cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI servers array single entry https://api.gladia.io only — no staging/alternate host leakage.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 webhooks key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinforces callback-delivery SSRF surface.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (health 15B, /v1/models 530B, openapi 125131B, signin 27448B, npm latest=0.1.3/shasum `cc96f84a…`, GitHub 404); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key or HUMAN OAuth test.
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed 90+ cycles).
+- 2026-08-15 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh — dist-tag latest=0.1.3, repo+user alexisbouchez 404 (orphaned/irrevocable), sha256 `3b23ec7d…7f2` reproduced across three independent npm pack runs, src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — report-ready via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen, no new endpoints or header changes.
+- 2026-08-15 ACCEPTED MISCONFIG @ app.gladia.io: CSP lacks form-action directive (0 occurrences grep-confirmed) — enables /signin form-action reflection (gap, not oversight).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, not a separate vuln class.
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path.
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B {"health":"OK"} endpoint returns 200 — not in OpenAPI spec.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `webhooks` key enumerates 7 outbound topics posting to client-supplied URLs — reinforces callback-delivery SSRF surface.
+- 2026-08-15 ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh reposcan (16:26 UTC) 0 new hit lines, all targets byte-identical to 90+ prior cycles; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, npm latest=0.1.3/shasum `cc96f84a…`) byte-identical to 90+ prior cycles; all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 90+ cycles — surface frozen (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*`), no new endpoints or header changes.
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+- 2026-08-15 No class newly proven dead or alive this cycle — fresh probes (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`) byte-identical to 90+ prior cycles; all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+[0m
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+## STEP 1 — DELTA
+
+NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 19:51 UTC). All targets byte-identical: api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, CORS static `*`; app.gladia.io /signin form-action reflection (27448B) + 0 CSP form-action directives; npm `gladia@0.1.3` dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2` reproduced across three independent local `npm pack` runs.
+
+## STEP 2 — PRIORITIZE
+
+[PRIO] npm `gladia@0.1.3` (orphaned impersonation, key-in-wss URL): 6.1 — attack 6 / business 7 / tech 7 / gate 5 / cloud 5 / fresh 2 (1.5+1.75+1.05+0.75+0.5+0.2)
+
+[PRIO] api.gladia.io POST /v2/pre-recorded (SSRF-by-design fetch+webhook): 6.4 — attack 7 / business 8 / tech 6 / gate 3 / cloud 8 / fresh 2 (1.75+2.0+0.9+0.45+0.8+0.2)
+
+[PRIO] app.gladia.io /signin (post-auth redirect_to honoring): 5.3 — attack 5 / business 6 / tech 6 / gate 4 / cloud 2 / fresh 2 (1.25+1.5+0.9+0.6+0.2+0.2)
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query
+
+class: OTHER
+
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+
+confidence: 96
+
+reasoning: tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` reproduced across three independent local `npm pack` runs (shasum `cc96f84a…` re-confirmed fresh); src/client.ts:306-308 uses `searchParams.append('x-gladia-key', apiKey)` then `new WebSocket(wsUrl.toString())` — raw key appended to wss:// URL query; package.json description "Official" vs README "Unofficial"; GitHub user+repo `alexisbouchez` both 404 (orphaned/irrevocable); diverges from official `@gladiaio/sdk@1.1.0` POST /v2/live → token-from-response → wss?token=<uuid> flow.
+
+evidence_needed: none — evidence package locked, PASSIVE complete.
+
+verify_steps: PASSIVE — complete; HUMAN submission pending via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated).
+
+impact: every WebSocket connect leaks raw x-gladia-key into access logs/analytics/proxy URLs; irrevocable supply-chain namespace hijack risk once account reclaimed; consumer keys harvestable by malicious maintainer. Severity: High.
+
+testability: PASSIVE
+
+[HYP] SSRF via server-side fetch of client-supplied URLs (audio_url/video_url + 7 webhook callback delivery topics)
+
+class: SSRF
+
+asset: api.gladia.io POST /v2/pre-recorded
+
+confidence: 73
+
+reasoning: /openapi.json (125131B, CORS `*`) confirms audio_url (plain string), video_url (plain string), CallbackConfig.url (`format:uri`) — all without scheme allowlist; OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.created/success/error + live.start_session/start_recording/end_recording/end_session) POSTing to client-supplied URLs; /v1/models (200, 530B, security:null) confirms FR+US egress; no-key POST → 401/144 NestJS HttpException `{"message":"no gladia key provided"}`, key is sole gate, no bypass found in 90+ cycles.
+
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+
+verify_steps: AUTH_HELPED — with authorized `x-gladia-key` header, POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}` with self-owned data; repeat for video_url, callback_config.url, and 7 webhook delivery topics; observe fetch/callback at canary.
+
+impact: cloud-metadata read (IMDSv1), internal egress network enumeration, exfil via webhook URLs. Severity: High (key-gated).
+
+testability: AUTH_HELPED
+
+[HYP] Post-auth redirect_to honored to external host (open redirect after OAuth signin)
+
+class: OATH
+
+asset: app.gladia.io /signin
+
+confidence: 50
+
+reasoning: reflection byte-fresh (200/27448B, form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`, 0 CSP form-action directives confirmed via grep-count=0 on live CSP); OAuth redirect_uri FIXED with PKCE S256 (REJECTED — not exploitable via OAuth flow); return-to cookie tampering resets to `{"url":"/"}` (REJECTED as open-redirect vector); sole unverified gate is whether post-auth 302 Location honors external redirect_to after successful signin.
+
+evidence_needed: post-auth HTTP 302 Location to external host after completing Google SSO signin with redirect_to set to attacker domain.
+
+verify_steps: HUMAN_ONLY — navigate to https://app.gladia.io/signin?redirect_to=https://evil.example.com, complete Google SSO signin, capture immediate HTTP 302 Location header + Set-Cookie; repeat with `//evil`, bare-host, and `app.gladia.io.evil` variants.
+
+impact: If exploitable → session-bound phishing redirect after legitimate auth (P3/Medium); if dead → unauth CSP/form-action reflection gap only (informational Low).
+
+testability: HUMAN_ONLY
+
+## STEP 4 — SELC-CRITIQUE
+
+All three hypotheses survive self-critique: confidence ≥ 40, classes not on the REJECTED list, all have concrete verify_steps. No [PARKED] items.
+
+[FINAL] 1. npm `gladia@0.1.3` orphaned impersonation (96, PASSIVE-complete, report-ready)
+
+[FINAL] 2. api.gladia.io POST /v2/pre-recorded SSRF-by-design (73, AUTH_HELPED)
+
+[FINAL] 3. app.gladia.io /signin post-auth redirect_to honoring (50, HUMAN_ONLY)
+
+## STEP 5 — NEXT ACTION
+
+[NEXT] HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed portal https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) — include tarball sha256 `3b23ec7d…7f2`, dist-shasum `cc96f84a…`, GitHub user+repo 404 evidence, src/client.ts:306-308 raw key-in-wss URL query, README "Unofficial" vs package.json "Official" contradiction, divergence from official @gladiaio/sdk POST /v2/live→token flow; hold further api.gladia.io PROBE until an authorized x-gladia-key is available for the SSRF POC.
+
+## STEP 6 — LEARNING
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 19:51 UTC — openapi 200/125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key, POST 401/144 NestJS — surface frozen across 90+ cycles; no new findings, class remains dead.
+
+## STEP 7 — RISK SCORE
+
+[RISK] api.gladia.io: 55 — SSRF-by-design fetch surface (audio_url/video_url/callback/webhooks, no scheme allowlist) persists but key-gated with no bypass found in 90+ cycles; preflight-only x-powered-by: Express fingerprint + CORS static wildcard confirmed byte-fresh; /openapi.json publicly exposed.
+
+[RISK] app.gladia.io: 45 — /signin redirect_to form-action reflection + CSP (0 form-action directives) gap persist; OAuth redirect_uri FIXED with PKCE S256, return-to cookie tamper-reset REJECTED, oauth2 state cookie Secure flag mitigated by HSTS — sole unverified gate is post-auth honoring (HUMAN_ONLY).
+
+[RISK] sdk: 65 — `gladia@0.1.3` at dist-tag `latest` actively impersonates official SDK, orphaned namespace (irrevocable, GitHub user+repo 404), leaks raw API keys into WebSocket URLs via `searchParams.append`; `@glidiaio/sdk@1.1.0` and `gladiaio-sdk@1.0.5` verified clean.
