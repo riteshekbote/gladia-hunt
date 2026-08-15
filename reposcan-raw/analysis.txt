@@ -1,40 +1,199 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Tables**
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
 
-| Category | File | Line | Evidence |
-|----------|------|------|----------|
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot fixture |
-| **TEST_OR_EXAMPLE** | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | Public API base URL `https://api.gladia.io/v2` + header `x-gladia-key` usage — documented in OpenAPI spec |
-| **TEST_OR_EXAMPLE** | compare-stt/next.config.ts | 38, 44 | Vercel rewrites to `https://www.gladia.io/compare-stt-apis` — public marketing route |
-| **TEST_OR_EXAMPLE** | compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN = "https://www.gladia.io"` + `CITATION_DOMAIN = "www.gladia.io"` — public origin config |
-| **TEST_OR_EXAMPLE** | Multiple .tsx/.ts files | Various | References to `gladia.io`, `www.gladia.io`, `api.gladia.io`, `app.gladia.io` in docs, links, analytics — all public production hosts |
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+import type { TranscribeResult, WordTimestamp } from "../transcribe";
 
-| Category | File | Line | Evidence |
-|----------|------|------|----------|
-| **ENDPOINT_LEAK** | — | — | **None** — all endpoint references point to production `api.gladia.io/v2` (public OpenAPI surface) |
+const GLADIA_BASE = "https://api.gladia.io/v2";
 
-| Category | File | Line | Evidence |
-|----------|------|------|----------|
-| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289, 291 | `@ai-sdk/gladia` linked to `../../packages/gladia` — **official Vercel AI SDK integration** from gladiaio org (not the impersonator `gladia@0.1.3`) |
-| **INTERESTING** | gladiaflow/package.json / Cargo.toml | — | `gladiaflow` Tauri app with `authors = ["Gladia <support@gladia.io>"]` — official desktop client |
-| **INTERESTING** | npm `gladia@0.1.3` | — | **Pre-existing finding**: orphaned impersonator (personal repo `alexisbouchez/gladia.ts`, GitHub 404, `sk-********` placeholder only, `package.json` "Official" vs README "Unofficial", key-in-WSS-URL) — **already ACCEPTED OTHER** |
+interface GladiaWord {
+  word: string;
+  start: number;
+  end: number;
+}
 
-| Category | File | Line | Evidence |
-|----------|------|------|----------|
-| **REAL_SECRET** | — | — | **None** — no live credentials, API keys, or tokens found |
+interface GladiaUtterance {
+  text: string;
+  words: GladiaWord[];
+}
+
+export async function transcribeWithGladia(
+  audio: Buffer,
+  mimeType: string
+): Promise<TranscribeResult> {
+  const apiKey = process.env.GLADIA_API_KEY;
+  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+
+  const start = Date.now();
+
+  const ext = mimeType.includes("wav") ? "audio.wav"
+    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
+    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
+    : mimeType.includes("ogg") ? "audio.ogg"
+    : "audio.webm";
+
+  const uploadForm = new FormData();
+  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
+
+  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
+    method: "POST",
+    headers: { "x-gladia-key": apiKey },
+    body: uploadForm,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
+    method: "POST",
+    headers: {
+      "x-gladia-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url,
+      model: "solaria-3",
+      punctuation_enhanced: true,
+      language_config: { code_switching: false },
+    }),
+  });
+
+  if (!transcribeRes.ok) {
+    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
+  }
+
+  const { result_url } = await transcribeRes.json();
+
+  const { transcript, words } = await pollForResult(result_url, apiKey);
+  const durationMs = Date.now() - start;
+
+  return { transcript, words, durationMs };
+}
+
+async function pollForResult(
+  resultUrl: string,
+  apiKey: string
+): Promise<{ transcript: string; words: WordTimestamp[] }> {
+  const maxAttempts = 60;
+  const interval = 1000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(resultUrl, {
+      headers: { "x-gladia-key": apiKey },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gladia poll failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.status === "done") {
+      const utterances: GladiaUtterance[] | undefined =
+        data.result?.transcription?.utterances;
+
+      if (utterances && Array.isArray(utterances)) {
+        const transcript = utterances.map((u) => u.text).join(" ");
+        const words: WordTimestamp[] = utterances.flatMap((u) =>
+          (u.words || []).map((w) => ({
+            word: w.word,
+            start: w.start,
+            end: w.end,
+          }))
+        );
+        return { transcript, words };
+      }
+
+      const fullTranscript = data.result?.transcription?.full_transcript;
+      return { transcript: fullTranscript || "", words: [] };
+    }
+
+    if (data.status === "error") {
+      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
+    }
+
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error("Gladia transcription timed out");
+}
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/site.ts
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/compare-stt-apis";
+
+/** Canonical origin for SEO metadata, canonicals, sitemap, and robots. */
+export const SITE_ORIGIN = (
+  process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"
+).replace(/\/$/, "");
+
+/** Full public site URL including base path when deployed under a subpath. */
+export const PUBLIC_SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  `${SITE_ORIGIN}${BASE_PATH === "/" ? "" : BASE_PATH}`;
+
+export function publicUrl(path = ""): string {
+  if (!path || path === "/") return PUBLIC_SITE_URL;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${PUBLIC_SITE_URL}${normalized}`;
+}
+
+/** Short domain for LLM-citation copy (e.g. leaderboard summary). */
+export const CITATION_DOMAIN = "www.gladia.io";
+[0m
+### Classification Table
+
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | *(none)* | No hardcoded live credentials found. The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a **placeholder** in a `MOCK_SETTINGS` constant (8 asterisks = obvious mask). The compare-stt provider reads `GLADIA_API_KEY` from `process.env` (proper pattern). |
+| **TEST_OR_EXAMPLE** | `compare-stt/test-providers.ts:8`, `prisma/seed.ts:10`, `src/lib/providers.ts:10`, `src/lib/transcribe.ts`, `src/components/hero-provider-logos.tsx:7`, `src/components/arena-page.tsx:270,341,427`, `src/components/tracking/gladia-analytics.tsx:5`, `src/lib/tracking.ts:2`, `src/lib/leaderboard-articles.ts:37,46`, `src/lib/customVocabulary.ts:8,9`, `src/lib/vocabularyEditor.test.ts:21,27,34`, `src/lib/dictationStats.ts:11`, `gladiaflow/src/lib/customVocabulary.ts:8,9`, `gladiaflow/src/lib/vocabularyEditor.test.ts`, `gladiaflow/src/App.tsx:264,274,284`, `gladiaflow/src/main.tsx:4`, `gladiaflow/src/screenshots/main.tsx:3`, `vercel-ai/pnpm-lock.yaml`, `vercel-ai/tsconfig.json:70`, `gladiaflow/package*.json`, `gladiaflow/src-tauri/Cargo.toml`, `gladiaflow/src-tauri/tauri*.conf.json` | All test data, seed fixtures, provider configs, doc links, tracking comments, package metadata, Tauri config — **benign** |
+| **ENDPOINT_LEAK** | `compare-stt/next.config.ts:38,44,51` (rewrites to `www.gladia.io`), `compare-stt/src/lib/site.ts:5,20` (`SITE_ORIGIN` fallback), `compare-stt/src/app/layout.tsx:87`, `terms/page.tsx:45,72,107`, `methodology/page.tsx:490`, `about/page.tsx:68,156,172`, `gladiaflow/src/components/TranscriptionHistory.tsx:19` (`app.gladia.io/transcriptions/live/`), `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` (`app.gladia.io/apikeys`), `compare-stt/src/lib/providers/gladia.ts:3` (`GLADIA_BASE = "https://api.gladia.io/v2"`) | Production/public API & dashboard URLs in config/constants — **expected for client-side apps**, not sensitive (all `*.gladia.io` in scope) |
+| **INTERESTING** | `compare-stt/src/lib/providers/gladia.ts:36,49` — demonstrates **official SDK pattern**: `x-gladia-key` header with env-sourced key (validates auth model) | Confirms official integration pattern; no anomaly |
 
 ---
 
-**Verdict List**
+### Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonator | **yes** (pre-existing) | Orphaned package, GitHub 404, key-in-WSS-URL, description contradiction — **already tracked, report-ready** |
-| `@ai-sdk/gladia` in vercel-ai | **no** | Official integration from `gladiaio/vercel-ai/packages/gladia` (org-owned) |
-| Hardcoded `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot fixture (`TEST_OR_EXAMPLE`) |
-| Public API endpoint references | **no** | All point to documented production surface (`api.gladia.io/v2`) |
-| Marketing/site URL references | **no** | Legitimate public host references (`www.gladia.io`, `app.gladia.io`) |
+| `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) | **no** | Placeholder in `MOCK_SETTINGS` constant (8 asterisks = obvious test mask) |
+| `compare-stt` provider integration | **no** | Proper env-based key usage (`process.env.GLADIA_API_KEY`), matches official SDK pattern |
+| All `ENDPOINT_LEAK` entries | **no** | Public `*.gladia.io` URLs in client-side config — expected for deployed apps |
+| `gladia@0.1.3` npm package (orphaned impersonation) | **yes** | **Pre-existing** — already tracked in RAG (personal repo `alexisbouchez/gladia.ts`, GitHub 404, `README`="Unofficial" vs `package.json`="Official", embeds raw `x-gladia-key` in WSS URL query). **No new delta this scan.** |
+| Supply-chain surface (`@gladiaio/sdk@1.1.0`, `gladiaio-sdk@1.0.5`, 19 gladiaio repos) | **no** | Static, verified official, no new risk |
 
-**Summary**: **0 new reportable findings** this delta. The sole supply-chain anomaly (`gladia@0.1.3`) remains the only live candidate — already validated, evidence-locked, and pending portal submission via `https://gladia.io/bug-bounty-report`. All other hits are benign public-surface references or official org code.
+**Summary**: **0 new reportable findings** this scan. Delta = 0 new hit lines. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and previously reported. All code references are benign test/config/production-endpoint usage.
