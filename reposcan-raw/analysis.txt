@@ -33,21 +33,8 @@ const MOCK_SETTINGS: AppSettings = {
       value: "WebSocket",
       intensity: 0.7,
 [0m
-[0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | head -300 | tail -30
-'@ai-sdk/deepseek':
-        specifier: workspace:*
-        version: link:../../packages/deepseek
-      '@ai-sdk/devtools':
-        specifier: workspace:^
-        version: link:../../packages/devtools
-      '@ai-sdk/elevenlabs':
-        specifier: workspace:*
-        version: link:../../packages/elevenlabs
-      '@ai-sdk/fal':
-        specifier: workspace:*
-        version: link:../../packages/fal
-      '@ai-sdk/fireworks':
-        specifier: workspace:*
+[0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | grep -A5 -B5 "gladia"
+specifier: workspace:*
         version: link:../../packages/fireworks
       '@ai-sdk/gateway':
         specifier: workspace:*
@@ -60,62 +47,36 @@ const MOCK_SETTINGS: AppSettings = {
         version: link:../../packages/google
       '@ai-sdk/google-vertex':
         specifier: workspace:*
-        version: link:../../packages/google-vertex
-      '@ai-sdk/groq':
+--
+        version: 5.8.3
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+
+  packages/gladia:
+    dependencies:
+      '@ai-sdk/provider':
         specifier: workspace:*
-        version: link:../../packages/groq
+        version: link:../provider
+      '@ai-sdk/provider-utils':
 [0m
-### Classification Tables
+### Classification Table
 
-#### TEST_OR_EXAMPLE (56 hits)
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slug list |
-| compare-stt/prisma/seed.ts | 10 | Seed data |
-| compare-stt/src/app/layout.tsx | 9, 87 | Imports, public links |
-| compare-stt/src/app/terms/page.tsx | 45, 72, 107 | Public links |
-| compare-stt/src/app/methodology/page.tsx | 80, 490, 513 | Public links |
-| compare-stt/src/app/about/page.tsx | 68, 156, 172 | Public links, mailto |
-| compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto |
-| compare-stt/src/components/arena-page.tsx | 270, 341, 427 | Public links |
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | GTM comment |
-| compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | Public URL |
-| compare-stt/src/lib/tracking.ts | 2 | Tracking IDs comment |
-| compare-stt/src/lib/providers.ts | 10 | Provider config |
-| compare-stt/src/lib/transcribe.ts | 2, 25, 148 | Provider imports |
-| compare-stt/src/lib/leaderboard-articles.ts | 37, 46 | Blog URLs |
-| compare-stt/src/lib/site.ts | 5, 20 | Site origin constants |
-| compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | Public API base, header usage |
-| gladiaflow/package*.json, Cargo.toml, tauri*.conf.json | various | Package metadata |
-| gladiaflow/src/*.tsx | various | Component imports, mock data, test files |
-| gladiaflow/src/lib/*.ts | various | Constants, test fixtures |
-
-#### ENDPOINT_LEAK (6 hits)
-| File | Line | Endpoint |
-|------|------|----------|
-| compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` (public marketing) |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public API, known) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/` (public app) |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` (public docs) |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public app) |
-
-#### INTERESTING (6 hits)
-| File | Line | Note |
-|------|------|------|
-| compare-stt/next.config.ts | 51 | PostHog reverse proxy (third-party) |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — **masked placeholder** in mock settings |
-| vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` workspace package (official Vercel AI SDK integration) |
-| vercel-ai/tsconfig.json | 70 | Path alias to `packages/gladia` |
-
----
+| Category | File | Line | Detail |
+|----------|------|------|--------|
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot/mock component |
+| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` — public marketing rewrite rule |
+| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3,36,49 | `https://api.gladia.io/v2` + `x-gladia-key` header — documented public API usage |
+| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289,2368 | `@ai-sdk/gladia` workspace link to `packages/gladia` — official Vercel AI SDK integration (expected) |
+| **INTERESTING** | (pre-existing) npm `gladia@0.1.3` | — | Package claims "Official TypeScript SDK" but repo = `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com` — ownership anomaly, already tracked in knowledge base |
 
 ### Verdict
 
-| Candidate | Category | Reportable? | Reason |
-|-----------|----------|-------------|--------|
-| `sk-********` in Gallery.tsx | INTERESTING | **NO** | Masked placeholder in mock settings (`MOCK_SETTINGS`), not a real secret |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK provider package under gladiaio org |
-| Public API/app/docs URLs | ENDPOINT_LEAK | **NO** | All are production public endpoints, already in baseline |
-| All other hits | TEST_OR_EXAMPLE | **NO** | Test fixtures, seed data, public links, package metadata |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `sk-********` placeholder in gladiaflow screenshot | **no** (TEST_OR_EXAMPLE) |
+| Public API endpoints in compare-stt/vercel-ai | **no** (ENDPOINT_LEAK - documented public surface) |
+| `@ai-sdk/gladia` Vercel AI SDK integration | **no** (INTERESTING - official integration) |
+| `gladia@0.1.3` npm ownership anomaly | **no** (INTERESTING - pre-existing, already ACCEPTED in knowledge base 2026-08-07) |
 
-**REPORT_CANDIDATE: no** — Zero new reportable findings in this delta. The sole pre-existing supply-chain anomaly (`gladia@0.1.3` orphaned impersonator on npm) remains unchanged and was already accepted in the knowledge base (2026-08-07 through 2026-08-15). No new secrets, no new endpoint leaks, no new attack surface.
+**Overall: REPORT_CANDIDATE: no** — Delta scan shows 0 new hit lines. All findings are either test fixtures, documented public endpoints, official integrations, or pre-existing known anomalies. No new secrets, no new supply-chain risks, no new endpoint leaks.
