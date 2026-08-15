@@ -7489,3 +7489,4 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 90 — OpenAPI 125131B/14 paths/7 webhooks (CORS `*` + ACAH x-gladia-key on preflight), /health 15B undocumented, /v1/models 530B FR/US egress public, SSRF-by-design (audio_url/video_url/callback_config.url no scheme allowlist + 7 webhook delivery paths), WebSocket token-in-URL per spec, preflight-only x-powered-by: Express fingerprint, POST/GET 401 NestJS key-gated.
 [RISK] app.gladia.io: 64 — /signin?redirect_to= unauthenticated form-action reflection (0 CSP form-action directives, byte-fresh 27448B, no host allowlist); OAuth PKCE S256 + FIXED redirect_uri blocks code/state theft (REJECTED); return-to cookie tamper-reset REJECTED; client-side SPA enforcement only; /dashboard 200 SPA shell without auth
 ## 2026-08-15 15:49:40 UTC [app] (model laguna)
+## 2026-08-15 16:08:55 UTC [app] (model laguna)
