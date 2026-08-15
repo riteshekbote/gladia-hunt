@@ -959,3 +959,9 @@
 - 2026-08-15 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation byte-fresh — dist-tag latest=0.1.3, repo+user alexisbouchez 404 (orphaned/irrevocable), sha256 `3b23ec7d…7f2` reproduced across three independent npm pack runs, src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — report-ready via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated).
 - 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen, no new endpoints or header changes.
 - 2026-08-15 ACCEPTED MISCONFIG @ app.gladia.io: CSP lacks form-action directive (0 occurrences grep-confirmed) — enables /signin form-action reflection (gap, not oversight).
+- 2026-08-15 REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, not a separate vuln class.
+- 2026-08-15 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path.
+- 2026-08-15 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles).
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B {"health":"OK"} endpoint returns 200 — not in OpenAPI spec.
+- 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `webhooks` key enumerates 7 outbound topics posting to client-supplied URLs — reinforces callback-delivery SSRF surface.
+- 2026-08-15 ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
