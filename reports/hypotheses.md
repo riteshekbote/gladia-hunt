@@ -3456,3 +3456,10 @@
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (90+ cycles) — 0 CSP form-action directives (gap confirmed); OAuth redirect_uri FIXED +
 - LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report → 301 → www → 302 → Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports.
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+
+## RANKED HYPOTHESES 2026-08-15 08:57:25 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key in wss:// URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on `https://app.gladia.io/signin?redirect_to=https://evil.example.com` using a controlled test Google account; capture the immediate 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report (P2/High: raw API key in wss:// URL query + irrevocable namespace takeover; sha256 `3b23ec
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
