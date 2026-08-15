@@ -7490,3 +7490,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 64 — /signin?redirect_to= unauthenticated form-action reflection (0 CSP form-action directives, byte-fresh 27448B, no host allowlist); OAuth PKCE S256 + FIXED redirect_uri blocks code/state theft (REJECTED); return-to cookie tamper-reset REJECTED; client-side SPA enforcement only; /dashboard 200 SPA shell without auth
 ## 2026-08-15 15:49:40 UTC [app] (model laguna)
 ## 2026-08-15 16:08:55 UTC [app] (model laguna)
+## 2026-08-15 16:42:34 UTC [app] (model laguna)
