@@ -3896,3 +3896,14 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: fresh 23:xx UTC `npm view`/`npm pack` reproduction confirms sha256 `3b23…7f2` + shasum `cc96f84a…` stable, dist-tag latest=
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: /openapi.json `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage (fresh 23:xx UTC).
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
+
+## RANKED HYPOTHESES 2026-08-15 23:53:09 UTC
+- [96] npm: npm `gladia@0.1.3` impersonates official SDK and leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): HUMAN: Navigate to https://app.gladia.io/signin?redirect_to=https://evil.example.com, complete Google SSO signin, capture the post-auth HTTP 302 Location header
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated).
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: No class newly proven dead or alive this cycle — surface frozen across 90+ cycles; api.gladia.io /v2/pre-recorded SSRF remains AUTH_HELPED (key-gated, no bypass
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (health 15B, /v1/models 530B, openapi 125131B/14 paths/7 webhoo

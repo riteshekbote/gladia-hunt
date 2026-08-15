@@ -1076,3 +1076,8 @@ https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? t
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
 https://gladia.io/bug-bounty-report -> HTTP 401
 https://api.gladia.io -> HTTP 404
+
+## 2026-08-15 23:53:14 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report -> HTTP 401
