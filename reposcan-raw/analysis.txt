@@ -1,151 +1,349 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Triaged Findings - gladiaio reposcan delta
-
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256(secret) | Notes |
-|------|------|----------------|-------|
-| (none) | | | No live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Provider slug list for comparison |
-| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider |
-| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 9,87 | Analytics import + marketing links |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72,107 | Legal/terms links |
-| reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 80,490,513 | GitHub/Gladia links |
-| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68,156,172 | Repo links, privacy email |
-| reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto:privacy@gladia.io |
-| reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270,341,427 | Normalization repo links |
-| reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment about GTM stack |
-| reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | Comment about tracking IDs |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config object |
-| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2,25,148 | Gladia provider import/usage |
-| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog article URLs |
-| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | Package name |
-| reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2,8 | Lockfile entries |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2,5 | Rust crate metadata |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | Tauri dev identifier |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | Tauri prod identifier |
-| reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 4 | CSS import |
-| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 264,274,284 | Tauri invoke calls |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | CSS import |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8,9 | Vocabulary terms "gladiaflow" |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test cases |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | LocalStorage key |
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | @ai-sdk/gladia workspace link |
-| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | Path alias for packages/gladia |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint/Pattern |
-|------|------|------------------|
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44,51 | Rewrites to https://www.gladia.io/compare-stt-apis* |
-| reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | url: "https://gladia.io" in schema |
-| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | NEXT_PUBLIC_SITE_ORIGIN default + CITATION_DOMAIN |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | **API base: https://api.gladia.io/v2 + x-gladia-key header** |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | https://app.gladia.io/transcriptions/live/{sessionId} |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | https://app.gladia.io/apikeys |
-| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | https://docs.gladia.io/... |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot component (test/fixture pattern) |
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | Official Vercel AI SDK integration `@ai-sdk/gladia` linked from gladiaio org (confirmed official) |
-
----
-
-## Verdict
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | SUPPLY_CHAIN (pre-existing) | **yes** (already ACCEPTED) | Orphaned personal repo (alexisbouchez/gladia.ts 404), "Official" vs "Unofficial" contradiction, embeds raw `x-gladia-key` in WSS URL query — evidence package locked, report-ready via bug-bounty portal |
-| compare-stt API usage | ENDPOINT_LEAK | **no** | Public demo app using documented public API (`https://api.gladia.io/v2`, `x-gladia-key` header) — expected behavior |
-| gladiaflow screenshot `sk-********` | TEST_OR_EXAMPLE | **no** | Clearly masked placeholder (asterisks) in test/fixture component |
-| Vercel AI SDK `@ai-sdk/gladia` | INTERESTING | **no** | Official integration from gladiaio org, linked in workspace |
-| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** | Marketing links, config defaults, public docs URLs, test data |
-
-**No new reportable findings this scan.** Surface remains frozen (90+ NO_DRIFT cycles on api.gladia.io). The sole reportable supply-chain issue (`gladia@0.1.3` orphaned impersonation) is already evidence-locked and portal-ready.
-EOF
-# Triaged Findings - gladiaio reposcan delta
-
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256(secret) | Notes |
-|------|------|----------------|-------|
-| (none) | | | No live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Provider slug list for comparison |
-| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider |
-| reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 9,87 | Analytics import + marketing links |
-| reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72,107 | Legal/terms links |
-| reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 80,490,513 | GitHub/Gladia links |
-| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68,156,172 | Repo links, privacy email |
-| reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto:privacy@gladia.io |
-| reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270,341,427 | Normalization repo links |
-| reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment about GTM stack |
-| reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | Comment about tracking IDs |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config object |
-| reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2,25,148 | Gladia provider import/usage |
-| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog article URLs |
-| reposcan-raw/gladiaio/gladiaflow/package.json | 2 | Package name |
-| reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2,8 | Lockfile entries |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2,5 | Rust crate metadata |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | Tauri dev identifier |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | Tauri prod identifier |
-| reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 4 | CSS import |
-| reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 264,274,284 | Tauri invoke calls |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | CSS import |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8,9 | Vocabulary terms "gladiaflow" |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test cases |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | LocalStorage key |
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | @ai-sdk/gladia workspace link |
-| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | Path alias for packages/gladia |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint/Pattern |
-|------|------|------------------|
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44,51 | Rewrites to https://www.gladia.io/compare-stt-apis* |
-| reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | url: "https://gladia.io" in schema |
-| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | NEXT_PUBLIC_SITE_ORIGIN default + CITATION_DOMAIN |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | **API base: https://api.gladia.io/v2 + x-gladia-key header** |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | https://app.gladia.io/transcriptions/live/{sessionId} |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | https://app.gladia.io/apikeys |
-| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | https://docs.gladia.io/... |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot component (test/fixture pattern) |
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | Official Vercel AI SDK integration `@ai-sdk/gladia` linked from gladiaio org (confirmed official) |
-
----
-
-## Verdict
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | SUPPLY_CHAIN (pre-existing) | **yes** (already ACCEPTED) | Orphaned personal repo (alexisbouchez/gladia.ts 404), "Official" vs "Unofficial" contradiction, embeds raw `x-gladia-key` in WSS URL query — evidence package locked, report-ready via bug-bounty portal |
-| compare-stt API usage | ENDPOINT_LEAK | **no** | Public demo app using documented public API (`https://api.gladia.io/v2`, `x-gladia-key` header) — expected behavior |
-| gladiaflow screenshot `sk-********` | TEST_OR_EXAMPLE | **no** | Clearly masked placeholder (asterisks) in test/fixture component |
-| Vercel AI SDK `@ai-sdk/gladia` | INTERESTING | **no** | Official integration from gladiaio org, linked in workspace |
-| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** | Marketing links, config defaults, public docs URLs, test data |
-
-**No new reportable findings this scan.** Surface remains frozen (90+ NO_DRIFT cycles on api.gladia.io). The sole reportable supply-chain issue (`gladia@0.1.3` orphaned impersonation) is already evidence-locked and portal-ready.
+[0m$ [0mls -la reposcan-raw/gladiaio/
+total 56
+drwxr-xr-x 14 runner runner 4096 Aug 15 16:10 .
+drwxr-xr-x  4 runner runner 4096 Aug 15 16:10 ..
+drwxr-xr-x  9 runner runner 4096 Aug 15 16:10 compare-stt
+drwxr-xr-x  9 runner runner 4096 Aug 15 16:10 docs
+drwxr-xr-x  7 runner runner 4096 Aug 15 16:10 gladia-cli
+drwxr-xr-x 11 runner runner 4096 Aug 15 16:10 gladia-quiz-app
+drwxr-xr-x 11 runner runner 4096 Aug 15 16:10 gladia-samples
+drwxr-xr-x  9 runner runner 4096 Aug 15 16:10 gladiaflow
+drwxr-xr-x  7 runner runner 4096 Aug 15 16:10 n8n-nodes-gladia
+drwxr-xr-x  8 runner runner 4096 Aug 15 16:10 normalization
+drwxr-xr-x  9 runner runner 4096 Aug 15 16:10 realtime-multilingual-asr-router
+drwxr-xr-x 10 runner runner 4096 Aug 15 16:10 sdk
+drwxr-xr-x  7 runner runner 4096 Aug 15 16:10 skills
+drwxr-xr-x 18 runner runner 4096 Aug 15 16:10 vercel-ai
 [0m
-**Triaged — 0 new reportable findings.**
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | head -300
+lockfileVersion: '9.0'
 
-All 617 hits classify as `TEST_OR_EXAMPLE` (marketing links, test data, config defaults), `ENDPOINT_LEAK` (public API base URLs and documented endpoints used as intended in demo apps), or `INTERESTING` (masked placeholder `sk-********` in screenshot fixture; official Vercel AI SDK integration).
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
-The only reportable candidate remains the pre-existing **`gladia@0.1.3` npm orphaned impersonation** (personal repo `alexisbouchez/gladia.ts` 404, "Official" vs "Unofficial" contradiction, raw `x-gladia-key` in WSS URL query) — already **ACCEPTED**, evidence-locked via 3× `npm pack` reproduction, and portal-ready via `gladia.io/bug-bounty-report` → Google Forms.
+overrides:
+  tinyexec: 1.0.2
+  oxlint: 1.56.0
 
-Surface frozen: 90+ NO_DRIFT cycles on `api.gladia.io` (OpenAPI 125131B/14 paths/7 webhooks, `/health`, `/v1/models`, preflight-only `x-powered-by`, CORS `*`), `app.gladia.io` `/signin` `redirect_to` reflection + CSP gap (0 `form-action` directives), npm supply-chain static.
+importers:
+
+  .:
+    devDependencies:
+      '@changesets/cli':
+        specifier: 2.27.10
+        version: 2.27.10
+      '@playwright/test':
+        specifier: ^1.60.0
+        version: 1.60.0
+      del-cli:
+        specifier: ^5.1.0
+        version: 5.1.0
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
+      konsistent:
+        specifier: 0.0.1-alpha.20
+        version: 0.0.1-alpha.20
+      konsistent-provider:
+        specifier: workspace:*
+        version: link:tools/konsistent-provider
+      lint-staged:
+        specifier: ^15.5.1
+        version: 15.5.2
+      next:
+        specifier: 15.0.7
+        version: 15.0.7(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.0.0-rc-cc1ec60d0d-20240607(react@19.0.0-rc-cc1ec60d0d-20240607))(react@19.0.0-rc-cc1ec60d0d-20240607)(sass@1.90.0)
+      oxfmt:
+        specifier: ^0.41.0
+        version: 0.41.0
+      oxlint:
+        specifier: 1.56.0
+        version: 1.56.0
+      playwright:
+        specifier: ^1.60.0
+        version: 1.60.0
+      publint:
+        specifier: 0.2.12
+        version: 0.2.12
+      react:
+        specifier: 19.0.0-rc-cc1ec60d0d-20240607
+        version: 19.0.0-rc-cc1ec60d0d-20240607
+      react-dom:
+        specifier: 19.0.0-rc-cc1ec60d0d-20240607
+        version: 19.0.0-rc-cc1ec60d0d-20240607(react@19.0.0-rc-cc1ec60d0d-20240607)
+      turbo:
+        specifier: 2.4.4
+        version: 2.4.4
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      ultracite:
+        specifier: 7.3.2
+        version: 7.3.2(oxlint@1.56.0)
+      update-ts-references:
+        specifier: ^3.6.0
+        version: 3.6.2
+      vitest:
+        specifier: 4.1.5
+        version: 4.1.5(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(jsdom@26.1.0)(msw@2.14.6(@types/node@22.19.19)(typescript@5.8.3))(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(less@4.4.0)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.47.1)(tsx@4.22.0)(yaml@2.9.0))
+
+  examples/ai-e2e-next:
+    dependencies:
+      '@ai-sdk/amazon-bedrock':
+        specifier: workspace:*
+        version: link:../../packages/amazon-bedrock
+      '@ai-sdk/anthropic':
+        specifier: workspace:*
+        version: link:../../packages/anthropic
+      '@ai-sdk/azure':
+        specifier: workspace:*
+        version: link:../../packages/azure
+      '@ai-sdk/cohere':
+        specifier: workspace:*
+        version: link:../../packages/cohere
+      '@ai-sdk/deepseek':
+        specifier: workspace:*
+        version: link:../../packages/deepseek
+      '@ai-sdk/fireworks':
+        specifier: workspace:*
+        version: link:../../packages/fireworks
+      '@ai-sdk/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@ai-sdk/google-vertex':
+        specifier: workspace:*
+        version: link:../../packages/google-vertex
+      '@ai-sdk/groq':
+        specifier: workspace:*
+        version: link:../../packages/groq
+      '@ai-sdk/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
+      '@ai-sdk/mistral':
+        specifier: workspace:*
+        version: link:../../packages/mistral
+      '@ai-sdk/openai':
+        specifier: workspace:*
+        version: link:../../packages/openai
+      '@ai-sdk/otel':
+        specifier: workspace:*
+        version: link:../../packages/otel
+      '@ai-sdk/perplexity':
+        specifier: workspace:*
+        version: link:../../packages/perplexity
+      '@ai-sdk/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@ai-sdk/provider-utils':
+        specifier: workspace:*
+        version: link:../../packages/provider-utils
+      '@ai-sdk/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@ai-sdk/rsc':
+        specifier: workspace:*
+        version: link:../../packages/rsc
+      '@ai-sdk/valibot':
+        specifier: workspace:*
+        version: link:../../packages/valibot
+      '@ai-sdk/xai':
+        specifier: workspace:*
+        version: link:../../packages/xai
+      '@langfuse/otel':
+        specifier: ^4.6.1
+        version: 4.6.1(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.7.1(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.211.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.1(@opentelemetry/api@1.9.1))
+      '@langfuse/tracing':
+        specifier: ^5.3.0
+        version: 5.3.0(@opentelemetry/api@1.9.1)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.76)
+      '@opentelemetry/sdk-trace-node':
+        specifier: ^2.7.1
+        version: 2.7.1(@opentelemetry/api@1.9.1)
+      '@radix-ui/react-collapsible':
+        specifier: ^1.1.12
+        version: 1.1.12(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-use-controllable-state':
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react@18.3.28)(react@18.3.1)
+      '@valibot/to-json-schema':
+        specifier: ^1.7.0
+        version: 1.7.0(valibot@1.1.0(typescript@5.8.3))
+      '@vercel/blob':
+        specifier: ^0.26.0
+        version: 0.26.0
+      '@vercel/sandbox':
+        specifier: ^2.0.1
+        version: 2.1.1
+      ai:
+        specifier: workspace:*
+        version: link:../../packages/ai
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.545.0
+        version: 0.545.0(react@18.3.1)
+      next:
+        specifier: ^15.5.18
+        version: 15.5.18(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.90.0)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      react-markdown:
+        specifier: 9.0.1
+        version: 9.0.1(@types/react@18.3.28)(react@18.3.1)
+      redis:
+        specifier: ^4.7.1
+        version: 4.7.1
+      resumable-stream:
+        specifier: ^2.2.12
+        version: 2.2.12
+      streamdown:
+        specifier: ^1.6.11
+        version: 1.6.11(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@18.3.1)
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.19(tsx@4.22.0)(yaml@2.9.0))
+      valibot:
+        specifier: 1.1.0
+        version: 1.1.0(typescript@5.8.3)
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.19
+        version: 22.19.19
+      '@types/react':
+        specifier: ^18.3.28
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.7
+        version: 18.3.7(@types/react@18.3.28)
+      autoprefixer:
+        specifier: ^10.5.0
+        version: 10.5.0(postcss@8.5.14)
+      postcss:
+        specifier: ^8.5.14
+        version: 8.5.14
+      tailwindcss:
+        specifier: ^3.4.19
+        version: 3.4.19(tsx@4.22.0)(yaml@2.9.0)
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
+  examples/ai-functions:
+    dependencies:
+      '@ai-sdk/alibaba':
+        specifier: workspace:*
+        version: link:../../packages/alibaba
+      '@ai-sdk/amazon-bedrock':
+        specifier: workspace:*
+        version: link:../../packages/amazon-bedrock
+      '@ai-sdk/anthropic':
+        specifier: workspace:*
+        version: link:../../packages/anthropic
+      '@ai-sdk/anthropic-aws':
+        specifier: workspace:*
+        version: link:../../packages/anthropic-aws
+      '@ai-sdk/assemblyai':
+        specifier: workspace:*
+        version: link:../../packages/assemblyai
+      '@ai-sdk/azure':
+        specifier: workspace:*
+        version: link:../../packages/azure
+      '@ai-sdk/baseten':
+        specifier: workspace:*
+        version: link:../../packages/baseten
+      '@ai-sdk/black-forest-labs':
+        specifier: workspace:*
+        version: link:../../packages/black-forest-labs
+      '@ai-sdk/bytedance':
+        specifier: workspace:*
+        version: link:../../packages/bytedance
+      '@ai-sdk/cerebras':
+        specifier: workspace:*
+        version: link:../../packages/cerebras
+      '@ai-sdk/cohere':
+        specifier: workspace:*
+        version: link:../../packages/cohere
+      '@ai-sdk/deepgram':
+        specifier: workspace:*
+        version: link:../../packages/deepgram
+      '@ai-sdk/deepinfra':
+        specifier: workspace:*
+        version: link:../../packages/deepinfra
+      '@ai-sdk/deepseek':
+        specifier: workspace:*
+        version: link:../../packages/deepseek
+      '@ai-sdk/devtools':
+        specifier: workspace:^
+        version: link:../../packages/devtools
+      '@ai-sdk/elevenlabs':
+        specifier: workspace:*
+        version: link:../../packages/elevenlabs
+      '@ai-sdk/fal':
+        specifier: workspace:*
+        version: link:../../packages/fal
+      '@ai-sdk/fireworks':
+        specifier: workspace:*
+        version: link:../../packages/fireworks
+      '@ai-sdk/gateway':
+        specifier: workspace:*
+        version: link:../../packages/gateway
+      '@ai-sdk/gladia':
+        specifier: workspace:*
+        version: link:../../packages/gladia
+      '@ai-sdk/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@ai-sdk/google-vertex':
+        specifier: workspace:*
+        version: link:../../packages/google-vertex
+      '@ai-sdk/groq':
+        specifier: workspace:*
+        version: link:../../packages/groq
+[0m
+The `sk-********` in Gallery.tsx is a **masked placeholder** (10 asterisks) in a screenshot/mock file - not a real secret. The vercel-ai `@ai-sdk/gladia` is the official Vercel AI SDK workspace package.
+
+---
+
+### Classification Table
+
+| Category | Files | Verdict |
+|----------|-------|---------|
+| **REAL_SECRET** | 0 | — |
+| **TEST_OR_EXAMPLE** | 1 (gladiaflow/screenshots/Gallery.tsx:17 `sk-********`, line 168 `****************`, line 222 `sk-example`) | Mock data for UI screenshots |
+| **ENDPOINT_LEAK** | 0 | All gladia.io/api.gladia.io/app.gladia.io refs are public prod endpoints |
+| **INTERESTING** | 1 (npm `gladia@0.1.3` orphaned impersonation) | Already tracked — personal repo `alexisbouchez/gladia.ts` + user 404, dist-tag `latest=0.1.3`, description "Official" vs README "Unofficial", src/client.ts embeds raw `x-gladia-key` in WSS URL query |
+
+---
+
+### SHORT VERDICT
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `gladia@0.1.3` orphaned impersonation (npm) | **yes** — supply-chain API key harvesting + irrevocable account takeover; evidence locked across 90+ cycles; report via https://gladia.io/bug-bounty-report |
+| `sk-********` in Gallery.tsx | **no** — masked placeholder in screenshot mock |
+| All gladia.io / api.gladia.io / app.gladia.io references | **no** — public production endpoints |
+| `@ai-sdk/gladia` in vercel-ai | **no** — official Vercel AI SDK workspace package |
+
+**No new findings this cycle.** Delta = 0 hit lines vs previous scan. The sole reportable anomaly remains the pre-existing `gladia@0.1.3` npm impersonation.
