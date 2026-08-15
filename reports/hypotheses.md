@@ -3601,3 +3601,36 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage.
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinfor
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, health 15B, /v1/models 53
+
+## RANKED HYPOTHESES 2026-08-15 13:36:18 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: Post-auth open redirect via /signin redirect_to reflection + missing CSP form-action directive (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete Google SSO on https://app.gladia.io/signin?redirect_to=https://evil.example.com using a controlled test Google account (not production credentia
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report (P2/High: raw API key in wss:// URL query + irrevocable namespace takeover; sha256 `3b23ec
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 90+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, 
+- LEARN: ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha2
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (90+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook d
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents co
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
+- LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, 90+ cycles co
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA error page, no internal detail leak — not a vuln class
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B `{"health":"OK"}` endpoint returns 200 — not in OpenAPI spec (90+ cycles)
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinfor
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: x-powered-by: Express present on OPTIONS preflight only (absent on GET/POST 401) — framework fingerprint only, 90+ cycles co
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} on t
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgra
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus/debug/Spring Boot Actuator; surface dead.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B {"health":"OK"} endpoint returns 200 — not in OpenAPI spec (90+ cycles).
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI servers array single entry https://api.gladia.io only — no staging/alternate host leakage.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 webhooks key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinforce
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (health 15B, /v1/models 530B, openapi 125131B, signin 27448B, n
