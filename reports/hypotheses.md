@@ -3844,3 +3844,13 @@
 - NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
 - NEXT(hypotheses-laguna.txt): HUMAN: Since phase=POC/target=app, the active lead is the OATH hypothesis — navigate to https://app.gladia.io/signin?redirect_to=https://evil.example.com, compl
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+
+## RANKED HYPOTHESES 2026-08-15 21:54:17 UTC
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: Post-auth open redirect via reflected redirect_to on signin form action (from reports/hypotheses-nemotron3.txt)
+- [50] app.gladia.io: Post-auth redirect_to honored to external host after OAuth signin (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): HUMAN: Since phase=POC/target=app, the active lead is the OATH hypothesis — navigate to https://app.gladia.io/signin?redirect_to=https://evil.example.com, compl
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Since phase=POC/target=api, the active lead is the SSRF hypothesis — with an authorized `x-gladia-key`, POST /v2/pre-recorded `{"audio_url":"http://<self
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, health 15B, /v1/models 53
