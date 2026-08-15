@@ -946,3 +946,4 @@
 - 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: /health undocumented 15B `{"health":"OK"}` endpoint returns 200 — not in OpenAPI spec (90+ cycles).
 - 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage.
 - 2026-08-15 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinforces callback-delivery SSRF surface.
+- 2026-08-15 REJECTED MISCONFIG @ app.gladia.io: per-instance codegen fingerprint falsified — etag rotates due to dynamic example timestamps, not surface drift (90+ cycles).
