@@ -3506,3 +3506,11 @@
 - LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tam
 - LEARN: ACCEPTED MISCONFIG @ gladia.io: bug-bounty-report endpoint redirects to Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+
+## RANKED HYPOTHESES 2026-08-15 10:32:31 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via the confirmed Gladia bug-bounty portal — `https://gladia.io/bug-bounty-report` (301→ww
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report (P2/High: raw API key in wss:// URL query + irrevocable namespace takeover; sha256 `3b23ec
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
