@@ -6952,3 +6952,4 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 90 — Surface frozen 90+ cycles: OpenAPI 125131B/14 paths/7 webhooks exposed (CORS `*` + ACAH x-gladia-key), /health 15B undocumented, /v1/models 530B (FR+US egress), SSRF-by-design (audio_url/video_url/callback_config.url no scheme allowlist + 7 webhook delivery paths), WebSocket token-in-URL per spec, preflight-only x-powered-by: Express fingerprint, POST 401 NestJS key-gated.
 [RISK] sdk: 87 — `gladia@0.1.3` at dist-tag `latest` impersonates official SDK, leaks raw API key in wss:// URL query (sha256 verified reproducible across three independent runs, orphaned repo+user 404, irrevocable namespace takeover); official @gladiaio/sdk@1.1.0 + gladiaio-sdk@1.0.5 clean/generated-from-spec; supply-chain surface static.
 ## 2026-08-15 05:44:58 UTC [app] (model laguna)
+## 2026-08-15 06:04:32 UTC [app] (model laguna)
