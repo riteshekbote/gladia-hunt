@@ -7867,3 +7867,13 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 55 — SSRF-by-design fetch surface (audio_url/video_url/callback/webhooks, no scheme allowlist) persists but is key-gated with no bypass found in 90+ cycles; key exposure to wss URL query via impersonated SDK amplifies.
 [RISK] app.gladia.io: 45 — OATH reflection + CSP form-action gap persist, but OAuth redirect_uri FIXED (PKCE S256) and return-to tamper-reset close the two realistic escalation paths; sole residual is post-auth honoring (unverified).
 [RISK] sdk: 65 — `gladia@0.1.3` at dist-tag `latest` actively impersonates the official SDK, orphaned namespace (irrevocable), and leaks raw keys into WebSocket URLs; `@gladiaio/sdk@1.1.0` and `gladiaio-sdk@1.0.5` verified clean.
+## 2026-08-15 19:00:28 UTC [api] (model bigpickle)
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: spec frozen fresh — audio_url/video_url plain string + CallbackConfig.url `format:uri`, no scheme allowlist; 7 webhook topics POST to client URLs; /v1/models public confirms FR/US egress; no-key POST → 401/144 NestJS, key sole gate, no bypass found in 90+ cycles.
+evidence_needed: reachability reflection (error/timing) from self-owned canary, or callback POST received at self-owned endpoint.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}`; repeat video_url + callback_config.url + 7 webhook topics; self-owned data only.
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
