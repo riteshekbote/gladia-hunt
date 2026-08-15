@@ -1,27 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls -la reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
--rw-r--r-- 1 runner runner 13224 Aug 15 11:45 reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m$ [0mls -la reposcan-raw/gladiaio/
+total 56
+drwxr-xr-x 14 runner runner 4096 Aug 15 11:47 .
+drwxr-xr-x  4 runner runner 4096 Aug 15 11:47 ..
+drwxr-xr-x  9 runner runner 4096 Aug 15 11:47 compare-stt
+drwxr-xr-x  9 runner runner 4096 Aug 15 11:47 docs
+drwxr-xr-x  7 runner runner 4096 Aug 15 11:47 gladia-cli
+drwxr-xr-x 11 runner runner 4096 Aug 15 11:48 gladia-quiz-app
+drwxr-xr-x 11 runner runner 4096 Aug 15 11:47 gladia-samples
+drwxr-xr-x  9 runner runner 4096 Aug 15 11:47 gladiaflow
+drwxr-xr-x  7 runner runner 4096 Aug 15 11:47 n8n-nodes-gladia
+drwxr-xr-x  8 runner runner 4096 Aug 15 11:47 normalization
+drwxr-xr-x  9 runner runner 4096 Aug 15 11:47 realtime-multilingual-asr-router
+drwxr-xr-x 10 runner runner 4096 Aug 15 11:47 sdk
+drwxr-xr-x  7 runner runner 4096 Aug 15 11:47 skills
+drwxr-xr-x 18 runner runner 4096 Aug 15 11:48 vercel-ai
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=30][0m
 ### Classification Tables
 
 #### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `sk-********` | Masked placeholder in mock settings for screenshot/demo UI |
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** — masked placeholder in screenshot/demo component |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (expected, documented in OpenAPI) |
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | **ENDPOINT_LEAK** — public documented API base (already in OpenAPI spec) |
+| `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | `"x-gladia-key": apiKey` | **ENDPOINT_LEAK** — public auth header name (documented in OpenAPI) |
+| `compare-stt/next.config.ts` | 38, 44 | `destination: "https://www.gladia.io/compare-stt-apis"` | **ENDPOINT_LEAK** — public marketing rewrite rule |
+| `compare-stt/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **ENDPOINT_LEAK** — public dashboard URL pattern |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **ENDPOINT_LEAK** — public dashboard URL |
+| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/...` | **ENDPOINT_LEAK** — public docs URL |
+| Multiple `compare-stt` files | Various | `https://gladia.io`, `https://www.gladia.io`, `mailto:privacy@gladia.io` | **ENDPOINT_LEAK** — public marketing/contact links |
 
 #### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289-291 | `@ai-sdk/gladia` linked from local `packages/gladia` | Official Vercel AI SDK integration (gladiaio org) |
-| All other 590+ hits | — | gladia.io / api.gladia.io / app.gladia.io references | Legitimate internal references in own codebases (docs, configs, marketing links) |
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| `vercel-ai/pnpm-lock.yaml` | 289, 291, 2368 | `@ai-sdk/gladia` linked to `../../packages/gladia` | **INTERESTING** — official Vercel AI SDK integration (gladiaio org) |
+| `gladiaflow/package.json` / `Cargo.toml` | — | `name: "gladiaflow"`, authors `Gladia <support@gladia.io>` | **INTERESTING** — official Tauri desktop app |
+| `compare-stt/src/lib/providers.ts` | 10 | `slug: "gladia", model: "Solaria-3"` | **INTERESTING** — public model name in comparison tool |
 
 ---
 
@@ -29,12 +49,18 @@
 
 | Candidate | Category | REPORT_CANDIDATE | Reason |
 |-----------|----------|------------------|--------|
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** | Masked placeholder in screenshot mock data |
-| `https://api.gladia.io/v2` in provider | ENDPOINT_LEAK | **no** | Public documented API endpoint |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** | Official Vercel AI SDK integration from gladiaio org |
-| `gladia@0.1.3` npm impersonation | (pre-existing) | **no (already reported)** | Orphaned personal repo impersonation — **already ACCEPTED** in knowledge base (2026-08-07 through 2026-08-15), evidence package locked, report-ready via bug-bounty portal |
+| `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` | TEST_OR_EXAMPLE | **no** | Masked placeholder in screenshot/demo file |
+| Public API endpoints (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io`) | ENDPOINT_LEAK | **no** | All documented, public, in-scope surfaces |
+| Auth header `x-gladia-key` usage | ENDPOINT_LEAK | **no** | Documented in OpenAPI spec (`security: x_gladia_key`) |
+| Vercel AI SDK `@ai-sdk/gladia` package | INTERESTING | **no** | Official integration in gladiaio org |
+| `gladiaflow` Tauri app | INTERESTING | **no** | Official desktop app, public repo |
+| Model name "Solaria-3" | INTERESTING | **no** | Public marketing name in comparison tool |
 
 ---
 
 ### Summary
-**DELTA: 0 new reportable findings.** All 617 hits are legitimate internal references, test/mock data, or previously documented findings. The `gladia@0.1.3` orphaned impersonation remains the sole supply-chain anomaly — already triaged, verified (3× local `npm pack` reproduces sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`), and submission-ready via https://gladia.io/bug-bounty-report (Google Forms, Google SSO auth-gated).
+**No new reportable findings this scan.**  
+- **DELTA: 0** new hit lines confirmed  
+- All hits are either **TEST_OR_EXAMPLE** (masked placeholder), **ENDPOINT_LEAK** (public documented surfaces), or **INTERESTING** (official integrations/metadata)  
+- The previously accepted `gladia@0.1.3` npm impersonation anomaly remains the sole supply-chain candidate (already tracked, evidence package locked)  
+- All API/app surfaces remain **NO_DRIFT** frozen across 90+ cycles per knowledge base
