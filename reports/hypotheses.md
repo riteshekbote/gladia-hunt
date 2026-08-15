@@ -3634,3 +3634,6 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI servers array single entry https://api.gladia.io only — no staging/alternate host leakage.
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 webhooks key enumerates 7 outbound topics (transcription.* + live.*) posting to client-supplied URLs — reinforce
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (health 15B, /v1/models 530B, openapi 125131B, signin 27448B, n
+
+## RANKED HYPOTHESES 2026-08-15 13:58:27 UTC
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
