@@ -1,30 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Table**
+### Classification Tables
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | *(none)* | No hardcoded credentials with signs of life. The only key-like hit is `sk-********` (masked placeholder). |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`apiKey: "sk-********"`) | Masked placeholder in screenshot/example code — not a real secret. |
-| **ENDPOINT_LEAK** | *(none)* | All URLs reference official Gladia domains (`api.gladia.io`, `app.gladia.io`, `docs.gladia.io`, `www.gladia.io`, `gladia.io`). |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289` (`@ai-sdk/gladia` linked from `../../packages/gladia`) | Official Vercel AI SDK integration for Gladia (part of gladiaio org monorepo). |
-| **INTERESTING** | `compare-stt/src/lib/providers/gladia.ts:3,36,49` (uses `https://api.gladia.io/v2` + `x-gladia-key` header) | Expected official SDK usage pattern — matches OpenAPI spec. |
-| **INTERESTING** | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` (`API_KEYS_URL = "https://app.gladia.io/apikeys"`) | Legitimate deep-link to official dashboard. |
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-**Verdict List**
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot/example |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Test fixtures for vocabulary validation |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base (already in OpenAPI) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | Public dashboard URL pattern |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public API keys page |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public documentation |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36, 49 | Auth pattern: `headers: { "x-gladia-key": apiKey }` — confirms header-based auth |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked to local `packages/gladia` — **official Vercel AI SDK integration** maintained in gladiaio org |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — official contact |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | Rewrites to `https://www.gladia.io/compare-stt-apis` — marketing proxy config |
+
+---
+
+### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` orphaned impersonation (npm) | **yes** | Already ACCEPTED in KB — package claims "Official", repo `alexisbouchez/gladia.ts` + user 404, embeds raw `x-gladia-key` in wss:// URL query, dist-tag `latest=0.1.3` persists. Evidence package locked, report-ready. |
-| SSRF-by-design @ `api.gladia.io` (audio_url/video_url/callback_config.url, 7 webhooks, FR/US egress) | **yes** | Already ACCEPTED in KB — spec+RAG frozen 90+ cycles, no scheme allowlist, key-gated only (AUTH_HELPED). |
-| `/signin?redirect_to=` form-action reflection @ `app.gladia.io` (CSP lacks `form-action`) | **yes** | Already ACCEPTED in KB — unauthenticated reflection byte-fresh 90+ cycles, post-auth honoring sole unverified gate (HUMAN_ONLY). |
-| Undocumented `/health` @ `api.gladia.io` | **yes** | Already ACCEPTED in KB — returns 200 `{"health":"OK"}`, not in OpenAPI spec. |
-| Preflight-only `x-powered-by: Express` fingerprint @ `api.gladia.io` | **yes** | Already ACCEPTED in KB — OPTIONS 204 leaks framework, GET/POST 401 does not. |
-| OpenAPI `webhooks` (7 outbound topics) @ `api.gladia.io` | **yes** | Already ACCEPTED in KB — callback-delivery SSRF surface, no scheme allowlist. |
-| CSP missing `form-action` @ `app.gladia.io` | **yes** | Already ACCEPTED in KB — enables `/signin` form-action reflection, gap confirmed not oversight. |
-| `oauth2:<uuid>` state cookie missing `Secure` flag @ `app.gladia.io` | **yes** | Already ACCEPTED in KB — HSTS preload mitigates to informational. |
-| `sk-********` in `gladiaflow` screenshot | **no** | Masked placeholder, not a real secret (TEST_OR_EXAMPLE). |
-| All other grep hits | **no** | Legitimate references to official Gladia domains, docs, dashboard, and the official `@ai-sdk/gladia` integration. |
+| `gladia@0.1.3` npm impersonation (personal repo, "Official" description) | **YES** | Already ACCEPTED in knowledge base (orphaned impersonation, key-in-WSS-URL, GitHub 404) — report-ready via bug-bounty portal |
+| `gladiaflow` screenshot placeholder `sk-********` | NO | Masked/test placeholder, not a real secret |
+| `@ai-sdk/gladia` in vercel-ai | NO | Official integration in gladiaio org (verified in lockfile) |
+| Public endpoint references (api.gladia.io, app.gladia.io, docs.gladia.io) | NO | All public, documented surfaces |
+| Auth header pattern `x-gladia-key` | NO | Confirmed by OpenAPI spec, not a leak |
 
-**Summary**: No new reportable findings this cycle. The scan delta is 0 new hit lines. All live findings were already ACCEPTED in prior cycles and remain valid. The only supply-chain anomaly is the pre-existing `gladia@0.1.3` orphaned impersonation (report-ready).
+**Summary**: No **new** reportable findings this scan. The sole live candidate remains the orphaned `gladia@0.1.3` npm package (already tracked, evidence package locked, submission pending via `gladia.io/bug-bounty-report` → Google Forms). All other hits are public config, test fixtures, or official integrations.
