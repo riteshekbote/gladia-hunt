@@ -1,4 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[91m[1mError: [0mError from provider (Console): Upstream request failed: [404] Provider returned error
+Based on the scan results and knowledge base, here's the triage:
+
+## Classification Table
+
+| Category | Files | Notes |
+|----------|-------|-------|
+| **REAL_SECRET** | 0 | The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a masked placeholder in a screenshot/demo file, not a live credential |
+| **TEST_OR_EXAMPLE** | 600+ | Normal references: gladia.io domains, API endpoints (`api.gladia.io/v2`), package names, OAuth redirects, tracking IDs, comparison site links |
+| **ENDPOINT_LEAK** | 0 | All referenced endpoints are public (api.gladia.io/v2/*, app.gladia.io/*, www.gladia.io) |
+| **INTERESTING** | 2 | 1. `gladia@0.1.3` npm package ownership anomaly (personal repo, "Official" vs "Unofficial" contradiction) — already tracked in KB<br>2. `vercel-ai` repo uses `@ai-sdk/gladia` (official Vercel AI SDK integration from gladiaio org) |
+
+## Verdict
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonation | **yes** | Orphaned personal repo (alexisbouchez/gladia.ts + user 404), dist-tag `latest` persists, `package.json` claims "Official" vs README "Unofficial", embeds raw API key in WSS URL query (`x-gladia-key`) — **report-ready, evidence locked** |
+| `sk-********` in Gallery.tsx | no | Masked placeholder in screenshot/demo file |
+| All other hits | no | Expected public references in comparison site, SDK samples, client apps |
+
+**Summary**: No new findings this scan (0 delta). The sole reportable candidate remains the `gladia@0.1.3` orphaned impersonation package — already validated across 90+ cycles with local `npm pack` reproduction (sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`). Supply-chain surface static.
