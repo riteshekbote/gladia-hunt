@@ -1,343 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
-import React, { useRef, useState } from "react";
-import { SidebarNav, type NavScreen } from "../components/SidebarNav";
-import { PermissionsView } from "../components/PermissionsView";
-import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
-import { HomeView } from "../components/HomeView";
-import { HistoryView } from "../components/HistoryView";
-import { CustomVocabularyView } from "../components/CustomVocabularyView";
-import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
-import { AppSettingsView } from "../components/AppSettingsView";
-import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
-import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
-import { EUROPEAN_LANGUAGES } from "../lib/languages";
-import type { AppSettings, TranscriptionHistoryPage } from "../types";
-
-const noop = () => {};
-const MOCK_SETTINGS: AppSettings = {
-  apiKey: "sk-********",
-  languages: ["en", "fr"],
-  activationMode: "push-to-talk",
-  audioDevice: "",
-  audioDeviceSelection: { mode: "automatic" },
-  hotkey: "Fn",
-  codeSwitching: false,
-  copyToClipboard: false,
-  endpointing: 0.1,
-  customVocabulary: [
-    ...DEFAULT_CUSTOM_VOCABULARY,
-    {
-      value: "WebSocket",
-      intensity: 0.7,
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && sha256sum <<< "sk-********"
+af23333ebe25341456fdfb7083ef4846e1c54cb15d2861c43f7b7b3e70dd01a9  -
 [0m
-[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-import type { TranscribeResult, WordTimestamp } from "../transcribe";
+### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *(none)* |  |  | No live credentials found |
 
-const GLADIA_BASE = "https://api.gladia.io/v2";
-
-interface GladiaWord {
-  word: string;
-  start: number;
-  end: number;
-}
-
-interface GladiaUtterance {
-  text: string;
-  words: GladiaWord[];
-}
-
-export async function transcribeWithGladia(
-  audio: Buffer,
-  mimeType: string
-): Promise<TranscribeResult> {
-  const apiKey = process.env.GLADIA_API_KEY;
-  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
-
-  const start = Date.now();
-
-  const ext = mimeType.includes("wav") ? "audio.wav"
-    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
-    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
-    : mimeType.includes("ogg") ? "audio.ogg"
-    : "audio.webm";
-
-  const uploadForm = new FormData();
-  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
-
-  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
-    method: "POST",
-    headers: { "x-gladia-key": apiKey },
-    body: uploadForm,
-  });
-
-  if (!uploadRes.ok) {
-    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
-  }
-
-  const { audio_url } = await uploadRes.json();
-
-  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
-    method: "POST",
-    headers: {
-      "x-gladia-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      audio_url,
-      model: "solaria-3",
-      punctuation_enhanced: true,
-      language_config: { code_switching: false },
-    }),
-  });
-
-  if (!transcribeRes.ok) {
-    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
-  }
-
-  const { result_url } = await transcribeRes.json();
-
-  const { transcript, words } = await pollForResult(result_url, apiKey);
-  const durationMs = Date.now() - start;
-
-  return { transcript, words, durationMs };
-}
-
-async function pollForResult(
-  resultUrl: string,
-  apiKey: string
-): Promise<{ transcript: string; words: WordTimestamp[] }> {
-  const maxAttempts = 60;
-  const interval = 1000;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    const res = await fetch(resultUrl, {
-      headers: { "x-gladia-key": apiKey },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Gladia poll failed: ${res.status}`);
-    }
-
-    const data = await res.json();
-
-    if (data.status === "done") {
-      const utterances: GladiaUtterance[] | undefined =
-        data.result?.transcription?.utterances;
-
-      if (utterances && Array.isArray(utterances)) {
-        const transcript = utterances.map((u) => u.text).join(" ");
-        const words: WordTimestamp[] = utterances.flatMap((u) =>
-          (u.words || []).map((w) => ({
-            word: w.word,
-            start: w.start,
-            end: w.end,
-          }))
-        );
-        return { transcript, words };
-      }
-
-      const fullTranscript = data.result?.transcription?.full_transcript;
-      return { transcript: fullTranscript || "", words: [] };
-    }
-
-    if (data.status === "error") {
-      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
-    }
-
-    await new Promise((r) => setTimeout(r, interval));
-  }
-
-  throw new Error("Gladia transcription timed out");
-}
-[0m
-[0m$ [0mls -la reposcan-raw/gladiaio/vercel-ai/packages/
-total 272
-drwxr-xr-x 68 runner runner 4096 Aug 15 23:27 .
-drwxr-xr-x 18 runner runner 4096 Aug 15 23:27 ..
-drwxr-xr-x  6 runner runner 4096 Aug 15 23:27 ai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 alibaba
-drwxr-xr-x  5 runner runner 4096 Aug 15 23:27 amazon-bedrock
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 angular
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 anthropic
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 anthropic-aws
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 assemblyai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 azure
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 baseten
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 black-forest-labs
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 bytedance
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 cerebras
-drwxr-xr-x  4 runner runner 4096 Aug 15 23:27 codemod
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 cohere
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 deepgram
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 deepinfra
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 deepseek
-drwxr-xr-x  5 runner runner 4096 Aug 15 23:27 devtools
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 elevenlabs
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 fal
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 fireworks
-drwxr-xr-x  4 runner runner 4096 Aug 15 23:27 gateway
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 gladia
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 google
-drwxr-xr-x  6 runner runner 4096 Aug 15 23:27 google-vertex
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 groq
-drwxr-xr-x  6 runner runner 4096 Aug 15 23:27 harness
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 harness-claude-code
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 harness-codex
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 harness-pi
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 huggingface
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 hume
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 klingai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 langchain
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 llamaindex
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 lmnt
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 luma
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 mcp
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 mistral
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 moonshotai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 open-responses
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 openai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 openai-compatible
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 otel
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 perplexity
-drwxr-xr-x  4 runner runner 4096 Aug 15 23:27 policy-opa
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 prodia
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 provider
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 provider-utils
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 quiverai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 react
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 replicate
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 revai
-drwxr-xr-x  5 runner runner 4096 Aug 15 23:27 rsc
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 sandbox-just-bash
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 sandbox-vercel
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 svelte
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 test-server
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 togetherai
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 tui
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 valibot
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 vercel
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 voyage
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 vue
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 workflow
-drwxr-xr-x  3 runner runner 4096 Aug 15 23:27 xai
-[0m
-[0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/packages/gladia/package.json
-{
-  "name": "@ai-sdk/gladia",
-  "version": "3.0.0-canary.48",
-  "type": "module",
-  "license": "Apache-2.0",
-  "sideEffects": false,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist/**/*",
-    "docs/**/*",
-    "src",
-    "!src/**/*.test.ts",
-    "!src/**/*.test-d.ts",
-    "!src/**/__snapshots__",
-    "!src/**/__fixtures__",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "directories": {
-    "doc": "./docs"
-  },
-  "scripts": {
-    "build": "tsup --tsconfig tsconfig.build.json",
-    "build:watch": "tsup --tsconfig tsconfig.build.json --watch",
-    "clean": "del-cli dist docs",
-    "prepack": "mkdir -p docs && cp ../../content/providers/01-ai-sdk-providers/120-gladia.mdx ./docs/",
-    "postpack": "del-cli docs",
-    "type-check": "tsc --noEmit",
-    "test": "pnpm test:node && pnpm test:edge",
-    "test:watch": "vitest --config vitest.node.config.js",
-    "test:edge": "vitest --config vitest.edge.config.js --run",
-    "test:node": "vitest --config vitest.node.config.js --run",
-    "test:node:watch": "vitest --config vitest.node.config.js --watch"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
-  "dependencies": {
-    "@ai-sdk/provider": "workspace:*",
-    "@ai-sdk/provider-utils": "workspace:*"
-  },
-  "devDependencies": {
-    "@ai-sdk/test-server": "workspace:*",
-    "@types/node": "22.19.19",
-    "@vercel/ai-tsconfig": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "5.6.3",
-    "zod": "3.25.76"
-  },
-  "peerDependencies": {
-    "zod": "^3.25.76 || ^4.1.8"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
-  "homepage": "https://ai-sdk.dev/docs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vercel/ai",
-    "directory": "packages/gladia"
-  },
-  "bugs": {
-    "url": "https://github.com/vercel/ai/issues"
-  },
-  "keywords": [
-    "ai"
-  ]
-}
-[0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *none* | — | — | No hardcoded credentials with signs of life |
-
-#### TEST_OR_EXAMPLE
+### TEST_OR_EXAMPLE
 | File | Line | Context |
 |------|------|---------|
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in mock settings for screenshots |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Test fixtures for vocabulary editor |
+| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Provider slug list for comparison testing |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Prisma seed data for Gladia provider |
+| reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment referencing marketing GTM stack |
+| reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | Comment about tracking ID sync |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config object (name, slug, logo, model) |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Unit test fixtures using "gladiaflow" strings |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | LocalStorage key constant |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | **Masked placeholder** `apiKey: "sk-********"` (sha256: `af23333ebe25341456fdfb7083ef4846e1c54cb15d2861c43f7b7b3e70dd01a9`) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| Multiple (compare-stt, gladiaflow) | Various | `https://api.gladia.io/v2`, `https://app.gladia.io`, `https://www.gladia.io` | **Public production endpoints** — not internal/staging; expected in SDK/client code |
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` (public marketing rewrite) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public API base, known) |
+| reposcan-raw/gladiaio/compare-stt/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` (public dashboard) |
+| reposcan-raw/gladiaio/compare-stt/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` (public dashboard) |
+| reposcan-raw/gladiaio/compare-stt/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` (public docs) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5, 20 | Site origin config (`www.gladia.io`) |
+| Multiple files | Various | Links to `github.com/gladiaio/...`, `gladia.io`, `www.gladia.io` (all public) |
 
-#### INTERESTING
+### INTERESTING
 | File | Line | Finding |
 |------|------|---------|
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/package.json | — | Official Vercel AI SDK integration `@ai-sdk/gladia` (v3.0.0-canary.48) — legitimate, published from vercel/ai monorepo |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | Correct runtime usage: `process.env.GLADIA_API_KEY` + `x-gladia-key` header — no hardcoded secrets |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | References `https://app.gladia.io/apikeys` for user onboarding — expected |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 51 | PostHog reverse proxy comment (third-party analytics) |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked as local workspace package (official Vercel AI SDK integration) |
 
 ---
 
-### SHORT VERDICT
-
+### VERDICT
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| Hardcoded API keys | **no** | Only masked placeholder `sk-********` in screenshot mock |
-| Internal/staging endpoint leaks | **no** | All endpoints are public production (api.gladia.io, app.gladia.io, www.gladia.io) |
-| Misleading/unofficial SDK packages | **no** | `@ai-sdk/gladia` is official Vercel integration; `gladia@0.1.3` anomaly already tracked in knowledge base (no new delta) |
-| Supply-chain risks | **no** | DELTA: 0 new hit lines vs previous scan — surface static |
-
-**Overall: No new reportable findings this cycle.** All targets byte-identical to 90+ prior frozen cycles. The `gladia@0.1.3` orphaned impersonation (npm) and SSRF-by-design (api.gladia.io) remain the only live ACCEPTED findings from prior cycles — both already evidence-locked and report-ready.
+| `gladiaflow/src/screenshots/Gallery.tsx:17` masked `sk-********` | **no** | Placeholder in screenshot/demo file; masked with asterisks; no live secret |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official Vercel AI SDK integration (Gladia-maintained), local workspace link |
+| PostHog reverse proxy | **no** | Standard analytics infrastructure, not a vulnerability |
+| All endpoint references | **no** | Public production endpoints (api.gladia.io, app.gladia.io, docs.gladia.io, www.gladia.io) |
+| **Overall** | **no** | **No reportable findings this scan** — 0 new hits, all surfaces previously cataloged
