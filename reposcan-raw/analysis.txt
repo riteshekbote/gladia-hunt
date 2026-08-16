@@ -1,54 +1,18 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=280, limit=30][0m
-### Classification Tables
+[0m← [0mWrite triage-report.md
+Wrote file successfully.
+[0m
+**Triage complete.** No new reportable findings in this scan.
 
-| Category | File:Line | Context | Classification |
-|----------|-----------|---------|----------------|
-| **REAL_SECRET** | *(none)* | No hardcoded live credentials found | — |
-| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts:8 | Test provider slugs array | TEST_OR_EXAMPLE |
-| | compare-stt/prisma/seed.ts:10 | Database seed data for Gladia provider | TEST_OR_EXAMPLE |
-| | compare-stt/src/lib/providers.ts:10 | Provider config object (name, slug, logo, color, model) | TEST_OR_EXAMPLE |
-| | compare-stt/src/lib/transcribe.ts:2,25,148 | Implementation using official @gladiaio/sdk pattern | TEST_OR_EXAMPLE |
-| | compare-stt/src/lib/providers/gladia.ts:3,36,49 | Provider implementation with `x-gladia-key` header | TEST_OR_EXAMPLE |
-| | gladiaflow/src/screenshots/Gallery.tsx:17 | `MOCK_SETTINGS` constant: `apiKey: "sk-********"` (masked placeholder for screenshots) | TEST_OR_EXAMPLE |
-| | gladiaflow/src/screenshots/Gallery.tsx:222 | `apiKeyDisplayValue="sk-example"` (explicit test value) | TEST_OR_EXAMPLE |
-| | gladiaflow/src/lib/customVocabulary.ts:8-9 | Default vocabulary terms ("gladiaflow", pronunciations) | TEST_OR_EXAMPLE |
-| | gladiaflow/src/lib/vocabularyEditor.test.ts:21,27,34 | Unit test expectations | TEST_OR_EXAMPLE |
-| | gladiaflow/src/lib/dictationStats.ts:11 | Storage key constant | TEST_OR_EXAMPLE |
-| | gladiaflow/package.json, package-lock.json, Cargo.toml, tauri.conf.json | Package metadata | TEST_OR_EXAMPLE |
-| | gladiaflow/src/main.tsx:4, App.tsx:264,274,284 | UI component imports and noop handlers | TEST_OR_EXAMPLE |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts:38,44,51 | Vercel rewrites to `https://www.gladia.io/compare-stt-apis` (public marketing) | ENDPOINT_LEAK (public) |
-| | compare-stt/src/app/layout.tsx:87 | Link to `https://www.gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/app/terms/page.tsx:45,72,107 | Links to `gladia.io`, `www.gladia.io/legal/terms-of-use` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/app/methodology/page.tsx:80,490,513 | GitHub repo links and `gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/app/about/page.tsx:68,156,172 | Links to GitHub, `gladia.io`, `privacy@gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/components/hero-provider-logos.tsx:7 | `mailto:privacy@gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/components/arena-page.tsx:270,341,427 | GitHub links to normalization repo | ENDPOINT_LEAK (public) |
-| | compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28 | SEO schema URL `https://gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/lib/leaderboard-articles.ts:37,46 | Blog article URLs on `www.gladia.io` | ENDPOINT_LEAK (public) |
-| | compare-stt/src/lib/site.ts:5,20 | `NEXT_PUBLIC_SITE_ORIGIN` default `https://www.gladia.io`, citation domain | ENDPOINT_LEAK (public) |
-| | compare-stt/src/lib/providers/gladia.ts:3 | `GLADIA_BASE = "https://api.gladia.io/v2"` (public API base) | ENDPOINT_LEAK (public) |
-| | gladiaflow/src/components/TranscriptionHistory.tsx:19 | URL template `https://app.gladia.io/transcriptions/live/${sessionId}` | ENDPOINT_LEAK (public) |
-| | gladiaflow/src/components/CustomVocabularyView.tsx:14 | Docs URL `https://docs.gladia.io/...` | ENDPOINT_LEAK (public) |
-| | gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | ENDPOINT_LEAK (public) |
-| **INTERESTING** | compare-stt/src/components/tracking/gladia-analytics.tsx:5 | Custom analytics wrapper (GTM + PostHog) matching marketing site | INTERESTING |
-| | compare-stt/src/lib/tracking.ts:2 | Tracking IDs synced with gladia-marketing | INTERESTING |
-| | vercel-ai/pnpm-lock.yaml:289-291,2368 | `@ai-sdk/gladia` workspace package — **official Vercel AI SDK integration for Gladia** | INTERESTING |
-| | vercel-ai/tsconfig.json:70 | Path mapping to `packages/gladia` (provider implementation) | INTERESTING |
+| Category | Count | Reportable |
+|----------|-------|------------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | 1 (`sk-********` in screenshot fixture) | no |
+| ENDPOINT_LEAK | ~20 (all public API/dashboard/marketing URLs) | no |
+| INTERESTING | 4 (official Vercel AI SDK integration, Tauri app metadata, provider registry) | no |
 
----
+The sole pre-existing supply-chain anomaly remains `gladia@0.1.3` on npm (personal repo `alexisbouchez/gladia.ts`, "Official" vs "Unofficial" contradiction, raw API key in WebSocket URL query) — already tracked and report-ready.
 
-### Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE | Rationale |
-|-----------|----------|------------------|-----------|
-| `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) | TEST_OR_EXAMPLE | **no** | Masked placeholder in `MOCK_SETTINGS` constant for screenshot generation; companion line 222 uses explicit `sk-example` |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** | Official Vercel AI SDK provider package (workspace-linked), not a leak — confirms Gladia is a supported provider in the AI SDK ecosystem |
-| All `https://api.gladia.io`, `https://app.gladia.io`, `https://www.gladia.io`, `https://docs.gladia.io` references | ENDPOINT_LEAK (public) | **no** | All point to production/public endpoints; no internal/staging/dev URLs detected |
-| Tracking/analytics implementation (compare-stt) | INTERESTING | **no** | Internal analytics wiring, no secrets or PII |
-| compare-stt Gladia provider implementation | TEST_OR_EXAMPLE | **no** | Example integration using official `x-gladia-key` header pattern |
-
-**Overall**: **No reportable findings** in this delta. The scan surface is stable (0 new hit lines). The only "interesting" signal is the official `@ai-sdk/gladia` provider in the Vercel AI SDK monorepo, which is expected and public.
+Full report written to `triage-report.md`.
