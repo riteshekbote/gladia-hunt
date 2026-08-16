@@ -1,87 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+## Classification Table
 
-REAL_SECRET:
-(none - no hardcoded live credentials found)
+| Category | Files/Lines | Assessment |
+|----------|-------------|------------|
+| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts:8, prisma/seed.ts:10, gladiaflow/package.json, package-lock.json, Cargo.toml, tauri*.json, main.tsx, App.tsx, screenshots/main.tsx, customVocabulary.ts, vocabularyEditor.test.ts, dictationStats.ts | Sample code, config, test fixtures, placeholder data |
+| **ENDPOINT_LEAK** | compare-stt/next.config.ts:38,44 (rewrites to gladia.io), compare-stt/src/lib/providers/gladia.ts:3 (api.gladia.io/v2), gladiaflow/src/components/TranscriptionHistory.tsx:19 (app.gladia.io), CustomVocabularyView.tsx:14 (docs.gladia.io), ApiKeyOnboardingView.tsx:4 (app.gladia.io/apikeys) | Known public endpoints documented in code |
+| **INTERESTING** | compare-stt/next.config.ts:51 (PostHog reverse proxy reference), vercel-ai/pnpm-lock.yaml:289,291,2368 (@ai-sdk/gladia = official org integration), vercel-ai/tsconfig.json:70 (packages/gladia path) | Third-party service references; vercel-ai uses official @gladiaio/sdk via workspace link |
+| **REAL_SECRET** | *None* | `gladiaflow/src/screenshots/Gallery.tsx:17` shows `apiKey: "sk-********"` — masked placeholder in screenshot demo, not a live credential |
 
-TEST_OR_EXAMPLE:
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | apiKey: "sk-********" (masked placeholder in screenshot/test file) |
+## Verdict
 
-ENDPOINT_LEAK:
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | const GLADIA_BASE = "https://api.gladia.io/v2" (public API endpoint) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | https://app.gladia.io/transcriptions/live/${sessionId} (public dashboard URL) |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | const API_KEYS_URL = "https://app.gladia.io/apikeys" (public dashboard URL) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `gladia@0.1.3` npm impersonation (personal repo, "Official" description) | **YES** | Already tracked in knowledge base (2026-08-07 ACCEPTED OTHER) — orphaned package with key-in-URL bug, dist-tag `latest` persists, GitHub 404 |
+| Hardcoded secrets in scanned repos | **NO** | Zero real secrets found; only masked placeholder `sk-********` in screenshot demo |
+| New endpoint/header drift on api.gladia.io | **NO** | NO_DRIFT confirmed across 90+ cycles (openapi 125131B/14 paths/7 webhooks frozen) |
+| New supply-chain risk in gladiaio org repos | **NO** | Reposcan delta: 0 new hit lines; vercel-ai uses official `@ai-sdk/gladia` linked to gladiaio org workspace |
+| app.gladia.io redirect_to reflection / CSP gap | **NO** | Already tracked (ACCEPTED OATH) — byte-fresh confirmed, post-auth honoring remains HUMAN_ONLY gate |
 
-INTERESTING:
-| File | Line | Context |
-|------|------|---------|
-| vercel-ai/pnpm-lock.yaml | 289,291 | @ai-sdk/gladia linked to local packages/gladia (official Vercel AI SDK integration) |
-| vercel-ai/tsconfig.json | 70 | "path": "packages/gladia" (monorepo structure for AI SDK provider) |
-| gladiaflow/src-tauri/Cargo.toml | 5 | authors = ["Gladia <support@gladia.io>"] (official Tauri app) |
-| compare-stt/next.config.ts | 38,44 | Rewrites to www.gladia.io (marketing site proxy config) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Rationale:
-- 0 REAL_SECRET findings (only masked placeholder `sk-********` in test/screenshot file)
-- All ENDPOINT_LEAK hits are public API/dashboard URLs (api.gladia.io, app.gladia.io) - expected in official SDK/client code
-- INTERESTING items confirm official integrations (Vercel AI SDK @ai-sdk/gladia, Tauri desktop app)
-- No new supply-chain risk: npm `gladia@0.1.3` orphaned impersonation already tracked in knowledge base (80+ cycles)
-- No new secrets, keys, or internal endpoints exposed
-- Surface frozen across 90+ drift-negative cycles per knowledge base
-EOF
-=== CLASSIFICATION TABLES ===
-
-REAL_SECRET:
-(none - no hardcoded live credentials found)
-
-TEST_OR_EXAMPLE:
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | apiKey: "sk-********" (masked placeholder in screenshot/test file) |
-
-ENDPOINT_LEAK:
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | const GLADIA_BASE = "https://api.gladia.io/v2" (public API endpoint) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | https://app.gladia.io/transcriptions/live/${sessionId} (public dashboard URL) |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | const API_KEYS_URL = "https://app.gladia.io/apikeys" (public dashboard URL) |
-
-INTERESTING:
-| File | Line | Context |
-|------|------|---------|
-| vercel-ai/pnpm-lock.yaml | 289,291 | @ai-sdk/gladia linked to local packages/gladia (official Vercel AI SDK integration) |
-| vercel-ai/tsconfig.json | 70 | "path": "packages/gladia" (monorepo structure for AI SDK provider) |
-| gladiaflow/src-tauri/Cargo.toml | 5 | authors = ["Gladia <support@gladia.io>"] (official Tauri app) |
-| compare-stt/next.config.ts | 38,44 | Rewrites to www.gladia.io (marketing site proxy config) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Rationale:
-- 0 REAL_SECRET findings (only masked placeholder `sk-********` in test/screenshot file)
-- All ENDPOINT_LEAK hits are public API/dashboard URLs (api.gladia.io, app.gladia.io) - expected in official SDK/client code
-- INTERESTING items confirm official integrations (Vercel AI SDK @ai-sdk/gladia, Tauri desktop app)
-- No new supply-chain risk: npm `gladia@0.1.3` orphaned impersonation already tracked in knowledge base (80+ cycles)
-- No new secrets, keys, or internal endpoints exposed
-- Surface frozen across 90+ drift-negative cycles per knowledge base
-[0m
-**Classification complete. No reportable findings in this delta.**
-
-**Summary:**
-- **REAL_SECRET**: 0 (only `sk-********` masked placeholder in a screenshot file)
-- **TEST_OR_EXAMPLE**: 1 (masked key in `gladiaflow/src/screenshots/Gallery.tsx:17`)
-- **ENDPOINT_LEAK**: 3 (all public `api.gladia.io` / `app.gladia.io` URLs — expected in official client code)
-- **INTERESTING**: 4 (official integrations: Vercel AI SDK `@ai-sdk/gladia`, Tauri app `gladiaflow`, marketing rewrites)
-
-**Verdict: REPORT_CANDIDATE = no**
-
-The scan covers 3 official Gladia repos (`compare-stt`, `gladiaflow`, `vercel-ai`). All hits are legitimate references to public APIs, dashboard URLs, or official SDK integrations. The npm `gladia@0.1.3` orphaned impersonation package (personal repo `alexisbouchez/gladia.ts`, GitHub 404, `README`="Unofficial" vs `package.json`="Official", embeds raw API key in WSS URL query) remains the sole supply-chain anomaly — already tracked for 80+ frozen cycles and report-ready via `gladia.io/bug-bounty-report` → Google Forms.
+**Summary**: No new reportable findings this scan. The sole live candidate remains the orphaned `gladia@0.1.3` npm package (impersonation + API key leak in WebSocket URL) — evidence package locked, report-ready via Gladia bug-bounty portal.
