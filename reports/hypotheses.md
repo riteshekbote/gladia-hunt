@@ -4293,3 +4293,23 @@
 - NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
+
+## RANKED HYPOTHESES 2026-08-16 22:12:21 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the full Google OAuth SSO signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com using an existing authenticated sessi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified again — etag rotates via dynamic example timestamps (`W/"1e8cb-QQf9rmEhcF4zi42AEf
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 100+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus/debug/Spring Boot Actuator; surface dead.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /health?full=true returns identical `{"health":"OK"}` — no verbose disclosure via query param.
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: CORS wildcard returns static `*` (no Origin reflection), no credentials — not exploitable cross-origin.
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" — no stack trace, no file path
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing `Secure` flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downg
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
