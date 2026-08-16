@@ -1,4 +1,4 @@
-## 2026-08-16 22:39:29 UTC [app] (model nemotron3)
+## 2026-08-16 22:59:26 UTC [app] (model nemotron3)
 [PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
 [PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
 [PRIO] api.gladia.io: 6.95 attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=3
@@ -20,6 +20,15 @@ evidence_needed: Confirm server-side validation of redirect_to against allowlist
 verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target
 impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
 testability: HUMAN_ONLY
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io
+confidence: 75
+reasoning: OpenAPI spec shows audio_url/video_url/callback_config.url as format:uri/plain string with NO scheme allowlist; /v1/models confirms FR/US egress targets; 7 webhook callback topics (transcription.* + live.*) post to client-supplied URLs; POST /v2/pre-recorded 401 key-gated — SSRF-by-design surface persists but requires valid API key (AUTH_HELPED)
+evidence_needed: Valid x-gladia-key to test audio_url fetch to internal metadata endpoints (169.254.169.254, etc.) and callback delivery to controlled server
+verify_steps: AUTH_HELPED: With authorized key, POST /v2/pre-recorded {"audio_url": "http://169.254.169.254/latest/meta-data/"} and observe server-side fetch; test webhook callback delivery to controlled endpoint
+impact: Server-side request forgery to internal metadata/cloud APIs; severity High (requires valid key)
+testability: AUTH_HELPED
 [PARKED] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery: asset api.gladia.io not in current target=app scope for POC phase
 [FINAL] 1) Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (npm registry, 96, OTHER) 2) Post-auth open redirect via reflected redirect_to on signin form action (app.gladia.io, 57, OATH)
 [NEXT] HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth honoring of arbitrary redirect_to
