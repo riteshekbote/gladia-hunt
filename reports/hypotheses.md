@@ -4103,3 +4103,13 @@
 - NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
 - LEARN: No class newly proven dead or alive this cycle — reposcan 13:19 UTC byte-identical to baseline (617/5647, 0 new hit lines); probes byte-identical to 90+ prior c
+
+## RANKED HYPOTHESES 2026-08-16 14:03:46 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete full Google OAuth SSO signin at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final post-auth HTTP 302 Locat
+- NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
