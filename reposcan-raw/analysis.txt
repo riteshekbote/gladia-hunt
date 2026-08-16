@@ -1,22 +1,29 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Table**
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=30][0m
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=285, limit=30][0m
+### Classification Table
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | none | No hardcoded live credentials found |
-| **TEST_OR_EXAMPLE** | `compare-stt/test-providers.ts:8`, `prisma/seed.ts:10`, `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********` masked placeholder), various test/fixture files | Sample data, masked placeholders, test fixtures |
-| **ENDPOINT_LEAK** | `compare-stt/next.config.ts:38,44,51`, `compare-stt/src/lib/providers/gladia.ts:3,36,49`, various page/components with `https://api.gladia.io`, `https://app.gladia.io`, `https://www.gladia.io`, `https://gladia.io` | Public production endpoints only — no internal/staging URLs |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289,291,2368` — `@ai-sdk/gladia` linked as `packages/gladia` (official Vercel AI SDK integration from gladiaio org) | Confirmed official integration, not a risk |
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Mock/placeholder in screenshot component (masked) |
+| **TEST_OR_EXAMPLE** | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `GLADIA_BASE = "https://api.gladia.io/v2"`, `x-gladia-key` headers | Legitimate integration code for STT comparison tool |
+| **TEST_OR_EXAMPLE** | compare-stt/prisma/seed.ts | 10 | `{ name: "Gladia", slug: "gladia" }` | Seed data for comparison platform |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Legitimate dashboard URL construction |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Legitimate onboarding redirect |
+| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` rewrites | Public marketing rewrites, not internal endpoints |
+| **INTERESTING** | (npm registry) | — | `gladia@0.1.3` repo=`alexisbouchez/gladia.ts`, desc="Official TypeScript SDK" | **Known impersonation anomaly** — personal repo, orphaned GitHub user, README says "Unofficial", key-in-wss-URL (RAG confirmed) |
+| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289-291 | `@ai-sdk/gladia` workspace package | Official Vercel AI SDK provider integration (not a risk) |
 
-**Verdict**
+### Verdict
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Orphaned npm `gladia@0.1.3` (personal repo, key-in-WSS-URL) | **yes** — already ACCEPTED in knowledge base (report-ready, evidence locked) |
-| SSRF-by-design on `api.gladia.io` (audio_url/video_url/callback_url no scheme allowlist) | **yes** — already ACCEPTED (AUTH_HELPED, needs valid key for POC) |
-| `/signin?redirect_to=` form-action reflection + CSP `form-action` gap on `app.gladia.io` | **yes** — already ACCEPTED (post-auth honoring = HUMAN_ONLY gate) |
-| Any finding from *this* reposcan delta | **no** — 0 new hits, all hits are test fixtures, public prod URLs, or official integrations |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot/mock file |
+| compare-stt integration code | **no** | Legitimate public API usage for STT comparison tool |
+| gladiaflow dashboard URLs | **no** | Public documented endpoints |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official Vercel AI SDK provider (workspace link) |
+| **npm `gladia@0.1.3` impersonation** | **yes** | **Already accepted & evidence-locked** (orphaned personal repo, GitHub 404, "Official" vs "Unofficial" contradiction, raw API key in wss:// URL query — reported via bug-bounty portal) |
 
-**Summary**: No new reportable findings from this scan cycle. All 617 hits are pre-existing, benign patterns (test data, public endpoints, masked placeholders, official integrations). The three live findings remain the orphaned npm package, the SSRF-by-design surface (AUTH_HELPED), and the unauthenticated form-action reflection (HUMAN_ONLY post-auth gate).
+**No new reportable findings this scan.** The sole supply-chain anomaly (`gladia@0.1.3`) was already triaged, reproduced, and locked across 80+ cycles. All other hits are legitimate public integrations or masked test fixtures.
