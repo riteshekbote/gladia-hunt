@@ -4221,3 +4221,18 @@
 - NEXT(hypotheses-laguna.txt): PROBE: For target=app phase=POC, attempt passive validation of redirect_to honoring without full SSO — send GET /signin?redirect_to=https://evil.example.com wit
 - NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
+
+## RANKED HYPOTHESES 2026-08-16 19:29:36 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [57] app.gladia.io: Post-auth open redirect via reflected redirect_to on signin form action (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): PROBE: For target=app phase=POC, attempt passive validation of redirect_to honoring without full SSO — send GET /signin?redirect_to=https://evil.example.com wit
+- NEXT(hypotheses-bigpickle.txt): HUMAN: For target=api phase=POC, obtain an authorized x-gladia-key from the program owner and execute the SSRF canary POC — POST /v2/pre-recorded `{"audio_url":
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 90+ cycles — surface frozen (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-on
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus/debug/Spring Boot Actuator; surface dead 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
