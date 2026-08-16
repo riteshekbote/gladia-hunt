@@ -55657,3 +55657,141 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 72 — openapi 125131B/14 paths/7 webhooks frozen; CORS `*`, preflight-only x-powered-by: Express fingerprint, key-gated 401 NestJS; SSRF-by-design surface (audio_url/video_url/callback_url no scheme allowlist) persists AUTH_HELPED (no bypass, no unauthorized access path)
 [RISK] app.gladia.io: 57 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives confirmed grep-count=0); OAuth redirect_uri FIXED+PKCE S256 (code/state theft blocked, REJECTED); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth (client-side enforcement); post-auth honoring sole unverified gate (HUMAN_ONLY)
 [RISK] sdk: 96 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest`; sha256 `3b23…7f2` + shasum `cc96f84a…` reproduced locally; src/client.ts:306-308 embeds raw API key in wss:// URL query (diverges from official @gladiaio/sdk POST /v2/live → token flow); repo+user alexisbouchez 404 (irrevocable); package.json "Official" vs README "Unofficial" contradiction; supply-chain trust poisoning + API key leakage in URL query — report-ready
+===== ANALYST laguna 2026-08-16 21:30:36 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
+total 760
+drwxr-xr-x 11 runner runner   4096 Aug 16 21:28 .
+drwxr-xr-x  3 runner runner   4096 Aug 16 21:28 ..
+drwxr-xr-x  7 runner runner   4096 Aug 16 21:28 .git
+drwxr-xr-x  3 runner runner   4096 Aug 16 21:28 .github
+-rw-r--r--  1 runner runner    156 Aug 16 21:28 README.md
+-rw-r--r--  1 runner runner     39 Aug 16 21:28 analyst-out.txt
+-rw-r--r--  1 runner runner 299441 Aug 16 21:28 analyst-prompt.txt
+-rw-r--r--  1 runner runner 296300 Aug 16 21:28 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 16 21:28 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 16 21:28 knowledge
+drwxr-xr-x  2 runner runner  32768 Aug 16 21:28 leads
+-rw-r--r--  1 runner runner  59595 Aug 16 21:28 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 16 21:28 reports
+drwxr-xr-x  4 runner runner   4096 Aug 16 21:28 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 16 21:28 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 16 21:28 scripts
+-rw-r--r--  1 runner runner     33 Aug 16 21:28 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 16 21:28 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 16 21:28 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 16 21:28 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 16 21:28 state_nemotron3.json
+drwxr-xr-x  2 runner runner  12288 Aug 16 21:28 triage
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/reports/ 2>/dev/null; ls -la /home/runner/work/gladia-hunt/gladia-hunt/evidence/ 2>/dev/null
+total 12616
+drwxr-xr-x  2 runner runner    4096 Aug 16 21:28 .
+drwxr-xr-x 11 runner runner    4096 Aug 16 21:28 ..
+-rw-r--r--  1 runner runner 3083889 Aug 16 21:28 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 6377553 Aug 16 21:28 analyst-laguna.log
+-rw-r--r--  1 runner runner   56160 Aug 16 21:28 analyst-ling3.log
+-rw-r--r--  1 runner runner  342814 Aug 16 21:28 analyst-longcat.log
+-rw-r--r--  1 runner runner 2399217 Aug 16 21:28 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    4695 Aug 16 21:28 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner    5786 Aug 16 21:28 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 16 21:28 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 16 21:28 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    4372 Aug 16 21:28 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  647655 Aug 16 21:28 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 16 21:28 valid-bugs.md
+[0m
+I'll analyze the current state against my last leads and run the 8 steps. Let me first check the local repo for any evidence files.
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/state_laguna.json
+{"phase": "POC", "target": "app"}
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-laguna.txt
+## 2026-08-16 20:58:27 UTC [app] (model laguna)
+[PRIO] npm registry `gladia@0.1.3` (dist-tag latest), confidence 96: attack=9, business=9, tech=5, gate=10, cloud=2, fresh=10 → priority=7.95
+[PRIO] api.gladia.io /openapi.json + /v2/pre-recorded, confidence 73: attack=7, business=7, tech=6, gate=3, cloud=5, fresh=5 → priority=5.85
+[PRIO] app.gladia.io /signin redirect_to reflection, confidence 50: attack=5, business=5, tech=4, gate=7, cloud=1, fresh=8 → priority=5.05
+[HYP] npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+confidence: 96
+reasoning: Local `npm pack gladia@0.1.3` reproduces sha256 `3b23ec7d…` exactly; `src/client.ts:306-308` confirmed `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`. npm view confirms dist-tag latest=0.1.3, shasum `cc96f84a…`, repo alexisbouchez/gladia.ts + user 404 (orphaned). package.json description "Official" vs README "Unofficial" contradiction.
+evidence_needed: Local npm pack reproducing sha256 + source inspection confirming raw key appended to wss:// URL query
+verify_steps: PASSIVE — `npm pack gladia@0.1.3` → sha256sum expect `3b23ec7d…`; `tar -xzf gladia-0.1.3.tgz package/src/client.ts` → confirm `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket` at lines 306-308
+impact: Raw API key exposed in WebSocket URL query → server logs, proxy logs, browser history, Referer. Supply-chain trust poisoning. Severity: High
+testability: PASSIVE
+[HYP] api.gladia.io POST /v2/pre-recorded SSRF-by-design via audio_url/video_url + webhook callback fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url) + 7 webhook delivery topics
+confidence: 73
+reasoning: OpenAPI /openapi.json (200, 125131B, frozen 90+ cycles) confirms audio_url/video_url as plain string with NO scheme allowlist + CallbackConfig.url as `format:uri` with NO scheme allowlist. 7 webhook topics posting to client-supplied URLs. /v1/models (200, 530B, security: null/public) confirms FR+US egress. POST /v2/pre-recorded without key → 401/144 NestJS `{"message":"no gladia key provided"}`.
+evidence_needed: Server-side fetch observed hitting self-owned canary endpoint via audio_url in POST /v2/pre-recorded response
+verify_steps: AUTH_HELPED — need valid x-gladia-key; POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}` with `x-gladia-key` header and observe inbound HTTP fetch to canary
+impact: Server-side request forgery to cloud metadata (169.254.169.254), internal services, private network scanning. Severity: Medium-High
+testability: AUTH_HELPED
+[HYP] app.gladia.io /signin post-auth redirect_to honoring to external host after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=<external>
+confidence: 50
+reasoning: /signin?redirect_to=https://evil.example.com → 200/27448B with form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflecting URL-encoded value. CSP has 0 form-action directives (grep-count=0 confirmed at 20:37 UTC). /auth/google/callback → 302→accounts.google.com with PKCE S256 + FIXED redirect_uri. Return-to cookie tamper-reset REJECTED. OAuth redirect_uri-injection REJECTED. Only post-auth honoring after successful SSO remains unverified.
+evidence_needed: Post-auth HTTP 302 Location to external host after completing Google OAuth SSO signin
+verify_steps: HUMAN_ONLY — complete full Google OAuth SSO signin at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture final HTTP 302 Location header + Set-Cookie
+impact: Session-bound phishing redirect to attacker-controlled host after legitimate authentication. Severity: Medium
+testability: HUMAN_ONLY
+[HYP] npm gladia@0.1.3 (confidence 96, PASSIVE) — SURVIVES. Fully reproducible locally, source-inspected, evidence package locked.
+[HYP] api.gladia.io SSRF (confidence 73, AUTH_HELPED) — SURVIVES. Surface confirmed in spec, gate is key-only (no bypass found). AUTH_HELPED is acceptable per program rules.
+[HYP] app.gladia.io redirect_to (confidence 50, HUMAN_ONLY) — SURVIVES. Above 40 threshold, OATH class not on REJECTED list, has concrete verify_steps requiring human SSO completion.
+[FINAL]
+[NEXT] HUMAN: For target=app phase=POC, complete the full Google OAuth SSO signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final HTTP 302 Location header + Set-Cookie to validate post-auth redirect_to honoring (rules forbid account creation; requires existing authenticated session or HUMAN-only completion via Google SSO).
+[RISK] api.gladia.io: 72 — openapi 125131B/14 paths/7 webhooks frozen; CORS `*`, preflight-only x-powered-by: Express fingerprint, key-gated 401 NestJS; SSRF-by-design surface (audio_url/video_url/callback_url no scheme allowlist) persists AUTH_HELPED (no bypass, no unauthorized access path)
+[RISK] app.gladia.io: 57 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives confirmed grep-count=0); OAuth redirect_uri FIXED+PKCE S256 (code/state theft blocked, REJECTED); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth (client-side enforcement); post-auth honoring sole unverified gate (HUMAN_ONLY)
+[RISK] sdk: 96 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest`; sha256 `3b23…7f2` + shasum `cc96f84a…` reproduced locally; src/client.ts:306-308 embeds raw API key in wss:// URL query (diverges from official @gladiaio/sdk POST /v2/live → token flow); repo+user alexisbouchez 404 (irrevocable); package.json "Official" vs README "Unofficial" contradiction; supply-chain trust poisoning + API key leakage in URL query — report-ready
+[0m
+[0m$ [0mcd /tmp/opencode && npm pack gladia@0.1.3 2>&1 | tail -3 && sha256sum gladia-0.1.3.tgz && tar -xzf gladia-0.1.3.tgz -O package/src/client.ts 2>/dev/null | sed -n '300,320p'
+npm notice total files: 16
+npm notice
+gladia-0.1.3.tgz
+3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2  gladia-0.1.3.tgz
+  /**
+   * Create a WebSocket connection for real-time transcription
+   */
+  createRealTimeTranscription(
+    options: RealTimeTranscriptionOptions = {}
+  ): WebSocket {
+    const wsUrl = new URL(`${this.baseUrl}/v2/live`);
+    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+
+    // Add options as query parameters
+    Object.entries(options).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        wsUrl.searchParams.append(key, JSON.stringify(value));
+      } else if (value !== undefined) {
+        wsUrl.searchParams.append(key, String(value));
+      }
+    });
+
+    const socket = new WebSocket(wsUrl.toString());
+
+    // Add convenience methods to the socket
+[0m
+Let me verify the npm finding by reproducing the local evidence, and confirm no drift on the api/app surfaces.
+[0m$ [0mcurl -s -o /dev/null -w "%{size_download} %{etag} %{http_code}" https://api.gladia.io/openapi.json && echo "" && curl -s https://api.gladia.io/health && echo "" && curl -s -o /dev/null -w "%{size_download} %{http_code}" https://api.gladia.io/v1/models
+curl: unknown --write-out variable: 'etag'
+125131  200
+{"health":"OK"}
+530 200
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/signin.html -w "%{size_download} %{http_code}" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" && grep -c 'form-action' /tmp/opencode/signin.html && grep 'action="/' /tmp/opencode/signin.html | head -1
+27448 2000
+[0m
+[0m$ [0mcurl -s -X OPTIONS -o /dev/null -w "%{http_code} %{size_download}" -H "Access-Control-Request-Method: POST" -H "Origin: https://example.com" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/pre-recorded
+204 0
+[0m
+[0m$ [0mgrep -o 'action="[^"]*"' /tmp/opencode/signin.html | head -5
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/opencan/*, /tmp/opencode/*); auto-rejecting
+[0m✗ [0mrm -f /tmp/opencan/gladia-0.1.3.tgz /tmp/opencode/signin.html 2>/dev/null; true failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+All three findings confirmed byte-fresh via local probing. No new surface items.
