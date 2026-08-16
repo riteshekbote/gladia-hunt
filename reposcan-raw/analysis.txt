@@ -1,18 +1,49 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-report.md
-Wrote file successfully.
-[0m
-**Triage complete.** No new reportable findings in this scan.
+| Category | File | Line | Classification | Notes |
+|----------|------|------|----------------|-------|
+| **TEST_OR_EXAMPLE** | reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | TEST_OR_EXAMPLE | Provider slug array for comparison testing |
+| | reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | TEST_OR_EXAMPLE | Seed data for Gladia provider |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | TEST_OR_EXAMPLE | SDK usage example (api.gladia.io/v2 + x-gladia-key header) |
+| | reposcan-raw/gladiaio/gladiaflow/package.json | 2 | TEST_OR_EXAMPLE | Package metadata |
+| | reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2,8 | TEST_OR_EXAMPLE | Lock file |
+| | reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 2,5 | TEST_OR_EXAMPLE | Rust crate metadata |
+| | reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | TEST_OR_EXAMPLE | Dev identifier |
+| | reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | TEST_OR_EXAMPLE | Prod identifier |
+| | reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 4 | TEST_OR_EXAMPLE | CSS import |
+| | reposcan-raw/gladiaio/gladiaflow/src/App.tsx | 264,274,284 | TEST_OR_EXAMPLE | Tauri invoke calls |
+| | reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | TEST_OR_EXAMPLE | **Masked placeholder** `sk-********` (8 asterisks) |
+| | reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | TEST_OR_EXAMPLE | CSS import |
+| | reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8,9 | TEST_OR_EXAMPLE | Vocabulary test terms |
+| | reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | TEST_OR_EXAMPLE | Test file |
+| | reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | TEST_OR_EXAMPLE | Storage key constant |
+| | reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | TEST_OR_EXAMPLE | Path alias |
+| **ENDPOINT_LEAK** | reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44,51 | ENDPOINT_LEAK | Vercel rewrites to www.gladia.io (marketing) |
+| | reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 87 | ENDPOINT_LEAK | Link to www.gladia.io |
+| | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45,72,107 | ENDPOINT_LEAK | Links to gladia.io/www.gladia.io legal pages |
+| | reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 80,490,513 | ENDPOINT_LEAK | Links to github.com/gladiaio, gladia.io |
+| | reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68,156,172 | ENDPOINT_LEAK | Links to github.com/gladiaio, gladia.io, privacy@gladia.io |
+| | reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | ENDPOINT_LEAK | mailto:privacy@gladia.io |
+| | reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270,341,427 | ENDPOINT_LEAK | Links to github.com/gladiaio/normalization |
+| | reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | ENDPOINT_LEAK | References gladia-marketing GTM |
+| | reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | ENDPOINT_LEAK | Schema URL gladia.io |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | ENDPOINT_LEAK | Sync with gladia-marketing tracking IDs |
+| | reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5,20 | ENDPOINT_LEAK | Site origin www.gladia.io, citation domain |
+| | reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | ENDPOINT_LEAK | URL to app.gladia.io/transcriptions/live/ |
+| | reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | ENDPOINT_LEAK | URL to docs.gladia.io |
+| | reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | ENDPOINT_LEAK | URL to app.gladia.io/apikeys |
+| **INTERESTING** | reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | INTERESTING | `@ai-sdk/gladia` linked as workspace package (official Vercel AI SDK integration) |
 
-| Category | Count | Reportable |
-|----------|-------|------------|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | 1 (`sk-********` in screenshot fixture) | no |
-| ENDPOINT_LEAK | ~20 (all public API/dashboard/marketing URLs) | no |
-| INTERESTING | 4 (official Vercel AI SDK integration, Tauri app metadata, provider registry) | no |
+---
 
-The sole pre-existing supply-chain anomaly remains `gladia@0.1.3` on npm (personal repo `alexisbouchez/gladia.ts`, "Official" vs "Unofficial" contradiction, raw API key in WebSocket URL query) — already tracked and report-ready.
+### Verdict
 
-Full report written to `triage-report.md`.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in gladiaflow/src/screenshots/Gallery.tsx:17 | **no** | Masked placeholder (8 asterisks), not a real secret |
+| `@ai-sdk/gladia` in vercel-ai monorepo | **no** | Official Vercel AI SDK integration (gladiaio org package) |
+| All gladia.io / api.gladia.io / app.gladia.io / github.com/gladiaio references | **no** | Expected public endpoints, marketing links, docs references |
+| npm `gladia@0.1.3` impersonation | **no** | Already tracked in knowledge base (ACCEPTED OTHER, report-ready) |
+
+**No new reportable findings this scan.** Surface remains frozen (90+ NO_DRIFT cycles on api.gladia.io, app.gladia.io redirect_to reflection + CSP gap confirmed, npm `gladia@0.1.3` orphaned impersonation stable).
