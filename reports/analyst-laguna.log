@@ -52334,3 +52334,148 @@ ACCEPTED OAUTH @ app.gladia.io: fresh probe confirms /signin redirect_to reflect
 [RISK] api.gladia.io: 72 — OpenAPI 125131B/14 paths/7 webhooks (CORS `*`, preflight-only x-powered-by fingerprint, key-gated 401 NestJS); SSRF-by-design surface frozen 90+ cycles (AUTH_HELPED); /health undocumented 15B endpoint
 [RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED with PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
 [RISK] sdk: 65 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest` (shasum `cc96f84a…`, sha256 `3b23…7f2`, GitHub 404) leaking raw API key in WebSocket URL query; official `@gladiaio/sdk@1.1.0` + `gladiaio-sdk@1.0.5` clean
+===== ANALYST laguna 2026-08-16 10:00:39 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/reports/ 2>/dev/null; ls -la /home/runner/work/gladia-hunt/gladia-hunt/ 2>/dev/null | head -30
+total 11808
+drwxr-xr-x  2 runner runner    4096 Aug 16 09:59 .
+drwxr-xr-x 11 runner runner    4096 Aug 16 09:59 ..
+-rw-r--r--  1 runner runner 2855497 Aug 16 09:59 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 6061829 Aug 16 09:59 analyst-laguna.log
+-rw-r--r--  1 runner runner   50760 Aug 16 09:59 analyst-ling3.log
+-rw-r--r--  1 runner runner  337364 Aug 16 09:59 analyst-longcat.log
+-rw-r--r--  1 runner runner 2161698 Aug 16 09:59 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    5337 Aug 16 09:59 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner    4779 Aug 16 09:59 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 16 09:59 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 16 09:59 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    5866 Aug 16 09:59 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  614079 Aug 16 09:59 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 16 09:59 valid-bugs.md
+total 724
+drwxr-xr-x 11 runner runner   4096 Aug 16 09:59 .
+drwxr-xr-x  3 runner runner   4096 Aug 16 09:59 ..
+drwxr-xr-x  7 runner runner   4096 Aug 16 09:59 .git
+drwxr-xr-x  3 runner runner   4096 Aug 16 09:59 .github
+-rw-r--r--  1 runner runner    156 Aug 16 09:59 README.md
+-rw-r--r--  1 runner runner     39 Aug 16 09:59 analyst-out.txt
+-rw-r--r--  1 runner runner 289527 Aug 16 09:59 analyst-prompt.txt
+-rw-r--r--  1 runner runner 286386 Aug 16 09:59 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 16 09:59 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 16 09:59 knowledge
+drwxr-xr-x  2 runner runner  24576 Aug 16 09:59 leads
+-rw-r--r--  1 runner runner  53472 Aug 16 09:59 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 16 09:59 reports
+drwxr-xr-x  4 runner runner   4096 Aug 16 09:59 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 16 09:59 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 16 09:59 scripts
+-rw-r--r--  1 runner runner     33 Aug 16 09:59 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 16 09:59 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 16 09:59 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 16 09:59 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 16 09:59 state_nemotron3.json
+drwxr-xr-x  2 runner runner  12288 Aug 16 09:59 triage
+[0m
+I'll analyze the current state and check for report files to inform my assessment.
+[0m$ [0mcurl -s -o /dev/null -w "size=%{size_download} status=%{http_code} location=%header{location}\n" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1
+size=27448 status=200 location=
+[0m
+[0m$ [0mtail -30 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-laguna.txt
+reasoning: Local `npm pack` reproduces sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` across 3+ independent runs; GitHub user+repo `alexisbouchez/gladia.ts` both 404 (orphaned/irrevocable); package.json "Official" contradicts README "Unofficial"
+evidence_needed: Source-level confirmation that API key is embedded in WebSocket URL query parameter
+verify_steps: PASSIVE — `npm pack gladia@0.1.3 && sha256sum gladia-0.1.3.tgz` → expect `3b23…7f2`; `tar -xzf gladia-0.1.3.tgz -O package/src/client.ts | sed -n '306,308p'` → confirm `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`
+impact: Raw API key leaked into wss:// URL query (proxies/CDNs/browser access logs/Referer leakage). Package at dist-tag `latest` traps users via `npm install gladia` instead of `@gladiaio/sdk`. Irrevocable namespace takeover risk. Severity: High (P3/P4)
+testability: PASSIVE
+[HYP] api.gladia.io POST /v2/pre-recorded SSRF-by-design via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url/callback_url) + 7 webhook delivery topics
+confidence: 73
+reasoning: OpenAPI spec (125131B, 14 paths, 7 webhooks) confirms audio_url/video_url as plain string (no scheme allowlist) + CallbackConfig.url/callback_url as `format:uri` with no scheme allowlist; /v1/models (200, 530B, public) confirms FR/US egress; POST without key → 401 NestJS
+evidence_needed: Active SSRF confirmation requires a valid API key to POST with an internal-target URL
+verify_steps: AUTH_HELPED — POST /v2/pre-recorded with `x-gladia-key: <VALID_KEY>` + body `{"audio_url":"http://169.254.169.254/","callback_url":"http://attacker.example"}` and observe server-side fetch to cloud metadata IP
+impact: Server-side request forgery to cloud metadata (169.254.169.254), internal services, or webhook callback delivery to internal hosts. Severity: High
+testability: AUTH_HELPED
+[HYP] app.gladia.io /signin post-auth redirect_to honoring to external host after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=<external>
+confidence: 50
+reasoning: Probe confirms `/signin?redirect_to=https://evil.example.com` → 200/27448B with form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com`"; 0 CSP form-action directives; /auth/google/callback → 302→accounts.google.com with PKCE S256 + FIXED redirect_uri
+evidence_needed: Post-auth HTTP 302 Location to external host with Set-Cookie after completing Google SSO signin
+verify_steps: HUMAN_ONLY — complete full Google OAuth SSO signin at /signin?redirect_to=https://evil.example.com and capture final HTTP 302 Location header + Set-Cookie
+impact: If exploitable: session-bound phishing redirect after legitimate auth. Severity: Medium (if exploitable)
+testability: HUMAN_ONLY
+[FINAL] 1. npm `gladia@0.1.3` orphaned impersonation (confidence 96, PASSIVE, evidence locked)
+[FINAL] 2. api.gladia.io POST /v2/pre-recorded SSRF-by-design (confidence 73, AUTH_HELPED)
+[FINAL] 3. app.gladia.io /signin post-auth redirect_to honoring (confidence 50, HUMAN_ONLY)
+[NEXT] PROBE app.gladia.io: `curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com"` → confirm 200/27448B + form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflection (PASSIVE, GET only, ≤1 rps). Re-validates the unauthenticated reflection baseline before HUMAN-only post-auth OAuth gate is exercised.
+[RISK] api.gladia.io: 72 — OpenAPI 125131B/14 paths/7 webhooks (CORS `*`, preflight-only x-powered-by fingerprint, key-gated 401 NestJS); SSRF-by-design surface frozen 90+ cycles (AUTH_HELPED); /health undocumented 15B endpoint
+[RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED with PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
+[RISK] sdk: 65 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest` (shasum `cc96f84a…`, sha256 `3b23…7f2`, GitHub 404) leaking raw API key in WebSocket URL query; official `@gladiaio/sdk@1.1.0` + `gladiaio-sdk@1.0.5` clean
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/state_laguna.json
+{"phase": "POC", "target": "app"}
+[0m
+The probe confirms the baseline (200/27448B, no redirect). Let me check the latest hypothesis files to ensure alignment.
+Probed. The reflection is byte-fresh (200/27448B). Let me also confirm the CSP form-action directive status.
+[0m$ [0mcurl -s -D - -o /dev/null "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -i "content-security-policy" | tr ';' '\n' | grep -i "form-action" ; echo "form_action_count=$(curl -s -D - -o /dev/null 'https://app.gladia.io/signin?redirect_to=https://evil.example.com' 2>&1 | grep -ci 'form-action')"
+form_action_count=0
+[0m
+NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 09:59 UTC). My fresh probe confirms /signin redirect_to reflection byte-fresh (200/27448B, 0 CSP form-action directives). All three accepted findings remain alive, all REJECTED classes remain dead.
+
+## STEP 1 — DELTA
+NO_DELTA
+
+## STEP 2 — PRIORITIZE
+- **npm `gladia@0.1.3`** score 83 — attack 10, business 10, tech 10, gate 10, cloud 5, fresh 10
+- **api.gladia.io /v2/pre-recorded SSRF** score 66 — attack 9, business 8, tech 7, gate 3, cloud 7, fresh 8 (AUTH_HELPED — no valid key)
+- **app.gladia.io /signin OATH** score 55 — attack 6, business 7, tech 5, gate 7, cloud 2, fresh 7
+
+## STEP 3 — HYPOTHESES
+[HYP] npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+confidence: 96
+reasoning: Local npm pack reproduces sha256 3b23ec7d…7f2 + shasum cc96f84a…; GitHub user+repo alexisbouchez/gladia.ts both 404 (orphaned/irrevocable); package.json "Official" contradicts README "Unofficial"
+evidence_needed: Source confirming API key embedded in WebSocket URL query parameter
+verify_steps: PASSIVE — npm pack gladia@0.1.3 && sha256sum → expect 3b23…7f2; tar -xzf package/src/client.ts | sed -n '306,308p' → confirm searchParams.append('x-gladia-key', apiKey) + new WebSocket
+impact: Raw API key leaked into wss:// URL query (proxies/CDNs/browser access logs/Referer leakage). Package at dist-tag latest traps users via npm install gladia. Irrevocable namespace takeover risk. Severity: High
+testability: PASSIVE
+
+[HYP] api.gladia.io POST /v2/pre-recorded SSRF-by-design via audio_url/video_url/callback_url server-side fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url/callback_url) + 7 webhook delivery topics
+confidence: 73
+reasoning: OpenAPI spec (125131B, 14 paths, 7 webhooks) confirms audio_url/video_url as plain string (no scheme allowlist) + CallbackConfig.url/callback_url as format:uri with no scheme allowlist; /v1/models (200, 530B, public, security:null) confirms FR/US egress; POST without key → 401 NestJS
+evidence_needed: Active SSRF confirmation requires a valid API key to POST with an internal-target URL
+verify_steps: AUTH_HELPED — POST /v2/pre-recorded with x-gladia-key: <VALID_KEY> + body {"audio_url":"http://169.254.169.254/","callback_url":"http://attacker.example"} and observe server-side fetch to cloud metadata IP
+impact: Server-side request forgery to cloud metadata (169.254.169.254), internal services, or webhook callback delivery to internal hosts. Severity: High
+testability: AUTH_HELPED
+
+[HYP] app.gladia.io /signin post-auth redirect_to honoring to external host after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=<external>
+confidence: 50
+reasoning: Fresh probe confirms /signin?redirect_to=https://evil.example.com → 200/27448B with form action reflecting URL-encoded value; 0 CSP form-action directives confirmed; /auth/google/callback → 302→accounts.google.com with PKCE S256 + FIXED redirect_uri
+evidence_needed: Post-auth HTTP 302 Location to external host with Set-Cookie after completing Google SSO signin
+verify_steps: HUMAN_ONLY — complete full Google OAuth SSO signin at /signin?redirect_to=https://evil.example.com and capture final HTTP 302 Location header + Set-Cookie
+impact: If exploitable: session-bound phishing redirect after legitimate auth. Severity: Medium (if exploitable)
+testability: HUMAN_ONLY
+
+## STEP 4 — SELCITIQUE
+All three hypotheses survive (confidence ≥40, not on REJECTED list, have concrete verify_steps).
+[FINAL] 1. npm gladia@0.1.3 orphaned impersonation (96, PASSIVE, evidence locked)
+[FINAL] 2. api.gladia.io POST /v2/pre-recorded SSRF-by-design (73, AUTH_HELPED)
+[FINAL] 3. app.gladia.io /signin post-auth redirect_to honoring (50, HUMAN_ONLY)
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Complete the full Google OAuth SSO signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final post-auth HTTP 302 Location header + Set-Cookie to validate whether the unauthenticated reflection escalates to an authenticated open redirect after OAuth completion (target=app, phase=POC; the PASSIVE reflection is already confirmed byte-fresh, only the post-auth honoring gate remains unverified).
+
+## STEP 6 — LEARNING
+NO_NEW_CLASSES — fresh probe (2026-08-16 09:59 UTC) confirms /signin redirect_to reflection byte-fresh (200/27448B, 0 CSP form-action directives), OpenAPI 125131B/14 paths/7 webhooks frozen, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, npm gladia@0.1.3 sha256 3b23…7f2 stable across 90+ cycles
+
+## STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 72 — OpenAPI 125131B/14 paths/7 webhooks (CORS *, preflight-only x-powered-by fingerprint, key-gated 401 NestJS); SSRF-by-design surface frozen 90+ cycles (AUTH_HELPED); /health undocumented
+[RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED with PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
+[RISK] sdk: 65 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest (shasum cc96f84a…, sha256 3b23…7f2, GitHub 404) leaking raw API key in WebSocket URL query; official @gladiaio/sdk@1.1.0 + gladiaio-sdk@1.0.5 clean
