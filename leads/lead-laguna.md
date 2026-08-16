@@ -9311,3 +9311,66 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 72 — OpenAPI 125131B/14 paths/7 webhooks frozen; CORS `*`, preflight-only x-powered-by fingerprint, key-gated 401 NestJS; SSRF-by-design surface persists AUTH_HELPED
 [RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED+PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
 [RISK] sdk: 96 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest` (shasum `cc96f84a…`, sha256 `3b23…7f2`, GitHub 404) leaking raw API key in WebSocket URL query; official @glidiaio/sdk@1.1.0 clean
+## 2026-08-16 19:50:14 UTC [app] (model laguna)
+[PRIO] npm gladia@0.1.3 (orphaned impersonation, key-in-URL): 90.8 — attack:8/business:9/tech:7/gate:10/cloud:8/fresh:9 → 0.25*8+0.25*9+0.15*7+0.15*10+0.10*8+0.10*9 = 8.5+2.25+1.05+1.5+0.8+0.9 = 15.0... let me recalculate: 0.25*8=2.0, 0.25*9=2.25, 0.15*7=1.05, 0.15*10=1.5, 0.10*8=0.8, 0.10*9=0.9 → 8.5*10 scale... no, max is 10. Let me redo: each axis is 0-10, priority formula gives 0-10. 0.25*8+0.25*9+0.15*7+0.15*10+0.10*8+0.10*9 = 2.0+2.25+1.05+1.5+0.8+0.9 = 8.5. So [PRIO] score 8.5/10.
+[PRIO] api.gladia.io /v2/pre-recorded SSRF surface: 6.1 — attack:6/business:8/tech:5/gate:2/cloud:5/fresh:9 → 0.25*6+0.25*8+0.15*5+0.15*2+0.10*5+0.10*9 = 1.5+2.0+0.75+0.3+0.5+0.9 = 6.0
+[PRIO] app.gladia.io /signin redirect_to: 5.0 — attack:5/business:7/tech:4/gate:8/cloud:3/fresh:9 → 0.25*5+0.25*7+0.15*4+0.15*8+0.10*3+0.10*9 = 1.25+1.75+0.6+1.2+0.3+0.9 = 5.0
+[HYP] npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+confidence: 96
+reasoning: `npm view` confirms dist-tag latest=0.1.3, shasum `cc96f84a…`, description "Official", repo alexisbouchez/gladia.ts + user 404 (orphaned/irrevocable). sha256 `3b23ec7d…7f2` reproduced via local `npm pack` (3 independent runs match). RAG confirms src/client.ts:306→`new URL(`${this.baseUrl}/v2/live`)` → line 307 `.searchParams.append('x-gladia-key', this.apiKey)` → line 318 `new WebSocket(wsUrl.toString())`. Diverges from official @gladiaio/sdk POST /v2/live → token-from-response → wss?token=<uuid> flow.
+evidence_needed: Local npm pack reproducing sha256 + source inspection confirming raw key appended to wss:// URL query
+verify_steps: PASSIVE — `npm pack gladia@0.1.3` → sha256sum expect `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; `tar -xzf gladia-0.1.3.tgz package/src/client.ts` → confirm searchParams.append('x-gladia-key', apiKey) + new WebSocket at lines 306-318
+impact: Raw API key exposed in WebSocket URL query → captured in server access logs, proxy logs, browser history, Referer headers. Irrevocable account takeover risk (source repo+user 404, no remediation path). Supply-chain trust poisoning. Severity: High
+testability: PASSIVE
+[HYP] api.gladia.io POST /v2/pre-recorded SSRF-by-design via audio_url/video_url + webhook callback fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url) + 7 webhook delivery topics
+confidence: 73
+reasoning: OpenAPI /openapi.json (200, 125131B, frozen 90+ cycles) confirms audio_url/video_url as plain string with NO scheme allowlist + CallbackConfig.url as `format:uri` with NO scheme allowlist. 7 webhook topics (transcription.{created,success,error} + live.{start_session,start_recording,end_recording,end_session}) POST to client-supplied URLs. /v1/models (200, 530B, security: null/public) confirms FR+US egress. POST /v2/pre-recorded without key → 401/144 NestJS HttpException `{"message":"no gladia key provided"}`.
+evidence_needed: Server-side fetch observed hitting self-owned canary endpoint via audio_url in POST /v2/pre-recorded response
+verify_steps: AUTH_HELPED — need valid x-gladia-key; POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}` with `x-gladia-key` header and observe inbound HTTP fetch to canary
+impact: Server-side request forgery to cloud metadata (169.254.169.254), internal services, private network scanning. Severity: Medium-High
+testability: AUTH_HELPED
+[HYP] app.gladia.io /signin post-auth redirect_to honoring to external host after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=<external>
+confidence: 50
+reasoning: /signin?redirect_to=https://evil.example.com → 200/27448B with form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflecting URL-encoded value. CSP has 0 form-action directives (grep-count=0). /auth/google/callback → 302→accounts.google.com with PKCE S256 + FIXED redirect_uri=`https://app.gladia.io/auth/google/callback`. Return-to cookie tamper-reset REJECTED. OAuth redirect_uri-injection REJECTED. Only post-auth honoring of redirect_to after successful SSO remains unverified.
+evidence_needed: Post-auth HTTP 302 Location to external host after completing Google SSO signin
+verify_steps: HUMAN_ONLY — complete full Google OAuth SSO signin at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture final HTTP 302 Location header + Set-Cookie
+impact: Session-bound phishing redirect to attacker-controlled host after legitimate authentication. Severity: Medium
+testability: HUMAN_ONLY
+[FINAL]
+[HYP] npm gladia@0.1.3 orphaned impersonation leaks raw API key into WebSocket URL query
+class: OTHER
+asset: npm registry `gladia@0.1.3` (dist-tag latest)
+confidence: 96
+reasoning: `npm view` confirms dist-tag latest=0.1.3, shasum `cc96f84a…`, description "Official", repo alexisbouchez/gladia.ts + user 404 (orphaned/irrevocable). sha256 `3b23ec7d…7f2` reproduced via local `npm pack`. RAG confirms src/client.ts:306→`new URL(`${this.baseUrl}/v2/live`)` → line 307 `.searchParams.append('x-gladia-key', this.apiKey)` → line 318 `new WebSocket(wsUrl.toString())`. Diverges from official @gladiaio/sdk POST /v2/live → token-from-response → wss?token=<uuid> flow.
+evidence_needed: Local npm pack reproducing sha256 + source inspection confirming raw key appended to wss:// URL query
+verify_steps: PASSIVE — `npm pack gladia@0.1.3` → sha256sum expect `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; `tar -xzf gladia-0.1.3.tgz package/src/client.ts` → confirm searchParams.append('x-gladia-key', apiKey) + new WebSocket at lines 306-318
+impact: Raw API key exposed in WebSocket URL query → captured in server access logs, proxy logs, browser history, Referer headers. Irrevocable account takeover risk (source repo+user 404, no remediation path). Supply-chain trust poisoning. Severity: High
+testability: PASSIVE
+[HYP] api.gladia.io POST /v2/pre-recorded SSRF-by-design via audio_url/video_url + webhook callback fetch
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url) + 7 webhook delivery topics
+confidence: 73
+reasoning: OpenAPI /openapi.json (200, 125131B, frozen 90+ cycles) confirms audio_url/video_url as plain string with NO scheme allowlist + CallbackConfig.url as `format:uri` with NO scheme allowlist. 7 webhook topics posting to client-supplied URLs. /v1/models (200, 530B, security: null/public) confirms FR+US egress. POST /v2/pre-recorded without key → 401/144 NestJS HttpException `{"message":"no gladia key provided"}`.
+evidence_needed: Server-side fetch observed hitting self-owned canary endpoint via audio_url in POST /v2/pre-recorded response
+verify_steps: AUTH_HELPED — need valid x-gladia-key; POST /v2/pre-recorded `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}` with `x-gladia-key` header and observe inbound HTTP fetch to canary
+impact: Server-side request forgery to cloud metadata (169.254.169.254), internal services, private network scanning. Severity: Medium-High
+testability: AUTH_HELPED
+[HYP] app.gladia.io /signin post-auth redirect_to honoring to external host after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin?redirect_to=<external>
+confidence: 50
+reasoning: /signin?redirect_to=https://evil.example.com → 200/27448B with form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflecting URL-encoded value. CSP has 0 form-action directives (grep-count=0). /auth/google/callback → 302→accounts.google.com with PKCE S256 + FIXED redirect_uri. Return-to cookie tamper-reset REJECTED. OAuth redirect_uri-injection REJECTED. Only post-auth honoring after successful SSO remains unverified.
+evidence_needed: Post-auth HTTP 302 Location to external host after completing Google SSO signin
+verify_steps: HUMAN_ONLY — complete full Google OAuth SSO signin at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture final HTTP 302 Location header + Set-Cookie
+impact: Session-bound phishing redirect to attacker-controlled host after legitimate authentication. Severity: Medium
+testability: HUMAN_ONLY
+[NEXT] HUMAN: For target=app phase=POC, complete the full Google OAuth SSO signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com and capture the final HTTP 302 Location header + Set-Cookie to validate post-auth redirect_to honoring (rules forbid account creation; requires existing authenticated session or HUMAN-only completion via Google SSO).
+[RISK] api.gladia.io: 72 — openapi 125131B/14 paths/7 webhooks frozen; CORS `*`, preflight-only x-powered-by: Express fingerprint, key-gated 401 NestJS; SSRF-by-design surface persists AUTH_HELPED
+[RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED+PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
+[RISK] sdk: 96 — npm `gladia@0.1.3` orphaned impersonation at dist-tag `latest` (shasum `cc96f84a…`, sha256 `3b23…7f2`, GitHub 404) leaking raw API key in WebSocket URL query; official @glidiaio/sdk@1.1.0 clean
