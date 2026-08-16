@@ -3919,3 +3919,13 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: byte-fresh reproduced at 22:03 UTC — `npm view`/`npm pack` confirms dist-tag latest=0.1.3, shasum `cc96f84a…`, repo+user al
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh at 22:03 UTC (200/27448B, form action reflects URL-encoded value, 0 CSP form-action dir
 - LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme-allowlist o
+
+## RANKED HYPOTHESES 2026-08-16 02:35:07 UTC
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK, leaks raw API key into WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package gladia@0.1.3 impersonates official SDK and leaks raw API key into WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [57] app.gladia.io: Post-auth open redirect via reflected redirect_to on signin form action (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth h
+- NEXT(hypotheses-laguna.txt): HUMAN: Navigate to https://app.gladia.io/signin?redirect_to=https://evil.example.com, complete Google SSO signin, capture the post-auth HTTP 302 Location header
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked `gladia@0.1.3` orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated).
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 5
+- LEARN: No class newly proven dead or alive this cycle — fresh probes (02:33 UTC) byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks with no scheme
