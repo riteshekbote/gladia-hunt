@@ -16728,3 +16728,899 @@ STEP 6 — LEARNING
 
 STEP 7 — RISK SCORE
 [RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; NestJS-on-Express backend; high business value; potential SSRF via audio_url/video_url/callback_url with no scheme validation; datacenter regions exposed; 7 webhook callback topics | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+===== ANALYST nemotron3 2026-08-16 17:54:51 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mls -la
+total 748
+drwxr-xr-x 11 runner runner   4096 Aug 16 17:53 .
+drwxr-xr-x  3 runner runner   4096 Aug 16 17:53 ..
+drwxr-xr-x  7 runner runner   4096 Aug 16 17:53 .git
+drwxr-xr-x  3 runner runner   4096 Aug 16 17:53 .github
+-rw-r--r--  1 runner runner    156 Aug 16 17:53 README.md
+-rw-r--r--  1 runner runner     43 Aug 16 17:53 analyst-out.txt
+-rw-r--r--  1 runner runner 295815 Aug 16 17:53 analyst-prompt.txt
+-rw-r--r--  1 runner runner 292674 Aug 16 17:53 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 16 17:53 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 16 17:53 knowledge
+drwxr-xr-x  2 runner runner  32768 Aug 16 17:53 leads
+-rw-r--r--  1 runner runner  57339 Aug 16 17:53 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 16 17:53 reports
+drwxr-xr-x  4 runner runner   4096 Aug 16 17:53 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 16 17:53 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 16 17:53 scripts
+-rw-r--r--  1 runner runner     33 Aug 16 17:53 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 16 17:53 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 16 17:53 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 16 17:53 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 16 17:53 state_nemotron3.json
+drwxr-xr-x  2 runner runner  12288 Aug 16 17:53 triage
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/inventory/gladia.txt
+cat: /home/runner/work/gladia-hunt/gladia-hunt/inventory/gladia.txt: No such file or directory
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/inventory/
+total 56
+drwxr-xr-x  2 runner runner  4096 Aug 16 17:53 .
+drwxr-xr-x 11 runner runner  4096 Aug 16 17:53 ..
+-rw-r--r--  1 runner runner 45973 Aug 16 17:53 gladia.md
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/inventory/gladia.md
+# Inventory: gladia
+
+## Seed 2026-08-07 (passive recon)
+
+### Hosts
+- gladia.io -> 301 https://www.gladia.io/ (Vercel front; HSTS 63072000)
+- www.gladia.io (marketing site, Vercel)
+- api.gladia.io — API origin; / -> 404 JSON; CORS *; exposes x-gladia-request-id/traceparent/tracestate/x-request-id/x-correlation-id; HSTS preload; /openapi.json exists
+- app.gladia.io — dashboard; / -> 302 /signin; cookies __sid + return-to (JWT-shaped); noindex; HSTS preload
+
+### Code / SDK surface (in scope: Medium)
+- github.com/gladiaio/sdk — monorepo: packages/sdk-js (@gladiaio/sdk), packages/sdk-python (gladiaio-sdk), packages/generator (fetches api.gladia.io/openapi.json)
+- github.com/gladiaio/gladia-cli (Go)
+- github.com/gladiaio/gladia-samples (Python)
+- github.com/gladiaio/docs (MDX)
+- github.com/gladiaio/gladiaflow (Rust)
+- github.com/gladiaio/realtime-multilingual-asr-router (Python)
+- github.com/gladiaio/n8n-nodes-gladia (TS)
+- github.com/gladiaio/vercel-ai
+- npm registry: @gladiaio/sdk (official), gladia 0.1.3 (repo alexisbouchez/gladia.ts — personal, VERIFY OWNERSHIP)
+- PyPI: gladiaio-sdk
+
+### Open questions
+- Gladia API key format (for passive pattern matching)
+- Disclosure/security channel for Gladia program
+- Auth model of api.gladia.io (Bearer? x-api-key?)
+
+## 2026-08-07 18:31:06 UTC
+- NEW api.gladia.io: OpenAPI 3.1 fully enumerated — 14 paths; every v2 operation declares security scheme `x_gladia_key` (header `x-gladia-key`); `/v1/models` inherits global `security: null` and returns 20
+- NEW api.gladia.io: auth gate confirmed — unauthenticated GET on /v2/transcription, /v2/pre-recorded, /v2/live, /v2/transcription/{id} → 401 `{"message":"no gladia key provided","request_id":"G-…"}`
+- NEW api.gladia.io: CORS preflight (OPTIONS, Origin: evil.example.com) → `access-control-allow-origin: *`, `allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE`, `allow-headers: x-gladia-key`, and NO `access-con
+- NEW npm `gladia` 0.1.3: registry `description` = "Official TypeScript SDK for Gladia" but packaged README title = "Unofficial TypeScript SDK"; maintainer `softwarecitadel` <softwarecitadel@gmail.com>, aut
+- NEW app.gladia.io `/signin`: Google-only OAuth; `redirect_to` query param reflected URL-encoded into form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`; post-auth redirect target handling 
+- CHANGED app.gladia.io return-to cookie re-confirmed: `eyJ1cmwiOiIvIn0=` = unsigned base64url `{"url":"/"}` (plain JSON, NOT a signed JWT); `__sid` expired/empty; both HttpOnly/Secure/SameSite=Lax
+
+## 2026-08-07 18:51:57 UTC
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+## 2026-08-07 19:05:21 UTC
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+## 2026-08-07 19:22:34 UTC
+
+## 2026-08-07 20:00:21 UTC
+
+## 2026-08-07 20:55:09 UTC
+- NEW api.gladia.io: CORS wildcard returns static `*` (not reflecting request Origin) — contradicts prior hypothesis of Origin reflection
+- NEW api.gladia.io: GET /v1/models w/ Origin:evil.test → ACAO:* (wildcard, not echo), expose-headers list, no credentials → CORS origin-reflection dead; wildcard confirmed on GET not just preflight
+- NEW app.gladia.io: /signin re-probed 200; redirect_to still reflected into form action (surface stable)
+- CHANGED reposcan 20:02/20:06: 0 new hits; compare-stt providers.ts hardcodes model name "Solaria-3" (marketing-facing, low); gladia-quiz-app pins old @gladiaio/sdk@0.5.2 on unpkg (maintenance debt)
+
+## 2026-08-07 21:49:00 UTC
+- NEW api.gladia.io: OpenAPI /v1/history declares `custom_metadata` as OBJECT-typed query param (additionalProperties:true) + `status`/`kind` as multi-value array params + date filters — key-gated query-par
+- NEW api.gladia.io: CallbackConfigDto.url spec is `format: uri` only — no scheme enum/pattern/allowlist; client-side SSRF guard absent at schema level (confirmed this cycle)
+- NEW api.gladia.io: /v1/models public payload confirms datacenters [{FR},{US}] + per-request pricing 0.000055 — cloud egress regions for SSRF targeting; `created:1730000000` is static
+- NEW PyPI: gladiaio-sdk latest = 1.0.5 (version not previously recorded)
+- CHANGED api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401 "no gladia key provided") — no unauthenticated history/upload exposure
+
+## 2026-08-07 22:27:34 UTC
+- NEW api.gladia.io: OpenAPI /v1/history declares `custom_metadata` as OBJECT-typed query param (additionalProperties:true) + `status`/`kind` as multi-value array params + date filters — key-gated query-par
+- NEW api.gladia.io: CallbackConfigDto.url spec is `format: uri` only — no scheme enum/pattern/allowlist; client-side SSRF guard absent at schema level
+- NEW api.gladia.io: /v1/models public payload confirms datacenters [{FR},{US}] + per-request pricing 0.000055 — cloud egress regions for SSRF targeting; `created:1730000000` is static
+- NEW PyPI: gladiaio-sdk latest = 1.0.5 (version not previously recorded)
+- CHANGED api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401) — no unauthenticated history/upload exposure
+- NEW api.gladia.io: OpenAPI /v1/history declares `custom_metadata` as OBJECT-typed query param (additionalProperties:true) + `status`/`kind` as multi-value array params + date filters — key-gated query-par
+- NEW api.gladia.io: CallbackConfigDto.url spec is `format: uri` only — no scheme enum/pattern/allowlist; client-side SSRF guard absent at schema level (confirmed this cycle)
+- NEW api.gladia.io: /v1/models public payload confirms datacenters [{FR},{US}] + per-request pricing 0.000055 — cloud egress regions for SSRF targeting; `created:1730000000` is static
+- NEW PyPI: gladiaio-sdk latest = 1.0.5 (version not previously recorded)
+- CHANGED api.gladia.io: endpoint map stable at 14 paths; /v1/history and /v2/upload both confirmed key-gated (401 "no gladia key provided") — no unauthenticated history/upload exposure
+
+## 2026-08-07 23:14:52 UTC
+
+## 2026-08-07 23:50:17 UTC
+
+## 2026-08-08 00:44:48 UTC
+
+## 2026-08-08 03:03:04 UTC
+
+## 2026-08-08 04:03:29 UTC
+- NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
+- NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wi
+- CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM
+
+## 2026-08-08 05:12:15 UTC
+- NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
+- NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS sta
+- CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 04:01 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM
+
+## 2026-08-08 06:08:58 UTC
+- NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
+- NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS sta
+- CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 04:01 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM
+
+## 2026-08-08 07:10:17 UTC
+- NEW npm gladia@0.1.3: source repository alexisbouchez/gladia.ts (GitHub user + repo) now returns 404 — package orphaned while dist-tag latest persists
+- NEW api.gladia.io: NO_DRIFT confirmed across 6 probe cycles (23:08→23:48→00:44→02:50→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS sta
+- CHANGED npm gladia@0.1.3: artifact-level impersonation independently re-verified at 04:01 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs READM
+
+## 2026-08-08 08:03:21 UTC
+
+## 2026-08-08 08:56:52 UTC
+
+## 2026-08-08 09:47:28 UTC
+- CHANGED api.gladia.io /openapi.json: example-timestamp fingerprint is NOT a stable per-instance set — 3 fresh fetches returned 3 distinct values (21:00:25.976Z, 21:00:32.264Z, 21:00:26.548/9Z) vs prior-observ
+- NEW api.gladia.io: structural hash (examples-stripped) STABLE at sha256 9a326c924644b59854b0cafddb5f477c23d6d1cfb8c220f0ff5bf689c3c61c7b across all 3 fetches → validated drift baseline replacing byte-hash
+
+## 2026-08-08 10:19:38 UTC
+- NEW api.gladia.io /openapi.json: example-timestamp fingerprint varies per fetch (3 distinct values across 3 fetches) — not a stable per-instance indicator
+- NEW api.gladia.io: structural hash (examples-stripped) STABLE at sha256 9a326c924644b59854b0cafddb5f477c23d6d1cfb8c220f0ff5bf689c3c61c7b across 3 fetches — validated drift baseline
+
+## 2026-08-08 10:58:11 UTC
+
+## 2026-08-08 11:41:38 UTC
+- CHANGED app.gladia.io CSP confirmed: base-uri 'self', object-src 'none', frame-src 'self'+*.gladia.io+billing+svix; NO form-action directive (gap enables unconstrained form-action reflection)
+
+## 2026-08-08 12:03:43 UTC
+
+## 2026-08-08 13:12:56 UTC
+
+## 2026-08-08 14:04:58 UTC
+
+## 2026-08-08 14:50:37 UTC
+
+## 2026-08-08 15:21:19 UTC
+
+## 2026-08-08 15:53:13 UTC
+
+## 2026-08-08 17:05:52 UTC
+
+## 2026-08-08 17:52:29 UTC
+
+## 2026-08-08 18:18:19 UTC
+
+## 2026-08-08 19:06:08 UTC
+
+## 2026-08-08 19:45:02 UTC
+- NEW npm registry: adjacent-namespace squat scan returned all-404 for `gladiaio`, `gladia-sdk`, `gladia-sdk-ts`, `gladiaio-sdk`, `gladia-ts`, `gladia-ai`, `gladia-stt`, `@gladia/sdk`, `@gladia/sdk-js`, `@g
+- NEW npm registry: maintainer `softwarecitadel` controls only `@softwarecitadel/girouette` (AdonisJS decorators, unrelated) — no broader squat campaign by that account
+- NEW api.gladia.io: surface re-probe byte-identical — openapi 200/125131B, /health 200/15B, /v1/models 200/530B (22nd frozen cycle)
+
+## 2026-08-08 20:12:00 UTC
+
+## 2026-08-08 20:49:54 UTC
+- NEW api.gladia.io: OpenAPI 3.1 fully enumerated — 14 paths; every v2 operation declares security scheme `x_gladia_key` (header `x-gladia-key`); `/v1/models` inherits global `security: null` and returns 20
+- NEW api.gladia.io: auth gate confirmed — unauthenticated GET on /v2/transcription, /v2/pre-recorded, /v2/live, /v2/transcription/{id} → 401 `{"message":"no gladia key provided","request_id":"G-…"}`
+- NEW api.gladia.io: CORS preflight (OPTIONS, Origin: evil.example.com) → `access-control-allow-origin: *`, `allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE`, `allow-headers: x-gladia-key`, and NO `access-con
+- NEW npm `gladia` 0.1.3: registry `description` = "Official TypeScript SDK for Gladia" but packaged README title = "Unofficial TypeScript SDK"; maintainer `softwarecitadel` <softwarecitadel@gmail.com>, aut
+- NEW app.gladia.io `/signin`: Google-only OAuth; `redirect_to` query param reflected URL-encoded into form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`; post-auth redirect target handling 
+- CHANGED app.gladia.io return-to cookie re-confirmed: `eyJ1cmwiOiIvIn0=` = unsigned base64url `{"url":"/"}` (plain JSON, NOT a signed JWT); `__sid` expired/empty; both HttpOnly/Secure/SameSite=Lax
+
+## 2026-08-08 21:19:34 UTC
+
+## 2026-08-08 21:52:34 UTC
+
+## 2026-08-08 22:24:48 UTC
+
+## 2026-08-08 22:57:51 UTC
+- NEW api.gladia.io: NO_DRIFT across 25+ cycles (23:08→21:52 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface fro
+- NEW app.gladia.io: /signin?redirect_to= reflection confirmed alive at 21:52 UTC — form action reflects URL-encoded value; CSP full set re-captured, NO form-action directive (gap confirmed)
+- NEW npm registry: adjacent-namespace squat scan all-404 (gladiaio, gladia-sdk, gladia-ts, gladia-ai, gladia-stt, @gladia/*, @gladiaio/*) — gladia@0.1.3 is ISOLATED impersonator, no broader campaign
+- CHANGED app.gladia.io: /auth/google/callback returns 200 text/html (SPA shell) — OAuth callback path live, expected by design
+
+## 2026-08-08 23:36:12 UTC
+- NEW api.gladia.io: OpenAPI 3.1 spec top-level `webhooks` key enumerates 7 outbound webhook topics (transcription.created/success/error + live.start_session/start_recording/end_recording/end_session) — pre
+- NEW api.gladia.io: NO_DRIFT 27th cycle (23:33 UTC) — openapi 200/125131B/14 paths (structural sha256 a7fa3286… = normalization baseline), /health 15B, /v1/models 530B FR/US; spec servers=[https://api.glad
+- NEW app.gladia.io: /signin?redirect_to=https://evil.example.com → 200, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` re-confirmed live 23:33 UTC; CSP full set re-captured — connect-src 
+- CHANGED npm: gladia@0.1.3 static — dist-tag latest=0.1.3, description "Official TypeScript SDK for Gladia", maintainer softwarecitadel@gmail.com, repo alexisbouchez/gladia.ts, shasum cc96f84a… unchanged; @gla
+
+## 2026-08-09 00:03:26 UTC
+
+## 2026-08-09 02:27:06 UTC
+
+## 2026-08-09 04:00:40 UTC
+
+## 2026-08-09 05:15:35 UTC
+
+## 2026-08-09 06:05:04 UTC
+
+## 2026-08-09 07:14:09 UTC
+
+## 2026-08-09 08:05:31 UTC
+
+## 2026-08-09 09:01:30 UTC
+
+## 2026-08-09 09:53:30 UTC
+
+## 2026-08-09 10:28:52 UTC
+
+## 2026-08-09 11:08:07 UTC
+
+## 2026-08-09 11:44:12 UTC
+
+## 2026-08-09 12:17:53 UTC
+- NEW app.gladia.io: /auth/google/callback now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acces
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
+
+## 2026-08-09 13:28:40 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
+- CHANGED npm registry: `gladia@0.1.3` individual version endpoint returns 404 but package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (
+
+## 2026-08-09 14:13:40 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
+- CHANGED npm registry: `gladia@0.1.3` individual version endpoint returns 404 but package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (
+
+## 2026-08-09 14:59:06 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com (full OAuth initiation with client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed; example URLs point to generic callback.example + out-of-sc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only, no action
+- CHANGED npm registry: `gladia@0.1.3` package listing shows dist-tag latest=0.1.3 stable with shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.js
+
+## 2026-08-09 15:33:08 UTC
+
+## 2026-08-09 16:04:13 UTC
+- NEW app.gladia.io: `/auth/google/callback` now returns 302 → accounts.google.com with full OAuth initiation (client_id, PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, acc
+- NEW app.gladia.io: CSP connect-src includes *.gladia.io + wss://*.gladia.io + *.google.* + hotjar/contentsquare/hubspot/axeptio — infra fingerprint only
+- CHANGED npm registry: `gladia@0.1.3` dist-tag latest=0.1.3 stable, shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradictio
+- NEW api.gladia.io: OpenAPI spec `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage; example URLs point to generic callback.example + out-of-scope files.
+
+## 2026-08-09 16:53:50 UTC
+- NEW None — surface frozen since 23:08 UTC (41+ NO_DRIFT cycles)
+- CHANGED None — all observations re-confirmed byte-identical; npm `gladia@0.1.3` dist-tag/shasum/repo/user static
+
+## 2026-08-09 17:25:48 UTC
+- NEW NO_DELTA
+
+## 2026-08-09 18:04:15 UTC
+
+## 2026-08-09 18:58:02 UTC
+
+## 2026-08-09 19:42:44 UTC
+
+## 2026-08-09 20:05:14 UTC
+
+## 2026-08-09 20:51:42 UTC
+
+## 2026-08-09 21:38:12 UTC
+
+## 2026-08-09 22:01:31 UTC
+
+## 2026-08-09 22:41:42 UTC
+- NEW app.gladia.io: /auth/google/callback now returns 302 → accounts.google.com (full OAuth initiation with client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com, PKCE S256, fi
+- CHANGED npm registry: gladia@0.1.3 dist-tag latest=0.1.3 stable, shasum cc96f84a200c0fd49a71e919391f9b659c39f3e9 unchanged, repo alexisbouchez/gladia.ts + user alexisbouchez both 404 (orphaned), package.json 
+
+## 2026-08-09 23:08:05 UTC
+
+## 2026-08-09 23:47:02 UTC
+
+## 2026-08-10 00:40:41 UTC
+
+## 2026-08-10 03:06:26 UTC
+
+## 2026-08-10 04:50:07 UTC
+
+## 2026-08-10 06:23:21 UTC
+
+## 2026-08-10 08:06:57 UTC
+
+## 2026-08-10 09:49:22 UTC
+- NEW api.gladia.io: OpenAPI 3.1 fully enumerated — 14 paths; every v2 operation declares security scheme `x_gladia_key` (header `x-gladia-key`); `/v1/models` inherits global `security: null` and returns 20
+- NEW api.gladia.io: auth gate confirmed — unauthenticated GET on /v2/transcription, /v2/pre-recorded, /v2/live, /v2/transcription/{id} → 401 `{"message":"no gladia key provided","request_id":"G-…"}`
+- NEW api.gladia.io: CORS preflight (OPTIONS, Origin: evil.example.com) → `access-control-allow-origin: *`, `allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE`, `allow-headers: x-gladia-key`, and NO `access-con
+- NEW npm `gladia` 0.1.3: registry `description` = "Official TypeScript SDK for Gladia" but packaged README title = "Unofficial TypeScript SDK"; maintainer `softwarecitadel` <softwarecitadel@gmail.com>, aut
+- NEW app.gladia.io `/signin`: Google-only OAuth; `redirect_to` query param reflected URL-encoded into form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`; post-auth redirect target handling 
+- CHANGED app.gladia.io return-to cookie re-confirmed: `eyJ1cmwiOiIvIn0=` = unsigned base64url `{"url":"/"}` (plain JSON, NOT a signed JWT); `__sid` expired/empty; both HttpOnly/Secure/SameSite=Lax
+
+## 2026-08-10 10:54:23 UTC
+
+## 2026-08-10 11:45:54 UTC
+
+## 2026-08-10 12:41:01 UTC
+
+## 2026-08-10 14:08:36 UTC
+- NEW npm `gladia@0.1.3` tarball `package/src/client.ts:307` confirms `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())` — key leaked into wss:// URL query at runti
+- NEW api.gladia.io OpenAPI `webhooks` key confirmed (7 topics: transcription.{created,success,error}, live.{start_session,start_recording,end_recording,end_session}) — all POST to client-supplied URLs, `fo
+- NEW api.gladia.io POST /v2/pre-recorded (no key) → 401 `{"message":"no gladia key provided","request_id":"…"}` NestJS HttpException shape confirmed fresh (timestamp 2026-08-10T14:xx UTC)
+- NEW app.gladia.io /signin?redirect_to=https://evil.example.com → 200, CSP captured full set, `0 form-action directives` confirmed (grep-count=0)
+- NEW app.gladia.io /auth/google/callback (no params) → 302 → accounts.google.com full OAuth 2.0 PKCE S256 init (client_id, fixed redirect_uri, code_challenge, state) confirmed
+
+## 2026-08-10 15:21:16 UTC
+- NEW npm `gladia@0.1.3` tarball `package/src/client.ts:307` confirms `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())` — API key leaked into wss:// URL query at r
+- NEW api.gladia.io OpenAPI `webhooks` key confirmed (7 topics: transcription.{created,success,error}, live.{start_session,start_recording,end_recording,end_session}) — all POST to client-supplied URLs, `fo
+- NEW api.gladia.io POST /v2/pre-recorded (no key) → 401 `{"message":"no gladia key provided","request_id":"…"}` NestJS HttpException shape confirmed fresh (timestamp 2026-08-10T14:xx UTC)
+- NEW app.gladia.io /signin?redirect_to=https://evil.example.com → 200, CSP captured full set, `0 form-action directives` confirmed (grep-count=0)
+- NEW app.gladia.io /auth/google/callback (no params) → 302 → accounts.google.com full OAuth 2.0 PKCE S256 init (client_id, fixed redirect_uri, code_challenge, state) confirmed
+
+## 2026-08-10 16:16:07 UTC
+
+## 2026-08-10 17:16:05 UTC
+
+## 2026-08-10 18:17:03 UTC
+
+## 2026-08-10 19:18:43 UTC
+- NEW npm `gladia@0.1.3`: local `npm pack gladia@0.1.3` reproduced independently — tarball sha256 `3b23ec7d…7f2`, `package/src/client.ts:307` `wsUrl.searchParams.append('x-gladia-key', this.apiKey)` + `:318
+
+## 2026-08-10 20:08:26 UTC
+- NEW npm `gladia@0.1.3`: local `npm pack` reproduced independently — tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` verified; `src/client.ts:307` `wsUrl.searchParams.appe
+
+## 2026-08-10 21:01:57 UTC
+- NEW None — all surfaces match prior cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks frozen, app.gladia.io signin reflection + CSP gap confirmed, npm gladia@0.1.3 orphaned at latest with repo+use
+
+## 2026-08-10 22:01:55 UTC
+- NEW None — all surfaces match prior cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks frozen, app.gladia.io signin reflection + CSP gap confirmed, npm gladia@0.1.3 orphaned at latest with repo+use
+
+## 2026-08-10 22:38:09 UTC
+
+## 2026-08-10 23:18:54 UTC
+
+## 2026-08-10 23:59:00 UTC
+
+## 2026-08-11 02:13:06 UTC
+
+## 2026-08-11 04:13:31 UTC
+
+## 2026-08-11 05:32:28 UTC
+
+## 2026-08-11 06:11:56 UTC
+
+## 2026-08-11 07:41:23 UTC
+
+## 2026-08-11 08:40:57 UTC
+
+## 2026-08-11 09:44:28 UTC
+
+## 2026-08-11 10:38:19 UTC
+- NEW None since 09:43 UTC — surface remains frozen across all targets (80+ drift-negative cycles on api.gladia.io, byte-fresh signin reflection on app.gladia.io, static orphaned impersonation on npm)
+
+## 2026-08-11 11:32:55 UTC
+
+## 2026-08-11 12:44:23 UTC
+- NEW None — all surfaces frozen (api.gladia.io openapi.json 125131B/14 paths/7 webhooks etag W/"1e8cb-...", app.gladia.io signin reflection + CSP gap byte-identical, npm gladia@0.1.3 shasum cc96f84a... unc
+
+## 2026-08-11 14:00:51 UTC
+
+## 2026-08-11 15:12:29 UTC
+- NEW NO_DELTA — all surfaces frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io signin redirect_to reflection + CSP gap byte-identical;
+
+## 2026-08-11 16:14:16 UTC
+- NEW NO_DELTA — all surfaces frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io signin redirect_to reflection + CSP gap byte-identical;
+
+## 2026-08-11 17:17:10 UTC
+
+## 2026-08-11 18:13:44 UTC
+
+## 2026-08-11 19:29:47 UTC
+
+## 2026-08-11 20:13:39 UTC
+- NEW None — all surfaces frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io signin redirect_to reflection + CSP gap byte-identical; npm
+- NEW None — all surfaces frozen across 80+ drift-negative cycles.
+- CHANGED None.
+
+## 2026-08-11 21:09:21 UTC
+- NEW None — all surfaces frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io signin redirect_to reflection + CSP gap byte-identical; npm
+
+## 2026-08-11 22:05:24 UTC
+
+## 2026-08-11 23:03:40 UTC
+- CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (Google Forms, auth-gated via Google
+
+## 2026-08-11 23:54:36 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → Google Forms `1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI` (auth-gated via Google, third-party out of scope) — submission c
+- CHANGED gladia.io/bug-bounty-report → 301 → www.gladia.io/bug-bounty-report → 302 → `https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform` (Google Forms, auth-gated via Google
+
+## 2026-08-12 01:47:46 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report submission channel fully mapped (301→www→302→Google Forms); no new in-scope surface, delivery path for locked report confirmed
+
+## 2026-08-12 04:01:18 UTC
+- NEW gladia.io/bug-bounty-report redirects 301→www.gladia.io/bug-bounty-report→302→Google Forms (https://docs.google.com/forms/d/1RiodROQSx9f7r_parjnEDqz6k_N7oZBvcgZ8scPrRgI/viewform) — auth-gated via Goog
+- CHANGED gladia.io/bug-bounty-report submission channel fully mapped (301→www→302→Google Forms); no new in-scope surface, delivery path for locked report confirmed
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle: api.gladia.io openapi 125131B/CORS `*`/401 NestJS/x-powered-by Express (OPTIONS-only); app.gladia.io /signin form-action reflection + CSP 0 
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle: api.gladia.io openapi 125131B/CORS `*`/401 NestJS/x-powered-by Express (OPTIONS-only); app.gladia.io /signin form-action reflection + CSP 0 
+- NEW None — surface frozen across 80+ cycles on all targets; no class newly proven dead or alive.
+- CHANGED None — all observations re-confirmed byte-fresh this cycle.
+
+## 2026-08-12 05:30:10 UTC
+
+## 2026-08-12 06:56:33 UTC
+- NEW None — surface frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP gap byte-identical; npm gla
+
+## 2026-08-12 08:24:49 UTC
+- NEW None — surface frozen across 80+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP gap byte-identical; npm gla
+
+## 2026-08-12 09:45:37 UTC
+
+## 2026-08-12 10:48:00 UTC
+- NEW None — surface frozen across 90+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP gap byte-identical; npm gla
+
+## 2026-08-12 11:37:45 UTC
+
+## 2026-08-12 12:36:36 UTC
+
+## 2026-08-12 14:07:38 UTC
+
+## 2026-08-12 15:15:18 UTC
+- NEW None — all surfaces frozen across 90+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP 0 form-action directiv
+- CHANGED None — all observations re-confirmed byte-fresh this cycle
+
+## 2026-08-12 16:29:58 UTC
+
+## 2026-08-12 17:17:48 UTC
+
+## 2026-08-12 18:15:37 UTC
+
+## 2026-08-12 19:36:46 UTC
+
+## 2026-08-12 20:24:09 UTC
+
+## 2026-08-12 21:11:56 UTC
+- NEW None — surface frozen across 90+ cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin redirect_to reflection + CSP 0 form-action; npm gladia@0
+- CHANGED None — all observations re-confirmed byte-fresh this cycle; no new endpoints, headers, or npm metadata changes
+
+## 2026-08-12 22:06:38 UTC
+
+## 2026-08-12 23:00:40 UTC
+
+## 2026-08-13 00:00:36 UTC
+
+## 2026-08-13 01:56:33 UTC
+
+## 2026-08-13 04:09:46 UTC
+- NEW None — surface frozen across 80+ cycles on all targets (api openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app /signin redirect_to reflection + CSP gap byte-identical; npm gladia@0
+- CHANGED None — all observations re-confirmed byte-fresh this cycle.
+
+## 2026-08-13 05:46:06 UTC
+
+## 2026-08-13 07:17:23 UTC
+
+## 2026-08-13 08:43:40 UTC
+
+## 2026-08-13 09:50:39 UTC
+
+## 2026-08-13 10:56:25 UTC
+
+## 2026-08-13 11:52:29 UTC
+
+## 2026-08-13 12:34:12 UTC
+
+## 2026-08-13 14:14:20 UTC
+
+## 2026-08-13 15:19:59 UTC
+
+## 2026-08-13 16:30:32 UTC
+
+## 2026-08-13 17:22:21 UTC
+
+## 2026-08-13 18:14:29 UTC
+
+## 2026-08-13 19:32:45 UTC
+
+## 2026-08-13 20:08:36 UTC
+
+## 2026-08-13 21:06:12 UTC
+
+## 2026-08-13 21:59:54 UTC
+
+## 2026-08-13 22:58:45 UTC
+
+## 2026-08-13 23:45:11 UTC
+
+## 2026-08-14 00:46:13 UTC
+
+## 2026-08-14 03:18:00 UTC
+
+## 2026-08-14 05:19:07 UTC
+
+## 2026-08-14 06:45:34 UTC
+
+## 2026-08-14 08:07:50 UTC
+
+## 2026-08-14 09:21:16 UTC
+
+## 2026-08-14 10:31:22 UTC
+
+## 2026-08-14 11:24:52 UTC
+
+## 2026-08-14 12:11:04 UTC
+
+## 2026-08-14 13:44:47 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → 12:11 2026-08-14 UTC).
+
+## 2026-08-14 14:43:25 UTC
+
+## 2026-08-14 15:37:39 UTC
+
+## 2026-08-14 16:32:49 UTC
+
+## 2026-08-14 17:39:21 UTC
+
+## 2026-08-14 18:33:34 UTC
+
+## 2026-08-14 19:35:21 UTC
+
+## 2026-08-14 20:13:52 UTC
+
+## 2026-08-14 20:46:41 UTC
+- CHANGED 2026-08-14 20:13:52 UTC inventory timestamp registered; all prior knowledge + leads carried forward.
+- CHANGED npm `gladia@0.1.3` confirmation block now references two local `npm pack` reproductions (18:17 + 20:08 UTC) of sha256 `3b23ec7d…7f2` — strengthens reproducibility claim.
+- CHANGED `/auth/google/callback` confirmed as full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — was earlier 200 S
+- CHANGED oauth2 state cookie now observed as `oauth2:<uuid>` (per-request fresh UUID naming) with `HttpOnly; SameSite=Lax` but missing `Secure` flag (HSTS preload mitigates→informational).
+- NEW `/api/v1/*` SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html (no real authenticated API at unauth layer) — client-side enfor
+
+## 2026-08-14 21:14:33 UTC
+- NEW `/api/v1/*` SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html — no real authenticated API at unauth layer, client-side enforc
+- CHANGED `/auth/google/callback` confirmed as full OAuth 2.0 PKCE S256 initiation (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, random state) — previously observ
+- CHANGED oauth2 state cookie now observed as `oauth2:<uuid>` (per-request fresh UUID naming) with `HttpOnly; SameSite=Lax` but missing `Secure` flag (HSTS preload mitigates→informational)
+- CHANGED npm `gladia@0.1.3` confirmation block now references two local `npm pack` reproductions (18:17 + 20:08 UTC) of sha256 `3b23ec7d…7f2` — strengthens reproducibility claim
+- CHANGED npm `gladia@0.1.3` orphaned impersonation confirmation now references TWO independent local `npm pack` reproductions (both yielding sha256 `3b23ec7d…7f2`) at 20:08 + 21:12 UTC this cycle — strengthens
+- CHANGED `/auth/google/callback` (app.gladia.io) confirmed as full OAuth 2.0 PKCE S256 initiation at 21:12 UTC (302→accounts.google.com with client_id `3520…21ha`, FIXED redirect_uri, code_challenge S256, rand
+- CHANGED oauth2 state cookie naming now explicitly recorded as `oauth2:<uuid>` (per-request fresh UUID) with `HttpOnly; SameSite=Lax` but missing `Secure` flag confirmed this cycle at 21:12 UTC.
+- NEW /api/v1/* SPA catch-all endpoints (/api/v1/me, /api/v1/transcriptions, /api/v1/apikeys, /api/health) confirmed returning 200 text/html at 21:12 UTC — client-side enforcement only, no real authenticate
+
+## 2026-08-14 21:44:55 UTC
+
+## 2026-08-14 22:03:16 UTC
+
+## 2026-08-14 22:36:51 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → current 2026-08-14 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-14 23:02:53 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → current 2026-08-14 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-14 23:32:26 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → current 2026-08-14 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-14 23:57:51 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → current 2026-08-14 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 01:38:31 UTC
+
+## 2026-08-15 02:39:41 UTC
+
+## 2026-08-15 03:25:18 UTC
+
+## 2026-08-15 04:06:12 UTC
+
+## 2026-08-15 04:46:20 UTC
+
+## 2026-08-15 05:12:44 UTC
+
+## 2026-08-15 05:45:11 UTC
+
+## 2026-08-15 06:04:42 UTC
+
+## 2026-08-15 07:01:36 UTC
+- NEW None — all targets byte-identical to prior cycles (90+ NO_DRIFT confirmed)
+
+## 2026-08-15 07:35:39 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (23:08 2026-08-07 → current); all targets byte-identical
+
+## 2026-08-15 07:59:08 UTC
+
+## 2026-08-15 08:57:25 UTC
+
+## 2026-08-15 09:07:27 UTC
+
+## 2026-08-15 09:37:41 UTC
+
+## 2026-08-15 09:59:18 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 09:37 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 10:32:31 UTC
+
+## 2026-08-15 10:57:02 UTC
+
+## 2026-08-15 11:26:31 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 11:24 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 11:47:30 UTC
+
+## 2026-08-15 12:03:29 UTC
+
+## 2026-08-15 12:57:10 UTC
+
+## 2026-08-15 13:36:18 UTC
+
+## 2026-08-15 13:58:27 UTC
+
+## 2026-08-15 14:33:05 UTC
+
+## 2026-08-15 14:56:14 UTC
+
+## 2026-08-15 15:27:22 UTC
+
+## 2026-08-15 15:50:35 UTC
+
+## 2026-08-15 16:10:21 UTC
+
+## 2026-08-15 16:42:49 UTC
+
+## 2026-08-15 17:04:38 UTC
+
+## 2026-08-15 17:33:38 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 17:04 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 17:55:31 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 17:04 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 18:32:52 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 17:55 UTC); all targets byte-identical to prior cycles
+- NEW NO_DELTA — surface frozen across 90+ cycles; all targets byte-identical to 2026-08-15 17:55 UTC baseline (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, n
+
+## 2026-08-15 19:01:53 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 18:32 UTC); all targets byte-identical to prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, si
+
+## 2026-08-15 19:31:16 UTC
+
+## 2026-08-15 19:51:30 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 19:31 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 20:12:23 UTC
+
+## 2026-08-15 20:42:18 UTC
+
+## 2026-08-15 21:03:02 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 20:42 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 21:33:43 UTC
+
+## 2026-08-15 21:54:17 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 21:33 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 22:20:30 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 21:54 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 22:44:37 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 22:20 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 23:03:03 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 22:44 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-15 23:32:39 UTC
+
+## 2026-08-15 23:53:09 UTC
+
+## 2026-08-16 01:06:52 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 23:53 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 02:35:07 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 23:53 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 03:32:59 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-15 23:53 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 04:20:03 UTC
+
+## 2026-08-16 04:56:28 UTC
+
+## 2026-08-16 05:33:13 UTC
+
+## 2026-08-16 05:59:54 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 05:58 UTC); all targets byte-identical to prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin
+
+## 2026-08-16 06:55:12 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 05:58 UTC); all targets byte-identical to prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin
+
+## 2026-08-16 07:35:16 UTC
+
+## 2026-08-16 07:57:37 UTC
+
+## 2026-08-16 08:40:00 UTC
+
+## 2026-08-16 09:05:14 UTC
+
+## 2026-08-16 09:39:07 UTC
+
+## 2026-08-16 10:00:39 UTC
+
+## 2026-08-16 10:34:34 UTC
+- NEW None — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 10:00 UTC); all targets byte-identical to prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin
+
+## 2026-08-16 10:57:48 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 10:34 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 11:26:50 UTC
+
+## 2026-08-16 11:51:03 UTC
+
+## 2026-08-16 12:13:54 UTC
+
+## 2026-08-16 13:05:03 UTC
+
+## 2026-08-16 13:43:03 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 13:05 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 14:03:46 UTC
+
+## 2026-08-16 14:35:57 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 14:03 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 14:59:14 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 14:35 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 15:32:30 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 14:59 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 15:55:17 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 14:59 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 16:23:06 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 15:55 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 16:50:03 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 15:55 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 17:11:10 UTC
+- NEW NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 15:55 UTC); all targets byte-identical to prior cycles
+
+## 2026-08-16 17:35:50 UTC
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/reports/
+total 12336
+drwxr-xr-x  2 runner runner    4096 Aug 16 17:53 .
+drwxr-xr-x 11 runner runner    4096 Aug 16 17:53 ..
+-rw-r--r--  1 runner runner 3033269 Aug 16 17:53 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 6295126 Aug 16 17:53 analyst-laguna.log
+-rw-r--r--  1 runner runner   54432 Aug 16 17:53 analyst-ling3.log
+-rw-r--r--  1 runner runner  341070 Aug 16 17:53 analyst-longcat.log
+-rw-r--r--  1 runner runner 2255077 Aug 16 17:53 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    5418 Aug 16 17:53 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner    6109 Aug 16 17:53 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 16 17:53 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 16 17:53 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    5583 Aug 16 17:53 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  635607 Aug 16 17:53 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 16 17:53 valid-bugs.md
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-nemotron3.txt
+## 2026-08-16 17:35:11 UTC [app] (model nemotron3)
+[PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io: 6.95 attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=3
+[PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[PRIO] gladia.io: 5.20 attack_surface=4 business_value=5 tech_exposure=3 gate_ease=10 cloud_surface=2 freshness=8
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key=<key> query parameter — diverges from official SDK's token-after-init POST /v2/live flow, leaks key in URLs/logs/proxies
+evidence_needed: Document artifact-level findings (tarball sha256, README vs package.json contradiction, client.ts:306-308 key-in-URL); confirm no affiliation with Gladia
+verify_steps: RAG: Finalize report with tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, README "Unofficial" vs package.json "Official", client.ts:306-308 key-in-URL; HUMAN: Request Gladia security confirm no affiliation with alexisbouchez/softwarecitadel
+impact: Supply chain risk — developers install impersonated SDK leading to credential theft via key-in-URL logs/proxies; severity High
+testability: RAG
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to= reflects value into form action for https://, //, bare-host, confusing-subdomain (app.gladia.io.evil), path-only variants — confirmed live fresh; CSP lacks form-action directive restricting POST targets; Google-only OAuth limits exploitability but no host allowlist enforced on reflection at unauthenticated layer; post-auth honoring unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io
+confidence: 73
+reasoning: OpenAPI spec shows audio_url/video_url/callback_url as format:uri with no scheme allowlist; /v1/models confirms FR/US egress regions; 7 webhook callback topics post to client-supplied URLs; all gated only by x-gladia-key (AUTH_HELPED)
+evidence_needed: Valid x-gladia-key to POST /v2/pre-recorded with audio_url pointing to internal metadata endpoint (169.254.169.254) or callback_url to attacker-controlled server
+verify_steps: AUTH_HELPED: POST /v2/pre-recorded {"audio_url": "http://169.254.169.254/latest/meta-data/", "callback_url": "https://attacker.com/cb"} with valid x-gladia-key header; observe server-side fetch + webhook callback
+impact: SSRF to internal metadata/cloud APIs + webhook callback delivery to attacker; severity High (requires valid key)
+testability: AUTH_HELPED
+[PARKED] SSRF via server-side fetch of audio_url/video_url/callback_url server-side fetch + webhook delivery: asset api.gladia.io not in current target=app scope for POC phase
+[FINAL] 1) Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (npm registry, 96, OTHER) 2) Post-auth open redirect via reflected redirect_to on signin form action (app.gladia.io, 57, OATH)
+[NEXT] HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth honoring of arbitrary redirect_to
+[LEARN] No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; NestJS-on-Express backend; high business value; potential SSRF via audio_url/video_url/callback_url with no scheme validation; datacenter regions exposed; 7 webhook callback topics | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+[0m
+[NEW] NO_DELTA — surface frozen across 90+ cycles (2026-08-07 23:08 → 2026-08-16 15:55 UTC); all targets byte-identical to prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`)
+
+[PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io: 6.95 attack_surface=9 business_value=9 tech_exposure=8 gate_ease=1 cloud_surface=8 freshness=3
+[PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[PRIO] gladia.io: 5.20 attack_surface=4 business_value=5 tech_exposure=3 gate_ease=10 cloud_surface=2 freshness=8
+
+[HYP] Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK" but source repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned); tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 contains README "Unofficial" vs package.json "Official" contradiction; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?x-gladia-key=<key> query parameter — diverges from official SDK's token-after-init POST /v2/live flow, leaks key in URLs/logs/proxies
+evidence_needed: Document artifact-level findings (tarball sha256, README vs package.json contradiction, client.ts:306-308 key-in-URL); confirm no affiliation with Gladia
+verify_steps: RAG: Finalize report with tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2, README "Unofficial" vs package.json "Official", client.ts:306-308 key-in-URL; HUMAN: Request Gladia security confirm no affiliation with alexisbouchez/softwarecitadel
+impact: Supply chain risk — developers install impersonated SDK leading to credential theft via key-in-URL logs/proxies; severity High
+testability: RAG
+
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to= reflects value into form action for https://, //, bare-host, confusing-subdomain (app.gladia.io.evil), path-only variants — confirmed live fresh; CSP lacks form-action directive restricting POST targets; Google-only OAuth limits exploitability but no host allowlist enforced on reflection at unauthenticated layer; post-auth honoring unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io
+confidence: 73
+reasoning: OpenAPI spec shows audio_url/video_url/callback_url as format:uri with no scheme allowlist; /v1/models confirms FR/US egress regions; 7 webhook callback topics post to client-supplied URLs; all gated only by x-gladia-key (AUTH_HELPED)
+evidence_needed: Valid x-gladia-key to POST /v2/pre-recorded with audio_url pointing to internal metadata endpoint (169.254.169.254) or callback_url to attacker-controlled server
+verify_steps: AUTH_HELPED: POST /v2/pre-recorded {"audio_url": "http://169.254.169.254/latest/meta-data/", "callback_url": "https://attacker.com/cb"} with valid x-gladia-key header; observe server-side fetch + webhook callback
+impact: SSRF to internal metadata/cloud APIs + webhook callback delivery to attacker; severity High (requires valid key)
+testability: AUTH_HELPED
+
+[PARKED] SSRF via server-side fetch of audio_url/video_url/callback_url server-side fetch + webhook delivery: asset api.gladia.io not in current target=app scope for POC phase
+
+[FINAL] 1) Orphaned npm package gladia@0.1.3 impersonates official SDK with API key leakage in WebSocket URL query (npm registry, 96, OTHER) 2) Post-auth open redirect via reflected redirect_to on signin form action (app.gladia.io, 57, OATH)
+
+[NEXT] HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target to validate post-auth honoring of arbitrary redirect_to
+
+[LEARN] No class newly proven dead or alive this cycle — fresh probes byte-identical to 90+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection, npm latest=0.1.3/shasum `cc96f84a…`); all ACCEPTED findings remain alive, all REJECTED classes remain dead
+
+[RISK] api.gladia.io: 85 reason: Public OpenAPI spec reveals full attack surface; CORS wildcard with auth header allowed; WebSocket token-in-URL design; undocumented /health endpoint; NestJS-on-Express backend; high business value; potential SSRF via audio_url/video_url/callback_url with no scheme validation; datacenter regions exposed; 7 webhook callback topics | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
