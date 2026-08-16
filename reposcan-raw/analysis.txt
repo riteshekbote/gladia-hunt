@@ -1,29 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Tables**
+### Classification Table
 
-| Category | File | Line | Match | Classification |
-|----------|------|------|-------|----------------|
-| **REAL_SECRET** | *(none)* | | | |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in screenshot fixture |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite destination |
-|  | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public app URL pattern |
-|  | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public app URL |
-|  | gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public docs URL |
-| **INTERESTING** | compare-stt/src/lib/providers/gladia.ts | 3,36,49 | `https://api.gladia.io/v2` + `x-gladia-key` header | Legitimate SDK usage pattern (official API) |
-|  | vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked from `packages/gladia` | Official Vercel AI SDK integration (gladiaio org) |
+| Category | Files/Lines | Assessment |
+|----------|-------------|------------|
+| **REAL_SECRET** | None | `sk-********` in Gallery.tsx:17 is a masked placeholder, not a live secret |
+| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts:8<br>gladiaflow/src/screenshots/Gallery.tsx:17<br>gladiaflow/src/screenshots/main.tsx:3<br>gladiaflow/src/lib/vocabularyEditor.test.ts:21,27,34 | Test fixtures, screenshot mocks, unit test data — all benign |
+| **ENDPOINT_LEAK** | compare-stt/next.config.ts:38,44,51 (rewrites to gladia.io)<br>gladiaflow/src/components/TranscriptionHistory.tsx:19 (app.gladia.io)<br>gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 (app.gladia.io/apikeys)<br>compare-stt/src/lib/providers/gladia.ts:3,36,49 (api.gladia.io/v2, x-gladia-key header) | Public API endpoints already documented in OpenAPI spec — not leaks |
+| **INTERESTING** | vercel-ai/pnpm-lock.yaml:289,291,2368 (`@ai-sdk/gladia` = official Vercel AI SDK integration)<br>gladiaflow/package.json + Cargo.toml (official Rust/Tauri app)<br>Known: `gladia@0.1.3` npm impersonation (alexisbouchez/gladia.ts, orphaned) | Official integrations confirmed; npm impersonation already tracked (ACCEPTED OTHER in KB) |
 
----
-
-**Verdict List**
+### Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm package (orphaned impersonation) | **YES** | Persistent anomaly: package.json claims "Official TypeScript SDK", README says "Unofficial", repo `alexisbouchez/gladia.ts` + user 404 (orphaned), src/client.ts embeds raw `x-gladia-key` in WSS URL query, dist-tag `latest=0.1.3` persists. Evidence package locked across 90+ cycles. Report via https://gladia.io/bug-bounty-report (→ Google Forms, Google SSO auth-gated). |
-| `@ai-sdk/gladia` in vercel-ai | **NO** | Official Vercel AI SDK provider under gladiaio org (`packages/gladia`), legitimate integration. |
-| All endpoint references | **NO** | Public production URLs (api.gladia.io, app.gladia.io, docs.gladia.io, www.gladia.io) — expected in SDK/sample code. |
-| `sk-********` in Gallery.tsx | **NO** | Masked placeholder in screenshot/test fixture (TEST_OR_EXAMPLE). |
-| compare-stt marketing site | **NO** | Legitimate comparison site referencing Gladia as a provider. |
+| `gladia@0.1.3` npm impersonation | **yes** | Orphaned personal repo (alexisbouchez/gladia.ts + user 404), dist-tag `latest` persists, embeds raw API key in WSS URL query (`x-gladia-key`), package.json "Official" vs README "Unofficial" contradiction — **already ACCEPTED in KB, report-ready** |
+| Hardcoded secrets in screenshots | no | `sk-********` is a masked placeholder in test/screenshots |
+| API endpoint references | no | All point to documented public endpoints (api.gladia.io/v2, app.gladia.io) |
+| Vercel AI SDK integration | no | `@ai-sdk/gladia` is official org-maintained package |
+| GladiaFlow Tauri app | no | Official Gladia desktop client, support@gladia.io author |
 
-**Summary**: Delta scan shows **0 new hit lines**. Only pre-existing, already-accepted finding remains the `gladia@0.1.3` orphaned impersonation package (P3/P4 supply-chain risk). All attack surfaces frozen across 90+ NO_DRIFT cycles.
+**Summary**: No **new** reportable findings this scan. The sole live candidate remains the `gladia@0.1.3` orphaned impersonation package (already evidence-locked and report-ready via bug-bounty portal). All other hits are test fixtures, documented public endpoints, or official integrations.
