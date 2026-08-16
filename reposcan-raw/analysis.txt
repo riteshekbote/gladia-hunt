@@ -1,23 +1,28 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m← [0mWrite triage-report.md
+Wrote file successfully.
+[0m
+[0m→ [0mRead triage-report.md
+**Triage Complete — NO REPORTABLE FINDINGS**
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | None | `sk-********` in Gallery.tsx:17 is a masked placeholder, not a live secret |
-| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts:8<br>gladiaflow/src/screenshots/Gallery.tsx:17<br>gladiaflow/src/screenshots/main.tsx:3<br>gladiaflow/src/lib/vocabularyEditor.test.ts:21,27,34 | Test fixtures, screenshot mocks, unit test data — all benign |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts:38,44,51 (rewrites to gladia.io)<br>gladiaflow/src/components/TranscriptionHistory.tsx:19 (app.gladia.io)<br>gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 (app.gladia.io/apikeys)<br>compare-stt/src/lib/providers/gladia.ts:3,36,49 (api.gladia.io/v2, x-gladia-key header) | Public API endpoints already documented in OpenAPI spec — not leaks |
-| **INTERESTING** | vercel-ai/pnpm-lock.yaml:289,291,2368 (`@ai-sdk/gladia` = official Vercel AI SDK integration)<br>gladiaflow/package.json + Cargo.toml (official Rust/Tauri app)<br>Known: `gladia@0.1.3` npm impersonation (alexisbouchez/gladia.ts, orphaned) | Official integrations confirmed; npm impersonation already tracked (ACCEPTED OTHER in KB) |
+| Category | Count | Verdict |
+|----------|-------|---------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | 6 | All benign (incl. masked `sk-********` placeholder) |
+| ENDPOINT_LEAK | 12 | All public/production endpoints |
+| INTERESTING | 5 | Third-party analytics, official SDK confirmation |
 
-### Verdict List
+**Verdict List**
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation | **yes** | Orphaned personal repo (alexisbouchez/gladia.ts + user 404), dist-tag `latest` persists, embeds raw API key in WSS URL query (`x-gladia-key`), package.json "Official" vs README "Unofficial" contradiction — **already ACCEPTED in KB, report-ready** |
-| Hardcoded secrets in screenshots | no | `sk-********` is a masked placeholder in test/screenshots |
-| API endpoint references | no | All point to documented public endpoints (api.gladia.io/v2, app.gladia.io) |
-| Vercel AI SDK integration | no | `@ai-sdk/gladia` is official org-maintained package |
-| GladiaFlow Tauri app | no | Official Gladia desktop client, support@gladia.io author |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `sk-********` (gladiaflow screenshot) | **NO** — masked placeholder |
+| Public API endpoints (`api.gladia.io`, `app.gladia.io`, `docs.gladia.io`) | **NO** — documented in OpenAPI |
+| `@ai-sdk/gladia` (vercel-ai) | **NO** — official integration |
+| PostHog/GTM tracking refs | **NO** — third-party analytics |
 
-**Summary**: No **new** reportable findings this scan. The sole live candidate remains the `gladia@0.1.3` orphaned impersonation package (already evidence-locked and report-ready via bug-bounty portal). All other hits are test fixtures, documented public endpoints, or official integrations.
+**Delta**: 0 new hit lines vs prior scan (617 total, all pre-existing).
+
+**Previously tracked**: npm `gladia@0.1.3` impersonation anomaly (personal repo, "Official" vs "Unofficial" contradiction) — remains sole supply-chain finding, already **report-ready** via bug-bounty portal.
