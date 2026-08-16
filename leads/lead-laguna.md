@@ -8601,3 +8601,4 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 72 — OpenAPI 125131B/14 paths/7 webhooks (CORS *, preflight-only x-powered-by fingerprint, key-gated 401 NestJS); SSRF-by-design surface frozen 90+ cycles (AUTH_HELPED); /health undocumented
 [RISK] app.gladia.io: 63 — /signin redirect_to unauthenticated reflection + CSP form-action gap (0 directives); OAuth redirect_uri FIXED with PKCE S256 (code/state theft blocked); return-to cookie tamper-reset REJECTED; /dashboard SPA shell without auth
 [RISK] sdk: 65 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest (shasum cc96f84a…, sha256 3b23…7f2, GitHub 404) leaking raw API key in WebSocket URL query; official @gladiaio/sdk@1.1.0 + gladiaio-sdk@1.0.5 clean
+## 2026-08-16 10:34:24 UTC [app] (model laguna)
