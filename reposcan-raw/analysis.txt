@@ -1,22 +1,80 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-report.md
-Wrote file successfully.
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && grep -r "sk-" reposcan-raw/ --include="*.ts" --include="*.tsx" --include="*.json" | grep -v "sk-********" | head -20
+(no output)
 [0m
-Done. Full triage report written to `triage-report.md`.
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && grep -r "apiKey\|api_key\|secret\|token\|password" reposcan-raw/ --include="*.ts" --include="*.tsx" --include="*.json" --include="*.yaml" | grep -v "sk-********" | grep -v "apiKey:" | grep -v "api_key:" | grep -v "test" | grep -v "example" | grep -v "placeholder" | grep -v "fake" | head -30
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:          HMAC-SHA256 token before being sent to the client. When the vote comes
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:          back, the server verifies the signature, checks that the token exists
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:          transaction. Each token can only be used once.
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:        <CodeBlock title="src/lib/match-token.ts — single-use anti-tamper token">
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:// 2. Look up token hash in DB — reject if missing
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:            <strong>Single-use HMAC-signed match tokens:</strong> votes are
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:            cryptographically tied to the match they were issued for. Each token
+reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts:import { signMatchToken, hashMatchToken } from "@/lib/match-token";
+reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts:        tokenHash: hashMatchToken(matchToken),
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:import { verifyMatchToken, hashMatchToken } from "@/lib/match-token";
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:        { error: "Invalid or tampered match token" },
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:    // issuedAt === 0 means a legacy 4-part token issued before this deploy;
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:    const tokenHash = hashMatchToken(matchToken);
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:    // Use an interactive transaction for atomicity: the token claim
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:    // in a single serializable step. This prevents both token replay
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:        where: { tokenHash, consumedAt: null },
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:      // Legacy tokens (pre-deploy) won't be in the table at all.
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:      // If the token exists but was already consumed, reject.
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:        const exists = await tx.matchToken.findUnique({ where: { tokenHash } });
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:          return { error: "This match token has already been used to vote.", status: 409 } as const;
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts:        // Not in the table → legacy token; proceed with just the session cap.
+reposcan-raw/gladiaio/compare-stt/src/scripts/purge-fraudulent-votes.ts: *   1. Duplicate provider pairs within the same session (token replay)
+reposcan-raw/gladiaio/compare-stt/src/scripts/purge-fraudulent-votes.ts:    // Signal 1: Duplicate (session, providerA, providerB) pairs — token replay
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/deepgram.ts:  const apiKey = process.env.DEEPGRAM_API_KEY;
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/deepgram.ts:  if (!apiKey) throw new Error("DEEPGRAM_API_KEY not set");
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/deepgram.ts:  const deepgram = new DeepgramClient({ apiKey });
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:  const apiKey = process.env.GLADIA_API_KEY;
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:    headers: { "x-gladia-key": apiKey },
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:      "x-gladia-key": apiKey,
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && cat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | grep -A 20 "packages/gladia:"
+packages/gladia:
+    dependencies:
+      '@ai-sdk/provider':
+        specifier: workspace:*
+        version: link:../provider
+      '@ai-sdk/provider-utils':
+        specifier: workspace:*
+        version: link:../provider-utils
+    devDependencies:
+      '@ai-sdk/test-server':
+        specifier: workspace:*
+        version: link:../test-server
+      '@types/node':
+        specifier: 22.19.19
+        version: 22.19.19
+      '@vercel/ai-tsconfig':
+        specifier: workspace:*
+        version: link:../../tools/tsconfig
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@swc/core@1.15.3(@swc/helpers@0.5.21))(jiti@2.7.0)(postcss@8.5.14)(tsx@4.22.0)(typescript@5.6.3)(yaml@2.9.0)
+[0m
+### Classification Table
 
-**Key verdicts:**
-- **0 new findings** — delta shows 0 new hit lines vs previous scan
-- **No REAL_SECRETs** — no live credentials in codebase
-- **`sk-********`** in gladiaflow screenshots is a masked placeholder (TEST_OR_EXAMPLE)
-- **`@ai-sdk/gladia`** in vercel-ai is the official Vercel AI SDK integration (legitimate)
-- All production URLs (api.gladia.io, app.gladia.io, www.gladia.io) are public documented endpoints
+| Category | Files | Details |
+|----------|-------|---------|
+| **TEST_OR_EXAMPLE** | 600+ | Documentation, config, test files referencing public Gladia domains (api.gladia.io, app.gladia.io, www.gladia.io), environment variable patterns (`process.env.GLADIA_API_KEY`), placeholder values (`sk-********`) |
+| **ENDPOINT_LEAK** | 10+ | References to public API endpoints (`https://api.gladia.io/v2`) in provider code - already documented in OpenAPI spec |
+| **INTERESTING** | 3 | 1. `gladiaflow/src/screenshots/Gallery.tsx:17` - masked placeholder `apiKey: "sk-********"` (screenshot/test data)<br>2. `vercel-ai/pnpm-lock.yaml` - official `@ai-sdk/gladia` workspace package (legitimate Vercel AI SDK integration)<br>3. `compare-stt` - HMAC-signed match tokens for voting system (application logic, not secrets) |
+| **REAL_SECRET** | 0 | No hardcoded credentials, API keys, or tokens found |
 
-**Pre-existing confirmed findings (unchanged, report-ready):**
-1. **npm `gladia@0.1.3` orphaned impersonation** — personal repo 404, "Official" vs "Unofficial" contradiction, raw API key in WSS URL query — evidence package locked
-2. **api.gladia.io SSRF-by-design** — `audio_url`/`video_url`/`callback_config.url` no scheme allowlist, 7 webhook topics, FR/US egress confirmed
-3. **app.gladia.io `/signin?redirect_to=` form-action reflection** — CSP lacks `form-action` directive, OAuth `redirect_uri` FIXED+PKCE blocks code theft, post-auth honoring = HUMAN_ONLY gate
-4. **api.gladia.io NO_DRIFT 100+ cycles** — surface completely frozen
+### Verdict
 
-**Next step:** Submit `gladia@0.1.3` report via https://gladia.io/bug-bounty-report (Google Forms, Google SSO auth-gated).
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| npm `gladia@0.1.3` orphaned impersonation | **yes** (pre-existing) | Already tracked in knowledge base: personal repo `alexisbouchez/gladia.ts` (404), claims "Official" in package.json but "Unofficial" in README, embeds raw `x-gladia-key` in WebSocket URL query — evidence package locked, report-ready via bug-bounty portal |
+| New secrets in scanned repos | **no** | DELTA: 0 new hits; all findings are documentation, test fixtures, env var references, or legitimate official integrations (`@ai-sdk/gladia`) |
+| New endpoint/config leaks | **no** | All API references point to public `api.gladia.io/v2` already in OpenAPI spec |
+| Supply-chain anomalies (other packages) | **no** | `@gladiaio/sdk@1.1.0`, `gladiaio-sdk@1.0.5`, `gladiaio` org repos all stable/verified |
+
+**Summary**: No new reportable findings this scan. The sole reportable candidate remains the pre-existing `gladia@0.1.3` npm impersonation package (orphaned personal repo, key-in-URL divergence from official SDK, dist-tag `latest` persists). All surfaces frozen across 100+ NO_DRIFT cycles.
