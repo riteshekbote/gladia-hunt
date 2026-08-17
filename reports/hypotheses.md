@@ -4768,3 +4768,18 @@
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256.
 - LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset confirmed.
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, not surface drift; structural (exa
+
+## RANKED HYPOTHESES 2026-08-17 16:49:02 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 100+ cycles — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, not surface drift; structural (exa
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — local npm pack reproduces sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3ee
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to form-action reflection confirmed byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (100+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.

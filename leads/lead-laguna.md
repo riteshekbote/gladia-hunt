@@ -10504,3 +10504,4 @@ testability: AUTH_HELPED
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives) byte-fresh + CSP gap; OAuth redirect_uri FIXED+PKCE S256 + return-to cookie tamper-reset (REJECTED) narrow surface; post-auth honoring sole unverified gate (HUMAN_ONLY); oauth2 state cookie missing Secure flag (HSTS mitigates→informational)
 [RISK] sdk: 84 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, report-ready); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated
 ## 2026-08-17 16:12:21 UTC [app] (model laguna)
+## 2026-08-17 16:48:09 UTC [app] (model laguna)
