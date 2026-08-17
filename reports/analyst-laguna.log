@@ -64605,3 +64605,91 @@ No hypotheses dropped. Confidence ≥40 for all; none on REJECTED list.
 [RISK] api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_config.url, 7 webhook delivery paths, FR/US egress via /v1/models), preflight-only x-powered-by fingerprint, CORS static wildcard — SSRF-by-design persists (AUTH_HELPED, key sole gate)
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives) byte-fresh + CSP gap; OAuth redirect_uri FIXED+PKCE S256 + return-to cookie tamper-reset (REJECTED) narrow surface; post-auth honoring sole unverified gate (HUMAN_ONLY); oauth2 state cookie missing Secure flag (HSTS mitigates→informational)
 [RISK] sdk: 84 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, report-ready); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated
+===== ANALYST laguna 2026-08-17 16:12:31 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls reports/ 2>/dev/null; ls -la
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+valid-bugs.md
+total 832
+drwxr-xr-x 11 runner runner   4096 Aug 17 16:09 .
+drwxr-xr-x  3 runner runner   4096 Aug 17 16:09 ..
+drwxr-xr-x  7 runner runner   4096 Aug 17 16:09 .git
+drwxr-xr-x  3 runner runner   4096 Aug 17 16:09 .github
+-rw-r--r--  1 runner runner    156 Aug 17 16:09 README.md
+-rw-r--r--  1 runner runner     39 Aug 17 16:09 analyst-out.txt
+-rw-r--r--  1 runner runner 327045 Aug 17 16:09 analyst-prompt.txt
+-rw-r--r--  1 runner runner 323904 Aug 17 16:09 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 17 16:09 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 17 16:09 knowledge
+drwxr-xr-x  2 runner runner  36864 Aug 17 16:09 leads
+-rw-r--r--  1 runner runner  67650 Aug 17 16:09 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 17 16:09 reports
+drwxr-xr-x  4 runner runner   4096 Aug 17 16:09 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 17 16:09 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 17 16:09 scripts
+-rw-r--r--  1 runner runner     33 Aug 17 16:09 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 17 16:09 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 17 16:09 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 17 16:09 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 17 16:09 state_nemotron3.json
+drwxr-xr-x  2 runner runner  16384 Aug 17 16:09 triage
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download} %{time_total}" https://api.gladia.io/openapi.json 2>/dev/null; echo " | /health:"; curl -s -o /dev/null -w "%{http_code} %{size_download}" https://api.gladia.io/health 2>/dev/null; echo " | /v1/models:"; curl -s -o /dev/null -w "%{http_code} %{size_download}" https://api.gladia.io/v1/models 2>/dev/null
+200 125131 1.597761 | /health:
+200 15 | /v1/models:
+200 530
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null; echo " | /dashboard:"; curl -s -o /dev/null -w "%{http_code} %{size_download}" https://app.gladia.io/dashboard 2>/dev/null; echo " | /auth/google/callback:"; curl -s -o /dev/null -w "%{http_code} %{size_download}" "https://app.gladia.io/auth/google/callback" 2>/dev/null
+200 27448 | /dashboard:
+200 12229 | /auth/google/callback:
+302 0
+[0m
+[0m$ [0mnpm view gladia@0.1.3 dist-tags.latest 2>/dev/null; echo "|shasum|"; npm view gladia@0.1.3 dist.shasum 2>/dev/null; echo "|repo|"; npm view gladia@0.1.3 repository.url 2>/dev/null; echo "|desc|"; npm view gladia@0.1.3 description 2>/dev/null; echo "|@gladiaio/sdk|"; npm view @gladiaio/sdk dist-tags.latest 2>/dev/null
+0.1.3
+|shasum|
+cc96f84a200c0fd49a71e919391f9b659c39f3e9
+|repo|
+git+https://github.com/alexisbouchez/gladia.ts.git
+|desc|
+Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+|@gladiaio/sdk|
+1.1.0
+[0m
+[0m$ [0mecho "=== OPTIONS /v2/transcription (expect 204 x-powered-by: Express) ==="; curl -s -o /dev/null -w "HTTP %{http_code}\n" -X OPTIONS -H "Origin: https://evil.example.com" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/transcription 2>/dev/null; curl -s -D - -o /dev/null -X OPTIONS -H "Origin: https://evil.example.com" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/transcription 2>/dev/null | grep -iE "x-powered-by|access-control|HTTP"; echo "=== POST /v2/pre-recorded no key (expect 401 x-powered-by ABSENT) ==="; curl -s -D - -o /dev/null -X POST https://api.gladia.io/v2/pre-recorded 2>/dev/null | grep -iE "x-powered-by|HTTP|content-type"
+=== OPTIONS /v2/transcription (expect 204 x-powered-by: Express) ===
+HTTP 204
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+=== POST /v2/pre-recorded no key (expect 401 x-powered-by ABSENT) ===
+HTTP/2 401 
+content-type: application/json; charset=utf-8
+x-content-type-options: nosniff
+[0m
+[0m$ [0mecho "=== /signin reflection form action ==="; curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -ioE '<form[^>]*action="[^"]*"[^>]*>' | head -1; echo "=== CSP form-action count ==="; curl -s -D - -o /dev/null "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -i "content-security-policy" | grep -civ "form-action"; echo "=== /auth/google/callback 302 Location ==="; curl -s -D - -o /dev/null "https://app.gladia.io/auth/google/callback" 2>/dev/null | grep -i "location"
+=== /signin reflection form action ===
+<form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post">
+=== CSP form-action count ===
+1
+=== /auth/google/callback 302 Location ===
+location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fapp.gladia.io%2Fauth%2Fgoogle%2Fcallback&state=3ukdWgZmwy-sKKc1D9Zaatmp-KjNT6tAaM555yyAZ2g&code_challenge_method=S256&code_challenge=N_w3_Ebypqt9TsGF0K-m66NeY6iwpm6hJCmsnb2w1Zc&scope=openid+email+profile&access_type=offline&prompt=consent
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mmkdir -p /tmp/gladia-pack && cd /tmp/gladia-pack && npm pack gladia@0.1.3 2>/dev/null && sha256sum gladia-0.1.3.tgz && tar xzf gladia-0.1.3.tgz && echo "=== README header ===" && head -5 package/README.md && echo "=== package.json desc ===" && grep -E '"description"|"name"|"author"' package/package.json && echo "=== src/client.ts:306-308 ===" && grep -n "searchParams.append\|new WebSocket\|x-gladia-key" package/src/client.ts | head -10 failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
