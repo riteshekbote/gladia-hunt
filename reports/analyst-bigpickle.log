@@ -37962,3 +37962,94 @@ testability: HUMAN_ONLY
 [LEARN] No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; all ACCEPTED findings remain alive, all REJECTED classes remain dead.
 
 [RISK] api.gladia.io: 42 — frozen 14-path surface, key-gated v2 endpoints, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked on authorized key), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage; official @gladiaio/sdk@1.1.0 clean, no broader campaign.
+===== ANALYST bigpickle 2026-08-17 09:10:16 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m→ [0mRead .
+[0m→ [0mRead leads
+[0m→ [0mRead state_bigpickle.json
+[0m→ [0mRead leads/reposcan-latest.md
+[0m→ [0mRead leads/lead-bigpickle.md
+[0m
+[0m$ [0mcurl -sS -D - -o /dev/null https://api.gladia.io/health 2>&1 | head -30
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Mon, 17 Aug 2026 09:07:30 GMT
+etag: W/"f-zkBsEbirArjpKvVbiSV3QbfXWrg"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 15
+[0m
+[0m$ [0mcurl -sS -o /dev/null -w '%{http_code} %{size_download}' https://api.gladia.io/openapi.json 2>&1
+200 125131
+[0m
+[0m$ [0mcurl -sS -D - -o /dev/null -X OPTIONS -H "Origin: https://evil.test" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" https://api.gladia.io/v2/pre-recorded 2>&1 | head -20
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+date: Mon, 17 Aug 2026 09:07:32 GMT
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+[0m
+## Objective
+- Conduct an authorized bug bounty security assessment of Gladia (api.gladia.io, app.gladia.io, official SDKs, gladia.io) using passive-only reconnaissance, with 100+ drift-negative cycles confirming a frozen attack surface.
+- Advance from PASSIVE recon to POC phase targeting api.gladia.io SSRF hypothesis; submit report-ready npm impersonation finding via Gladia's bug bounty portal.
+
+## Important Details
+- Scope: api.gladia.io (Highest), app.gladia.io (High), official SDKs npm/PyPI (Medium), gladia.io (Low); everything else out of scope
+- Program rules: passive-first (GET/HEAD ≤1 rps), no account creation, no data modification, scanner output rejected without manual validation
+- Current phase/target: `{"phase": "POC", "target": "api"}`
+- 100+ drift-negative cycles confirm frozen surface since 2026-08-07 23:08 UTC
+- Bug bounty portal: https://gladia.io/bug-bounty-report → 301→www→302→Google Forms (Google SSO auth-gated)
+
+## Work State
+### Completed
+- PASSIVE recon fully complete across all in-scope targets (100+ cycles, byte-identical probes)
+- npm `gladia@0.1.3` orphaned impersonation: evidence package LOCKED — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, dist-tag latest=0.1.3, repo+user alexisbouchez 404 (orphaned), src/client.ts:306-308 embeds raw `x-gladia-key` in wss:// URL query, README "Unofficial" vs package.json "Official" contradiction, 3 independent local `npm pack` reproductions confirm
+- api.gladia.io surface fully mapped: OpenAPI 125131B/14 paths/7 webhooks/1 server, /health 15B undocumented, /v1/models 530B public (FR/US egress), preflight-only `x-powered-by: Express` differential, CORS static `*` + ACAH `x-gladia-key`, POST 401 NestJS HttpException key-gated
+- app.gladia.io: /signin redirect_to reflection (200/27448B, form action reflects URL-encoded value), CSP 0 form-action directives confirmed (grep-count=0), /auth/google/callback 302→accounts.google.com PKCE S256 FIXED redirect_uri, return-to cookie tamper-reset REJECTED, /dashboard 200 SPA shell, /apikeys+/transcriptions+/settings 302→/signin
+- All REJECTED classes confirmed dead: OAuth redirect_uri injection, return-to cookie tamper open redirect, CORS origin reflection, /metrics /debug /admin /actuator, /v2/live/init, health verbose leak, per-instance codegen fingerprint, x-powered-by as vuln class
+- Reposcan: 617/5647 files, 0 new hit lines consistently; `gladia@0.1.3` is isolated impersonator, no broader squat campaign
+
+### Active
+- Phase=POC, target=api: SSRF hypothesis (confidence 73) requires AUTH_HELPED — needs authorized `x-gladia-key` for canary POC
+- Post-auth redirect_to hypothesis (confidence 50) requires HUMAN_ONLY — Google SSO signin with redirect_to variants
+
+### Blocked
+- SSRF POC blocked: no authorized `x-gladia-key` available for POST /v2/pre-recorded canary test
+- Post-auth redirect_to blocked: requires real Google SSO authentication (HUMAN_ONLY)
+- Report submission blocked: bug-bounty portal requires Google SSO auth-gated access
+
+## Next Move
+1. AUTH_HELPED: Obtain authorized `x-gladia-key` from program owner, then POST /v2/pre-recorded with `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}` + x-gladia-key header to verify SSRF canary hit; repeat for video_url, callback_config.url, and 7 webhook topics
+2. HUMAN: Complete Google OAuth flow at app.gladia.io/signin?redirect_to=https://evil.example.com (+ //evil, app.gladia.io.evil variants) to validate post-auth honoring hypothesis
+
+## Relevant Files
+- `/home/runner/work/gladia-hunt/gladia-hunt/state_bigpickle.json`: Current state `{"phase": "POC", "target": "api"}`
+- `/home/runner/work/gladia-hunt/gladia-hunt/leads/lead-bigpickle.md`: Lead tracking file with seed hypotheses and priority scores
+- `/home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-latest.md`: Latest reposcan output (2026-08-17 09:02:34 UTC, 617/5647, 0 new hits)
+- `/home/runner/work/gladia-hunt/gladia-hunt/scope.yml`: Program scope rules and constraints
+- `/home/runner/work/gladia-hunt/gladia-hunt/knowledge/`: Knowledge base with baseline surface and all ACCEPTED/REJECTED findings
+- `/home/runner/work/gladia-hunt/gladia-hunt/reports/`: Report output directory
+- `/home/runner/work/gladia-hunt/gladia-hunt/inventory/`: Inventory tracking across cycles
+Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+The surface is confirmed frozen (100+ drift-negative cycles). We're blocked on the SSRF POC — it requires an authorized `x-gladia-key`.
+
+**Next move:** We need you to either:
+1. **Provide a valid `x-gladia-key`** so we can execute the SSRF canary test (`POST /v2/pre-recorded` with `audio_url` pointing to a self-owned canary)
+2. **Or tell us if there's a test key provisioning process** for the bug bounty program
+
+Without an API key, we cannot progress past PASSIVE on api.gladia.io. Do you have a key, or should I try an alternative approach?
