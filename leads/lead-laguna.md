@@ -10046,3 +10046,4 @@ testability: AUTH_HELPED
 [FINAL]
 [NEXT] HUMAN: Due to phase=POC with target=app, the single highest-impact unverified gate is the app.gladia.io post-auth redirect_to honoring. Complete the Google OAuth flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (and variants: //evil, app.gladia.io.evil, path-only) and capture the final HTTP 302 Location header + Set-Cookie post-OAuth completion. This alone converts the [50] OATH hypothesis to confirmed/dead. (The npm `gladia@0.1.3` report is already evidence-locked and PASSIVE-complete — submit via https://gladia.io/bug-bounty-report → Google Forms, auth-gated.)
 ## 2026-08-17 05:53:13 UTC [app] (model laguna)
+## 2026-08-17 06:25:17 UTC [app] (model laguna)
