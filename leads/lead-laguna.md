@@ -10077,3 +10077,4 @@ impact: Cloud metadata read (169.254.169.254), internal network enumeration, out
 testability: AUTH_HELPED
 [PARKED] <none> — All retained hypotheses meet thresholds; no scanner-output-only leads; no secrets inlined.
 [NEXT] HUMAN: Complete Google OAuth flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (and variants: `//evil`, `app.gladia.io.evil`, path-only `/`) and capture the final HTTP 302 Location header + Set-Cookie to validate whether the server honors arbitrary external redirect_to post-authentication. This is the sole unverified gate for the app.gladia.io HIGH-priority target (current phase=POC, target=app); converting [50] OATH hypothesis live/dead. The npm gladia@0.1.3 report (confidence 96, PASSIVE, evidence-locked) is independently complete — submit via https://gladia.io/bug-bounty-report (→ Google Forms, auth-gated via Google SSO).
+## 2026-08-17 08:21:09 UTC [app] (model laguna)
