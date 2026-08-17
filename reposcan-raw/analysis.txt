@@ -1,24 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Table**
-
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | None | `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is a masked placeholder (asterisks), not a live credential |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | Placeholder API key in screenshot/example code |
-| **ENDPOINT_LEAK** | 600+ hits across repos | All reference known public endpoints (`api.gladia.io`, `app.gladia.io`, `gladia.io`, `www.gladia.io`) — no internal/staging URLs |
-| **INTERESTING** | `compare-stt/src/lib/providers/gladia.ts` | Uses official `x-gladia-key` header pattern correctly |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` | `@ai-sdk/gladia` linked to official Gladia org package (verified) |
-| **INTERESTING** | `gladia` npm package (0.1.3) | **Previously ACCEPTED**: orphaned impersonation — personal repo `alexisbouchez/gladia.ts` + user 404, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query — already report-ready |
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| TEST_OR_EXAMPLE | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | TEST_OR_EXAMPLE (masked placeholder in screenshot) |
+| ENDPOINT_LEAK | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `https://api.gladia.io/v2`, `x-gladia-key` header | ENDPOINT_LEAK (public prod endpoint, documented in OpenAPI) |
+| ENDPOINT_LEAK | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | ENDPOINT_LEAK (public marketing rewrite) |
+| INTERESTING | vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked from packages/gladia | INTERESTING (official Vercel AI SDK integration) |
+| TEST_OR_EXAMPLE | All other hits | — | References to gladia.io, app.gladia.io, api.gladia.io, docs.gladia.io | TEST_OR_EXAMPLE (public domain references in code/config) |
 
 **Verdict**
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` orphaned impersonation | **no (already tracked)** | Accepted 2026-08-07, evidence package locked, report-ready via bug-bounty portal |
-| New secrets in reposcan delta | **no** | DELTA: 0 new hit lines; `sk-********` is masked placeholder |
-| New endpoint leaks | **no** | All endpoints are known public surfaces |
-| New supply-chain risks | **no** | `@gladiaio/sdk@1.1.0`, `gladiaio-sdk@1.0.5`, `@ai-sdk/gladia` all official/verified |
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot/test file, not a live secret |
+| api.gladia.io/v2 endpoint references | **no** | Public production API, fully documented in OpenAPI spec |
+| www.gladia.io rewrite rules | **no** | Public marketing site configuration |
+| @ai-sdk/gladia (Vercel AI SDK) | **no** | Official integration from gladiaio org, not a supply-chain risk |
+| Orphaned `gladia@0.1.3` npm package | **no** | Already ACCEPTED in prior cycles (orphaned impersonation, evidence locked) |
 
-**Conclusion**: No new reportable findings this cycle. Surface frozen across 100+ drift-negative cycles. The sole live candidate (`gladia@0.1.3` impersonation) is already evidence-locked and submission-pending.
+**Summary**: No new reportable findings. Surface frozen across 100+ drift-negative cycles. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and already evidence-locked. Passive recon exhausted — further probes add no signal until authorized key (SSRF POC) or human OAuth test (post-auth redirect_to).
