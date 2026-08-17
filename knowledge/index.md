@@ -1093,3 +1093,5 @@
 - 2026-08-17 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256.
 - 2026-08-17 REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset confirmed.
 - 2026-08-17 No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead.
+- 2026-08-17 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (100+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models confirms FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-17 No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
