@@ -1,9 +1,27 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-output.md
-Wrote file successfully.
-[0m
-Done. Wrote full triage to `triage-output.md`.
+**Classification Tables**
 
-**TL;DR**: No new reportable findings. All 617 hits are TEST_OR_EXAMPLE or public ENDPOINT_LEAK (marketing/docs/dashboard URLs). The `sk-********` in Gallery.tsx is a masked placeholder. All previously ACCEPTED findings (npm `gladia@0.1.3` orphaned impersonation, api.gladia.io SSRF-by-design, app.gladia.io redirect_to reflection + CSP gap, various MISCONFIGs) remain alive and verified across 100+ frozen cycles. Surface is completely static — further probing adds no signal without authorized key or human OAuth test.
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********",` | Masked placeholder for screenshot/demo (asterisks = not real) |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3,36,49 | `https://api.gladia.io/v2`, `x-gladia-key` usage | Normal SDK usage against production API |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite rules |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/` | Public dashboard URL pattern |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public docs URL |
+| INTERESTING | reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked from `packages/gladia` | Official Vercel AI SDK integration (gladiaio org) |
+| INTERESTING | (all compare-stt hits) | various | `https://gladia.io`, `https://www.gladia.io` | Marketing/site references, not leaks |
+
+**Verdict List**
+
+| Candidate | Report_Candidate | Reason |
+|-----------|------------------|--------|
+| `sk-********` in Gallery.tsx screenshot | **no** | Masked placeholder (asterisks), not a real credential |
+| Public API/dashboard/docs URLs in code | **no** | Known production endpoints, not internal/staging leaks |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official integration from gladiaio org (verified in lockfile) |
+| npm `gladia@0.1.3` impersonation | **no (known)** | Already tracked in knowledge base (orphaned personal repo, dist-tag latest persists) — no *new* delta |
+| **Overall** | **no** | **DELTA: 0 new hit lines** — scan surface frozen, no new findings since last cycle |
+
+**Summary**: The reposcan delta is empty (0 new hits). All hits are either masked placeholders, references to public production endpoints, or previously known supply-chain anomalies. No actionable secrets or new attack surface discovered.
