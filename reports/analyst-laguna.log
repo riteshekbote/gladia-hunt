@@ -69567,3 +69567,41 @@ Rationale: npm finding is fully evidence-locked and reproducible (PASSIVE), but 
 [RISK] api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_url, 7 webhook delivery paths, FR/US egress via /v1/models), preflight-only x-powered-by fingerprint, CORS static wildcard — SSRF-by-design persists (AUTH_HELPED, key sole gate)
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives, byte-fresh) + CSP gap confirmed; OAuth redirect_uri FIXED+PKCE S256 + return-to cookie tamper-reset (REJECTED) narrow surface; post-auth honoring sole unverified gate (HUMAN_ONLY); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational)
 [RISK] sdk: 84 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, reproducible via 3 independent local npm pack runs, sha256+shasum stable); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated (orphaned/irrevocable package at dist-tag latest with "Official" description contradiction)
+===== ANALYST laguna 2026-08-17 23:32:36 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mecho "=== API openapi size/hash ===" && curl -s -o /tmp/openapi.json -w "%{http_code} %{size_download} %{header_json}\n" https://api.gladia.io/openapi.json -H "Origin: https://ev.example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" -X OPTIONS 2>&1 | head -5; echo "---GET /health---"; curl -s -D - -o /dev/null https://api.gladia.io/health 2>&1 | grep -iE "HTTP|health|x-powered"; echo "---GET /v1/models---"; curl -s -D - -o /dev/null https://api.gladia.io/v1/models 2>&1 | grep -iE "HTTP|content-length|access-control"; echo "---sha openapi---"; sha256sum /tmp/openapi.json | cut -d' ' -f1
+=== API openapi size/hash ===
+204 0 {"access-control-allow-headers":["x-gladia-key"],
+"access-control-allow-methods":["GET,HEAD,PUT,PATCH,POST,DELETE"],
+"access-control-allow-origin":["*"],
+"access-control-expose-headers":["x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id"],
+"date":["Mon, 17 Aug 2026 23:31:35 GMT"],
+---GET /health---
+HTTP/2 200 
+---GET /v1/models---
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-length: 530
+---sha openapi---
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+[0m
+[0m$ [0mecho "=== app signin reflection ===" && curl -s -o /tmp/signin.html -w "%{http_code} %{size_download}\n" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1; echo "---form action grep---"; grep -o 'action="[^"]*"' /tmp/signin.html | head -5; echo "---CSP grep form-action---"; grep -oiE '<meta http-equiv="Content-Security-Policy"[^>]*>' /tmp/signin.html | head -1; curl -s -D - -o /dev/null "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -i "content-security-policy" | grep -oi "form-action[^,;]*" | head -3; echo "(form-action count:)"; curl -s -D - -o /dev/null "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -oi "form-action" | wc -l; echo "---dashboard---"; curl -s -o /dev/null -w "%{http_code}\n" https://app.gladia.io/dashboard 2>&1; echo "---google callback---"; curl -s -o /dev/null -w "%{http_code}\n" "https://app.gladia.io/auth/google/callback" 2>&1
+=== app signin reflection ===
+200 27448
+---form action grep---
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+---CSP grep form-action---
+(form-action count:)
+0
+---dashboard---
+200
+---google callback---
+302
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mecho "=== npm gladia@0.1.3 metadata ===" && npm view gladia dist-tags.latest description repository.url maintainers 2>&1 | head -20; echo "---shasum---"; npm view gladia dist.shasum 2>&1; echo "---pack check---"; mkdir -p /tmp/npmtest && cd /tmp/npmtest && npm pack gladia@0.1.3 2>&1 | tail -3; sha256sum gladia-0.1.3.tgz 2>&1 | cut -d' ' -f1; echo "---client.ts key check---"; tar xzf gladia-0.1.3.tgz 2>&1; grep -n "searchParams.append\|new WebSocket\|x-gladia-key" package/src/client.ts 2>&1 | head -10; echo "---official sdk---"; npm view @gladiaio/sdk dist-tags.latest 2>&1 failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+I'll run fresh read-only probes across all three targets to verify surface state before producing the structured analysis.
