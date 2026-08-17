@@ -10878,3 +10878,16 @@ testability: HUMAN_ONLY
 [RISK] api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_config.url, 7 webhook delivery paths, FR/US egress via /v1/models), preflight-only x-powered-by fingerprint, CORS static wildcard — SSRF-by-design persists (AUTH_HELPED, key sole gate)
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives, byte-fresh) + CSP gap confirmed; OAuth redirect_uri FIXED+PKCE S256 + return-to cookie tamper-reset (REJECTED) narrow surface; post-auth honoring sole unverified gate (HUMAN_ONLY); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational)
 [RISK] sdk: 84 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, reproducible via 3 independent local npm pack runs, sha256+shasum stable); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated (orphaned/irrevocable package at dist-tag latest with "Official" description contradiction)
+## 2026-08-17 22:38:45 UTC [app] (model laguna)
+[HYP] npm package gladia@0.1.3 impersonates official SDK + raw API key in wss:// URL query
+[HYP] Post-auth open redirect via reflected redirect_to honored after OAuth signin
+[HYP] SSRF via server-side fetch of audio_url/video_url + callback/webhook delivery
+[NEXT] HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com
+[FINAL] (ranked): npm gladia@0.1.3 (91/96/PASSIVE) → app.gladia.io /signin (55/50/HUMAN_ONLY) → api.gladia.io SSRF (52/72/AUTH_HELPED)
+[LEARN] REJECTED MISCONFIG @ api: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, not surface drift.
+[LEARN] ACCEPTED MISCONFIG @ api: NO_DRIFT confirmed — openapi 125131B/14/7, /health 15B, /v1/models 530B, static CORS `*`, ACAH x-gladia-key.
+[LEARN] ACCEPTED OTHER @ npm gladia@0.1.3: byte-fresh PASSIVE evidence locked for 3rd cycle.
+[LEARN] ACCEPTED OATH @ app: /signin redirect_to form-action reflection confirmed; CSP 0 form-action directives; OAuth FIXED+PKCE; post-auth honoring = sole unverified gate.
+[LEARN] ACCEPTED SSRF @ api: spec+RAG frozen; audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; FR/US egress; key-gated only.
+[LEARN] REJECTED OAUTH @ app: redirect_to ≠ OAuth redirect_uri — FIXED + PKCE S256, no code/state theft.
+[LEARN] REJECTED AUTH @ app: return-to cookie tamper-reset to {"url":"/"} — no open redirect.
