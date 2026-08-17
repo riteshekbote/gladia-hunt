@@ -1,95 +1,51 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && find reposcan-raw -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.json" -o -name "*.toml" | head -20
-reposcan-raw/gladiaio/realtime-multilingual-asr-router/pyproject.toml
-reposcan-raw/gladiaio/realtime-multilingual-asr-router/ruff.toml
-reposcan-raw/gladiaio/realtime-multilingual-asr-router/frontend/app.js
-reposcan-raw/gladiaio/compare-stt/sentry.edge.config.ts
-reposcan-raw/gladiaio/compare-stt/test-providers.ts
-reposcan-raw/gladiaio/compare-stt/prisma/seed.ts
-reposcan-raw/gladiaio/compare-stt/prisma/migrations/migration_lock.toml
-reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-articles-loader.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/page.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-client.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/global-error.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/page.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/.well-known/vercel/flags/route.ts
-reposcan-raw/gladiaio/compare-stt/src/app/sitemap.ts
-reposcan-raw/gladiaio/compare-stt/src/app/robots.ts
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx
-reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts
+[0m$ [0mls -la reposcan-raw/gladiaio/gladiaflow/src/screenshots/
+total 28
+drwxr-xr-x 2 runner runner  4096 Aug 17 19:16 .
+drwxr-xr-x 5 runner runner  4096 Aug 17 19:16 ..
+-rw-r--r-- 1 runner runner 13224 Aug 17 19:16 Gallery.tsx
+-rw-r--r-- 1 runner runner   995 Aug 17 19:16 main.tsx
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts
 [0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-[0m✱ [0mGlob "reposcan-raw/gladiaio/vercel-ai/packages/gladia/**/*"[90m 24 matches[0m
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-provider.ts
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-initiate.json
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-upload.json
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-result.json
-Now I have a complete picture. Here's my triage:
+## Classification Tables
+
+### TEST_OR_EXAMPLE
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` constant for screenshot gallery | Masked placeholder in demo/mock data |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 168 | `apiKeyDisplayValue="****************"` in HomeView mock | Masked placeholder in demo |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` in HomeView mock | Example placeholder in demo |
+| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21, 27, 34 | Test fixtures for vocabulary validation | Test file |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Context |
+|------|------|----------|---------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public API base URL (in scope, documented) |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public dashboard URL pattern |
+| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/...` | Public docs URL |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+| `compare-stt/next.config.ts` | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite rules |
+| `compare-stt/src/lib/site.ts` | 5, 20 | `https://www.gladia.io` | Public site origin |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| `vercel-ai/pnpm-lock.yaml` | 289, 291, 2368 | `@ai-sdk/gladia` linked as local package `../../packages/gladia` — official Vercel AI SDK integration in gladiaio org |
+| `gladiaflow/package.json` et al. | — | Tauri desktop app (`gladiaflow`) with Gladia branding, uses `api.gladia.io` — official companion app |
+| `compare-stt` | — | Official STT comparison site referencing Gladia alongside competitors (Deepgram, AssemblyAI, etc.) |
 
 ---
 
-### CLASSIFICATION TABLES
+## Verdict
 
-#### REAL_SECRET
-*None found — no hardcoded credentials/API keys with signs of life*
+| Candidate | Category | Reportable? | Reason |
+|-----------|----------|-------------|--------|
+| `gladia@0.1.3` npm impersonation | OTHER (supply-chain) | **Already tracked** (ACCEPTED OTHER in RAG) | Orphaned package, personal repo, key-in-URL — evidence package locked |
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **No** | Explicitly masked placeholder in `MOCK_SETTINGS` for screenshot gallery |
+| All `api.gladia.io` / `app.gladia.io` refs | ENDPOINT_LEAK | **No** | Public in-scope endpoints, documented in OpenAPI |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **No** | Official Vercel AI SDK integration maintained in gladiaio org |
+| gladiaflow Tauri app | INTERESTING | **No** | Official companion app in gladiaio org |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Description |
-|------|------|-------------|
-| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Provider slug list fixture |
-| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | DB seed data for "Gladia" provider |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | Provider config object |
-| reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog article URLs |
-| reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 156,172 | Public site links & mailto |
-| reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto:privacy@gladia.io |
-| reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270,341,427 | GitHub repo links |
-| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17, 222 | `sk-********` (masked), `sk-example` (placeholder) — **mock data for screenshots** |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test vocabulary data |
-| reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8,9 | Default vocabulary entries |
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-initiate.json | 2-3 | Test UUID + public result_url |
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-upload.json | 2-10 | Test audio_url + metadata |
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/__fixtures__/gladia-result.json | 1-520 | Full transcription test fixture |
-
-#### ENDPOINT_LEAK
-| File | Line | Description |
-|------|------|-------------|
-| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38,44,51 | Next.js rewrites to public `www.gladia.io` |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` (public API) |
-| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36,49 | Header usage with `process.env.GLADIA_API_KEY` (env var, not hardcoded) |
-| reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts | 124 | `Authorization: Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` (Vercel Blob env var) |
-| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | Public `app.gladia.io/transcriptions/live/{sessionId}` URL template |
-| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | Public `https://app.gladia.io/apikeys` URL |
-| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | Public `docs.gladia.io` URL |
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-provider.ts | 70 | `url: ({ path }) => \`https://api.gladia.io${path}\`` (public API) |
-
-#### INTERESTING
-| File | Line | Description |
-|------|------|-------------|
-| reposcan-raw/gladiaio/gladiaflow/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — public contact |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | `identifier: "io.gladia.gladiaflow.dev"` |
-| reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` |
-| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked to local `packages/gladia` (official Vercel AI SDK integration) |
-| reposcan-raw/gladiaio/vercel-ai/packages/gladia/package.json | — | Official `@ai-sdk/gladia` provider package (part of Vercel AI SDK) |
-
----
-
-### VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** — masked placeholder in screenshot mock data |
-| `sk-example` in Gallery.tsx | TEST_OR_EXAMPLE | **no** — explicit placeholder |
-| `process.env.GLADIA_API_KEY` refs | ENDPOINT_LEAK | **no** — env var usage, not hardcoded |
-| `process.env.BLOB_READ_WRITE_TOKEN` | ENDPOINT_LEAK | **no** — Vercel Blob env var reference |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** — official Vercel AI SDK provider (Gladia org) |
-| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** — public URLs, test fixtures, config |
-
-**SUMMARY: 0 reportable findings this scan.** The 617 hits are all public references, test fixtures, config, or masked placeholders. The `gladia@0.1.3` npm impersonation anomaly (personal repo `alexisbouchez/gladia.ts`, description "Official" vs README "Unofficial") remains the sole pre-existing supply-chain concern — already tracked in knowledge base, no new evidence here.
+**REPORT_CANDIDATE: no** — no new findings this delta. The sole reportable issue (`gladia@0.1.3` orphaned impersonation) is already ACCEPTED and evidence-locked in the knowledge base (100+ cycles). All scan hits are expected references to public Gladia surfaces or test/mock data.
