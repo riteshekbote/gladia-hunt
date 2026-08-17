@@ -1,27 +1,32 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=20][0m
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-| Category | File | Line | Classification | Notes |
-|---|---|---|---|---|
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in `MOCK_SETTINGS` constant for screenshot generation |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3, 34, 46, 64, 80 | `https://api.gladia.io/v2` + `/upload`, `/pre-recorded`, result_url polling | Production API usage with env var `GLADIA_API_KEY` — no hardcoded secrets |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing site rewrites |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/site.ts | 5, 20 | `https://www.gladia.io` | Site origin config |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Dashboard deep-link construction |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Hardcoded dashboard URL |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Docs reference |
-| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked to `packages/gladia` | Official Vercel AI SDK integration (in gladiaio org) |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | `"gladiaflow"`, `"gladioflow"`, `"gladiaflaw"` | Test fixtures for vocabulary editor |
+## Triage Results
 
-**Verdict**
+### Classification Table
+
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | 0 |
+| **TEST_OR_EXAMPLE** | 487 (configs, test files, provider implementations, Tauri/Rust/Go/TS SDK code, mocked API keys like `sk-********`) |
+| **ENDPOINT_LEAK** | 128 (public domains: `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io`, `docs.gladia.io` — all in-scope production hosts) |
+| **INTERESTING** | 2 (`@ai-sdk/gladia` in vercel-ai — official Vercel AI SDK integration; `gladiaflow` Tauri app with `support@gladia.io` author) |
+
+### Key Observations
+
+- **`sk-********`** in `gladiaflow/src/screenshots/Gallery.tsx:17` → masked placeholder (TEST_OR_EXAMPLE)
+- **`@ai-sdk/gladia`** in vercel-ai → official Gladia integration in Vercel AI SDK (INTERESTING, but expected/known)
+- **Zero new hit lines** vs prior scan (delta = 0)
+- All endpoints referenced are production hosts already in scope
+- No hardcoded credentials, internal/staging URLs, or personal repo references beyond previously flagged `gladia@0.1.3` npm package
+
+### Verdict
 
 | Candidate | REPORT_CANDIDATE |
-|---|---|
-| `sk-********` in Gallery.tsx | **no** — masked placeholder in test/mock constants |
-| All `api.gladia.io` / `app.gladia.io` / `docs.gladia.io` references | **no** — legitimate production endpoints, no secrets |
-| `@ai-sdk/gladia` in vercel-ai | **no** — official integration package in gladiaio org |
-| No hardcoded live API keys, tokens, or credentials found | **no** — zero REAL_SECRET hits |
+|-----------|------------------|
+| New secrets in repo scan | **no** |
+| New endpoint leaks | **no** |
+| New supply-chain anomalies | **no** (previously flagged `gladia@0.1.3` orphaned impersonation remains sole candidate, already report-ready) |
+| New misconfigurations | **no** |
 
-**Summary**: 0 new hits vs prior scan. All 617 hits are benign (TEST_OR_EXAMPLE, ENDPOINT_LEAK to own domains, or INTERESTING legitimate integrations). No reportable findings this cycle.
+**Summary**: Surface frozen across 100+ drift-negative cycles. No new findings this scan. The only reportable item remains the npm `gladia@0.1.3` orphaned impersonation (evidence package locked, submission pending via bug-bounty portal).
