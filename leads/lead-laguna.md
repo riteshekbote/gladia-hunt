@@ -10505,3 +10505,4 @@ testability: AUTH_HELPED
 [RISK] sdk: 84 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, report-ready); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated
 ## 2026-08-17 16:12:21 UTC [app] (model laguna)
 ## 2026-08-17 16:48:09 UTC [app] (model laguna)
+## 2026-08-17 17:16:00 UTC [app] (model laguna)
