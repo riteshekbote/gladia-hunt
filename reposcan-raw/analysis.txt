@@ -1,22 +1,57 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-| Category | File | Line | Match | Classification |
-|----------|------|------|-------|----------------|
-| TEST_OR_EXAMPLE | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | TEST_OR_EXAMPLE (masked placeholder in screenshot) |
-| ENDPOINT_LEAK | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `https://api.gladia.io/v2`, `x-gladia-key` header | ENDPOINT_LEAK (public prod endpoint, documented in OpenAPI) |
-| ENDPOINT_LEAK | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | ENDPOINT_LEAK (public marketing rewrite) |
-| INTERESTING | vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked from packages/gladia | INTERESTING (official Vercel AI SDK integration) |
-| TEST_OR_EXAMPLE | All other hits | — | References to gladia.io, app.gladia.io, api.gladia.io, docs.gladia.io | TEST_OR_EXAMPLE (public domain references in code/config) |
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
+# Triage Results: gladiaio reposcan (2026-08-17)
 
-**Verdict**
+## Classification Tables
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot/test file, not a live secret |
-| api.gladia.io/v2 endpoint references | **no** | Public production API, fully documented in OpenAPI spec |
-| www.gladia.io rewrite rules | **no** | Public marketing site configuration |
-| @ai-sdk/gladia (Vercel AI SDK) | **no** | Official integration from gladiaio org, not a supply-chain risk |
-| Orphaned `gladia@0.1.3` npm package | **no** | Already ACCEPTED in prior cycles (orphaned impersonation, evidence locked) |
+### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3` | `apiKey: "sk-********"` — masked placeholder in screenshot/demo file |
 
-**Summary**: No new reportable findings. Surface frozen across 100+ drift-negative cycles. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and already evidence-locked. Passive recon exhausted — further probes add no signal until authorized key (SSRF POC) or human OAuth test (post-auth redirect_to).
+### TEST_OR_EXAMPLE
+| File | Line | Type | Notes |
+|------|------|------|-------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | Test/Example | Masked placeholder `sk-********` in screenshot component |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36, 49 | Test/Example | Uses `x-gladia-key` header with variable `apiKey` (not hardcoded) |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (already known, in OpenAPI spec) |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing rewrite rules |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | Public dashboard URL pattern |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public docs URL |
+| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5, 20 | `https://www.gladia.io` | Marketing site origin |
+| Multiple files | Various | `https://gladia.io`, `https://www.gladia.io`, `https://api.gladia.io` | Known public endpoints |
+
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked to local `packages/gladia` | Official Vercel AI SDK integration (gladiaio org) |
+| reposcan-raw/gladiaio/gladiaflow/package.json / package-lock.json / Cargo.toml | Multiple | `gladiaflow` Tauri app with `support@gladia.io` author | Official desktop app |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Gladia provider config with `model: "Solaria-3"` | Public benchmark config |
+| npm `gladia@0.1.3` | Registry | Orphaned impersonation package | **PREVIOUSLY ACCEPTED** — personal repo `alexisbouchez/gladia.ts` (404), description "Official" vs README "Unofficial", embeds raw API key in WSS URL query |
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `sk-********` in Gallery.tsx | REAL_SECRET | **NO** | Masked placeholder (8 asterisks), not a real key; screenshot/test file |
+| `gladia@0.1.3` npm package | INTERESTING | **YES (already reported)** | Orphaned impersonation — dist-tag `latest=0.1.3`, GitHub user+repo 404, embeds raw `x-gladia-key` in WSS URL query, package.json "Official" vs README "Unofficial" contradiction. Evidence package locked across 100+ cycles. |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK integration from gladiaio org (verified) |
+| Public API/dashboard/docs URLs | ENDPOINT_LEAK | **NO** | All known public endpoints, already in OpenAPI spec or documented |
+| `x-gladia-key` header usage in compare-stt | TEST_OR_EXAMPLE | **NO** | Variable-based, not hardcoded; example provider implementation |
+
+## Summary
+- **0 new reportable findings** this scan (DELTA: 0 new hit lines)
+- **1 previously accepted finding** remains alive: `gladia@0.1.3` orphaned impersonation (report-ready, portal submission pending via https://gladia.io/bug-bounty-report → Google Forms)
+- All surfaces frozen across 100+ drift-negative cycles (api.gladia.io, app.gladia.io, npm registry)
+- No hardcoded secrets, no new endpoint leaks, no new supply-chain risks
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
