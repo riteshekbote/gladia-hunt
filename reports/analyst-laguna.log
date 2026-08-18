@@ -70054,3 +70054,89 @@ All three hypotheses pass criteria (confidence >= 40, not on REJECTED list, all 
 [RISK] api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_config.url, 7 webhook delivery paths, FR/US egress via /v1/models), preflight-only x-powered-by fingerprint, CORS static wildcard — SSRF-by-design persists (AUTH_HELPED, key sole gate)
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives, byte-fresh) + CSP gap confirmed; OAuth redirect_uri FIXED+PKCE S256 + return-to cookie tamper-reset (REJECTED) narrow surface; post-auth honoring sole unverified gate (HUMAN_ONLY); oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational)
 [RISK] sdk: 85 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API keys in wss:// URL query (PASSIVE, evidence-locked, reproducible via 3 independent local npm pack runs, sha256+shasum stable); official @gladiaio/sdk@1.1.0 clean; PyPI gladiaio-sdk@1.0.5 static; supply-chain risk elevated (orphaned/irrevocable package at dist-tag latest with "Official" description contradiction)
+===== ANALYST laguna 2026-08-18 03:26:56 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls /home/runner/work/gladia-hunt/gladia-hunt
+README.md
+analyst-out.txt
+analyst-prompt.txt
+ctx.txt
+inventory
+knowledge
+leads
+probe-results.md
+reports
+reposcan-raw
+scope.yml
+scripts
+state_bigpickle.json
+state_laguna.json
+state_ling3.json
+state_longcat.json
+state_nemotron3.json
+triage
+[0m
+[0m$ [0mgit -C /home/runner/work/gladia-hunt/gladia-hunt log --oneline -5 2>/dev/null; echo "---"; git -C /home/runner/work/gladia-hunt/gladia-hunt status --short 2>/dev/null | head -20
+3a66793 triage 2026-08-18-03-13
+---
+?? analyst-out.txt
+?? analyst-prompt.txt
+?? ctx.txt
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" https://api.gladia.io/openapi.json 2>/dev/null; echo; curl -s -o /dev/null -w "%{http_code} %{size_download}" https://api.gladia.io/health 2>/dev/null; echo; curl -s https://api.gladia.io/health 2>/dev/null; echo; curl -s -o /dev/null -w "%{http_code} %{size_download}" https://api.gladia.io/v2/live/health 2>/dev/null; echo; curl -s -o /dev/null -w "%{http_code} %{size_download}" -X POST https://api.gladia.io/v2/live/health 2>/dev/null; echo
+200 125131
+200 15
+{"health":"OK"}
+401 143
+404 148
+[0m
+[0m$ [0mcurl -s https://api.gladia.io/openapi.json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print('paths:',len(d.get('paths',{}))); print('webhooks:',len(d.get('webhooks',{}))); print('servers:',d.get('servers')); [print('  ',p) for p in sorted(d.get('paths',{}).keys())]" 2>/dev/null || echo "parse failed"
+paths: 14
+webhooks: 7
+servers: [{'url': 'https://api.gladia.io/', 'description': 'Gladia API production URL'}]
+   /audio/text/audio-transcription
+   /v1/history
+   /v1/models
+   /v2/live
+   /v2/live/{id}
+   /v2/live/{id}/file
+   /v2/pre-recorded
+   /v2/pre-recorded/{id}
+   /v2/pre-recorded/{id}/file
+   /v2/transcription
+   /v2/transcription/{id}
+   /v2/transcription/{id}/file
+   /v2/upload
+   /video/text/video-transcription
+[0m
+[0m$ [0mcurl -s https://api.gladia.io/v2/live/health 2>/dev/null; echo; echo "---headers---"; curl -sI https://api.gladia.io/v2/live/health 2>/dev/null | head -30
+{"statusCode":401,"timestamp":"2026-08-18T03:25:48.561Z","path":"/v2/live/health","message":"no gladia key provided","request_id":"G-16a03fc0"}
+---headers---
+HTTP/2 401 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Tue, 18 Aug 2026 03:25:49 GMT
+etag: W/"8f-KD795FX80e6L1d+ZxpQSnaat0sM"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 143
+[0m
+[0m$ [0mcurl -s https://api.gladia.io/openapi.json 2>/dev/null | grep -i "live/health" && echo "FOUND IN SPEC" || echo "NOT IN SPEC"; echo "---"; curl -s https://api.gladia.io/openapi.json 2>/dev/null | grep -i "/health" && echo "health found" || echo "no /health in spec either"
+NOT IN SPEC
+---
+no /health in spec either
+[0m
+[0m$ [0mcurl -s https://api.gladia.io/v2/live/health 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print('x-powered-by absent on this GET 401:', 'x-powered-by' not in str(sys.stdin.read()))" 2>/dev/null; curl -sI https://api.gladia.io/v2/live/health 2>/dev/null | grep -i "x-powered-by" && echo "x-powered-by PRESENT" || echo "x-powered-by ABSENT on /v2/live/health GET"
+x-powered-by absent on this GET 401: True
+x-powered-by ABSENT on /v2/live/health GET
+[0m

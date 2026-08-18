@@ -5076,3 +5076,12 @@
 - LEARN: No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; all ACCEPTED findings remain alive, all REJECTED classes rema
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint discovered (401, NestJS shape, not in OpenAPI spec) — minor informational, p
+
+## RANKED HYPOTHESES 2026-08-18 03:26:56 UTC
+- [65] api.gladia.io: Undocumented /v2/live/health endpoint on api.gladia.io (from reports/hypotheses-nemotron3.txt)
+- [55] api.gladia.io: OpenAPI spec structural change may introduce new endpoint or modified schema (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET https://api.gladia.io/v2/live/health (expect 401 NestJS); GET https://api.gladia.io/openapi.json and diff against 125131B baseline — strip example/ti
+- NEXT(hypotheses-bigpickle.txt): RAG: Download current /openapi.json (132834B) and diff against the frozen 125131B baseline to identify exact structural changes — new paths, schemas, webhook to
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401, NestJS shape, not in OpenAPI spec) — minor informational, properly gat

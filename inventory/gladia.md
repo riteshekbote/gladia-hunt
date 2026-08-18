@@ -864,3 +864,9 @@
 ## 2026-08-18 02:33:54 UTC
 - NEW api.gladia.io: `/v2/live/health` — undocumented endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed
 - CHANGED api.gladia.io: OpenAPI size now 132834B (was 125131B) — the spec itself grew ~7.7KB; paths still 14. Need to check if structural content changed or just example timestamps.
+
+## 2026-08-18 03:26:56 UTC
+- NEW api.gladia.io: `/v2/live/health` — undocumented endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed
+- CHANGED api.gladia.io: OpenAPI size now 132834B (was 125131B) — the spec itself grew ~7.7KB; paths still 14. Need to check if structural content changed or just example timestamps.
+- CHANGED api.gladia.io: OpenAPI spec grew from 125131B to 132834B (~7.7KB increase); paths still 14. Need to verify if structural content changed or just example timestamp drift.
+- NEW api.gladia.io: `/v2/live/health` undocumented key-gated endpoint (401 NestJS, not in prior 14-path OpenAPI spec) — discovered in last cycle, informational only.

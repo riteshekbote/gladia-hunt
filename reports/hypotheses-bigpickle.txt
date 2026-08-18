@@ -1,9 +1,18 @@
-## 2026-08-18 02:33:40 UTC [api] (model bigpickle)
-[NEW] api.gladia.io: `/v2/live/health` — undocumented endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed). Key-gated health check for live transcription subsystem. Minor informational surface only (properly gated).
-[CHANGED] api.gladia.io: OpenAPI size now 132834B (was 125131B) — the spec itself grew ~7.7KB; paths still 14. Need to check if structural content changed or just example timestamps.
-[PRIO] npm gladia@0.1.3 — 6.1 (attack 7, business 6, tech 6, gate 10, cloud 2, freshness 3)
+## 2026-08-18 03:25:46 UTC [api] (model bigpickle)
+[CHANGED] api.gladia.io: OpenAPI spec grew from 125131B to 132834B (~7.7KB increase); paths still 14. Need to verify if structural content changed or just example timestamp drift.
+[NEW] api.gladia.io: `/v2/live/health` undocumented key-gated endpoint (401 NestJS, not in prior 14-path OpenAPI spec) — discovered in last cycle, informational only.
+[PRIO] api.gladia.io OpenAPI size change — 5.4 (attack 6, business 5, tech 7, gate 3, cloud 4, freshness 8)
 [PRIO] api.gladia.io SSRF — 5.8 (attack 8, business 8, tech 7, gate 3, cloud 7, freshness 1)
-[PRIO] app.gladia.io /signin redirect_to — 4.9 (attack 5, business 6, tech 6, gate 3, cloud 2, freshness 4)
+[PRIO] npm gladia@0.1.3 — 6.1 (attack 7, business 6, tech 6, gate 10, cloud 2, freshness 3)
+[HYP] OpenAPI spec structural change may introduce new endpoint or modified schema
+class: MISCONFIG
+asset: api.gladia.io /openapi.json
+confidence: 55
+reasoning: Spec grew 7.7KB (125131→132834B) with same 14-path count. Could be new webhook topics, new request/response schemas, or additional properties on existing endpoints. Prior frozen baseline may have shifted.
+evidence_needed: Download current spec, diff against baseline to identify structural changes (new paths, new fields, modified schemas, new webhook topics)
+verify_steps: PASSIVE — GET /openapi.json, save locally, diff against prior 125131B version; compare path count, webhook count, schema definitions, and any new properties or fields
+impact: New attack surface discovery if endpoints/fields added; potential new SSRF vectors or auth bypass paths. Severity: Info until diff confirms
+testability: PASSIVE
 [HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
 class: SSRF
 asset: api.gladia.io POST /v2/pre-recorded
@@ -22,12 +31,11 @@ evidence_needed: post-auth 302 Location to external host after successful signin
 verify_steps: HUMAN_ONLY — complete signin with ?redirect_to=https://evil.example.com plus //evil and app.gladia.io.evil variants; capture Location + Set-Cookie
 impact: post-auth phishing redirect → session/credential capture. Severity: Medium
 testability: HUMAN_ONLY
-[PARKED] npm gladia@0.1.3 orphaned impersonation — confidence 96, PASSIVE complete, evidence package locked, report-ready; no further automated action possible; requires HUMAN to submit via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Cannot advance without human intervention.
 [PARKED] Post-auth redirect_to honored — confidence 50, testability HUMAN_ONLY — cannot make automated progress; parked until HUMAN can execute Google OAuth flow.
-[FINAL] 1. api.gladia.io SSRF [73] — AUTH_HELPED, POC blocked on authorized key.
-[FINAL] 2. npm gladia@0.1.3 impersonation [96] — PASSIVE complete, evidence locked, report-ready.
-[FINAL] 3. app.gladia.io redirect_to [50] — HUMAN_ONLY, post-auth honoring unverified.
-[NEXT] HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evidence: sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, src/client.ts:306-308 key-in-URL, repo+user 404, README↔package.json "Official/Unofficial" contradiction, dist-tag latest=0.1.3. For api SSRF: obtain authorized x-gladia-key from program owner to execute canary POC.
-[LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
-[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint discovered (401, NestJS shape, not in OpenAPI spec) — minor informational, properly gated, not exploitable without auth.
-[RISK] api.gladia.io: 42 — frozen 14-path surface + 1 undocumented /v2/live/health key-gated endpoint, key-gated v2 endpoints, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked on authorized key), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
+[FINAL] 1. api.gladia.io OpenAPI spec change [55] — PASSIVE, diff pending, may reveal new surface.
+[FINAL] 2. api.gladia.io SSRF [73] — AUTH_HELPED, POC blocked on authorized key.
+[FINAL] 3. npm gladia@0.1.3 [96] — PASSIVE complete, evidence locked, report-ready.
+[NEXT] RAG: Download current /openapi.json (132834B) and diff against the frozen 125131B baseline to identify exact structural changes — new paths, schemas, webhook topics, or properties.
+[LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401, NestJS shape, not in OpenAPI spec) — minor informational, properly gated.
+[RISK] api.gladia.io: 43 — OpenAPI spec grew 7.7KB (needs diff), frozen 14-path surface + undocumented /v2/live/health key-gated endpoint, SSRF-by-design fetch+callback surface present but AUTH_HELPED, preflight-only x-powered-by fingerprint | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
