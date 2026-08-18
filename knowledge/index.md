@@ -1220,3 +1220,4 @@
 - 2026-08-18 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (tamper-reset confirmed 90+ cycles); cookie is validated path-only
 - 2026-08-18 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint discovered — confirms 15th endpoint exists outside OpenAPI's 14-path spec, properly gated at 401, no bypass/data leakage — does not change surface risk, informational only
 - 2026-08-18 APPROVED MISCONFIG @ gladia.io: /bug-bounty-report → 301 → www → 302 → Google Forms (auth-gated via Google SSO) — confirmed submission channel for reports; in-scope asset per program
+- 2026-08-18 NO_DELTA — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface byte-frozen on all targets.
