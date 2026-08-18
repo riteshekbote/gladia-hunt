@@ -1540,3 +1540,9 @@ https://gladia.io/bug-bounty-report -> HTTP 401
 https://api.gladia.io/v2/live/health -> HTTP 401
 https://api.gladia.io/openapi.json -> 200 len=125131 type=application/json; charset=utf-8
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-18 05:59:57 UTC
+https://api.gladia.io/v2/live/health -> HTTP 401
+https://api.gladia.io/openapi.json -> 200 len=125131 type=application/json; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report -> HTTP 401
