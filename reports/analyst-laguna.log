@@ -75465,3 +75465,1446 @@ Now I have a complete picture of the current state. The surface has been frozen 
 - `scope.yml`: program scope rules.
 Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
 All 8 steps complete. No new delta this cycle. Proceed?
+===== ANALYST laguna 2026-08-18 18:55:57 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt
+total 888
+drwxr-xr-x 11 runner runner   4096 Aug 18 18:52 .
+drwxr-xr-x  3 runner runner   4096 Aug 18 18:52 ..
+drwxr-xr-x  7 runner runner   4096 Aug 18 18:52 .git
+drwxr-xr-x  3 runner runner   4096 Aug 18 18:52 .github
+-rw-r--r--  1 runner runner    156 Aug 18 18:52 README.md
+-rw-r--r--  1 runner runner     39 Aug 18 18:53 analyst-out.txt
+-rw-r--r--  1 runner runner 349299 Aug 18 18:52 analyst-prompt.txt
+-rw-r--r--  1 runner runner 346158 Aug 18 18:52 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 knowledge
+drwxr-xr-x  2 runner runner  36864 Aug 18 18:52 leads
+-rw-r--r--  1 runner runner  80297 Aug 18 18:52 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 reports
+drwxr-xr-x  4 runner runner   4096 Aug 18 18:52 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 18 18:52 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 scripts
+-rw-r--r--  1 runner runner     33 Aug 18 18:52 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 18 18:52 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 18 18:52 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 18 18:52 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 18 18:52 state_nemotron3.json
+drwxr-xr-x  2 runner runner  20480 Aug 18 18:52 triage
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/AGENTS.md 2>/dev/null; echo "---SCOPE---"; cat /home/runner/work/gladia-hunt/gladia-hunt/scope.yml 2>/dev/null; echo "---REPORTS---"; ls -la /home/runner/work/gladia-hunt/gladia-hunt/reports 2>/dev/null
+---SCOPE---
+programs:
+  gladia:
+    name: Gladia Bug Bounty
+    disclosure_policy: TBD - operator-provided program scope (update once public channel confirmed)
+    assets:
+      - name: api.gladia.io
+        priority: Highest
+      - name: app.gladia.io
+        priority: High
+      - name: Official SDKs (npm @gladiaio/sdk, PyPI gladiaio-sdk)
+        priority: Medium
+      - name: gladia.io
+        priority: Low
+    out_of_scope:
+      - "All other *.gladia.io subdomains"
+      - "Third-party services (Intercom, Stripe dashboard, Google Workspace)"
+      - "Social engineering or phishing attacks on staff"
+      - "Physical security"
+      - "Denial of Service (DoS/DDoS)"
+      - "Assets not owned or operated by Gladia"
+      - "Vulnerabilities requiring physical access"
+      - "Reports from automated scanners without manual validation"
+    github_orgs:
+      - gladiaio
+    npm_packages:
+      - "@gladiaio/sdk"
+      - "gladia"
+    pypi_packages:
+      - "gladiaio-sdk"
+    known_surface:
+      - "https://api.gladia.io/openapi.json  (OpenAPI spec consumed by the SDK code generator)"
+
+rules:
+  # Operator-defined program scope. Passive-first, human-validated only.
+  passive_first: true          # GET/HEAD reads first; no invasive testing without program approval
+  max_requests_per_second: 1   # never hammer
+  no_doom: true                # no DoS/DDoS, no resource-exhaustion tests
+  no_account_creation: true    # no mass signups on app.gladia.io without program approval
+  no_data_modification: true   # no writes, deletes, state changes on live infra
+  no_pre_disclosure: true      # never disclose before program response
+  manual_validation_required: true  # scanner output alone is REJECTED per scope; every finding must be manually validated
+  redact_secrets_in_commits: true   # commit sha256 of secrets, never raw values
+
+# Multi-model ensemble: every hunt run picks a rotation of the 5 models.
+models:
+  - { id: opencode/big-pickle, name: bigpickle }
+  - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+  - { id: opencode/longcat-2.0-free, name: longcat }
+  - { id: opencode/ling-3.0-flash-free, name: ling3 }
+  - { id: opencode/laguna-s-2.1-free, name: laguna }
+---REPORTS---
+total 15520
+drwxr-xr-x  2 runner runner    4096 Aug 18 18:52 .
+drwxr-xr-x 11 runner runner    4096 Aug 18 18:52 ..
+-rw-r--r--  1 runner runner    4508 Aug 18 18:52 SUBMISSION_gladia_npm_impersonation.md
+-rw-r--r--  1 runner runner 3437275 Aug 18 18:52 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 8313896 Aug 18 18:52 analyst-laguna.log
+-rw-r--r--  1 runner runner   71064 Aug 18 18:52 analyst-ling3.log
+-rw-r--r--  1 runner runner  357856 Aug 18 18:52 analyst-longcat.log
+-rw-r--r--  1 runner runner 2889409 Aug 18 18:52 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    3536 Aug 18 18:52 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner      48 Aug 18 18:52 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      47 Aug 18 18:52 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      49 Aug 18 18:52 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    5816 Aug 18 18:52 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  807551 Aug 18 18:52 hypotheses.md
+-rw-r--r--  1 runner runner   39458 Aug 18 18:52 valid-bugs.md
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && for f in state_*.json; do echo "=== $f ==="; cat "$f"; done
+=== state_bigpickle.json ===
+{"phase": "POC", "target": "api"}=== state_laguna.json ===
+{"phase": "POC", "target": "app"}=== state_ling3.json ===
+{"phase": "POC", "target": "api"}=== state_longcat.json ===
+{"phase": "POC", "target": "sdk"}=== state_nemotron3.json ===
+{"phase": "POC", "target": "app"}
+[0m
+[0m$ [0mls -la inventory knowledge leads triage 2>/dev/null
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_016389867001uhEvEeQu2uA27u
+
+-rw-r--r--  1 runner runner    8785 Aug 18 18:52 reposcan-2026-08-12-10-10.md
+-rw-r--r--  1 runner runner    9560 Aug 18 18:52 reposcan-2026-08-12-10-59.md
+-rw-r--r--  1 runner runner   58364 Aug 18 18:52 reposcan-2026-08-12-11-12.md
+-rw-r--r--  1 runner runner    7990 Aug 18 18:52 reposcan-2026-08-12-11-39.md
+-rw-r--r--  1 runner runner    7348 Aug 18 18:52 reposcan-2026-08-12-11-59.md
+-rw-r--r--  1 runner runner   12100 Aug 18 18:52 reposcan-2026-08-12-12-42.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-12-13-26.md
+-rw-r--r--  1 runner runner    6622 Aug 18 18:52 reposcan-2026-08-12-14-15.md
+-rw-r--r--  1 runner runner    6303 Aug 18 18:52 reposcan-2026-08-12-14-36.md
+-rw-r--r--  1 runner runner    5950 Aug 18 18:52 reposcan-2026-08-12-15-17.md
+-rw-r--r--  1 runner runner   13318 Aug 18 18:52 reposcan-2026-08-12-15-41.md
+-rw-r--r--  1 runner runner    8014 Aug 18 18:52 reposcan-2026-08-12-16-51.md
+-rw-r--r--  1 runner runner   13120 Aug 18 18:52 reposcan-2026-08-12-17-22.md
+-rw-r--r--  1 runner runner   78566 Aug 18 18:52 reposcan-2026-08-12-17-46.md
+-rw-r--r--  1 runner runner    6515 Aug 18 18:52 reposcan-2026-08-12-18-16.md
+-rw-r--r--  1 runner runner   11672 Aug 18 18:52 reposcan-2026-08-12-18-40.md
+-rw-r--r--  1 runner runner    9426 Aug 18 18:52 reposcan-2026-08-12-19-52.md
+-rw-r--r--  1 runner runner    5941 Aug 18 18:52 reposcan-2026-08-12-20-26.md
+-rw-r--r--  1 runner runner    8356 Aug 18 18:52 reposcan-2026-08-12-20-45.md
+-rw-r--r--  1 runner runner    8541 Aug 18 18:52 reposcan-2026-08-12-21-16.md
+-rw-r--r--  1 runner runner    9972 Aug 18 18:52 reposcan-2026-08-12-21-30.md
+-rw-r--r--  1 runner runner   10061 Aug 18 18:52 reposcan-2026-08-12-22-10.md
+-rw-r--r--  1 runner runner    7853 Aug 18 18:52 reposcan-2026-08-12-22-29.md
+-rw-r--r--  1 runner runner    7157 Aug 18 18:52 reposcan-2026-08-12-23-03.md
+-rw-r--r--  1 runner runner    9086 Aug 18 18:52 reposcan-2026-08-12-23-13.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-13-00-16.md
+-rw-r--r--  1 runner runner    6546 Aug 18 18:52 reposcan-2026-08-13-01-59.md
+-rw-r--r--  1 runner runner   27319 Aug 18 18:52 reposcan-2026-08-13-02-29.md
+-rw-r--r--  1 runner runner    4919 Aug 18 18:52 reposcan-2026-08-13-04-14.md
+-rw-r--r--  1 runner runner   10941 Aug 18 18:52 reposcan-2026-08-13-04-28.md
+-rw-r--r--  1 runner runner   39217 Aug 18 18:52 reposcan-2026-08-13-05-56.md
+-rw-r--r--  1 runner runner    9360 Aug 18 18:52 reposcan-2026-08-13-06-02.md
+-rw-r--r--  1 runner runner   23949 Aug 18 18:52 reposcan-2026-08-13-07-32.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-13-07-55.md
+-rw-r--r--  1 runner runner   51160 Aug 18 18:52 reposcan-2026-08-13-08-48.md
+-rw-r--r--  1 runner runner    8080 Aug 18 18:52 reposcan-2026-08-13-08-57.md
+-rw-r--r--  1 runner runner   11563 Aug 18 18:52 reposcan-2026-08-13-09-55.md
+-rw-r--r--  1 runner runner    7103 Aug 18 18:52 reposcan-2026-08-13-10-08.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-13-11-00.md
+-rw-r--r--  1 runner runner    7699 Aug 18 18:52 reposcan-2026-08-13-11-12.md
+-rw-r--r--  1 runner runner   10737 Aug 18 18:52 reposcan-2026-08-13-12-10.md
+-rw-r--r--  1 runner runner    5859 Aug 18 18:52 reposcan-2026-08-13-12-47.md
+-rw-r--r--  1 runner runner   10846 Aug 18 18:52 reposcan-2026-08-13-13-54.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-13-14-16.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-13-15-00.md
+-rw-r--r--  1 runner runner   11147 Aug 18 18:52 reposcan-2026-08-13-15-23.md
+-rw-r--r--  1 runner runner   26623 Aug 18 18:52 reposcan-2026-08-13-16-00.md
+-rw-r--r--  1 runner runner   11444 Aug 18 18:52 reposcan-2026-08-13-16-33.md
+-rw-r--r--  1 runner runner   13568 Aug 18 18:52 reposcan-2026-08-13-17-09.md
+-rw-r--r--  1 runner runner   10631 Aug 18 18:52 reposcan-2026-08-13-17-25.md
+-rw-r--r--  1 runner runner   17032 Aug 18 18:52 reposcan-2026-08-13-18-12.md
+-rw-r--r--  1 runner runner    7657 Aug 18 18:52 reposcan-2026-08-13-18-17.md
+-rw-r--r--  1 runner runner    4813 Aug 18 18:52 reposcan-2026-08-13-19-24.md
+-rw-r--r--  1 runner runner    4919 Aug 18 18:52 reposcan-2026-08-13-19-37.md
+-rw-r--r--  1 runner runner   28316 Aug 18 18:52 reposcan-2026-08-13-20-06.md
+-rw-r--r--  1 runner runner   14541 Aug 18 18:52 reposcan-2026-08-13-20-11.md
+-rw-r--r--  1 runner runner   11416 Aug 18 18:52 reposcan-2026-08-13-21-04.md
+-rw-r--r--  1 runner runner    5622 Aug 18 18:52 reposcan-2026-08-13-21-07.md
+-rw-r--r--  1 runner runner    6800 Aug 18 18:52 reposcan-2026-08-13-22-06.md
+-rw-r--r--  1 runner runner    7468 Aug 18 18:52 reposcan-2026-08-13-23-00.md
+-rw-r--r--  1 runner runner   10279 Aug 18 18:52 reposcan-2026-08-13-23-03.md
+-rw-r--r--  1 runner runner    9705 Aug 18 18:52 reposcan-2026-08-13-23-48.md
+-rw-r--r--  1 runner runner    7890 Aug 18 18:52 reposcan-2026-08-13-23-59.md
+-rw-r--r--  1 runner runner    7032 Aug 18 18:52 reposcan-2026-08-14-00-47.md
+-rw-r--r--  1 runner runner    7956 Aug 18 18:52 reposcan-2026-08-14-02-33.md
+-rw-r--r--  1 runner runner   10928 Aug 18 18:52 reposcan-2026-08-14-03-19.md
+-rw-r--r--  1 runner runner    9730 Aug 18 18:52 reposcan-2026-08-14-04-30.md
+-rw-r--r--  1 runner runner    6709 Aug 18 18:52 reposcan-2026-08-14-05-20.md
+-rw-r--r--  1 runner runner   27382 Aug 18 18:52 reposcan-2026-08-14-06-01.md
+-rw-r--r--  1 runner runner    8307 Aug 18 18:52 reposcan-2026-08-14-06-47.md
+-rw-r--r--  1 runner runner    9227 Aug 18 18:52 reposcan-2026-08-14-07-44.md
+-rw-r--r--  1 runner runner    6504 Aug 18 18:52 reposcan-2026-08-14-08-09.md
+-rw-r--r--  1 runner runner    8632 Aug 18 18:52 reposcan-2026-08-14-08-52.md
+-rw-r--r--  1 runner runner    7992 Aug 18 18:52 reposcan-2026-08-14-09-22.md
+-rw-r--r--  1 runner runner    6242 Aug 18 18:52 reposcan-2026-08-14-10-00.md
+-rw-r--r--  1 runner runner    8504 Aug 18 18:52 reposcan-2026-08-14-10-32.md
+-rw-r--r--  1 runner runner    9854 Aug 18 18:52 reposcan-2026-08-14-11-05.md
+-rw-r--r--  1 runner runner    9828 Aug 18 18:52 reposcan-2026-08-14-11-27.md
+-rw-r--r--  1 runner runner    7337 Aug 18 18:52 reposcan-2026-08-14-12-00.md
+-rw-r--r--  1 runner runner    6064 Aug 18 18:52 reposcan-2026-08-14-12-15.md
+-rw-r--r--  1 runner runner   16205 Aug 18 18:52 reposcan-2026-08-14-13-15.md
+-rw-r--r--  1 runner runner    8929 Aug 18 18:52 reposcan-2026-08-14-13-49.md
+-rw-r--r--  1 runner runner    8595 Aug 18 18:52 reposcan-2026-08-14-14-22.md
+-rw-r--r--  1 runner runner   12789 Aug 18 18:52 reposcan-2026-08-14-14-45.md
+-rw-r--r--  1 runner runner   10446 Aug 18 18:52 reposcan-2026-08-14-15-23.md
+-rw-r--r--  1 runner runner    6436 Aug 18 18:52 reposcan-2026-08-14-15-42.md
+-rw-r--r--  1 runner runner   12319 Aug 18 18:52 reposcan-2026-08-14-16-23.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-14-16-34.md
+-rw-r--r--  1 runner runner    5884 Aug 18 18:52 reposcan-2026-08-14-17-29.md
+-rw-r--r--  1 runner runner   10968 Aug 18 18:52 reposcan-2026-08-14-17-40.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-14-18-29.md
+-rw-r--r--  1 runner runner    9745 Aug 18 18:52 reposcan-2026-08-14-18-38.md
+-rw-r--r--  1 runner runner    9432 Aug 18 18:52 reposcan-2026-08-14-19-31.md
+-rw-r--r--  1 runner runner    7808 Aug 18 18:52 reposcan-2026-08-14-19-37.md
+-rw-r--r--  1 runner runner   14163 Aug 18 18:52 reposcan-2026-08-14-20-07.md
+-rw-r--r--  1 runner runner    6656 Aug 18 18:52 reposcan-2026-08-14-20-15.md
+-rw-r--r--  1 runner runner   10087 Aug 18 18:52 reposcan-2026-08-14-20-46.md
+-rw-r--r--  1 runner runner    6934 Aug 18 18:52 reposcan-2026-08-14-20-52.md
+-rw-r--r--  1 runner runner    9188 Aug 18 18:52 reposcan-2026-08-14-21-16.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-14-21-24.md
+-rw-r--r--  1 runner runner   10243 Aug 18 18:52 reposcan-2026-08-14-21-48.md
+-rw-r--r--  1 runner runner   14609 Aug 18 18:52 reposcan-2026-08-14-21-51.md
+-rw-r--r--  1 runner runner    9098 Aug 18 18:52 reposcan-2026-08-14-22-04.md
+-rw-r--r--  1 runner runner   12405 Aug 18 18:52 reposcan-2026-08-14-22-22.md
+-rw-r--r--  1 runner runner   17944 Aug 18 18:52 reposcan-2026-08-14-22-42.md
+-rw-r--r--  1 runner runner    8468 Aug 18 18:52 reposcan-2026-08-14-22-53.md
+-rw-r--r--  1 runner runner    6088 Aug 18 18:52 reposcan-2026-08-14-23-04.md
+-rw-r--r--  1 runner runner   15294 Aug 18 18:52 reposcan-2026-08-14-23-23.md
+-rw-r--r--  1 runner runner    6506 Aug 18 18:52 reposcan-2026-08-14-23-33.md
+-rw-r--r--  1 runner runner    7479 Aug 18 18:52 reposcan-2026-08-14-23-48.md
+-rw-r--r--  1 runner runner   10339 Aug 18 18:52 reposcan-2026-08-14-23-59.md
+-rw-r--r--  1 runner runner    7722 Aug 18 18:52 reposcan-2026-08-15-01-09.md
+-rw-r--r--  1 runner runner   13405 Aug 18 18:52 reposcan-2026-08-15-01-40.md
+-rw-r--r--  1 runner runner   15236 Aug 18 18:52 reposcan-2026-08-15-02-21.md
+-rw-r--r--  1 runner runner    8218 Aug 18 18:52 reposcan-2026-08-15-02-41.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-03-12.md
+-rw-r--r--  1 runner runner    8199 Aug 18 18:52 reposcan-2026-08-15-03-26.md
+-rw-r--r--  1 runner runner   10531 Aug 18 18:52 reposcan-2026-08-15-03-58.md
+-rw-r--r--  1 runner runner    6256 Aug 18 18:52 reposcan-2026-08-15-04-07.md
+-rw-r--r--  1 runner runner    9143 Aug 18 18:52 reposcan-2026-08-15-04-31.md
+-rw-r--r--  1 runner runner   11900 Aug 18 18:52 reposcan-2026-08-15-04-48.md
+-rw-r--r--  1 runner runner    7168 Aug 18 18:52 reposcan-2026-08-15-04-59.md
+-rw-r--r--  1 runner runner   10244 Aug 18 18:52 reposcan-2026-08-15-05-14.md
+-rw-r--r--  1 runner runner    5678 Aug 18 18:52 reposcan-2026-08-15-05-34.md
+-rw-r--r--  1 runner runner    8592 Aug 18 18:52 reposcan-2026-08-15-05-47.md
+-rw-r--r--  1 runner runner   12316 Aug 18 18:52 reposcan-2026-08-15-06-02.md
+-rw-r--r--  1 runner runner    8925 Aug 18 18:52 reposcan-2026-08-15-06-06.md
+-rw-r--r--  1 runner runner    9219 Aug 18 18:52 reposcan-2026-08-15-06-58.md
+-rw-r--r--  1 runner runner    7245 Aug 18 18:52 reposcan-2026-08-15-07-02.md
+-rw-r--r--  1 runner runner   13962 Aug 18 18:52 reposcan-2026-08-15-07-35.md
+-rw-r--r--  1 runner runner   10642 Aug 18 18:52 reposcan-2026-08-15-07-37.md
+-rw-r--r--  1 runner runner    6028 Aug 18 18:52 reposcan-2026-08-15-08-01.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-15-08-54.md
+-rw-r--r--  1 runner runner    5107 Aug 18 18:52 reposcan-2026-08-15-08-59.md
+-rw-r--r--  1 runner runner    6748 Aug 18 18:52 reposcan-2026-08-15-09-03.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-09-08.md
+-rw-r--r--  1 runner runner    8185 Aug 18 18:52 reposcan-2026-08-15-09-39.md
+-rw-r--r--  1 runner runner    6876 Aug 18 18:52 reposcan-2026-08-15-09-40.md
+-rw-r--r--  1 runner runner   10842 Aug 18 18:52 reposcan-2026-08-15-10-01.md
+-rw-r--r--  1 runner runner    8570 Aug 18 18:52 reposcan-2026-08-15-10-31.md
+-rw-r--r--  1 runner runner    9180 Aug 18 18:52 reposcan-2026-08-15-10-34.md
+-rw-r--r--  1 runner runner   12455 Aug 18 18:52 reposcan-2026-08-15-11-00.md
+-rw-r--r--  1 runner runner    7138 Aug 18 18:52 reposcan-2026-08-15-11-28.md
+-rw-r--r--  1 runner runner    7410 Aug 18 18:52 reposcan-2026-08-15-11-47.md
+-rw-r--r--  1 runner runner    9294 Aug 18 18:52 reposcan-2026-08-15-11-49.md
+-rw-r--r--  1 runner runner    8264 Aug 18 18:52 reposcan-2026-08-15-12-05.md
+-rw-r--r--  1 runner runner    7916 Aug 18 18:52 reposcan-2026-08-15-12-35.md
+-rw-r--r--  1 runner runner    6707 Aug 18 18:52 reposcan-2026-08-15-12-59.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-15-13-21.md
+-rw-r--r--  1 runner runner    9053 Aug 18 18:52 reposcan-2026-08-15-13-39.md
+-rw-r--r--  1 runner runner   10559 Aug 18 18:52 reposcan-2026-08-15-13-57.md
+-rw-r--r--  1 runner runner   13502 Aug 18 18:52 reposcan-2026-08-15-14-00.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-14-22.md
+-rw-r--r--  1 runner runner    8592 Aug 18 18:52 reposcan-2026-08-15-14-41.md
+-rw-r--r--  1 runner runner   10876 Aug 18 18:52 reposcan-2026-08-15-14-51.md
+-rw-r--r--  1 runner runner   11736 Aug 18 18:52 reposcan-2026-08-15-14-57.md
+-rw-r--r--  1 runner runner   10560 Aug 18 18:52 reposcan-2026-08-15-15-20.md
+-rw-r--r--  1 runner runner    8826 Aug 18 18:52 reposcan-2026-08-15-15-30.md
+-rw-r--r--  1 runner runner   13575 Aug 18 18:52 reposcan-2026-08-15-15-54.md
+-rw-r--r--  1 runner runner    8939 Aug 18 18:52 reposcan-2026-08-15-16-15.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-16-26.md
+-rw-r--r--  1 runner runner    6866 Aug 18 18:52 reposcan-2026-08-15-16-45.md
+-rw-r--r--  1 runner runner   10345 Aug 18 18:52 reposcan-2026-08-15-16-51.md
+-rw-r--r--  1 runner runner   12471 Aug 18 18:52 reposcan-2026-08-15-17-05.md
+-rw-r--r--  1 runner runner    8373 Aug 18 18:52 reposcan-2026-08-15-17-21.md
+-rw-r--r--  1 runner runner   12234 Aug 18 18:52 reposcan-2026-08-15-17-35.md
+-rw-r--r--  1 runner runner    7774 Aug 18 18:52 reposcan-2026-08-15-17-46.md
+-rw-r--r--  1 runner runner   16387 Aug 18 18:52 reposcan-2026-08-15-17-59.md
+-rw-r--r--  1 runner runner    8140 Aug 18 18:52 reposcan-2026-08-15-18-00.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-15-18-35.md
+-rw-r--r--  1 runner runner   10919 Aug 18 18:52 reposcan-2026-08-15-18-41.md
+-rw-r--r--  1 runner runner   12713 Aug 18 18:52 reposcan-2026-08-15-19-04.md
+-rw-r--r--  1 runner runner   12304 Aug 18 18:52 reposcan-2026-08-15-19-33.md
+-rw-r--r--  1 runner runner   12501 Aug 18 18:52 reposcan-2026-08-15-19-35.md
+-rw-r--r--  1 runner runner    6737 Aug 18 18:52 reposcan-2026-08-15-19-52.md
+-rw-r--r--  1 runner runner    9630 Aug 18 18:52 reposcan-2026-08-15-19-56.md
+-rw-r--r--  1 runner runner    8592 Aug 18 18:52 reposcan-2026-08-15-20-14.md
+-rw-r--r--  1 runner runner    9644 Aug 18 18:52 reposcan-2026-08-15-20-22.md
+-rw-r--r--  1 runner runner   11932 Aug 18 18:52 reposcan-2026-08-15-20-44.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-20-49.md
+-rw-r--r--  1 runner runner    7704 Aug 18 18:52 reposcan-2026-08-15-21-04.md
+-rw-r--r--  1 runner runner    7738 Aug 18 18:52 reposcan-2026-08-15-21-21.md
+-rw-r--r--  1 runner runner   16533 Aug 18 18:52 reposcan-2026-08-15-21-35.md
+-rw-r--r--  1 runner runner    9075 Aug 18 18:52 reposcan-2026-08-15-21-46.md
+-rw-r--r--  1 runner runner   11098 Aug 18 18:52 reposcan-2026-08-15-21-57.md
+-rw-r--r--  1 runner runner   10990 Aug 18 18:52 reposcan-2026-08-15-22-01.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-15-22-21.md
+-rw-r--r--  1 runner runner    8573 Aug 18 18:52 reposcan-2026-08-15-22-31.md
+-rw-r--r--  1 runner runner   11900 Aug 18 18:52 reposcan-2026-08-15-22-46.md
+-rw-r--r--  1 runner runner    9893 Aug 18 18:52 reposcan-2026-08-15-22-59.md
+-rw-r--r--  1 runner runner    9859 Aug 18 18:52 reposcan-2026-08-15-23-04.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-15-23-28.md
+-rw-r--r--  1 runner runner    8354 Aug 18 18:52 reposcan-2026-08-15-23-34.md
+-rw-r--r--  1 runner runner    8379 Aug 18 18:52 reposcan-2026-08-15-23-48.md
+-rw-r--r--  1 runner runner   13950 Aug 18 18:52 reposcan-2026-08-15-23-54.md
+-rw-r--r--  1 runner runner   13780 Aug 18 18:52 reposcan-2026-08-16-01-10.md
+-rw-r--r--  1 runner runner   13442 Aug 18 18:52 reposcan-2026-08-16-01-13.md
+-rw-r--r--  1 runner runner   13234 Aug 18 18:52 reposcan-2026-08-16-02-36.md
+-rw-r--r--  1 runner runner    9827 Aug 18 18:52 reposcan-2026-08-16-03-34.md
+-rw-r--r--  1 runner runner   11392 Aug 18 18:52 reposcan-2026-08-16-04-21.md
+-rw-r--r--  1 runner runner   12042 Aug 18 18:52 reposcan-2026-08-16-04-57.md
+-rw-r--r--  1 runner runner   11984 Aug 18 18:52 reposcan-2026-08-16-05-01.md
+-rw-r--r--  1 runner runner   12371 Aug 18 18:52 reposcan-2026-08-16-05-34.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-16-05-38.md
+-rw-r--r--  1 runner runner    5907 Aug 18 18:52 reposcan-2026-08-16-06-02.md
+-rw-r--r--  1 runner runner   13838 Aug 18 18:52 reposcan-2026-08-16-06-57.md
+-rw-r--r--  1 runner runner   12946 Aug 18 18:52 reposcan-2026-08-16-06-59.md
+-rw-r--r--  1 runner runner   10298 Aug 18 18:52 reposcan-2026-08-16-07-36.md
+-rw-r--r--  1 runner runner   10995 Aug 18 18:52 reposcan-2026-08-16-07-40.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-16-07-59.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-16-08-00.md
+-rw-r--r--  1 runner runner    8599 Aug 18 18:52 reposcan-2026-08-16-08-41.md
+-rw-r--r--  1 runner runner   12405 Aug 18 18:52 reposcan-2026-08-16-09-07.md
+-rw-r--r--  1 runner runner    7982 Aug 18 18:52 reposcan-2026-08-16-09-40.md
+-rw-r--r--  1 runner runner    9580 Aug 18 18:52 reposcan-2026-08-16-09-43.md
+-rw-r--r--  1 runner runner   12607 Aug 18 18:52 reposcan-2026-08-16-10-02.md
+-rw-r--r--  1 runner runner   12348 Aug 18 18:52 reposcan-2026-08-16-10-33.md
+-rw-r--r--  1 runner runner    7434 Aug 18 18:52 reposcan-2026-08-16-10-35.md
+-rw-r--r--  1 runner runner    7313 Aug 18 18:52 reposcan-2026-08-16-11-00.md
+-rw-r--r--  1 runner runner    6130 Aug 18 18:52 reposcan-2026-08-16-11-29.md
+-rw-r--r--  1 runner runner   16090 Aug 18 18:52 reposcan-2026-08-16-11-51.md
+-rw-r--r--  1 runner runner   10424 Aug 18 18:52 reposcan-2026-08-16-12-15.md
+-rw-r--r--  1 runner runner    6776 Aug 18 18:52 reposcan-2026-08-16-12-36.md
+-rw-r--r--  1 runner runner   10763 Aug 18 18:52 reposcan-2026-08-16-13-08.md
+-rw-r--r--  1 runner runner    6552 Aug 18 18:52 reposcan-2026-08-16-13-19.md
+-rw-r--r--  1 runner runner    8376 Aug 18 18:52 reposcan-2026-08-16-13-44.md
+-rw-r--r--  1 runner runner    6974 Aug 18 18:52 reposcan-2026-08-16-13-53.md
+-rw-r--r--  1 runner runner    7647 Aug 18 18:52 reposcan-2026-08-16-14-06.md
+-rw-r--r--  1 runner runner    7221 Aug 18 18:52 reposcan-2026-08-16-14-21.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-16-14-37.md
+-rw-r--r--  1 runner runner   11048 Aug 18 18:52 reposcan-2026-08-16-14-49.md
+-rw-r--r--  1 runner runner    9171 Aug 18 18:52 reposcan-2026-08-16-15-02.md
+-rw-r--r--  1 runner runner    8829 Aug 18 18:52 reposcan-2026-08-16-15-21.md
+-rw-r--r--  1 runner runner   10442 Aug 18 18:52 reposcan-2026-08-16-15-34.md
+-rw-r--r--  1 runner runner   11314 Aug 18 18:52 reposcan-2026-08-16-15-49.md
+-rw-r--r--  1 runner runner   16810 Aug 18 18:52 reposcan-2026-08-16-15-57.md
+-rw-r--r--  1 runner runner    9754 Aug 18 18:52 reposcan-2026-08-16-16-25.md
+-rw-r--r--  1 runner runner    7425 Aug 18 18:52 reposcan-2026-08-16-16-52.md
+-rw-r--r--  1 runner runner   12810 Aug 18 18:52 reposcan-2026-08-16-17-13.md
+-rw-r--r--  1 runner runner    7616 Aug 18 18:52 reposcan-2026-08-16-17-18.md
+-rw-r--r--  1 runner runner    8256 Aug 18 18:52 reposcan-2026-08-16-17-37.md
+-rw-r--r--  1 runner runner    9349 Aug 18 18:52 reposcan-2026-08-16-17-45.md
+-rw-r--r--  1 runner runner   34333 Aug 18 18:52 reposcan-2026-08-16-17-57.md
+-rw-r--r--  1 runner runner    7826 Aug 18 18:52 reposcan-2026-08-16-18-00.md
+-rw-r--r--  1 runner runner   15875 Aug 18 18:52 reposcan-2026-08-16-18-33.md
+-rw-r--r--  1 runner runner    7563 Aug 18 18:52 reposcan-2026-08-16-18-40.md
+-rw-r--r--  1 runner runner   11743 Aug 18 18:52 reposcan-2026-08-16-19-03.md
+-rw-r--r--  1 runner runner    8487 Aug 18 18:52 reposcan-2026-08-16-19-31.md
+-rw-r--r--  1 runner runner    7379 Aug 18 18:52 reposcan-2026-08-16-19-34.md
+-rw-r--r--  1 runner runner   10393 Aug 18 18:52 reposcan-2026-08-16-19-53.md
+-rw-r--r--  1 runner runner    5738 Aug 18 18:52 reposcan-2026-08-16-19-55.md
+-rw-r--r--  1 runner runner    9756 Aug 18 18:52 reposcan-2026-08-16-20-11.md
+-rw-r--r--  1 runner runner   10629 Aug 18 18:52 reposcan-2026-08-16-20-21.md
+-rw-r--r--  1 runner runner    7260 Aug 18 18:52 reposcan-2026-08-16-20-41.md
+-rw-r--r--  1 runner runner   12203 Aug 18 18:52 reposcan-2026-08-16-20-48.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-16-21-02.md
+-rw-r--r--  1 runner runner    8810 Aug 18 18:52 reposcan-2026-08-16-21-19.md
+-rw-r--r--  1 runner runner    8606 Aug 18 18:52 reposcan-2026-08-16-21-32.md
+-rw-r--r--  1 runner runner   12201 Aug 18 18:52 reposcan-2026-08-16-21-45.md
+-rw-r--r--  1 runner runner   10313 Aug 18 18:52 reposcan-2026-08-16-21-54.md
+-rw-r--r--  1 runner runner    6596 Aug 18 18:52 reposcan-2026-08-16-21-59.md
+-rw-r--r--  1 runner runner   10097 Aug 18 18:52 reposcan-2026-08-16-22-13.md
+-rw-r--r--  1 runner runner   16479 Aug 18 18:52 reposcan-2026-08-16-22-31.md
+-rw-r--r--  1 runner runner    8469 Aug 18 18:52 reposcan-2026-08-16-22-42.md
+-rw-r--r--  1 runner runner    5837 Aug 18 18:52 reposcan-2026-08-16-22-52.md
+-rw-r--r--  1 runner runner   12413 Aug 18 18:52 reposcan-2026-08-16-23-02.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-16-23-19.md
+-rw-r--r--  1 runner runner   10751 Aug 18 18:52 reposcan-2026-08-16-23-33.md
+-rw-r--r--  1 runner runner   30114 Aug 18 18:52 reposcan-2026-08-16-23-45.md
+-rw-r--r--  1 runner runner    6962 Aug 18 18:52 reposcan-2026-08-16-23-54.md
+-rw-r--r--  1 runner runner   10998 Aug 18 18:52 reposcan-2026-08-16-23-59.md
+-rw-r--r--  1 runner runner    8497 Aug 18 18:52 reposcan-2026-08-17-00-52.md
+-rw-r--r--  1 runner runner   12108 Aug 18 18:52 reposcan-2026-08-17-01-45.md
+-rw-r--r--  1 runner runner    8340 Aug 18 18:52 reposcan-2026-08-17-02-13.md
+-rw-r--r--  1 runner runner   14099 Aug 18 18:52 reposcan-2026-08-17-02-49.md
+-rw-r--r--  1 runner runner    7241 Aug 18 18:52 reposcan-2026-08-17-03-18.md
+-rw-r--r--  1 runner runner    5637 Aug 18 18:52 reposcan-2026-08-17-03-51.md
+-rw-r--r--  1 runner runner    7386 Aug 18 18:52 reposcan-2026-08-17-04-10.md
+-rw-r--r--  1 runner runner    7771 Aug 18 18:52 reposcan-2026-08-17-04-40.md
+-rw-r--r--  1 runner runner   12003 Aug 18 18:52 reposcan-2026-08-17-05-00.md
+-rw-r--r--  1 runner runner    8103 Aug 18 18:52 reposcan-2026-08-17-05-22.md
+-rw-r--r--  1 runner runner    8208 Aug 18 18:52 reposcan-2026-08-17-05-55.md
+-rw-r--r--  1 runner runner    7883 Aug 18 18:52 reposcan-2026-08-17-06-02.md
+-rw-r--r--  1 runner runner   10047 Aug 18 18:52 reposcan-2026-08-17-06-28.md
+-rw-r--r--  1 runner runner   12168 Aug 18 18:52 reposcan-2026-08-17-07-13.md
+-rw-r--r--  1 runner runner   10197 Aug 18 18:52 reposcan-2026-08-17-07-35.md
+-rw-r--r--  1 runner runner   12550 Aug 18 18:52 reposcan-2026-08-17-08-04.md
+-rw-r--r--  1 runner runner    6270 Aug 18 18:52 reposcan-2026-08-17-08-23.md
+-rw-r--r--  1 runner runner   12984 Aug 18 18:52 reposcan-2026-08-17-09-02.md
+-rw-r--r--  1 runner runner    8047 Aug 18 18:52 reposcan-2026-08-17-09-12.md
+-rw-r--r--  1 runner runner   10397 Aug 18 18:52 reposcan-2026-08-17-09-58.md
+-rw-r--r--  1 runner runner   11473 Aug 18 18:52 reposcan-2026-08-17-10-00.md
+-rw-r--r--  1 runner runner   13125 Aug 18 18:52 reposcan-2026-08-17-10-36.md
+-rw-r--r--  1 runner runner   10144 Aug 18 18:52 reposcan-2026-08-17-10-43.md
+-rw-r--r--  1 runner runner   13096 Aug 18 18:52 reposcan-2026-08-17-11-03.md
+-rw-r--r--  1 runner runner   10394 Aug 18 18:52 reposcan-2026-08-17-11-13.md
+-rw-r--r--  1 runner runner   10911 Aug 18 18:52 reposcan-2026-08-17-11-39.md
+-rw-r--r--  1 runner runner   11923 Aug 18 18:52 reposcan-2026-08-17-11-42.md
+-rw-r--r--  1 runner runner    9360 Aug 18 18:52 reposcan-2026-08-17-12-04.md
+-rw-r--r--  1 runner runner   13015 Aug 18 18:52 reposcan-2026-08-17-13-02.md
+-rw-r--r--  1 runner runner    8734 Aug 18 18:52 reposcan-2026-08-17-13-06.md
+-rw-r--r--  1 runner runner    6321 Aug 18 18:52 reposcan-2026-08-17-13-49.md
+-rw-r--r--  1 runner runner   12290 Aug 18 18:52 reposcan-2026-08-17-13-54.md
+-rw-r--r--  1 runner runner    9841 Aug 18 18:52 reposcan-2026-08-17-14-25.md
+-rw-r--r--  1 runner runner    7178 Aug 18 18:52 reposcan-2026-08-17-14-27.md
+-rw-r--r--  1 runner runner    8556 Aug 18 18:52 reposcan-2026-08-17-14-55.md
+-rw-r--r--  1 runner runner   33251 Aug 18 18:52 reposcan-2026-08-17-15-21.md
+-rw-r--r--  1 runner runner    6835 Aug 18 18:52 reposcan-2026-08-17-15-24.md
+-rw-r--r--  1 runner runner    7582 Aug 18 18:52 reposcan-2026-08-17-15-49.md
+-rw-r--r--  1 runner runner    8200 Aug 18 18:52 reposcan-2026-08-17-15-50.md
+-rw-r--r--  1 runner runner    6827 Aug 18 18:52 reposcan-2026-08-17-16-14.md
+-rw-r--r--  1 runner runner    6878 Aug 18 18:52 reposcan-2026-08-17-16-25.md
+-rw-r--r--  1 runner runner    9254 Aug 18 18:52 reposcan-2026-08-17-16-50.md
+-rw-r--r--  1 runner runner    9520 Aug 18 18:52 reposcan-2026-08-17-16-56.md
+-rw-r--r--  1 runner runner    7934 Aug 18 18:52 reposcan-2026-08-17-17-27.md
+-rw-r--r--  1 runner runner   13093 Aug 18 18:52 reposcan-2026-08-17-17-58.md
+-rw-r--r--  1 runner runner    6766 Aug 18 18:52 reposcan-2026-08-17-18-42.md
+-rw-r--r--  1 runner runner   11877 Aug 18 18:52 reposcan-2026-08-17-19-12.md
+-rw-r--r--  1 runner runner    8406 Aug 18 18:52 reposcan-2026-08-17-19-17.md
+-rw-r--r--  1 runner runner   13040 Aug 18 18:52 reposcan-2026-08-17-19-44.md
+-rw-r--r--  1 runner runner    8163 Aug 18 18:52 reposcan-2026-08-17-19-52.md
+-rw-r--r--  1 runner runner    7337 Aug 18 18:52 reposcan-2026-08-17-20-06.md
+-rw-r--r--  1 runner runner    6629 Aug 18 18:52 reposcan-2026-08-17-20-25.md
+-rw-r--r--  1 runner runner   13588 Aug 18 18:52 reposcan-2026-08-17-20-42.md
+-rw-r--r--  1 runner runner    9614 Aug 18 18:52 reposcan-2026-08-17-20-55.md
+-rw-r--r--  1 runner runner    8361 Aug 18 18:52 reposcan-2026-08-17-21-12.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-17-21-26.md
+-rw-r--r--  1 runner runner   10467 Aug 18 18:52 reposcan-2026-08-17-21-41.md
+-rw-r--r--  1 runner runner   13829 Aug 18 18:52 reposcan-2026-08-17-21-51.md
+-rw-r--r--  1 runner runner    7246 Aug 18 18:52 reposcan-2026-08-17-22-03.md
+-rw-r--r--  1 runner runner   11885 Aug 18 18:52 reposcan-2026-08-17-22-23.md
+-rw-r--r--  1 runner runner   11443 Aug 18 18:52 reposcan-2026-08-17-22-41.md
+-rw-r--r--  1 runner runner   11833 Aug 18 18:52 reposcan-2026-08-17-22-51.md
+-rw-r--r--  1 runner runner    8212 Aug 18 18:52 reposcan-2026-08-17-23-02.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-17-23-22.md
+-rw-r--r--  1 runner runner    6912 Aug 18 18:52 reposcan-2026-08-17-23-33.md
+-rw-r--r--  1 runner runner    7625 Aug 18 18:52 reposcan-2026-08-17-23-47.md
+-rw-r--r--  1 runner runner   10688 Aug 18 18:52 reposcan-2026-08-17-23-56.md
+-rw-r--r--  1 runner runner   10667 Aug 18 18:52 reposcan-2026-08-18-01-08.md
+-rw-r--r--  1 runner runner    6836 Aug 18 18:52 reposcan-2026-08-18-01-18.md
+-rw-r--r--  1 runner runner    9945 Aug 18 18:52 reposcan-2026-08-18-02-23.md
+-rw-r--r--  1 runner runner    8639 Aug 18 18:52 reposcan-2026-08-18-02-36.md
+-rw-r--r--  1 runner runner   16267 Aug 18 18:52 reposcan-2026-08-18-03-25.md
+-rw-r--r--  1 runner runner   13353 Aug 18 18:52 reposcan-2026-08-18-03-28.md
+-rw-r--r--  1 runner runner    7482 Aug 18 18:52 reposcan-2026-08-18-04-08.md
+-rw-r--r--  1 runner runner    5941 Aug 18 18:52 reposcan-2026-08-18-04-15.md
+-rw-r--r--  1 runner runner    6978 Aug 18 18:52 reposcan-2026-08-18-04-52.md
+-rw-r--r--  1 runner runner   14116 Aug 18 18:52 reposcan-2026-08-18-04-58.md
+-rw-r--r--  1 runner runner    8250 Aug 18 18:52 reposcan-2026-08-18-05-28.md
+-rw-r--r--  1 runner runner    7658 Aug 18 18:52 reposcan-2026-08-18-05-32.md
+-rw-r--r--  1 runner runner   13408 Aug 18 18:52 reposcan-2026-08-18-05-57.md
+-rw-r--r--  1 runner runner    8689 Aug 18 18:52 reposcan-2026-08-18-06-02.md
+-rw-r--r--  1 runner runner    5001 Aug 18 18:52 reposcan-2026-08-18-06-44.md
+-rw-r--r--  1 runner runner    6187 Aug 18 18:52 reposcan-2026-08-18-07-02.md
+-rw-r--r--  1 runner runner    8202 Aug 18 18:52 reposcan-2026-08-18-07-27.md
+-rw-r--r--  1 runner runner    6263 Aug 18 18:52 reposcan-2026-08-18-07-51.md
+-rw-r--r--  1 runner runner    9922 Aug 18 18:52 reposcan-2026-08-18-08-05.md
+-rw-r--r--  1 runner runner    5630 Aug 18 18:52 reposcan-2026-08-18-08-23.md
+-rw-r--r--  1 runner runner   12014 Aug 18 18:52 reposcan-2026-08-18-08-56.md
+-rw-r--r--  1 runner runner   11866 Aug 18 18:52 reposcan-2026-08-18-09-06.md
+-rw-r--r--  1 runner runner    6739 Aug 18 18:52 reposcan-2026-08-18-09-32.md
+-rw-r--r--  1 runner runner   12709 Aug 18 18:52 reposcan-2026-08-18-09-50.md
+-rw-r--r--  1 runner runner    8544 Aug 18 18:52 reposcan-2026-08-18-10-05.md
+-rw-r--r--  1 runner runner   10716 Aug 18 18:52 reposcan-2026-08-18-10-19.md
+-rw-r--r--  1 runner runner   11815 Aug 18 18:52 reposcan-2026-08-18-10-48.md
+-rw-r--r--  1 runner runner   10299 Aug 18 18:52 reposcan-2026-08-18-10-54.md
+-rw-r--r--  1 runner runner    9320 Aug 18 18:52 reposcan-2026-08-18-11-19.md
+-rw-r--r--  1 runner runner    8885 Aug 18 18:52 reposcan-2026-08-18-11-24.md
+-rw-r--r--  1 runner runner    8622 Aug 18 18:52 reposcan-2026-08-18-11-49.md
+-rw-r--r--  1 runner runner    7390 Aug 18 18:52 reposcan-2026-08-18-11-52.md
+-rw-r--r--  1 runner runner    9265 Aug 18 18:52 reposcan-2026-08-18-12-27.md
+-rw-r--r--  1 runner runner    5140 Aug 18 18:52 reposcan-2026-08-18-12-53.md
+-rw-r--r--  1 runner runner   12063 Aug 18 18:52 reposcan-2026-08-18-13-20.md
+-rw-r--r--  1 runner runner    6354 Aug 18 18:52 reposcan-2026-08-18-13-31.md
+-rw-r--r--  1 runner runner   12874 Aug 18 18:52 reposcan-2026-08-18-14-06.md
+-rw-r--r--  1 runner runner    9785 Aug 18 18:52 reposcan-2026-08-18-14-19.md
+-rw-r--r--  1 runner runner   11786 Aug 18 18:52 reposcan-2026-08-18-14-53.md
+-rw-r--r--  1 runner runner    7223 Aug 18 18:52 reposcan-2026-08-18-15-02.md
+-rw-r--r--  1 runner runner    7814 Aug 18 18:52 reposcan-2026-08-18-15-23.md
+-rw-r--r--  1 runner runner   13782 Aug 18 18:52 reposcan-2026-08-18-15-49.md
+-rw-r--r--  1 runner runner   11512 Aug 18 18:52 reposcan-2026-08-18-15-57.md
+-rw-r--r--  1 runner runner    8151 Aug 18 18:52 reposcan-2026-08-18-16-31.md
+-rw-r--r--  1 runner runner    8467 Aug 18 18:52 reposcan-2026-08-18-16-34.md
+-rw-r--r--  1 runner runner    6667 Aug 18 18:52 reposcan-2026-08-18-17-00.md
+-rw-r--r--  1 runner runner   10832 Aug 18 18:52 reposcan-2026-08-18-17-05.md
+-rw-r--r--  1 runner runner    5337 Aug 18 18:52 reposcan-2026-08-18-17-37.md
+-rw-r--r--  1 runner runner    8681 Aug 18 18:52 reposcan-2026-08-18-17-41.md
+-rw-r--r--  1 runner runner    5900 Aug 18 18:52 reposcan-2026-08-18-18-05.md
+-rw-r--r--  1 runner runner    5900 Aug 18 18:52 reposcan-latest.md
+
+triage:
+total 1880
+drwxr-xr-x  2 runner runner 20480 Aug 18 18:52 .
+drwxr-xr-x 11 runner runner  4096 Aug 18 18:52 ..
+-rw-r--r--  1 runner runner   329 Aug 18 18:52 run-2026-08-07-19-18.md
+-rw-r--r--  1 runner runner 22882 Aug 18 18:52 run-2026-08-07-21-04.md
+-rw-r--r--  1 runner runner   299 Aug 18 18:52 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner   315 Aug 18 18:52 run-2026-08-07-22-57.md
+-rw-r--r--  1 runner runner   241 Aug 18 18:52 run-2026-08-07-23-50.md
+-rw-r--r--  1 runner runner   467 Aug 18 18:52 run-2026-08-08-02-23.md
+-rw-r--r--  1 runner runner   437 Aug 18 18:52 run-2026-08-08-04-30.md
+-rw-r--r--  1 runner runner 14395 Aug 18 18:52 run-2026-08-08-06-01.md
+-rw-r--r--  1 runner runner 23300 Aug 18 18:52 run-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner 17217 Aug 18 18:52 run-2026-08-08-09-05.md
+-rw-r--r--  1 runner runner  8395 Aug 18 18:52 run-2026-08-08-09-06.md
+-rw-r--r--  1 runner runner   430 Aug 18 18:52 run-2026-08-08-09-56.md
+-rw-r--r--  1 runner runner   245 Aug 18 18:52 run-2026-08-08-10-53.md
+-rw-r--r--  1 runner runner   268 Aug 18 18:52 run-2026-08-08-11-46.md
+-rw-r--r--  1 runner runner   294 Aug 18 18:52 run-2026-08-08-13-14.md
+-rw-r--r--  1 runner runner   389 Aug 18 18:52 run-2026-08-08-14-00.md
+-rw-r--r--  1 runner runner   292 Aug 18 18:52 run-2026-08-08-14-51.md
+-rw-r--r--  1 runner runner   284 Aug 18 18:52 run-2026-08-08-15-48.md
+-rw-r--r--  1 runner runner   326 Aug 18 18:52 run-2026-08-08-16-58.md
+-rw-r--r--  1 runner runner 20364 Aug 18 18:52 run-2026-08-08-17-56.md
+-rw-r--r--  1 runner runner   329 Aug 18 18:52 run-2026-08-08-18-35.md
+-rw-r--r--  1 runner runner   282 Aug 18 18:52 run-2026-08-08-19-19.md
+-rw-r--r--  1 runner runner 19044 Aug 18 18:52 run-2026-08-08-19-52.md
+-rw-r--r--  1 runner runner   239 Aug 18 18:52 run-2026-08-08-20-18.md
+-rw-r--r--  1 runner runner  5253 Aug 18 18:52 run-2026-08-08-20-56.md
+-rw-r--r--  1 runner runner   327 Aug 18 18:52 run-2026-08-08-21-52.md
+-rw-r--r--  1 runner runner 51999 Aug 18 18:52 run-2026-08-08-22-25.md
+-rw-r--r--  1 runner runner 14306 Aug 18 18:52 run-2026-08-08-23-17.md
+-rw-r--r--  1 runner runner   320 Aug 18 18:52 run-2026-08-08-23-50.md
+-rw-r--r--  1 runner runner   582 Aug 18 18:52 run-2026-08-09-01-01.md
+-rw-r--r--  1 runner runner 17365 Aug 18 18:52 run-2026-08-09-03-12.md
+-rw-r--r--  1 runner runner   317 Aug 18 18:52 run-2026-08-09-04-41.md
+-rw-r--r--  1 runner runner  6322 Aug 18 18:52 run-2026-08-09-05-39.md
+-rw-r--r--  1 runner runner   233 Aug 18 18:52 run-2026-08-09-06-32.md
+-rw-r--r--  1 runner runner   582 Aug 18 18:52 run-2026-08-09-07-42.md
+-rw-r--r--  1 runner runner 16984 Aug 18 18:52 run-2026-08-09-08-28.md
+-rw-r--r--  1 runner runner 23945 Aug 18 18:52 run-2026-08-09-09-28.md
+-rw-r--r--  1 runner runner   405 Aug 18 18:52 run-2026-08-09-10-19.md
+-rw-r--r--  1 runner runner   461 Aug 18 18:52 run-2026-08-09-10-59.md
+-rw-r--r--  1 runner runner 11647 Aug 18 18:52 run-2026-08-09-11-54.md
+-rw-r--r--  1 runner runner  6012 Aug 18 18:52 run-2026-08-09-12-39.md
+-rw-r--r--  1 runner runner   299 Aug 18 18:52 run-2026-08-09-13-39.md
+-rw-r--r--  1 runner runner  8912 Aug 18 18:52 run-2026-08-09-14-25.md
+-rw-r--r--  1 runner runner   405 Aug 18 18:52 run-2026-08-09-15-00.md
+-rw-r--r--  1 runner runner   269 Aug 18 18:52 run-2026-08-09-15-54.md
+-rw-r--r--  1 runner runner   275 Aug 18 18:52 run-2026-08-09-17-01.md
+-rw-r--r--  1 runner runner   299 Aug 18 18:52 run-2026-08-09-17-53.md
+-rw-r--r--  1 runner runner   410 Aug 18 18:52 run-2026-08-09-19-08.md
+-rw-r--r--  1 runner runner  6519 Aug 18 18:52 run-2026-08-09-19-54.md
+-rw-r--r--  1 runner runner   300 Aug 18 18:52 run-2026-08-09-20-29.md
+-rw-r--r--  1 runner runner   294 Aug 18 18:52 run-2026-08-09-21-18.md
+-rw-r--r--  1 runner runner 14854 Aug 18 18:52 run-2026-08-09-21-57.md
+-rw-r--r--  1 runner runner 20496 Aug 18 18:52 run-2026-08-09-22-57.md
+-rw-r--r--  1 runner runner   291 Aug 18 18:52 run-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   392 Aug 18 18:52 run-2026-08-10-02-39.md
+-rw-r--r--  1 runner runner   299 Aug 18 18:52 run-2026-08-10-04-19.md
+-rw-r--r--  1 runner runner   367 Aug 18 18:52 run-2026-08-10-05-52.md
+-rw-r--r--  1 runner runner 18270 Aug 18 18:52 run-2026-08-10-07-30.md
+-rw-r--r--  1 runner runner   321 Aug 18 18:52 run-2026-08-10-09-03.md
+-rw-r--r--  1 runner runner 30609 Aug 18 18:52 run-2026-08-10-10-45.md
+-rw-r--r--  1 runner runner   352 Aug 18 18:52 run-2026-08-10-11-38.md
+-rw-r--r--  1 runner runner 15806 Aug 18 18:52 run-2026-08-10-12-38.md
+-rw-r--r--  1 runner runner   313 Aug 18 18:52 run-2026-08-10-14-09.md
+-rw-r--r--  1 runner runner   288 Aug 18 18:52 run-2026-08-10-15-27.md
+-rw-r--r--  1 runner runner   329 Aug 18 18:52 run-2026-08-10-16-39.md
+-rw-r--r--  1 runner runner   329 Aug 18 18:52 run-2026-08-10-17-41.md
+-rw-r--r--  1 runner runner   246 Aug 18 18:52 run-2026-08-10-18-37.md
+-rw-r--r--  1 runner runner   351 Aug 18 18:52 run-2026-08-10-19-45.md
+-rw-r--r--  1 runner runner  8559 Aug 18 18:52 run-2026-08-10-20-29.md
+-rw-r--r--  1 runner runner   343 Aug 18 18:52 run-2026-08-10-21-28.md
+-rw-r--r--  1 runner runner   277 Aug 18 18:52 run-2026-08-10-22-22.md
+-rw-r--r--  1 runner runner   524 Aug 18 18:52 run-2026-08-10-23-06.md
+-rw-r--r--  1 runner runner  9251 Aug 18 18:52 run-2026-08-10-23-58.md
+-rw-r--r--  1 runner runner   237 Aug 18 18:52 run-2026-08-11-02-32.md
+-rw-r--r--  1 runner runner 94038 Aug 18 18:52 run-2026-08-11-04-12.md
+-rw-r--r--  1 runner runner 10441 Aug 18 18:52 run-2026-08-11-05-35.md
+-rw-r--r--  1 runner runner   306 Aug 18 18:52 run-2026-08-11-06-41.md
+-rw-r--r--  1 runner runner   302 Aug 18 18:52 run-2026-08-11-07-59.md
+-rw-r--r--  1 runner runner   282 Aug 18 18:52 run-2026-08-11-09-26.md
+-rw-r--r--  1 runner runner 25960 Aug 18 18:52 run-2026-08-11-10-50.md
+-rw-r--r--  1 runner runner 16158 Aug 18 18:52 run-2026-08-11-11-37.md
+-rw-r--r--  1 runner runner  2520 Aug 18 18:52 run-2026-08-11-12-35.md
+-rw-r--r--  1 runner runner 29107 Aug 18 18:52 run-2026-08-11-14-16.md
+-rw-r--r--  1 runner runner   268 Aug 18 18:52 run-2026-08-11-15-26.md
+-rw-r--r--  1 runner runner   352 Aug 18 18:52 run-2026-08-11-16-42.md
+-rw-r--r--  1 runner runner   323 Aug 18 18:52 run-2026-08-11-17-45.md
+-rw-r--r--  1 runner runner 69204 Aug 18 18:52 run-2026-08-11-18-45.md
+-rw-r--r--  1 runner runner 32556 Aug 18 18:52 run-2026-08-11-19-53.md
+-rw-r--r--  1 runner runner   332 Aug 18 18:52 run-2026-08-11-20-37.md
+-rw-r--r--  1 runner runner   200 Aug 18 18:52 run-2026-08-11-21-31.md
+-rw-r--r--  1 runner runner   484 Aug 18 18:52 run-2026-08-11-22-27.md
+-rw-r--r--  1 runner runner 16653 Aug 18 18:52 run-2026-08-11-23-31.md
+-rw-r--r--  1 runner runner 31213 Aug 18 18:52 run-2026-08-12-00-47.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-03-14.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-05-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-06-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-08-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-09-35.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-10-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-11-36.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-12-36.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-14-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-15-25.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-16-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-17-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-18-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-19-53.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-21-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-22-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-12-23-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-00-03.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-03-04.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-05-14.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-06-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-08-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-09-36.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-10-48.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-11-35.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-12-36.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-14-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-15-27.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-16-41.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-17-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-18-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-19-48.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-20-25.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-21-31.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-22-27.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-13-23-27.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-00-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-03-16.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-05-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-06-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-08-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-09-31.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-10-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-11-33.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-12-32.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-14-05.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-15-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-16-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-17-16.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-18-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-19-24.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-20-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-20-51.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-21-19.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-21-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-22-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-22-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-23-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-14-23-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-00-25.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-02-05.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-03-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-03-59.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-04-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-05-22.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-05-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-06-23.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-07-06.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-07-48.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-08-12.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-08-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-09-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-09-45.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-10-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-10-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-11-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-11-39.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-12-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-13-03.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-13-47.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-14-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-14-43.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-15-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-15-41.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-16-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-16-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-17-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-17-41.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-18-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-18-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-19-19.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-19-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-20-04.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-20-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-21-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-21-40.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-22-04.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-22-43.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-23-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-15-23-40.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-00-25.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-02-13.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-03-24.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-04-22.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-05-00.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-05-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-06-23.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-07-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-07-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-08-19.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-08-53.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-09-25.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-10-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-10-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-11-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-11-40.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-12-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-13-05.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-13-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-14-12.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-14-44.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-15-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-15-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-16-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-16-45.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-17-08.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-17-39.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-18-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-18-51.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-19-16.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-19-39.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-20-03.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-20-43.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-21-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-21-40.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-22-03.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-22-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-23-06.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-16-23-39.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-00-24.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-02-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-03-24.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-04-28.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-05-23.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-06-00.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-07-28.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-08-27.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-09-26.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-10-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-10-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-11-22.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-11-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-12-23.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-13-30.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-14-15.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-14-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-15-16.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-15-45.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-16-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-16-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-17-20.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-17-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-18-34.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-19-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-19-47.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-20-11.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-20-48.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-21-14.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-21-45.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-22-10.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-22-46.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-23-09.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-17-23-42.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-00-24.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-02-07.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-03-13.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-04-02.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-04-57.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-05-50.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-06-30.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-07-26.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-08-18.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-09-00.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-09-54.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-10-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-11-21.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-11-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-12-22.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-13-23.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-14-19.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-14-59.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-15-52.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-16-29.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-17-14.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-17-49.md
+-rw-r--r--  1 runner runner   210 Aug 18 18:52 run-2026-08-18-18-19.md
+-rw-r--r--  1 runner runner 13831 Aug 18 18:52 triage-report-2026-08-08.md
+-rw-r--r--  1 runner runner 16520 Aug 18 18:52 triage-report-2026-08-10.md
+-rw-r--r--  1 runner runner 11303 Aug 18 18:52 triage-report-2026-08-11.md
+[0m
+[0m→ [0mRead reports/hypotheses-nemotron3.txt
+[0m→ [0mRead probe-results.md[90m [offset=1, limit=60][0m
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls -la knowledge/ && echo "---LATEST PROBE---" && ls -lt reposcan-raw/ | head -3 && echo "---KNOWLEDGE FILES---" && for f in knowledge/*; do echo "=== $f ==="; head -3 "$f"; done 2>/dev/null; echo "---PROBE-LATEST---"; tail -20 probe-results.md
+total 328
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 .
+drwxr-xr-x 11 runner runner   4096 Aug 18 18:52 ..
+-rw-r--r--  1 runner runner 327497 Aug 18 18:52 index.md
+---LATEST PROBE---
+total 356
+drwxr-xr-x  2 runner runner   4096 Aug 18 18:52 npm
+-rw-r--r--  1 runner runner 330668 Aug 18 18:52 rag.txt
+---KNOWLEDGE FILES---
+=== knowledge/index.md ===
+# Knowledge Base (seed)
+
+## Program rules (from scope.yml)
+---PROBE-LATEST---
+
+## 2026-08-18 16:32:29 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No address associated wi
+
+## 2026-08-18 17:03:01 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No address associated wi
+
+## 2026-08-18 17:39:11 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No address associated wi
+
+## 2026-08-18 18:05:14 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No address associated wi
+[0m
+Let me check the latest probe results and knowledge base to confirm the current surface state.
+[0m$ [0mls -la leads/ && echo "---LEAD FILES---" && for f in leads/*; do echo "=== $f ==="; head -30 "$f"; done 2>/dev/null
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_01638c4d9001rPN4FiLZj7xarZ
+
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-14-53.md ===
+
+===== REPOSCAN 2026-08-18 14:53:12 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-15-02.md ===
+
+===== REPOSCAN 2026-08-18 15:02:53 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-15-23.md ===
+
+===== REPOSCAN 2026-08-18 15:23:40 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-15-49.md ===
+
+===== REPOSCAN 2026-08-18 15:49:42 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-15-57.md ===
+
+===== REPOSCAN 2026-08-18 15:57:56 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-16-31.md ===
+
+===== REPOSCAN 2026-08-18 16:31:43 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-16-34.md ===
+
+===== REPOSCAN 2026-08-18 16:34:26 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-17-00.md ===
+
+===== REPOSCAN 2026-08-18 17:00:52 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-17-05.md ===
+
+===== REPOSCAN 2026-08-18 17:05:34 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-17-37.md ===
+
+===== REPOSCAN 2026-08-18 17:37:48 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-17-41.md ===
+
+===== REPOSCAN 2026-08-18 17:41:28 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-2026-08-18-18-05.md ===
+
+===== REPOSCAN 2026-08-18 18:05:38 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+=== leads/reposcan-latest.md ===
+
+===== REPOSCAN 2026-08-18 18:05:38 UTC =====
+## Grep hits:
+SCAN SUMMARY: 5647 code/config files scanned, 617 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/next.config.ts:38: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:44: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:51: // PostHog reverse proxy — same hosts as gladia-marketing vercel.json.
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:9: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:87: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls -la inventory/ && echo "---KNOWLEDGE INDEX HEAD---" && head -80 knowledge/index.md
+total 60
+drwxr-xr-x  2 runner runner  4096 Aug 18 18:52 .
+drwxr-xr-x 11 runner runner  4096 Aug 18 18:52 ..
+-rw-r--r--  1 runner runner 50588 Aug 18 18:52 gladia.md
+---KNOWLEDGE INDEX HEAD---
+# Knowledge Base (seed)
+
+## Program rules (from scope.yml)
+- In scope: api.gladia.io (Highest), app.gladia.io (High), official SDKs npm/PyPI (Medium), gladia.io (Low)
+- Out of scope: all other *.gladia.io subdomains, third parties, social engineering, physical, DoS, non-Gladia assets, physical access
+- Scanner output alone is REJECTED — every finding must be manually validated
+- Passive-first: GET/HEAD only, ≤1 rps, no account creation, no data modification
+- Secrets in commits: sha256 only, never raw
+
+## Baseline surface (2026-08-07 passive recon)
+- gladia.io -> 301 to www.gladia.io (Vercel, HSTS max-age=63072000, x-vercel-id)
+- api.gladia.io: 404 JSON on /, CORS access-control-allow-origin: *, exposes x-gladia-request-id, traceparent, tracestate, x-request-id, x-correlation-id; HSTS includeSubDomains preload; no WWW-Authenticate on 404
+- api.gladia.io/openapi.json: OpenAPI schema consumed by official SDK code generator (gladiaio/sdk packages/generator)
+- app.gladia.io: 302 -> /signin, sets __sid (expired) + return-to base64url JWT-ish cookie (eyJ1cmwiOiIvIn0%3D = {"url":"/"}), HttpOnly Secure SameSite=Lax, x-robots-tag noindex, HSTS preload
+- GitHub org gladiaio (19 public repos): sdk (monorepo: sdk-js, sdk-python, generator), gladia-cli (Go), docs (MDX), gladia-samples (Python), gladiaflow (Rust), realtime-multilingual-asr-router (Python), n8n-nodes-gladia, vercel-ai, compare-stt (TS), skills, gladia-quiz-app, normalization, triton-inference-memory-allocation, gunicorn-fix-sigabort, uvicorn-fix-sigabort, 1password-scim, vllm_backend, transformers, cloudnative-pg
+- npm: @gladiaio/sdk 1.1.0 (official, from gladiaio/sdk monorepo); `gladia` 0.1.3 claims "Official TypeScript SDK for Gladia" but repository = alexisbouchez/gladia.ts (PERSONAL account — flag, verify ownership)
+- PyPI: gladiaio-sdk (Python SDK, sync + async)
+
+## Rejected / parked
+- (none yet)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI spec publicly exposed at /openapi.json with full v2 surface
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per spec
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: return-to cookie uses JWT-shaped base64url value without visible signature
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: `x-powered-by: Express` header present on CORS preflight (OPTIONS) responses only — confirms Node.js/Express.js backend; framework fingerprint for CVE targeting
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /health?full=true does NOT leak verbose output — returns identical `{"health":"OK"}` to /health; no build/version/metadata disclosure via query params
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics endpoint does NOT exist — returns 404 (no Prometheus exposition endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /debug, /admin, /actuator/health, /v1 paths do NOT exist or return 404 — no Spring Boot Actuator, no debug panel, no catch-all admin
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `Access-Control-Request-Headers: x-gladia-key` — auth header permitted in cross-origin requests (no credential support though)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/init is NOT a real endpoint — confirmed 404 "Cannot POST"; WebSocket session is created via POST /v2/live, then client connects to returned `url` (wss://api.gladia.io/v2/live?token=<uuid>)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: CORS wildcard reflects arbitrary origin — probe shows static `*` not Origin reflection
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `x-gladia-key` header cross-origin (no credentials) — confirmed via OPTIONS probe
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: redirect_to parameter reflected in signin form action — confirmed via GET probe
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS GET responses return wildcard `*` not origin echo; expose-headers list trace/request-id headers; no allow-credentials → origin-reflection probe CLOSED, wildcard-without-credentials not exploitable
+- 2026-08-07 ACCEPTED OTHER @ npm registry: reposcan 20:02/20:06 flat (0 new hits, 5647 files) — gladia@0.1.3 anomaly remains sole reportable candidate; no new secrets
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: /v1/history and /v2/upload confirmed key-gated (401) — no unauthenticated history/upload path
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI map stable at 14 paths (re-check 21:46Z) — no new endpoints since 20:55
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 401 error body {statusCode,timestamp,path,message,request_id} is NestJS HttpException shape → backend is NestJS-on-Express, not plain Express
+- 2026-08-07 ACCEPTED OTHER @ npm registry: PyPI gladiaio-sdk latest 1.0.5; npm @gladiaio/sdk 1.1.0 unchanged — supply-chain surface static
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed /v2/transcription OPTIONS → `x-powered-by: Express` present; GET 401 → `x-powered-by` absent — confirmed preflight-only fingerprint differential (freshness 2026-08-07 21:46 UTC).
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: redirect_to reflected into form action for protocol-relative (`//evil`), bare-host, confusing-subdomain (`app.gladia.io.evil`), and path-only variants — no host allowlist enforced on reflection (post-auth honoring remains AUTH_HELPED/unverified).
+- 2026-08-07 CONFIRMED @ api.gladia.io: /openapi.json (200, 125KB, CORS *) publicly exposes full v2 surface incl. audio_url field accepted verbatim — confirms SSRF fetch-by-design path (freshly sampled).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI /v1/history exposes OBJECT-typed custom_metadata query param with additionalProperties:true — complex query parsing surface for injection/testing
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CallbackConfigDto.url lacks scheme allowlist/pattern at schema level — SSRF guard absent by design in spec
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v1/models public endpoint leaks datacenter regions (FR/US) and static pricing metadata — aids SSRF egress targeting
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/transcription → x-powered-by: Express present, ACAO:*, Access-Control-Allow-Headers: x-gladia-key (2026-08-07 22:22 UTC — surface unchanged from 21:46 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed GET /v2/transcription → 401 no gladia key provided, x-powered-by absent (preflight-only fingerprint confirmed, 2026-08-07 22:22 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125KB, CORS *) exposes InitTranscriptionRequest.audio_url as format:uri with no scheme allowlist + deprecated callback_url + CallbackConfigDto.url (format:uri, no allowlist) — confirms SSRF-by-design surface
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 {"health":"OK"}; /health?full=true returns identical payload — no verbose disclosure via query param (REJECTED as verbose-leak vector, ACCEPTED as undocumented endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator (all REJECTED, surface dead)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/live → 401 key-gated; POST /v2/live/init → 404 "Cannot POST" — WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>, no alternative init endpoint
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: live-probed /signin?redirect_to=https://evil.example.com → form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" — server-side reflection into POST form action (confirmed for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only) — post-auth Location unverified (AUTH_HELPED)
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED as redirect vector, confirmed via prior + current probe)
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable (description "Official TypeScript SDK", repo alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — impersonation anomaly confirmed live 2026-08-07 22:22 UTC
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 14 OpenAPI paths stable (no new endpoints since 21:46 UTC); /v1/models public (security: not set), all other v2 paths key-gated (401)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:08Z byte-identical to 22:22Z (openapi 125131B/14 paths, /v1/models, /health, /v2/live 401, CORS, x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk 1.1.0 metadata static 23:08Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live spec still shows audio_url + CallbackConfigDto.url as `format:uri` with no scheme allowlist — SSRF-by-design fetch surface persists (re-verified 23:08Z).
+- 2026-08-07 ACCEPTED SSRF @ api.gladia.io: RAG of SDK source (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct path; no host allowlist, metadata-blocklist, redirect-limit, or scheme validation forwarded to API for audio_url/video_url/callback_url — SSRF guard absent by design in SDK and spec.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/pre-recorded → x-powered-by: Express present; POST → 401 x-powered-by absent — confirmed preflight-only fingerprint differential on second v2 endpoint (not isolated to /v2/transcription).
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/pre-recorded with invalid key → 401 NestJS HttpException shape {statusCode,timestamp,path,message,request_id} — no x-powered-by leak on error response; uniform key-gated auth confirmed across v2 endpoints.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com verified live 23:09 UTC — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" server-side reflection persists; /apikeys and /transcriptions both 302→/signin with return-to cookie encoding their path ({'url':'/apikeys'}, {'url':'/transcriptions'}) — unsigned base64url JSON confirmed across multiple paths, server resets on tamper (REJECTED as cookie-tamper vector).
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable 23:09 UTC (description="Official TypeScript SDK for Gladia", repo=alexisbouchez/gladia.ts personal, maintainer=softwarecitadel@gmail.com) — impersonation anomaly persists; @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid> (no alternative init endpoint).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, CORS *) exposes video_url as plain string field with no format/scheme validation in /video/text/video-transcription multipart schema — second SSRF fetch surface confirmed alongside audio_url.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:48Z byte-identical to 23:08Z (openapi 125131B/14 paths, /v1/models 530B, /health 15B, 401 gate, preflight x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk@1.1.0 metadata static 23:48Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com form-action reflection re-confirmed 23:48Z — reflection surface persists, post-auth honoring still AUTH_HELPED.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 `{"health":"OK"}` (x-powered-by ABSENT on GET) — undocumented endpoint + preflight-only fingerprint confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + allow `x-gladia-key`, POST 401 no`x-powered-by` — preflight-only fingerprint + creds-bypassable CORS confirmed fresh
+- 2026-08-08 ACCEPTED AUTH @ api.gladia.io: POST /v2/transcription (no key) → 401 — key-gated surface confirmed; @gladiaio/key header is the sole auth model
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125131B, CORS `*`, expose-headers trace ids) + /v1/models (200 public CORS `*`) fully exposed — surface stable & fresh
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → form action reflects URL-encoded value — reflection confirmed fresh 23:5x UTC
+[0m
+[0m→ [0mRead probe-results.md[90m [offset=1580, limit=70][0m
+Let me do a quick passive drift verification probe (≤1 rps) to confirm current surface state before producing the analysis.
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && echo "=== api.gladia.io/openapi.json ===" && curl -s -o /dev/null -w "status=%{http_code} size=%{size_download} type=%{content_type}\n" -H "User-Agent: gladia-hunt/1.0" https://api.gladia.io/openapi.json 2>&1; sleep 1.2 && echo "=== api.gladia.io/health ===" && curl -s -w "\nsize=%{size_download}\n" -H "User-Agent: gladia-hunt/1.0" https://api.gladia.io/health 2>&1; sleep 1.2 && echo "=== api.gladia.io/v2/live/health ===" && curl -s -o /dev/null -w "status=%{http_code} size=%{size_download}\n" -H "User-Agent: gladia-hunt/1.0" https://api.gladia.io/v2/live/health 2>&1; sleep 1.2 && echo "=== app.gladia.io/signin reflection ===" && curl -s -w "\nstatus=%{http_code} size=%{size_download}\n" -H "User-Agent: gladia-hunt/1.0" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -oE 'action="/signin?redirect_to[^"]*"' | head -1
+=== api.gladia.io/openapi.json ===
+status=200 size=125131 type=application/json; charset=utf-8
+=== api.gladia.io/health ===
+{"health":"OK"}
+size=15
+=== api.gladia.io/v2/live/health ===
+status=401 size=143
+=== app.gladia.io/signin reflection ===
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && sleep 1.2 && curl -s -H "User-Agent: gladia-hunt/1.0" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -oE '<form[^>]*action="[^"]*"[^>]*>' | head -2; echo "---form-action grep---"; curl -s -H "User-Agent: gladia-hunt/1.0" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -oE 'action="/signin[^"]*"' | head -2
+<form id="form" noValidate="" class="my-auto py-12 max-w-[22.5rem] w-full flex flex-col gap-6" data-discover="true" action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post">
+---form-action grep---
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+**STEP 1 — DELTA**
+
+NO_DELTA. Drift-verified this cycle (passive GET, ≤1 rps): `api.gladia.io/openapi.json` = 200/125131B byte-identical; `/health` = 15B `{"health":"OK"}`; `api.gladia.io/v2/live/health` = 401/143B (the sole NEW item from last cycle — undocumented, properly key-gated, informational only, already ACCEPTED); `app.gladia.io/signin?redirect_to=https://evil.example.com` → 200/27448B with form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` confirmed byte-fresh. Surface frozen across 100+ drift-negative cycles; npm `gladia@0.1.3` orphaned impersonation static. No new exploitable surface.
+
+**STEP 2 — PRIORITIZE**
+
+[PRIO] npm registry (gladia@0.1.3): 85 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io POST /v2/pre-recorded (audio_url/video_url/callback_config.url): 71 attack_surface=8 business_value=9 tech_exposure=8 gate_ease=3 cloud_surface=9 freshness=10
+[PRIO] app.gladia.io /signin redirect_to: 57 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=10
+
+**STEP 3 — HYPOTHESES**
+
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3) → wss://api.gladia.io/v2/live
+confidence: 96
+reasoning: npm view dist-tags.latest=0.1.3; repo alexisbouchez/gladia.ts + GitHub user 404 (orphaned/irrevocable); package.json desc "Official" vs README "Unofficial" contradiction; src/client.ts:306-308 embeds raw x-gladia-key into wss:// URL query via `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` (RAG confirms in source + compiled dist/gladia.cjs.development.js:826-838); sha256 3b23ec7d…7f2 + shasum cc96f84a… reproduced via 5 independent local `npm pack` runs; diverges from official @gladiaio/sdk POST /v2/live → token-from-response → wss?token=<uuid> flow
+evidence_needed: Reproduce tarball sha256 locally; confirm src/client.ts:307 key-in-URL; confirm dist-tag latest=0.1.3
+verify_steps: PASSIVE — `npm pack gladia@0.1.3` → `sha256sum *.tgz` → expect 3b23ec7d…7f2; `tar xzf` + `grep -n 'x-gladia-key' package/src/client.ts` → expect line 307; `npm view gladia dist-tags` → expect latest=0.1.3
+impact: Supply-chain impersonation at dist-tag latest persists indefinitely (orphaned account = irrevocable takeover); raw API key placed in WebSocket URL query exposes it to server logs, browser history, proxy intercepts, Referer headers. Severity: High.
+testability: PASSIVE
+
+[HYP] SSRF-by-design via server-side fetch of attacker-controlled audio_url/video_url/callback_config.url
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (audio_url/video_url/callback_config.url)
+confidence: 73
+reasoning: OpenAPI spec frozen 125131B/14 paths/7 webhooks — audio_url is plain string with no scheme/host allowlist; video_url plain string no scheme validation; CallbackConfig.url declared as format:uri with no scheme allowlist; 7 webhook topics (transcription.{created,success,error} + live.{start_session,start_recording,end_recording,end_session}) POST to client-supplied CallbackConfig.url; /v1/models (200, 530B, security:null) confirms FR+US egress targets; POST /v2/pre-recorded (no key) → 401/144B NestJS {"message":"no gladia key provided"} — key is sole gate; no bypass found across 90+ cycles
+evidence_needed: Self-owned canary receives HTTP fetch from server-originated traffic with x-gladia-key in request headers after POST /v2/pre-recorded
+verify_steps: AUTH_HELPED — `POST /v2/pre-recorded` with header `x-gladia-key:<authorized-key>` and JSON body `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3","language":"en","model":"general"}`; observe canary HTTP request logs for server-originated User-Agent + source IP; repeat with video_url (multipart) and callback_config.url; do NOT probe 169.254.169.254/169.254.170.239 IMDSv1 without explicit authorization
+impact: Cloud metadata read (169.254.169.254 IMDSv1), internal network enumeration, outbound data exfiltration via callback/webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+
+[HYP] Post-auth open redirect via reflected redirect_to honored after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com → HTTP 200 (27448B byte-fresh); HTML form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflects URL-encoded value with no host allowlist at unauthenticated layer; CSP has 0 form-action directives (grep-count=0 confirmed fresh this cycle — gap, not oversight); /auth/google/callback → 302 → accounts.google.com full OAuth 2.0 PKCE S256 with FIXED redirect_uri=https://app.gladia.io/auth/google/callback prevents code/state theft (REJECTED class); return-to cookie tamper-reset confirmed (server resets to {"url":"/"} → REJECTED open-redirect); post-auth honoring of arbitrary redirect_to remains sole unverified gate (HUMAN_ONLY)
+evidence_needed: HTTP 302 with `Location: https://evil.example.com` in post-auth response after completing Google OAuth signin carrying redirect_to
+verify_steps: HUMAN_ONLY — (1) visit https://app.gladia.io/signin?redirect_to=https://evil.example.com; (2) click "Sign in with Google"; (3) complete full Google OAuth signin with valid Gladia account (Google SSO); (4) capture final HTTP 302 Location header + Set-Cookie in browser devtools Network tab; (5) repeat for protocol-relative `//evil.example.com` and path-only `/evil.example.com` variants
+impact: Post-auth open redirect to arbitrary external domain enables credential phishing / session capture after legitimate SSO. Severity: Medium (requires valid Google SSO account with Gladia access, post-auth).
+testability: HUMAN_ONLY
+
+**STEP 4 — SELF-CRITIQUE**
+
+[PARKED] None — all three hypotheses pass the confidence ≥ 40 threshold, none target a REJECTED class (OAuth-redirect_uri-injection / return-to open-redirect / CORS wildcard / /health verbose / /metrics / /debug / /admin / /v2/live/init / CORS origin-reflection all REJECTED and excluded from new hypotheses), and each has concrete verify_steps.
+
+[FINAL]
+1) Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query — OTHER, 96, PASSIVE
+2) SSRF-by-design via server-side fetch of audio_url/video_url/callback_config.url — SSRF, 73, AUTH_HELPED
+3) Post-auth open redirect via reflected redirect_to honored after Google OAuth signin — OATH, 57, HUMAN_ONLY
+
+**STEP 5 — NEXT ACTION**
+
+[NEXT] HUMAN: Complete the Google OAuth signin flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com` (phase=POC, target=app). Click "Sign in with Google", authenticate with a valid Gladia account (Google SSO), and capture the final HTTP 302 `Location` header + `Set-Cookie` cookies in browser devtools Network tab to verify whether post-auth redirect_to is honored as an open redirect beyond the unauthenticated form-action reflection. Repeat for `//evil.example.com` and `/evil.example.com` variants. This is the sole unverified gate (HUMAN_ONLY) for the app.gladia.io OATH hypothesis; npm impersonation (PASSIVE) and api.gladia.io SSRF (AUTH_HELPED) are blocked on authorized key.
+
+**STEP 6 — LEARNING**
+
+- ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, 143B) — confirms 15th endpoint outside OpenAPI's 14-path spec; minor informational, properly gated, no bypass, not a reportable finding class.
+- REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probe at 04:12 UTC this cycle confirms 125131B; surface frozen.
+- REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps (`W/"1e8cb-zkBsEb…"` → `W/"1e8cb-ptEr4…"` → `W/"1e8cb-LiEDc…"`), not surface drift; structural (examples-stripped) hash is the stable baseline.
+- REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256 + random state; no code/state theft path (re-confirmed byte-fresh this cycle).
+- REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (tamper-reset confirmed 100+ cycles).
+- No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive across 100+ drift-negative cycles; fresh probes byte-identical (openapi 200/125131B, /health 15B, /v2/live/health 401/143B, /v1/models 530B, signin reflection 27448B); npm gladia@0.1.3 orphaned impersonation static.
+
+**STEP 7 — RISK SCORE**
+
+- api.gladia.io: 75 — OpenAPI spec publicly exposed (CORS `*`); SSRF-by-design surface (audio_url/video_url/callback_config.url with no scheme allowlist, 7 webhook delivery paths, FR/US egress via /v1/models); preflight-only x-powered-by:Express framework fingerprint; all v2 endpoints uniformly key-gated (401 NestJS); surface frozen across 100+ cycles but core SSRF surface gated only by API key (AUTH_HELPED).
+- app.gladia.io: 60 — /signin redirect_to form-action reflection at unauth layer with 0 CSP form-action directives (gap confirmed, not oversight); OAuth redirect_uri FIXED + PKCE S256 prevents code/state theft (REJECTED); return-to cookie tamper-reset (REJECTED); oauth2 state cookie missing Secure flag mitigated by HSTS preload (informational); /dashboard SPA served without auth (client-side enforcement); post-auth redirect_to honoring remains HUMAN_ONLY unverified gate; /auth/google/callback OAuth initiation live.
+- sdk: 85 — npm `gladia@0.1.3` orphaned impersonation at dist-tag latest with raw x-gladia-key in WebSocket URL query; sha256 + shasum reproduced locally across 5 independent npm pack runs; GitHub 404 on repo+user (irrevocable takeover risk); package.json "Official" vs README "Unofficial" contradiction; supply-chain credential harvesting vector; official @gladiaio/sdk@1.1.0 confirmed clean; PyPI gladiaio-sdk@1.0.5 static.

@@ -919,3 +919,6 @@
 ## 2026-08-18 17:39:09 UTC
 
 ## 2026-08-18 18:05:13 UTC
+
+## 2026-08-18 18:55:57 UTC
+- NEW api.gladia.io: `/v2/live/health` undocumented key-gated endpoint (401 NestJS, not in OpenAPI 14-path spec) — discovered 2026-08-18, informational only
