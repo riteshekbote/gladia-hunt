@@ -5266,3 +5266,12 @@
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh 2026-08-18 — 0 form-action directives (grep-count=0 on live header); enables /signin form-action reflect
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200/27448B reflection byte-fresh confirmed (form action reflects URL-encoded value
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+
+## RANKED HYPOTHESES 2026-08-18 14:03:24 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation with raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probes at 04:12 and 04:53 UTC confirming 125131B; inventory "CHANGED"
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — etag rotates via dynamic example timestamps, structural (examples-st
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
