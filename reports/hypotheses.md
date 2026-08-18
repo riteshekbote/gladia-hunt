@@ -5092,3 +5092,18 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probe at 2026-08-18 04:12 UTC confirming 125131B; inventory "CHANGED"
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS with no data leakage, no x-powered-by on GET (preflight-only fi
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informatio
+
+## RANKED HYPOTHESES 2026-08-18 04:55:06 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- [65] api.gladia.io: Undocumented /v2/live/health endpoint on api.gladia.io (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com. Click "Sign in with Google", complete full Go
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informatio
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probe at 2026-08-18 04:12 UTC confirming 125131B; inventory "CHANGED"
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS with no data leakage, no x-powered-by on GET (preflight-only fi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probe at 04:12 UTC confirming 125131B; inventory "CHANGED" entry was 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS with no data leakage, no x-powered-by on GET (preflight-only fi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size 132834B — contradicted by fresh probe at 2026-08-18 04:53 UTC confirming 125131B; inventory "CHANGED" entry was
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informatio

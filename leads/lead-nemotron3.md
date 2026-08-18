@@ -11376,3 +11376,44 @@ testability: HUMAN_ONLY
 [PRIO] api.gladia.io: 15 attack_surface=8 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=7 freshness=8
 [PRIO] app.gladia.io: 65 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
 [PRIO] npm registry (gladia
+## 2026-08-18 04:54:54 UTC [app] (model nemotron3)
+[NEW] api.gladia.io: `/v2/live/health` — undocumented endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed)
+[PRIO] api.gladia.io: 15 attack_surface=8 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=7 freshness=8
+[PRIO] app.gladia.io: 65 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[HYP] Undocumented /v2/live/health endpoint on api.gladia.io
+class: MISCONFIG
+asset: api.gladia.io
+confidence: 65
+reasoning: Fresh probe discovered /v2/live/health returning 401 NestJS shape — not in OpenAPI spec (14 paths confirmed); key-gated like other v2 endpoints but undocumented
+evidence_needed: Confirm endpoint exists and returns consistent 401 without auth; verify not in OpenAPI spec
+verify_steps: PROBE: GET https://api.gladia.io/v2/live/health (expect 401 NestJS); GET https://api.gladia.io/openapi.json and confirm /v2/live/health absent
+impact: Undocumented attack surface; info disclosure via error shape; severity Low (key-gated)
+testability: PASSIVE
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com reflects URL-encoded value into form action (confirmed live); CSP lacks form-action directive; Google-only OAuth with PKCE S256 and FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset confirmed; post-auth honoring of arbitrary redirect_to remains unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final redirect target
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK for Gladia" but repo is alexisbouchez/gladia.ts (personal, 404); maintainer softwarecitadel@gmail.com; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live query param via searchParams.append; diverges from official @gladiaio/sdk POST /v2/live → token flow; sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 verified via local npm pack; dist-tag latest=0.1.3 persists while source repo+user 404 (orphaned/irrevocable)
+evidence_needed: Confirm package still publishable/maintainable by orphaned account; verify key leakage in compiled dist
+verify_steps: RAG: npm view gladia@0.1.3 dist integrity + GitHub 404 on repo/user; local npm pack reproduces sha256 + src/client.ts key-in-URL
+impact: Supply-chain takeover risk + API key leakage in WebSocket URL (logs/proxies); severity Critical (orphaned account + key exposure)
+testability: PASSIVE
+[PARKED] SSRF via audio_url/video_url/callback_config.url with no scheme allowlist: confidence 45 below threshold (remains AUTH_HELPED gate, no new evidence this cycle)
+[FINAL] 1) Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (OTHER, 96, PASSIVE)
+[FINAL] 2) Post-auth open redirect via reflected redirect_to on signin form action (OATH, 57, HUMAN_ONLY)
+[FINAL] 3) Undocumented /v2/live/health endpoint on api.gladia.io (MISCONFIG, 65, PASSIVE)
+[NEXT] HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with Google", authenticate, capture the final HTTP response after successful Google authentication to verify if arbitrary redirect_to is honored post-auth.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informational, properly gated
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probe at 2026-08-18 04:12 UTC confirming 125131B; inventory "CHANGED" entry was stale/erroneous
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS with no data leakage, no x-powered-by on GET (preflight-only fingerprint), no stack trace or internal detail exposed; properly key-gated, serves no exploitable purpose at unauthenticated layer; informational only, not a reportable finding class
+[RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint + OpenAPI spec growth (~7.7KB) detected; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased

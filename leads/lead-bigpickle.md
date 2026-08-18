@@ -11189,3 +11189,38 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401, NestJS shape, not in OpenAPI spec) — minor informational, properly gated.
 [RISK] api.gladia.io: 43 — OpenAPI spec grew 7.7KB (needs diff), frozen 14-path surface + undocumented /v2/live/health key-gated endpoint, SSRF-by-design fetch+callback surface present but AUTH_HELPED, preflight-only x-powered-by fingerprint | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
 ## 2026-08-18 04:09:33 UTC [api] (model bigpickle)
+## 2026-08-18 04:53:52 UTC [api] (model bigpickle)
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi frozen (100+ cycles) confirms audio_url/video_url plain string + CallbackConfig.url format:uri, none with scheme/host allowlist; 7 webhook topics POST to client-supplied URLs; /v1/models confirms FR+US egress; no-key POST returns 401/144 NestJS, key sole gate
+evidence_needed: reachability reflection at self-owned canary (HTTP/timing) or callback POST received at self-owned endpoint
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}; repeat for video_url, callback_config.url, and the 7 webhook topics; self-owned endpoints only
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated)
+testability: AUTH_HELPED
+[HYP] Post-auth redirect_to honored to external host after signin
+class: OATH
+asset: app.gladia.io /signin
+confidence: 50
+reasoning: form-action reflection byte-fresh (200/27448B, action reflects URL-encoded value, 0 form-action CSP directives grep-count=0); OAuth subclass REJECTED (PKCE S256 + FIXED redirect_uri); return-to cookie tamper-reset REJECTED — only post-auth honoring remains unverified
+evidence_needed: post-auth 302 Location to external host after successful signin with redirect_to set
+verify_steps: HUMAN_ONLY — complete signin with ?redirect_to=https://evil.example.com plus //evil and app.gladia.io.evil variants; capture Location + Set-Cookie
+impact: post-auth phishing redirect → session/credential capture. Severity: Medium
+testability: HUMAN_ONLY
+[HYP] npm gladia@0.1.3 orphaned impersonation with raw API key in WebSocket URL
+class: OTHER
+asset: npm registry gladia@0.1.3
+confidence: 96
+reasoning: dist-tag latest=0.1.3, shasum cc96f84a… stable, repo+user alexisbouchez 404 (orphaned/irrevocable), src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query via searchParams.append + new WebSocket, package.json "Official" vs README "Unofficial" contradiction
+evidence_needed: PASSIVE complete — local npm pack reproduction confirms sha256 3b23ec7d…7f2
+verify_steps: PASSIVE complete — all evidence locked; report-ready
+impact: supply-chain API key harvesting via key-in-URL leakage; irrevocable GitHub account takeover (orphaned). Severity: Medium-High
+testability: PASSIVE complete
+[FINAL] 1. npm gladia@0.1.3 [96] — PASSIVE complete, evidence locked, report-ready
+[FINAL] 2. api.gladia.io SSRF [73] — AUTH_HELPED, POC blocked on authorized key
+[FINAL] 3. app.gladia.io redirect_to [50] — HUMAN_ONLY, post-auth honoring unverified
+[NEXT] HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evidence: sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, src/client.ts:306-308 key-in-URL, repo+user 404, README↔package.json "Official/Unofficial" contradiction, dist-tag latest=0.1.3. For api SSRF: obtain authorized x-gladia-key from program owner to execute canary POC.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: OpenAPI size 132834B — contradicted by fresh probe at 2026-08-18 04:53 UTC confirming 125131B; inventory "CHANGED" entry was stale/erroneous; NO_DRIFT confirmed across 100+ cycles.
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informational, properly gated at 401, no bypass found.
+[RISK] api.gladia.io: 42 — frozen 14-path surface + undocumented /v2/live/health key-gated endpoint, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign

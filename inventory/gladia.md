@@ -872,3 +872,6 @@
 - NEW api.gladia.io: `/v2/live/health` undocumented key-gated endpoint (401 NestJS, not in prior 14-path OpenAPI spec) — discovered in last cycle, informational only.
 
 ## 2026-08-18 04:13:47 UTC
+
+## 2026-08-18 04:55:06 UTC
+- NEW api.gladia.io: `/v2/live/health` — undocumented endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed
