@@ -5064,3 +5064,15 @@
 - NEXT(hypotheses-bigpickle.txt): RAG: Re-examine local OpenAPI spec or SDK source for any overlooked injection surface — check if /v1/history additionalProperties:true object param accepts nest
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+
+## RANKED HYPOTHESES 2026-08-18 02:33:54 UTC
+- [96] npm: Orphaned npm package impersonates official SDK with API key leakage in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [73] api.gladia.io: SSRF via server-side fetch of audio_url/video_url + webhook callback delivery (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Capture the final HTT
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Capture the final HTT
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; all ACCEPTED findings remain alive, all REJECTED classes rema
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint discovered (401, NestJS shape, not in OpenAPI spec) — minor informational, p
