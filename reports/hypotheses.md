@@ -5232,3 +5232,17 @@
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 - LEARN: ACCEPTED: /v2/live/health undocumented key-gated endpoint (401 NestJS, no data leakage, properly gated) — informational only, not a reportable finding class; co
 - LEARN: REJECTED: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes at 04:12 and 04:53 UTC confirm 125131B; per-instance codegen fingerprint falsified
+
+## RANKED HYPOTHESES 2026-08-18 12:23:35 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation with raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probes at 04:12 and 04:53 UTC confirming 125131B; inventory "CHANGED"
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor 
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented key-gated endpoint (401 NestJS, no data leakage, no x-powered-by on GET, no stack trace/inter
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes at 04:12 and 04:53 UTC confirm 125131B; inventory CHANGE
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — etag rotates via dynamic example timestamps, structural hash is stab
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
