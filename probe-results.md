@@ -1680,3 +1680,9 @@ https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
 https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-18 22:00:30 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report -> HTTP 401
