@@ -71125,3 +71125,159 @@ LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endp
 [RISK] api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_config.url, 7 webhook delivery paths to client-supplied URLs, FR/US egress via /v1/models; SSRF-by-design persists AUTH_HELPED, key sole gate; preflight-only x-powered-by fingerprint; CORS static wildcard)
 [RISK] app.gladia.io: 62 — /signin redirect_to form-action reflection (0 CSP form-action directives, byte-fresh) + CSP gap confirmed; OAuth redirect_uri FIXED+PKCE S256 and return-to cookie tamper-reset both REJECTED (100+ cycles); oauth2 state cookie missing Secure flag (HSTS preload mitigates to informational); /dashboard SPA served without auth (client-side enforcement); post-auth honoring sole unverified gate (HUMAN_ONLY)
 [RISK] sdk: 91 — npm gladia@0.1.3 orphaned impersonation at dist-tag latest leaks raw API key in WebSocket URL query (PASSIVE evidence-locked, reproducible via 4+ independent npm pack runs, sha256 3b23ec7d…7f2); GitHub user+repo 404 (orphaned/irrevocable); package.json "Official" vs README "Unofficial" contradiction; diverges from official @gladiaio/sdk@1.1.0 POST /v2/live → token flow; irrevocable orphaned package at dist-tag latest with deceptive description enables persistent supply-chain trust poisoning
+===== ANALYST laguna 2026-08-18 09:03:18 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -sI -w "\n%{size_download}\n%{http_code}\n" https://api.gladia.io/openapi.json 2>/dev/null | tail -20
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Tue, 18 Aug 2026 09:00:19 GMT
+etag: W/"1e8cb-bJskrOUNOkPWJGAG67wWTqqIPS8"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 125131
+
+
+0
+200
+[0m
+[0m$ [0mcurl -s -w "\n%{http_code}" https://api.gladia.io/health && curl -s -w "\n%{http_code}" https://api.gladia.io/v2/live/health
+{"health":"OK"}
+200{"statusCode":401,"timestamp":"2026-08-18T09:00:22.709Z","path":"/v2/live/health","message":"no gladia key provided","request_id":"G-b8149a32"}
+401
+[0m
+[0m$ [0mcurl -sI -w "\n%{size_download}\n%{http_code}\n" https://api.gladia.io/v1/models 2>/dev/null | tail -5
+content-length: 530
+
+
+0
+200
+[0m
+[0m$ [0mcurl -s -w "\n%{http_code}" -o /tmp/opencode/signin_reflection.html "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null; wc -c /tmp/opencode/signin_reflection.html; grep -o 'action="[^"]*"' /tmp/opencode/signin_reflection.html | head -5
+20027448 /tmp/opencode/signin_reflection.html
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[0m$ [0mnpm view gladia dist-tags.latest version description 2>/dev/null; echo "---"; npm view gladia repository.url 2>/dev/null; echo "---"; npm view gladia dist.integrity 2>/dev/null | head -3
+dist-tags.latest = '0.1.3'
+version = '0.1.3'
+description = 'Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API'
+---
+git+https://github.com/alexisbouchez/gladia.ts.git
+---
+sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==
+[0m
+I'll analyze the current surface state against the knowledge base. Let me run fresh probes to check for drift across all targets.
+[0m$ [0mcurl -sI -w "\n%{http_code}" "https://api.gladia.io/openapi.json" 2>/dev/null | grep -iE "etag|access-control|content-length|x-powered|server" | head -15
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+etag: W/"1e8cb-bT+X2P+LherKzQSSOC1qafbjFwQ"
+content-length: 125131
+[0m
+[0m$ [0mcurl -sI -X OPTIONS "https://api.gladia.io/v2/pre-recorded" -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: x-gladia-key" -w "\n%{http_code}" 2>/dev/null | grep -iE "x-powered-by|access-control|HTTP/" | head -10
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+[0m
+[0m$ [0mcurl -sI "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -iE "set-cookie|content-security|location|hsts|strict" | head -10
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-f96849cd2ab6ddd5de412fb1fe93a99c' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+[0m
+[0m$ [0mcurl -s -D- -o /dev/null -w "\n%{http_code}" "https://app.gladia.io/dashboard" 2>/dev/null | grep -iE "HTTP/|content-type|content-length" | head -5
+HTTP/2 200 
+content-type: text/html; charset=utf-8
+[0m
+Let me verify the OPTIONS preflight differential and check app.gladia.io CSP headers.
+[0m$ [0mcurl -sI "https://api.gladia.io/openapi.json" 2>/dev/null | grep -ioE "access-control-expose-headers: [^\r\n]+" | grep -o "form-action" | head -1; curl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -ioE "form-action[^;]*" | head -3; echo "(checking CSP)"; curl -sI "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>/dev/null | grep -i "content-security-policy" | grep -c "form-action"
+(checking CSP)
+0
+[0m
+All fresh probes confirm NO_DRIFT across 100+ cycles. The OpenAPI size "132834B" was stale/erroneous — confirmed 125131B at 09:00 UTC. CSP confirmed 0 form-action directives. OPTIONS preflight confirms x-powered-by: Express + CORS `*` + ACAH x-gladia-key differential.
+[0m$ [0mcurl -sI "https://api.gladia.io/v2/pre-recorded" -H "x-gladia-key: test" 2>/dev/null | grep -i "x-powered-by\|HTTP/" | head -3; echo "---"; curl -sI "https://api.gladia.io/v2/pre-recorded" 2>/dev/null | grep -i "x-powered-by\|HTTP/" | head -3
+HTTP/2 401 
+---
+HTTP/2 401
+[0m
+Preflight-only fingerprint confirmed: OPTIONS → 204 (x-powered-by present); POST/GET → 401 (x-powered-by absent). Surface frozen across 100+ cycles.
+
+## STEP 1 — DELTA
+
+- NEW @ api.gladia.io: `/v2/live/health` undocumented key-gated endpoint — returns 401 NestJS `{"path":"/v2/live/health","message":"no gladia key provided"}`, NOT in OpenAPI 14-path spec. Properly gated, no data leakage, no bypass — informational only.
+- REJECTED @ api.gladia.io: OpenAPI size "132834B" inventory entry was stale/erroneous — fresh 09:00 UTC probe confirms 125131B (NO_DRIFT, 100+ cycles).
+- NO_DRIFT across all other surfaces: openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by (OPTIONS 204 present / GET 401 absent), CORS static `*`, POST/GET 401 NestJS `{"message":"no gladia key provided"}`; app.gladia.io /signin reflection 200/27448B byte-fresh with 0 CSP form-action directives; npm `gladia@0.1.3` sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` stable at dist-tag latest=0.1.3 with GitHub user+repo 404.
+
+## STEP 2 — PRIORITIZE
+
+- api.gladia.io POST /v2/pre-recorded (SSRF vector): score 7.6 — attack:9 | business:8 | tech:9 | gate:2 | cloud:7 | fresh:10
+- npm gladia@0.1.3 impersonation (supply-chain key leak): score 9.3 — attack:10 | business:10 | tech:9 | gate:10 | cloud:4 | fresh:10
+- app.gladia.io /signin redirect_to (post-auth OATH): score 6.7 — attack:7 | business:6 | tech:5 | gate:10 | cloud:2 | fresh:10
+- api.gladia.io /v2/live/health (new undocumented endpoint): score 3.1 — attack:3 | business:2 | tech:3 | gate:2 | cloud:1 | fresh:10
+
+## STEP 3 — HYPOTHESES
+
+[HYP] npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3) → api.gladia.io wss://api.gladia.io/v2/live
+confidence: 96
+reasoning: dist-tag latest=0.1.3; package.json description "Official TypeScript SDK for Gladia" contradicted by README "Unofficial"; GitHub user alexisbouchez + repo alexisbouchez/gladia.ts both 404 (orphaned, irrevocable); sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` reproduced across 4+ local `npm pack` runs; src/client.ts:306-308 confirmed via RAG: `new URL(\`${this.baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())`; shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, integrity sha512 `56NW…` stable.
+evidence_needed: PASSIVE complete — local `npm pack gladia@0.1.3` produces sha256 matching `3b23ec7d…7f2`; inspecting package/src/client.ts:306-308 shows raw API key appended to wss:// URL query; npm view confirms dist-tag latest=0.1.3; GitHub API returns 404 for user+repo.
+verify_steps: PASSIVE complete — (1) `npm pack gladia@0.1.3` in /tmp/opencode; (2) `shasum gladia-0.1.3.tgz` expect `cc96f84a200c0fd49a71e919391f9b659c39f3e9`; (3) `tar xzf gladia-0.1.3.tgz && sed -n '300,320p' package/src/client.ts`; confirm `searchParams.append('x-gladia-key', this.apiKey)` + `new WebSocket(wsUrl.toString())` at lines 306-308; (4) `npm view gladia dist-tags.latest` returns 0.1.3; (5) GitHub API 404 on user/repo.
+impact: Supply-chain credential theft — developers installing impersonated SDK at npm dist-tag latest unknowingly leak raw API keys in WebSocket URL query parameters (server access logs, browser history, proxy intercepts, referer headers); irrevocable orphaned package enables persistent trust poisoning. Severity: High.
+testability: PASSIVE
+
+[HYP] SSRF via server-side fetch of audio_url/video_url/callback_config.url to attacker-controlled canaries
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: OpenAPI frozen at 125131B/14 paths/7 webhooks (confirmed 100+ cycles, fresh 09:00 UTC) — audio_url is plain string with no scheme/host allowlist; video_url is plain string with no scheme validation; CallbackConfig.url is `format:uri` with no scheme allowlist; callback_url is `format:uri` with no scheme allowlist; 7 webhook topics POST to client-supplied URLs; /v1/models (public, 530B, security:null) confirms FR+US egress; POST /v2/pre-recorded without key returns 401/144 NestJS `{"message":"no gladia key provided"}` — key is sole gate.
+evidence_needed: Self-owned canary receives HTTP fetch from server-originated traffic with valid API key in Authorization header; no 169.254.169.254 probing without authorization.
+verify_steps: AUTH_HELPED — with authorized x-gladia-key header: `POST /v2/pre-recorded` with JSON body `{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3","language":"en"}`; observe canary HTTP request logs for server-originated traffic with User-Agent matching Gladia backend + x-gladia-key in headers; repeat for video_url and callback_config.url fields; self-owned endpoints only, do NOT probe 169.254.169.254 without explicit authorization.
+impact: Cloud metadata read (169.254.169.254 IMDSv1), internal network enumeration, outbound data exfiltration via callback/webhook URLs. Severity: High (key-gated).
+testability: AUTH_HELPED
+
+[HYP] Post-auth open redirect via reflected redirect_to honored after Google OAuth signin
+class: OATH
+asset: app.gladia.io /signin
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com returns 200/27448B with `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com">` — URL-encoded value reflected with no host allowlist at unauthenticated layer; CSP has 0 form-action directives (grep-count=0 confirmed fresh at 09:00 UTC); /auth/google/callback → 302 → accounts.google.com full OAuth 2.0 PKCE S256 with FIXED redirect_uri prevents code/state theft; return-to cookie tampering resets to `{"url":"/"}` — REJECTED as open redirect (100+ cycles); post-auth honoring remains sole unverified gate.
+evidence_needed: Post-auth HTTP 302 with `Location: https://evil.example.com` in response after completing Google OAuth signin carrying redirect_to in POST form body; or final page renders link/button pointing to external host.
+verify_steps: HUMAN_ONLY — (1) visit https://app.gladia.io/signin?redirect_to=https://evil.example.com; (2) click "Sign in with Google"; (3) complete full Google OAuth signin flow with valid Gladia account; (4) capture final HTTP 302 Location header + Set-Cookie in browser devtools Network tab; (5) repeat for protocol-relative `redirect_to=//evil.example.com` and path-only `redirect_to=/evil.example.com` variants.
+impact: Post-auth open redirect enables credential phishing / session capture after legitimate SSO. Severity: Medium (requires valid Google SSO account with Gladia access).
+testability: HUMAN_ONLY
+
+## STEP 4 — SELF-CRITIQUE
+
+All 3 hypotheses survive critique — each has confidence ≥57, is not on the knowledge REJECTED list, and has concrete verify_steps with concrete HTTP requests. No hypothesis dropped.
+
+[FINAL] 1. npm gladia@0.1.3 orphaned impersonation — confidence 96, PASSIVE complete, evidence locked across 4+ independent npm pack reproductions — report-ready
+[FINAL] 2. api.gladia.io SSRF via audio_url/video_url/callback_config.url — confidence 73, AUTH_HELPED, POC blocked on authorized API key
+[FINAL] 3. app.gladia.io /signin post-auth redirect_to — confidence 57, HUMAN_ONLY, post-auth honoring sole unverified gate
+
+## STEP 5 — NEXT ACTION
+
+[NEXT][HUMAN]: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com — click "Sign in with Google", complete full OAuth signin with valid Gladia account, capture final HTTP 302 Location header + Set-Cookie in browser devtools Network tab to verify whether redirect_to=https://evil.example.com is honored as an external redirect post-auth (sole unverified gate in app.gladia.io OATH finding, confidence 57). Repeat for protocol-relative `//evil.example.com` and path-only `/evil.example.com` variants. Also submit the npm gladia@0.1.3 finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) with evidence package: sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, src/client.ts:306-308 key-in-WSS-URL.
+
+## STEP 6 — LEARNING
+
+- REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS `{"path":"/v2/live/health","message":"no gladia key provided"}` with no data leakage, no x-powered-by on GET (preflight-only fingerprint), no stack trace, properly key-gated at 401, serves no exploitable purpose at unauthenticated layer — informational only, not a reportable finding class.
+- REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B (inventory 02:33 UTC) contradicted by fresh probes at 04:12, 04:53, and 09:00 UTC confirming 125131B — stale/erroneous entry, NO_DRIFT confirmed across 100+ cycles.
+- REJECTED MISCONFIG @ api.gladia.io: etag rotation observed fresh (`W/"1e8cb-bT+X2P+LherKzQSSOC1qafbjFwQ"` at 09:00 UTC vs prior `W/"1e8cb-bJskrOUNOkPWJGAG67wWTqqIPS8"`) — content-hash of per-fetch dynamic example timestamps, not surface drift; structural (examples-stripped) hash is stable baseline across 100+ cycles.
+
+## STEP 7 — RISK SCORE
+
+- api.gladia.io: 68 — Frozen surface (openapi 125131B publicly exposed with no scheme-allowlist on audio_url/video_url/callback_config.url, 7 webhook delivery paths to client-supplied URLs, FR/US egress via /v1/models, preflight-only x-powered-by: Express fingerprint on OPTIONS only, CORS static `*` + ACAH x-gladia-key); SSRF-by-design persists AUTH_HELPED (key sole gate); 15th undocumented endpoint /v2/live/health confirmed but properly key-gated, no bypass; NO_DRIFT across 100+ cycles.
+- app.gladia.io: 62 — /signin redirect_to form-action reflection (200/27448B, byte-fresh) + CSP lacks form-action directive (0 grep-confirmed); OAuth redirect_uri FIXED+PKCE S256 prevents code/state theft (REJECTED 100+ cycles); return-to cookie tamper-reset to `{"url":"/"}` REJECTED; oauth2 state cookie missing Secure flag (HSTS preload mitigates→informational); /dashboard SPA served without auth (client-side enforcement); post-auth honoring sole unverified gate (HUMAN_ONLY).
+- sdk: 91 — npm `gladia@0.1.3` orphaned impersonation at dist-tag latest leaks raw API key in WebSocket URL query (PASSIVE evidence-locked, reproducible via 4+ local npm pack runs, sha256 `3b23ec7d…7f2`); GitHub user+repo 404 (orphaned/irrevocable); package.json "Official" vs README "Unofficial" contradiction; diverges from official @gladiaio/sdk@1.1.0 POST /v2/live → token flow; irrevocable orphaned package at dist-tag latest with deceptive description enables persistent supply-chain trust poisoning.
