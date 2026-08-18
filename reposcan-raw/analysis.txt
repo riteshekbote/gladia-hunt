@@ -1,74 +1,77 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
+./reposcan-raw
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls -la reposcan-raw/
+total 364
+drwxr-xr-x  4 runner runner   4096 Aug 18 20:22 .
+drwxr-xr-x 11 runner runner   4096 Aug 18 20:22 ..
+-rw-r--r--  1 runner runner    179 Aug 18 20:22 analysis.txt
+drwxr-xr-x 14 runner runner   4096 Aug 18 20:22 gladiaio
+-rw-r--r--  1 runner runner     40 Aug 18 20:22 grep-delta.txt
+-rw-r--r--  1 runner runner   7125 Aug 18 20:22 grep-hits.prev.txt
+-rw-r--r--  1 runner runner   7125 Aug 18 20:22 grep-hits.txt
+drwxr-xr-x  2 runner runner   4096 Aug 18 20:22 npm
+-rw-r--r--  1 runner runner 331652 Aug 18 20:22 rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls -la reposcan-raw/npm/
+total 92
+drwxr-xr-x 2 runner runner  4096 Aug 18 20:22 .
+drwxr-xr-x 4 runner runner  4096 Aug 18 20:22 ..
+-rw-r--r-- 1 runner runner 61769 Aug 18 20:22 _gladiaio_sdk.json
+-rw-r--r-- 1 runner runner 19076 Aug 18 20:22 gladia.json
+[0m
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+Now I have a complete picture. Let me classify all the hits from the scan.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | — | — | No hardcoded live credentials found |
+## Classification Tables
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slug list for comparison |
-| compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider |
-| compare-stt/src/app/layout.tsx | 9 | Import from tracking component |
-| compare-stt/src/lib/transcribe.ts | 2, 25, 148 | Provider imports & map |
-| compare-stt/src/lib/providers/gladia.ts | — | (no test lines in this file) |
-| gladiaflow/package.json | 2 | Package name |
-| gladiaflow/package-lock.json | 2, 8 | Lockfile entries |
-| gladiaflow/src-tauri/Cargo.toml | 2 | Crate name |
-| gladiaflow/src/main.tsx | 4 | CSS import |
-| gladiaflow/src/App.tsx | 264, 274, 284 | Tauri invoke calls |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | **Masked placeholder** `sk-********` |
-| gladiaflow/src/screenshots/main.tsx | 3 | CSS import |
-| gladiaflow/src/lib/customVocabulary.ts | 8, 9 | Vocabulary constants |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Unit tests |
-| gladiaflow/src/lib/dictationStats.ts | 11 | Storage key constant |
+### REAL_SECRET
+| File | Line | Finding | SHA256 | Verdict |
+|------|------|---------|--------|---------|
+| *(none)* | - | No hardcoded live credentials found | - | - |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint / Reference |
-|------|------|---------------------|
-| compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` rewrites |
-| compare-stt/next.config.ts | 51 | PostHog reverse proxy (third-party) |
-| compare-stt/src/app/layout.tsx | 87 | `https://www.gladia.io` |
-| compare-stt/src/app/terms/page.tsx | 45, 72, 107 | `https://gladia.io`, `https://www.gladia.io/legal/terms-of-use` |
-| compare-stt/src/app/methodology/page.tsx | 80, 490, 513 | GitHub repo, `https://gladia.io`, GitHub issues |
-| compare-stt/src/app/about/page.tsx | 68, 156, 172 | GitHub normalization, `https://gladia.io`, `mailto:privacy@gladia.io` |
-| compare-stt/src/components/hero-provider-logos.tsx | 7 | `mailto:privacy@gladia.io` |
-| compare-stt/src/components/arena-page.tsx | 270, 341, 427 | GitHub normalization repo (×3) |
-| compare-stt/src/lib/leaderboard-articles.ts | 37, 46 | `https://www.gladia.io/blog/...` |
-| compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN` default, `CITATION_DOMAIN` |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` |
-| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` |
+### TEST_OR_EXAMPLE
+| File | Line | Finding | Context |
+|------|------|---------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in screenshot/demo component |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36, 49 | `"x-gladia-key": apiKey` | Variable usage, not hardcoded secret |
 
-#### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Tracking ID parity comment with marketing |
-| compare-stt/src/lib/tracking.ts | 2 | Tracking IDs — keep in sync comment |
-| compare-stt/src/lib/providers.ts | 10 | Internal model name `"Solaria-3"` exposed in provider config |
-| compare-stt/src/lib/providers/gladia.ts | 36, 49 | Auth header pattern `"x-gladia-key": apiKey` (confirms header name) |
-| gladiaflow/src-tauri/tauri.dev.conf.json | 3 | Dev identifier `io.gladia.gladiaflow.dev` |
-| gladiaflow/src-tauri/tauri.conf.json | 5 | Prod identifier `io.gladia.gladiaflow` |
-| vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | Official `@ai-sdk/gladia` integration (linked workspace package) |
-| vercel-ai/tsconfig.json | 70 | Path alias `packages/gladia` |
+### ENDPOINT_LEAK
+| File | Line | Finding | Type |
+|------|------|---------|------|
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Production marketing rewrite rules |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | Production API base URL (public) |
+| reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5, 20 | `https://www.gladia.io` | Production site origin (public) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Production dashboard URL (public) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `const API_KEYS_URL = "https://app.gladia.io/apikeys"` | Production dashboard URL (public) |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public documentation URL |
+
+### INTERESTING
+| File | Line | Finding | Significance |
+|------|------|---------|--------------|
+| **npm: `gladia@0.1.3`** | - | Package claims "Official TypeScript SDK" but repository = `alexisbouchez/gladia.ts` (personal GitHub), maintainer = `softwarecitadel@gmail.com` | **Supply-chain impersonation** — unofficial package masquerading as official; embeds raw API key in WebSocket URL query (`src/client.ts:306-308`) |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked as local workspace package | Official Vercel AI SDK integration for Gladia (legitimate) |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` | Legitimate official authorship |
 
 ---
 
-### Verdict List
+## SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-********` in Gallery.tsx | **no** | Masked placeholder, not a real secret |
-| Internal model name `Solaria-3` | **no** | Product metadata, not sensitive |
-| Auth header `x-gladia-key` pattern | **no** | Public API contract (confirmed in OpenAPI) |
-| `@ai-sdk/gladia` vercel-ai integration | **no** | Official org integration, expected |
-| All endpoint/URL references | **no** | Public marketing/docs/API endpoints |
-| Dev/prod Tauri identifiers | **no** | Standard app identifiers |
-| Tracking ID parity comments | **no** | Operational notes |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `gladia@0.1.3` npm package | INTERESTING (supply-chain impersonation) | **YES** | Orphaned personal repo (`alexisbouchez/gladia.ts` + user 404), contradicts itself (package.json "Official" vs README "Unofficial"), embeds raw `x-gladia-key` in WebSocket URL query — **confirmed live across 100+ cycles**, evidence package locked |
+| `sk-********` in gladiaflow/screenshots/Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Clearly masked placeholder in demo/screenshot code |
+| All Gladia production URLs (api.gladia.io, app.gladia.io, www.gladia.io, docs.gladia.io) | ENDPOINT_LEAK | **NO** | Public production endpoints, already in scope baseline |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING (legitimate integration) | **NO** | Official Vercel AI SDK provider package from gladiaio org |
 
-**Overall: NO new reportable findings this scan.** The sole standing anomaly remains the orphaned `gladia@0.1.3` npm package (impersonation, key-in-WebSocket-URL) — already tracked and report-ready per prior cycles.
+---
+
+**Summary**: Only **one reportable candidate** persists — the orphaned `gladia@0.1.3` npm package impersonating the official SDK. All other hits are benign (test fixtures, public endpoints, or legitimate integrations). Delta scan shows **0 new hit lines** vs previous cycle.
