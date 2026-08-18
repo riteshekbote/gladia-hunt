@@ -39594,3 +39594,35 @@ testability: HUMAN_ONLY
 [LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 
 [RISK] api.gladia.io: 42 — frozen 14-path surface, key-gated v2 endpoints, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked on authorized key), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
+===== ANALYST bigpickle 2026-08-18 01:16:57 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m• [0mCheck workspace contents[90m Explore Agent[0m
+[0m✓ [0mCheck workspace contents[90m Explore Agent[0m
+[PRIO] npm gladia@0.1.3 — 6.1 (attack 7, business 6, tech 6, gate 10, cloud 2, freshness 3)
+[PRIO] api.gladia.io SSRF — 5.8 (attack 8, business 8, tech 7, gate 3, cloud 7, freshness 1)
+[PRIO] app.gladia.io /signin redirect_to — 4.9 (attack 5, business 6, tech 6, gate 3, cloud 2, freshness 4)
+
+[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded
+confidence: 73
+reasoning: openapi frozen (125131B, 100+ cycles) confirms audio_url/video_url plain string + CallbackConfig.url format:uri, none with scheme/host allowlist; 7 webhook topics POST to client-supplied URLs; /v1/models confirms FR+US egress; no-key POST returns 401/144 NestJS, key sole gate
+evidence_needed: reachability reflection at self-owned canary (HTTP/timing) or callback POST received at self-owned endpoint
+verify_steps: AUTH_HELPED — with authorized x-gladia-key POST /v2/pre-recorded {"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3"}; repeat for video_url, callback_config.url, and the 7 webhook topics; self-owned endpoints only
+impact: cloud-metadata read (IMDSv1), internal egress enumeration, exfil via webhook URLs. Severity: High (key-gated)
+testability: AUTH_HELPED
+
+[PARKED] npm gladia@0.1.3 orphaned impersonation — PASSIVE complete, evidence package locked, report-ready; no further automated action needed; requires HUMAN to submit via https://gladia.io/bug-bounty-report
+
+[PARKED] Post-auth redirect_to honored — confidence 50, testability HUMAN_ONLY — cannot make automated progress; parked until HUMAN can execute Google OAuth flow.
+
+[FINAL] 1. npm gladia@0.1.3 impersonation [96] — PASSIVE complete, evidence locked, report-ready.
+[FINAL] 2. api.gladia.io SSRF [73] — AUTH_HELPED, POC blocked on authorized key.
+
+[NEXT] RAG: Re-examine local OpenAPI spec or SDK source for any overlooked injection surface — check if /v1/history additionalProperties:true object param accepts nested keys that could trigger backend parsing anomalies without auth.
+
+[LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+
+[RISK] api.gladia.io: 42 — frozen 14-path surface, key-gated v2 endpoints, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked on authorized key), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
