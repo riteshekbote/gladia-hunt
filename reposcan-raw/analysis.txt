@@ -1,18 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-results.md
-Wrote file successfully.
-[0m
-**Triage complete.** No new reportable findings from this reposcan cycle.
+# Triage Results: gladiaio Reposcan Delta
 
-**Key points:**
-- **617 hits scanned, 0 new lines** vs previous scan (DELTA = 0)
-- **No REAL_SECRETS** — the only key-like string is `sk-********` (masked placeholder in a screenshot component)
-- **No ENDPOINT_LEAKS** — all API references point to public `https://api.gladia.io/v2` (documented in OpenAPI)
-- **INTERESTING items** are expected patterns: official SDK usage (`x-gladia-key` header), Vercel AI SDK integration (`@ai-sdk/gladia` from Gladia org), public dashboard/marketing URLs
-- **Previously known**: npm `gladia@0.1.3` orphaned impersonation (alexisbouchez/gladia.ts 404, sha256 `3b23ec7d…7f2`, key-in-WSS-URL) — already ACCEPTED as OTHER, evidence package locked, report-ready
+## Classification Tables
 
-**Surface status**: All in-scope targets frozen (api.gladia.io 100+ NO_DRIFT cycles, app.gladia.io form-action reflection + CSP gap confirmed, npm metadata static). Passive recon exhausted — further signal requires authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to honoring).
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | | | No live credentials found |
 
-Full details written to `triage-results.md`.
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| compare-stt/test-providers.ts | 8 | Provider slug list |
+| compare-stt/prisma/seed.ts | 10 | Seed data |
+| compare-stt/src/app/layout.tsx | 9,87 | Analytics import, marketing link |
+| compare-stt/src/app/terms/page.tsx | 45,72,107 | Legal page links |
+| compare-stt/src/app/methodology/page.tsx | 80,490,513 | GitHub/blog links |
+| compare-stt/src/app/about/page.tsx | 68,156,172 | Repo/link/email references |
+| compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto link |
+| compare-stt/src/components/arena-page.tsx | 270,341,427 | Normalization repo links |
+| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Analytics component |
+| compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | SEO schema URL |
+| compare-stt/src/lib/tracking.ts | 2 | Tracking ID sync comment |
+| compare-stt/src/lib/providers.ts | 10 | Provider config object |
+| compare-stt/src/lib/transcribe.ts | 2,25,148 | Provider imports/usage |
+| compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog article URLs |
+| gladiaflow/package*.json, Cargo.toml, tauri*.conf.json | various | Manifest/config files |
+| gladiaflow/src/*.tsx | various | UI components, test files, imports |
+| vercel-ai/tsconfig.json | 70 | Path alias |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` (rewrites) |
+| compare-stt/src/lib/site.ts | 5,20 | `https://www.gladia.io` (site origin) |
+| compare-stt/src/lib/providers/gladia.ts | 3,36,49 | `https://api.gladia.io/v2` + `x-gladia-key` header |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder pattern (not a real key) |
+| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked as local package — official Vercel AI SDK integration |
+
+---
+
+## Verdict
+
+| Candidate | Reportable? | Reason |
+|-----------|-------------|--------|
+| `sk-********` placeholder in gladiaflow | **NO** | Clearly masked placeholder (`********`), not a live secret |
+| Production URLs in source (api.gladia.io, app.gladia.io) | **NO** | Known endpoints, documented in OpenAPI/spec, not internal/staging |
+| `@ai-sdk/gladia` in vercel-ai | **NO** | Official Vercel AI SDK integration (gladiaio org package) |
+| `gladia@0.1.3` npm impersonation | **NO** | Already ACCEPTED in knowledge base (2026-08-07 onward), evidence package locked |
+
+**REPORT_CANDIDATE: no** — Zero new reportable findings this cycle. All hits are test fixtures, documented public endpoints, or previously triaged supply-chain anomaly (`gladia@0.1.3`). Surface remains frozen across 100+ NO_DRIFT cycles.
