@@ -11755,3 +11755,4 @@ verify_steps: HUMAN_ONLY — (1) visit https://app.gladia.io/signin?redirect_to=
 impact: Post-auth open redirect enables credential phishing / session capture after legitimate SSO. Severity: Medium (requires valid Google SSO account with Gladia access).
 testability: HUMAN_ONLY
 [NEXT][HUMAN]: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with Google", complete signin with a valid Gladia account, and capture the final HTTP 302 `Location` header + `Set-Cookie` in browser devtools Network tab to verify whether the post-auth redirect_to is honored as an open redirect. Repeat for protocol-relative `//evil.example.com` and path-only variants.
+## 2026-08-18 14:49:52 UTC [app] (model laguna)

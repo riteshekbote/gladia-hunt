@@ -1612,3 +1612,6 @@ https://gladia.io/bug-bounty-report -> HTTP 401
 
 ## 2026-08-18 14:03:25 UTC
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-18 14:50:05 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
