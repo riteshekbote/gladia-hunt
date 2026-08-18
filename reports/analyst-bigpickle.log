@@ -40090,3 +40090,90 @@ All three hypotheses survive. Confidence ≥40, not on REJECTED list, concrete v
 ## STEP 7 — RISK
 
 [RISK] api.gladia.io: 42 — frozen 14-path surface + undocumented /v2/live/health key-gated endpoint, SSRF-by-design fetch+callback surface present but AUTH_HELPED (POC blocked), undocumented /health + preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
+===== ANALYST bigpickle 2026-08-18 05:30:50 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m→ [0mRead .
+[0m→ [0mRead reports
+[0m→ [0mRead leads
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead leads/lead-bigpickle.md
+[0m✗ [0mRead reports/hypotheses-bigpickle.txt failed[90m [offset=400][0m
+[91m[1mError: [0mOffset 400 is out of range for this file (35 lines)
+## Objective
+- Conduct automated bug bounty hunting against Gladia program targets (api.gladia.io, app.gladia.io, npm/PyPI SDKs) from passive recon through POC phase
+- Identify, validate, and report security findings via the program's disclosure portal
+
+## Important Details
+- Scope: api.gladia.io (HIGHEST), app.gladia.io (HIGH), official SDKs @gladiaio/sdk + gladiaio-sdk (MEDIUM), gladia.io (LOW)
+- Out of scope: other *.gladia.io subdomains, third-party, social engineering, physical, DoS, non-Gladia assets
+- Scanner output alone REJECTED — every finding must be manually validated
+- Passive-first: GET/HEAD only, ≤1 rps, no account creation, no data modification
+- Secrets in commits: sha256 only, never raw
+- Disclosure portal: https://gladia.io/bug-bounty-report → 301→www→302→Google Forms (Google SSO auth-gated)
+- Current phase: `POC`, current target: `api`
+- Surface has been frozen across 100+ drift-negative cycles since 2026-08-07
+
+## Work State
+### Completed
+- **npm `gladia@0.1.3` orphaned impersonation** (confidence 96, PASSIVE complete, report-ready): dist-tag latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` reproduced via 3+ independent local `npm pack` runs; repo+user `alexisbouchez` both 404 (orphaned/irrevocable); `src/client.ts:306-308` embeds raw `x-gladia-key` in wss:// URL query via `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`; package.json "Official" vs README "Unofficial" contradiction; official `@gladiaio/sdk@1.1.0` confirmed clean (sha256 `b1b1be92…`, secure POST→token flow)
+- **api.gladia.io SSRF-by-design** (confidence 73, AUTH_HELPED): OpenAPI frozen 125131B/14 paths/7 webhooks/1 server; audio_url/video_url plain string + CallbackConfig.url `format:uri` all have NO scheme/host allowlist; 7 webhook topics POST to client-supplied URLs; `/v1/models` confirms FR+US egress; POST /v2/pre-recorded → 401 NestJS key-gated; CORS static `*` + ACAH x-gladia-key; preflight-only `x-powered-by: Express` fingerprint differential
+- **app.gladia.io /signin redirect_to reflection** (confidence 50, HUMAN_ONLY): form action reflects URL-encoded redirect_to value; CSP has 0 form-action directives (grep-count=0); OAuth redirect_uri FIXED + PKCE S256 prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate
+- **api.gladia.io /v2/live/health** undocumented key-gated endpoint (informational, properly gated at 401, not in OpenAPI spec)
+- **api.gladia.io /health** undocumented 15B `{"health":"OK"}` endpoint returns 200 (not in OpenAPI spec)
+- All REJECTED classes confirmed dead across 100+ cycles: /metrics (404), /debug (404), /admin (404), /actuator/health (404), /v2/live/init (404), CORS origin-reflection (static `*`), /health?full=true verbose leak, return-to cookie open redirect, OAuth redirect_uri injection, per-instance codegen fingerprint
+
+### Active
+- POC phase for api.gladia.io SSRF — blocked on authorized x-gladia-key to execute canary POC
+- HUMAN_ONLY gate for app.gladia.io post-auth redirect_to honoring — requires Google OAuth signin
+- Report submission for npm gladia@0.1.3 — evidence package locked, portal identified but submission requires Google SSO auth-gated access
+
+### Blocked
+- **SSRF POC**: requires authorized `x-gladia-key` to POST canary URL to audio_url/video_url/callback_config.url (AUTH_HELPED)
+- **Post-auth redirect_to**: requires human to complete Google OAuth signin flow (HUMAN_ONLY)
+- **Report submission**: bug-bounty portal is Google Forms behind Google SSO auth-gating
+
+## Next Move
+1. HUMAN: Submit the npm `gladia@0.1.3` orphaned impersonation finding via https://gladia.io/bug-bounty-report (Google Forms, Google SSO auth-gated). Evidence: sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, src/client.ts:306-308 key-in-URL, repo+user 404, README↔package.json contradiction, dist-tag latest=0.1.3
+2. HUMAN: Obtain authorized x-gladia-key from program owner to execute SSRF canary POC on audio_url/video_url/callback_config.url at self-owned endpoints
+
+## Relevant Files
+- `/home/runner/work/gladia-hunt/gladia-hunt/state_bigpickle.json`: current agent state (phase=POC, target=api)
+- `/home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-bigpickle.txt`: ranked hypotheses file
+- `/home/runner/work/gladia-hunt/gladia-hunt/leads/lead-bigpickle.md`: lead tracking
+- `/home/runner/work/gladia-hunt/gladia-hunt/inventory/`: surface inventory snapshots across cycles
+- `/home/runner/work/gladia-hunt/gladia-hunt/knowledge/`: knowledge base (scope, findings log)
+- `/home/runner/work/gladia-hunt/gladia-hunt/scope.yml`: program scope definition
+- `/home/runner/work/gladia-hunt/gladia-hunt/reports/valid-bugs.md`: validated bug reports
+- `/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/`: supply-chain scan results
+- `/home/runner/work/gladia-hunt/gladia-hunt/scripts/`: automation scripts
+Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+Based on the current state:
+
+## Where We Stand
+
+**3 findings identified, all blocked on human action:**
+
+| # | Finding | Confidence | Blocker |
+|---|---------|-----------|---------|
+| 1 | npm `gladia@0.1.3` orphaned impersonation | 96 | Portal requires Google SSO auth |
+| 2 | api.gladia.io SSRF via audio_url | 73 | Needs authorized `x-gladia-key` |
+| 3 | app.gladia.io post-auth redirect_to | 50 | Needs Google OAuth session |
+
+**Surface is completely frozen** — 100+ reposcan cycles with 0 drift across all targets. No new attack surface to discover.
+
+## What You Need to Do
+
+1. **Submit the npm finding manually** → https://gladia.io/bug-bounty-report (Google Forms, Google SSO auth-gated). I have a full evidence package ready including:
+   - sha256: `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`
+   - `src/client.ts:306-308` embeds raw API key in WebSocket URL
+   - repo+user `alexisbouchez` both 404 (orphaned/irrevocable)
+   - README ("Unofficial") contradicts package.json description ("Official")
+   - dist-tag `latest` still points to 0.1.3
+
+2. **Obtain an API key** from Gladia to test SSRF → if server-side fetch of audio_url has no scheme allowlist, that's a High severity finding.
+
+3. **Sign in to app.gladia.io** with Google OAuth to test post-auth `redirect_to` honoring.
+
+Would you like me to draft the report text for submission, or do you have an API key to proceed with the SSRF POC?
