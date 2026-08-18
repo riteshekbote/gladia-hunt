@@ -1227,3 +1227,5 @@
 - 2026-08-18 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor informational, properly gated, not exploitable without auth.
 - 2026-08-18 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256, no code/state theft
 - 2026-08-18 REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset to {"url":"/"} — no open redirect
+- 2026-08-18 REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented endpoint (401 NestJS, no data leakage, properly key-gated at 401) confirmed informational only — not a reportable finding class, serves no exploitable purpose at unauthenticated layer
+- 2026-08-18 REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical; per-instance codegen fingerprint falsified (etag rotates via dynamic example timestamps, not surface drift)

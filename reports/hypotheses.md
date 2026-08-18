@@ -5495,3 +5495,17 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical
 - LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256, no code/state theft
 - LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset to {"url":"/"} — no open redirect
+
+## RANKED HYPOTHESES 2026-08-18 23:31:31 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: npm `gladia@0.1.3` impersonates official SDK at dist-tag `latest` and leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com` (phase=POC, target=app). Click "Sign in with
+- NEXT(hypotheses-bigpickle.txt): NO_ACTION — all three findings blocked: SSRF requires AUTH_HELPED (authorized key for POC), app.gladia.io redirect_to requires HUMAN_ONLY (Google OAuth signin),
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented endpoint (401 NestJS, no data leakage, properly key-gated at 401) confirmed informational only 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical; per-instance codegen fin
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
