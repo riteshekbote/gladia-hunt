@@ -5204,3 +5204,21 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor 
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+
+## RANKED HYPOTHESES 2026-08-18 11:17:00 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation with raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the npm gladia@0.1.3 orphaned impersonation finding via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated). Evi
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probes at 04:12 and 04:53 UTC confirming 125131B; inventory "CHANGED"
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor 
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
+- LEARN: ACCEPTED: /v2/live/health undocumented endpoint (401 NestJS, no data leakage, properly key-gated) — informational only, not a reportable finding class
+- LEARN: REJECTED: per-instance codegen fingerprint hypothesis falsified — etag rotates via dynamic example timestamps, structural (examples-stripped) hash is stable bas
+- LEARN: REJECTED: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B (NO_DRIFT across 100+ cycles)
+- LEARN: ACCEPTED: npm gladia@0.1.3 impersonates official SDK at dist-tag latest with raw API key in WebSocket URL query — report-ready
+- LEARN: ACCEPTED: app.gladia.io /signin redirect_to unauthenticated reflection into form action with 0 CSP form-action directives — post-auth honoring sole unverified g
+- LEARN: REJECTED: return-to cookie tampering NOT open redirect (server resets)
+- LEARN: REJECTED: redirect_to NOT usable as OAuth redirect_uri (server uses FIXED redirect_uri with PKCE S256)
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
