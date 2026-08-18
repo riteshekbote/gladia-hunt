@@ -1,105 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# TRIAGE RESULTS — gladiaio reposcan delta (2026-08-18)
+### Classification Table
 
-## REAL_SECRET
-None found. The only key-like hit (`sk-********`) is a masked placeholder in a screenshot component.
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot/fixture) |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3,36,49` — public `api.gladia.io/v2` endpoints (already known)<br>`gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` — public `app.gladia.io/apikeys` dashboard URL |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` — `@ai-sdk/gladia` linked as official org integration (expected)<br>`compare-stt/*` — marketing/comparison site referencing gladia.io domains (expected)<br>`gladiaflow/*` — Tauri app with Gladia branding (expected) |
 
-## TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slugs array for comparison testing |
-| compare-stt/prisma/seed.ts | 10 | Database seed data for Gladia provider |
-| compare-stt/src/lib/providers.ts | 10 | Provider config object (name, slug, logo, model) |
-| gladiaflow/src/lib/customVocabulary.ts | 9 | Pronunciation test data: ["gladioflow", "gladiaflaw"] |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Unit test expectations for vocabulary validation |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked API key placeholder: `apiKey: "sk-********"` |
+---
 
-## ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/next.config.ts | 38,44 | Next.js rewrites to `https://www.gladia.io/compare-stt-apis` (marketing proxy) |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` — API base URL in client code |
-| compare-stt/src/lib/providers/gladia.ts | 36,49 | Auth header pattern: `"x-gladia-key": apiKey` (header name leakage) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | URL template: `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | Constant: `API_KEYS_URL = "https://app.gladia.io/apikeys"` |
+### Verdict
 
-## INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/next.config.ts | 51 | Comment: "PostHog reverse proxy — same hosts as gladia-marketing vercel.json" |
-| compare-stt/src/app/layout.tsx | 9 | Import from `@/components/tracking/gladia-analytics` (GTM/analytics stack) |
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment: "Same tag stack as gladia-marketing `components/gtm-head.html`" |
-| compare-stt/src/lib/tracking.ts | 2 | Comment: "Tracking IDs — keep in sync with gladia-marketing" |
-| compare-stt/src/lib/site.ts | 5 | `process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"` (env fallback) |
-| gladiaflow/src-tauri/Cargo.toml | 5 | Author: `Gladia <support@gladia.io>` (support email in binary metadata) |
-| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked as `link:../../packages/gladia` — official Vercel AI SDK integration lives in gladiaio/vercel-ai monorepo |
-| vercel-ai/tsconfig.json | 70 | TypeScript path mapping `"path": "packages/gladia"` |
-
-## VERDICT
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `sk-********` in Gallery.tsx | **no** | Masked placeholder (asterisks), screenshot/test component |
-| API base URL `https://api.gladia.io/v2` in client code | **no** | Public API endpoint, documented in OpenAPI, not a secret |
-| Auth header name `x-gladia-key` | **no** | Public header name per OpenAPI spec (`securitySchemes.x_gladia_key`) |
-| App/dashboard URLs (`app.gladia.io/*`) | **no** | Public user-facing URLs |
-| Next.js rewrites to marketing site | **no** | Public marketing proxy configuration |
-| Vercel AI SDK integration (`@ai-sdk/gladia`) | **no** | Official integration, public package |
-| PostHog/GTM tracking references | **no** | Standard analytics stack, no secrets |
-| Support email in Cargo.toml | **no** | Public support contact |
+| `gladia@0.1.3` npm impersonation | **yes** (already tracked) | Orphaned package (`alexisbouchez/gladia.ts` + user 404), dist-tag `latest=0.1.3`, embeds raw `x-gladia-key` in WebSocket URL query (`src/client.ts:306-308`), `package.json` "Official" vs README "Unofficial" contradiction — **PASSIVE complete, evidence locked, report-ready** |
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder (8 asterisks), screenshot/test fixture |
+| All other hits | **no** | Expected public references to Gladia domains, APIs, GitHub org, marketing site |
 
-**Overall: No reportable findings in this delta.** All hits are either test fixtures, public endpoint references documented in OpenAPI, or standard configuration. The `gladia@0.1.3` npm impersonation (orphaned personal repo, raw API key in WebSocket URL) remains the sole reportable supply-chain anomaly — already tracked and evidence-locked per knowledge base.
-EOF
-# TRIAGE RESULTS — gladiaio reposcan delta (2026-08-18)
-
-## REAL_SECRET
-None found. The only key-like hit (`sk-********`) is a masked placeholder in a screenshot component.
-
-## TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slugs array for comparison testing |
-| compare-stt/prisma/seed.ts | 10 | Database seed data for Gladia provider |
-| compare-stt/src/lib/providers.ts | 10 | Provider config object (name, slug, logo, model) |
-| gladiaflow/src/lib/customVocabulary.ts | 9 | Pronunciation test data: ["gladioflow", "gladiaflaw"] |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Unit test expectations for vocabulary validation |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked API key placeholder: `apiKey: "sk-********"` |
-
-## ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/next.config.ts | 38,44 | Next.js rewrites to `https://www.gladia.io/compare-stt-apis` (marketing proxy) |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` — API base URL in client code |
-| compare-stt/src/lib/providers/gladia.ts | 36,49 | Auth header pattern: `"x-gladia-key": apiKey` (header name leakage) |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | URL template: `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | Constant: `API_KEYS_URL = "https://app.gladia.io/apikeys"` |
-
-## INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/next.config.ts | 51 | Comment: "PostHog reverse proxy — same hosts as gladia-marketing vercel.json" |
-| compare-stt/src/app/layout.tsx | 9 | Import from `@/components/tracking/gladia-analytics` (GTM/analytics stack) |
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | Comment: "Same tag stack as gladia-marketing `components/gtm-head.html`" |
-| compare-stt/src/lib/tracking.ts | 2 | Comment: "Tracking IDs — keep in sync with gladia-marketing" |
-| compare-stt/src/lib/site.ts | 5 | `process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"` (env fallback) |
-| gladiaflow/src-tauri/Cargo.toml | 5 | Author: `Gladia <support@gladia.io>` (support email in binary metadata) |
-| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked as `link:../../packages/gladia` — official Vercel AI SDK integration lives in gladiaio/vercel-ai monorepo |
-| vercel-ai/tsconfig.json | 70 | TypeScript path mapping `"path": "packages/gladia"` |
-
-## VERDICT
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-********` in Gallery.tsx | **no** | Masked placeholder (asterisks), screenshot/test component |
-| API base URL `https://api.gladia.io/v2` in client code | **no** | Public API endpoint, documented in OpenAPI, not a secret |
-| Auth header name `x-gladia-key` | **no** | Public header name per OpenAPI spec (`securitySchemes.x_gladia_key`) |
-| App/dashboard URLs (`app.gladia.io/*`) | **no** | Public user-facing URLs |
-| Next.js rewrites to marketing site | **no** | Public marketing proxy configuration |
-| Vercel AI SDK integration (`@ai-sdk/gladia`) | **no** | Official integration, public package |
-| PostHog/GTM tracking references | **no** | Standard analytics stack, no secrets |
-| Support email in Cargo.toml | **no** | Public support contact |
-
-**Overall: No reportable findings in this delta.** All hits are either test fixtures, public endpoint references documented in OpenAPI, or standard configuration. The `gladia@0.1.3` npm impersonation (orphaned personal repo, raw API key in WebSocket URL) remains the sole reportable supply-chain anomaly — already tracked and evidence-locked per knowledge base.
-[0m
-**Triage complete.** Zero reportable findings in this delta scan. All 58 hits classify as test fixtures, public endpoint references (documented in OpenAPI), or standard configuration. The `sk-********` hit is a masked placeholder in a screenshot component. The sole supply-chain anomaly remains the pre-existing `gladia@0.1.3` orphaned impersonation package (tracked, evidence-locked, report-ready).
+**No new reportable findings this scan.** The sole anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and already ACCEPTED across 100+ cycles. Surface frozen — further passive probes add no signal until authorized key (SSRF PoC) or human OAuth test (post-auth redirect_to honoring).
