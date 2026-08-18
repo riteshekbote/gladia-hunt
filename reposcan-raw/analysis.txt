@@ -1,9 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_output.md
-Wrote file successfully.
+[0m$ [0mls -la reposcan-raw/gladiaio/gladiaflow/src/screenshots/
+total 28
+drwxr-xr-x 2 runner runner  4096 Aug 18 17:39 .
+drwxr-xr-x 5 runner runner  4096 Aug 18 17:39 ..
+-rw-r--r-- 1 runner runner 13224 Aug 18 17:39 Gallery.tsx
+-rw-r--r-- 1 runner runner   995 Aug 18 17:39 main.tsx
 [0m
-Done. Wrote triage results to `triage_output.md`.
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=280, limit=30][0m
+### Classification Tables
 
-**TL;DR**: No new reportable findings. All surfaces frozen across 100+ cycles. The only live candidate remains the known `gladia@0.1.3` npm impersonation (already evidence-locked and report-ready via bug-bounty portal).
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *none* | — | — | No hardcoded live credentials found |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` constant for screenshot gallery |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 222 | `apiKeyDisplayValue="sk-example"` in mock HomeView |
+| `compare-stt/test-providers.ts` | 8 | Provider slugs array for testing |
+| `compare-stt/prisma/seed.ts` | 10 | Seed data for Gladia provider |
+| `compare-stt/src/lib/providers/gladia.ts` | 3,36,49 | Example provider implementation using official `api.gladia.io/v2` |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` - legitimate prod URL |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` - legitimate prod URL |
+
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| `compare-stt/next.config.ts` | 38,44,51 | Next.js rewrites to `https://www.gladia.io/compare-stt-apis` — marketing site, not internal |
+| *none* | — | No internal/staging API endpoints leaked |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| `vercel-ai/pnpm-lock.yaml` | 289-291 | `@ai-sdk/gladia` workspace package — **official Vercel AI SDK integration** for Gladia (confirmed `@gladiaio/sdk` is separate) |
+| `vercel-ai/tsconfig.json` | 70 | Path alias for `packages/gladia` — official provider package |
+| `gladiaflow/package.json` + lockfiles | — | Tauri desktop app, author `Gladia <support@gladia.io>` — official |
+| `gladiaflow/src-tauri/Cargo.toml` | 5 | Author `Gladia <support@gladia.io>` — official |
+| `gladiaflow/src-tauri/tauri.conf.json` | 5 | Identifier `io.gladia.gladiaflow` — official bundle ID |
+| `npm: gladia@0.1.3` | — | **Known impersonator** — personal repo `alexisbouchez/gladia.ts`, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query (already tracked in RAG) |
+
+---
+
+### Verdict
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot mock (`MOCK_SETTINGS`) |
+| `sk-example` in Gallery.tsx | **no** | Explicit test value in mock |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official Vercel AI SDK provider integration (workspace package) |
+| All `api.gladia.io` / `app.gladia.io` refs | **no** | Legitimate production endpoints |
+| `gladia@0.1.3` npm impersonation | **no (already tracked)** | Known orphaned impersonator — RAG confirms `src/client.ts:306-308` embeds raw key in WSS URL, repo+user 404, dist-tag `latest=0.1.3` persists; evidence package locked, report-ready via bug-bounty portal |
+
+**No new reportable findings this scan.** Surface frozen across 100+ drift-negative cycles. The sole pre-existing supply-chain anomaly (`gladia@0.1.3`) remains the only actionable item — already queued for submission via `https://gladia.io/bug-bounty-report` (redirects to Google Forms, auth-gated).
