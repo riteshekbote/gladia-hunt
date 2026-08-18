@@ -22078,3 +22078,214 @@ testability: AUTH_HELPED
 [LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
 
 [RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint confirmed; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+===== ANALYST nemotron3 2026-08-18 20:21:09 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -s -I "https://api.gladia.io/v2/live/health" 2>&1 | head -20
+HTTP/2 401 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Tue, 18 Aug 2026 20:17:30 GMT
+etag: W/"8f-I4VsHAK7noU2/za+aZv1SNUrV6k"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 143
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/v2/live/health" 2>&1
+{"statusCode":401,"timestamp":"2026-08-18T20:17:34.245Z","path":"/v2/live/health","message":"no gladia key provided","request_id":"G-86fc2fbb"}
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" 2>&1 | python3 -c "import sys, json; data=json.load(sys.stdin); paths=list(data.get('paths', {}).keys()); print(f'Total paths: {len(paths)}'); print('\\n'.join(sorted(paths)))" 2>&1
+Total paths: 14
+/audio/text/audio-transcription
+/v1/history
+/v1/models
+/v2/live
+/v2/live/{id}
+/v2/live/{id}/file
+/v2/pre-recorded
+/v2/pre-recorded/{id}
+/v2/pre-recorded/{id}/file
+/v2/transcription
+/v2/transcription/{id}
+/v2/transcription/{id}/file
+/v2/upload
+/video/text/video-transcription
+[0m
+[0m$ [0mcurl -s "https://api.gladia.io/openapi.json" 2>&1 | wc -c
+125131
+[0m
+[0m$ [0mcurl -s -I "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | head -20
+HTTP/2 200 
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+content-security-policy: default-src 'self'; connect-src 'self' https://*.gladia.io wss://*.gladia.io https://*.google.com https://*.google-analytics.com https://*.googletagmanager.com https://*.analytics.google.com https://*.g.doubleclick.net https://pagead2.googlesyndication.com https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://*.hubapi.com https://*.hubspot.com https://*.hscollectedforms.net https://*.hsforms.com https://*.hotjar.com https://*.contentsquare.net https://*.hotjar.io wss://*.hotjar.com https://*.axept.io https://*.axeptio.eu https://*.axeptio.tech; frame-src 'self' https://gladia.io https://*.gladia.io https://*.googletagmanager.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.hyperline.co https://billing.gladia.io/portal https://app.svix.com/ https://*.hs-scripts.com https://*.hs-analytics.net https://*.hsadspixel.net https://*.hscollectedforms.net https://*.hs-banner.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net; worker-src 'self' blob:; media-src 'self' data: blob:; script-src 'self' 'nonce-070b6e8d2728bd26f31fae48e77979d5' 'strict-dynamic' https://*.googletagmanager.com https://*.googleadservices.com https://*.pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.hotjar.com https://*.contentsquare.net https://*.axept.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hotjar.com; img-src 'self' data: https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://*.google.com https://*.google.fr https://*.google.com https://*.google.ad https://*.google.ae https://*.google.com.af https://*.google.com.ag https://*.google.al https://*.google.am https://*.google.co.ao https://*.google.com.ar https://*.google.as https://*.google.at https://*.google.com.au https://*.google.az https://*.google.ba https://*.google.com.bd https://*.google.be https://*.google.bf https://*.google.bg https://*.google.com.bh https://*.google.bi https://*.google.bj https://*.google.com.bn https://*.google.com.bo https://*.google.com.br https://*.google.bs https://*.google.bt https://*.google.co.bw https://*.google.by https://*.google.com.bz https://*.google.ca https://*.google.cd https://*.google.cf https://*.google.cg https://*.google.ch https://*.google.ci https://*.google.co.ck https://*.google.cl https://*.google.cm https://*.google.cn https://*.google.com.co https://*.google.co.cr https://*.google.com.cu https://*.google.cv https://*.google.com.cy https://*.google.cz https://*.google.de https://*.google.dj https://*.google.dk https://*.google.dm https://*.google.com.do https://*.google.dz https://*.google.com.ec https://*.google.ee https://*.google.com.eg https://*.google.es https://*.google.com.et https://*.google.fi https://*.google.com.fj https://*.google.fm https://*.google.fr https://*.google.ga https://*.google.ge https://*.google.gg https://*.google.com.gh https://*.google.com.gi https://*.google.gl https://*.google.gm https://*.google.gr https://*.google.com.gt https://*.google.gy https://*.google.com.hk https://*.google.hn https://*.google.hr https://*.google.ht https://*.google.hu https://*.google.co.id https://*.google.ie https://*.google.co.il https://*.google.im https://*.google.co.in https://*.google.iq https://*.google.is https://*.google.it https://*.google.je https://*.google.com.jm https://*.google.jo https://*.google.co.jp https://*.google.co.ke https://*.google.com.kh https://*.google.ki https://*.google.kg https://*.google.co.kr https://*.google.com.kw https://*.google.kz https://*.google.la https://*.google.com.lb https://*.google.li https://*.google.lk https://*.google.co.ls https://*.google.lt https://*.google.lu https://*.google.lv https://*.google.com.ly https://*.google.co.ma https://*.google.md https://*.google.me https://*.google.mg https://*.google.mk https://*.google.ml https://*.google.com.mm https://*.google.mn https://*.google.com.mt https://*.google.mu https://*.google.mv https://*.google.mw https://*.google.com.mx https://*.google.com.my https://*.google.co.mz https://*.google.com.na https://*.google.com.ng https://*.google.com.ni https://*.google.ne https://*.google.nl https://*.google.no https://*.google.com.np https://*.google.nr https://*.google.nu https://*.google.co.nz https://*.google.com.om https://*.google.com.pa https://*.google.com.pe https://*.google.com.pg https://*.google.com.ph https://*.google.com.pk https://*.google.pl https://*.google.pn https://*.google.com.pr https://*.google.ps https://*.google.pt https://*.google.com.py https://*.google.com.qa https://*.google.ro https://*.google.ru https://*.google.rw https://*.google.com.sa https://*.google.com.sb https://*.google.sc https://*.google.se https://*.google.com.sg https://*.google.sh https://*.google.si https://*.google.sk https://*.google.com.sl https://*.google.sn https://*.google.so https://*.google.sm https://*.google.sr https://*.google.st https://*.google.com.sv https://*.google.td https://*.google.tg https://*.google.co.th https://*.google.com.tj https://*.google.tl https://*.google.tm https://*.google.tn https://*.google.to https://*.google.com.tr https://*.google.tt https://*.google.com.tw https://*.google.co.tz https://*.google.com.ua https://*.google.co.ug https://*.google.co.uk https://*.google.com.uy https://*.google.co.uz https://*.google.com.vc https://*.google.co.ve https://*.google.co.vi https://*.google.com.vn https://*.google.vu https://*.google.ws https://*.google.rs https://*.google.co.za https://*.google.co.zm https://*.google.co.zw https://*.google.cat https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.googleadservices.com https://*.hsforms.com https://*.hubspot.com https://*.hotjar.com https://*.contentsquare.net https://axeptio.imgix.net https://*.axept.io https://*.gstatic.com; font-src 'self' fonts.gstatic.com https://*.hotjar.com; object-src 'none'; base-uri 'self';
+content-type: text/html; charset=utf-8
+date: Tue, 18 Aug 2026 20:18:24 GMT
+expires: 0
+pragma: no-cache
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: Accept-Encoding
+x-request-id: 32322a38-2356-4395-9eb4-ed71fb53c803
+x-robots-tag: noindex, nofollow
+[0m
+[0m$ [0mcurl -s "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 | grep -o 'action="[^"]*"' | head -5
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+[0m$ [0mnpm view gladia@0.1.3 dist.integrity 2>&1
+sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==
+[0m
+[0m$ [0mnpm pack gladia@0.1.3 --dry-run 2>&1 | tail -10
+npm notice name: gladia
+npm notice version: 0.1.3
+npm notice filename: gladia-0.1.3.tgz
+npm notice package size: 48.5 kB
+npm notice unpacked size: 225.8 kB
+npm notice shasum: cc96f84a200c0fd49a71e919391f9b659c39f3e9
+npm notice integrity: sha512-56NWQ9pEVyd/E[...]R1c6GaC3YBztw==
+npm notice total files: 16
+npm notice
+gladia-0.1.3.tgz
+[0m
+[0m$ [0mnpm pack gladia@0.1.3 2>&1 && sha256sum gladia-0.1.3.tgz
+npm notice
+npm notice 📦  gladia@0.1.3
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 9.0kB README.md
+npm notice 2.7kB dist/client.d.ts
+npm notice 36.7kB dist/gladia.cjs.development.js
+npm notice 34.2kB dist/gladia.cjs.development.js.map
+npm notice 17.2kB dist/gladia.cjs.production.min.js
+npm notice 28.4kB dist/gladia.cjs.production.min.js.map
+npm notice 36.6kB dist/gladia.esm.js
+npm notice 34.2kB dist/gladia.esm.js.map
+npm notice 68B dist/index.d.ts
+npm notice 190B dist/index.js
+npm notice 5.6kB dist/types.d.ts
+npm notice 1.7kB package.json
+npm notice 12.2kB src/client.ts
+npm notice 1.1kB src/index.ts
+npm notice 4.9kB src/types.ts
+npm notice Tarball Details
+npm notice name: gladia
+npm notice version: 0.1.3
+npm notice filename: gladia-0.1.3.tgz
+npm notice package size: 48.5 kB
+npm notice unpacked size: 225.8 kB
+npm notice shasum: cc96f84a200c0fd49a71e919391f9b659c39f3e9
+npm notice integrity: sha512-56NWQ9pEVyd/E[...]R1c6GaC3YBztw==
+npm notice total files: 16
+npm notice
+gladia-0.1.3.tgz
+3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2  gladia-0.1.3.tgz
+[0m
+[0m$ [0mtar -xzf gladia-0.1.3.tgz package/src/client.ts 2>&1 && cat package/src/client.ts | head -350 | tail -50
+* Create a WebSocket connection for real-time transcription
+   */
+  createRealTimeTranscription(
+    options: RealTimeTranscriptionOptions = {}
+  ): WebSocket {
+    const wsUrl = new URL(`${this.baseUrl}/v2/live`);
+    wsUrl.searchParams.append('x-gladia-key', this.apiKey);
+
+    // Add options as query parameters
+    Object.entries(options).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        wsUrl.searchParams.append(key, JSON.stringify(value));
+      } else if (value !== undefined) {
+        wsUrl.searchParams.append(key, String(value));
+      }
+    });
+
+    const socket = new WebSocket(wsUrl.toString());
+
+    // Add convenience methods to the socket
+    const enhancedSocket = socket as WebSocket & {
+      sendAudio: (audioChunk: ArrayBuffer | Blob) => void;
+      stopRecording: () => void;
+    };
+
+    enhancedSocket.sendAudio = (audioChunk: ArrayBuffer | Blob) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        if (audioChunk instanceof Blob) {
+          // If we have a Blob, we need to convert it to ArrayBuffer
+          const reader = new FileReader();
+          reader.onload = () => {
+            socket.send(reader.result as ArrayBuffer);
+          };
+          reader.readAsArrayBuffer(audioChunk);
+        } else {
+          socket.send(audioChunk);
+        }
+      }
+    };
+
+    enhancedSocket.stopRecording = () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: 'stop_recording' }));
+      }
+    };
+
+    return enhancedSocket;
+  }
+
+  /**
+[0m
+[NEW] api.gladia.io: `/v2/live/health` — undocumented key-gated endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths confirmed)
+[CHANGED] None — OpenAPI size remains 125131B; "132834B" inventory entry was stale/erroneous
+
+[PRIO] npm registry (gladia@0.1.3): 85 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] app.gladia.io: 65 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[PRIO] api.gladia.io: 15 attack_surface=8 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=7 freshness=8
+
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK for Gladia" but repo is alexisbouchez/gladia.ts (personal, 404); maintainer softwarecitadel@gmail.com; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live query param via searchParams.append; diverges from official @gladiaio/sdk POST /v2/live → token flow; sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 verified via local npm pack; dist-tag latest=0.1.3 persists while source repo+user 404 (orphaned/irrevocable)
+evidence_needed: Confirm package still publishable/maintainable by orphaned account; verify key leakage in compiled dist
+verify_steps: RAG: npm view gladia@0.1.3 dist integrity + GitHub 404 on repo/user; local npm pack reproduces sha256 + src/client.ts key-in-URL
+impact: Supply-chain takeover risk + API key leakage in WebSocket URL (logs/proxies); severity Critical (orphaned account + key exposure)
+testability: PASSIVE
+
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com reflects URL-encoded value into form action (confirmed live across 100+ cycles); CSP lacks form-action directive (grep-count=0 confirmed); Google-only OAuth with PKCE S256 and FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset confirmed (server resets to {"url":"/"}); post-auth honoring of arbitrary redirect_to remains unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final HTTP response after successful Google authentication
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+
+[HYP] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec
+class: SSRF
+asset: api.gladia.io
+confidence: 35
+reasoning: OpenAPI spec exposes audio_url/video_url as plain string and CallbackConfig.url as format:uri with no scheme allowlist on /v2/pre-recorded and /v2/transcription endpoints; /v1/models confirms FR/US egress targets; all v2 endpoints key-gated (401 NestJS HttpException); SSRF surface exists by design but requires valid API key
+evidence_needed: Valid API key to test if arbitrary internal URLs (metadata services, localhost) are fetched via audio_url/callback_url
+verify_steps: AUTH_HELPED: POST /v2/pre-recorded with audio_url=http://169.254.169.254/latest/meta-data/ and valid x-gladia-key header; observe if metadata fetched
+impact: Server-side request forgery to internal cloud metadata / private networks; severity High (if key obtained)
+testability: AUTH_HELPED
+
+[PARKED] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec: confidence 35 < 40 threshold; AUTH_HELPED verify step requires valid API key not available in passive phase
+
+[FINAL] 1) Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (OTHER, 96, PASSIVE)
+[FINAL] 2) Post-auth open redirect via reflected redirect_to on signin form action (OATH, 57, HUMAN_ONLY)
+
+[NEXT] HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with Google", authenticate, capture the final HTTP response after successful Google authentication to verify if arbitrary redirect_to is honored post-auth.
+
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes at 04:12 and 04:53 UTC confirm 125131B; per-instance codegen fingerprint falsified (etag rotates via dynamic example timestamps)
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint hypothesis falsified — etag rotates via dynamic example timestamps, structural (examples-stripped) hash is stable baseline
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI's 14-path spec; minor informational, properly gated at 401, not a reportable finding class
+[LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
+
+[RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint confirmed; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
