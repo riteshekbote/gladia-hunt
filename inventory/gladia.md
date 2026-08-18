@@ -931,3 +931,6 @@
 ## 2026-08-18 20:21:09 UTC
 - NEW api.gladia.io: `/v2/live/health` — undocumented key-gated endpoint returning 401 NestJS `{"statusCode":401,"path":"/v2/live/health","message":"no gladia key provided"}` — NOT in OpenAPI spec (14 paths
 - CHANGED None — OpenAPI size remains 125131B; "132834B" inventory entry was stale/erroneous
+
+## 2026-08-18 20:45:41 UTC
+- NEW None — surface byte-frozen across 100+ drift-negative cycles; all targets identical to prior probes

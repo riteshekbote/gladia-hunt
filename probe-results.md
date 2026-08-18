@@ -1665,3 +1665,7 @@ https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No addre
 ## 2026-08-18 20:21:10 UTC
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
 https://app.gladia.io.evil.example.com -> ERR <urlopen error [Errno -5] No address associated wi
+
+## 2026-08-18 20:45:43 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
