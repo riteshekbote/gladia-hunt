@@ -5085,3 +5085,10 @@
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles.
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead.
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401, NestJS shape, not in OpenAPI spec) — minor informational, properly gat
+
+## RANKED HYPOTHESES 2026-08-18 04:13:47 UTC
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI size CHANGE to 132834B — contradicted by fresh probe at 2026-08-18 04:12 UTC confirming 125131B; inventory "CHANGED"
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health — undocumented endpoint returning 401 NestJS with no data leakage, no x-powered-by on GET (preflight-only fi
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms additional endpoint exists outside OpenAPI spec; minor informatio
