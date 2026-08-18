@@ -1,43 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### TEST_OR_EXAMPLE
-| File | Line | Content |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slugs list: `["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"]` |
-| compare-stt/prisma/seed.ts | 10 | Seed data: `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" }` |
-| compare-stt/src/lib/providers.ts | 10 | Provider config: `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" }` |
-| gladiaflow/src/lib/customVocabulary.ts | 8-9 | Test values: `value: "gladiaflow"`, `pronunciations: ["gladioflow", "gladiaflaw"]` |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test cases for vocabulary validation |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | Masked placeholder: `apiKey: "sk-********"` |
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && find reposcan-raw -name "*.ts" -o -name "*.tsx" -o -name "*.json" | head -20
+reposcan-raw/gladiaio/compare-stt/sentry.edge.config.ts
+reposcan-raw/gladiaio/compare-stt/test-providers.ts
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts
+reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-articles-loader.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/page.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-client.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/global-error.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/page.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/.well-known/vercel/flags/route.ts
+reposcan-raw/gladiaio/compare-stt/src/app/sitemap.ts
+reposcan-raw/gladiaio/compare-stt/src/app/robots.ts
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx
+reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts
+reposcan-raw/gladiaio/compare-stt/src/app/api/leaderboard/route.ts
+reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]/stats/route.ts
+reposcan-raw/gladiaio/compare-stt/src/app/api/upload/route.ts
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=280, limit=30][0m
+Based on my analysis of the scan results and the knowledge base, here's the triage:
 
-### ENDPOINT_LEAK
-| File | Line | Content |
-|------|------|---------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` (public API) |
-| compare-stt/src/lib/site.ts | 5 | Fallback: `process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"` |
-| compare-stt/src/lib/site.ts | 20 | `export const CITATION_DOMAIN = "www.gladia.io"` |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | URL template: `` `https://app.gladia.io/transcriptions/live/${sessionId}` `` |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | Docs URL: `"https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary"` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `const API_KEYS_URL = "https://app.gladia.io/apikeys"` |
+## Classification Table
 
-### INTERESTING
-| File | Line | Content |
-|------|------|---------|
-| gladiaflow/src-tauri/tauri.dev.conf.json | 3 | Dev identifier: `"io.gladia.gladiaflow.dev"` |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | **API key format confirmed**: `sk-********` prefix (masked placeholder) |
-| vercel-ai/pnpm-lock.yaml | 289-291 | `@ai-sdk/gladia` linked as local package `../../packages/gladia` |
-| vercel-ai/tsconfig.json | 70 | Path alias: `"path": "packages/gladia"` (local `gladia` package in monorepo) |
+| Category | Files/Lines | Assessment |
+|----------|-------------|------------|
+| **REAL_SECRET** | None | No hardcoded credentials with signs of life found |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17,168,222` | Mock API keys (`sk-********`, `****************`, `sk-example`) in screenshot gallery fixture data — clearly test data |
+| **ENDPOINT_LEAK** | None | All endpoints reference production `api.gladia.io` / `app.gladia.io` / `www.gladia.io` — expected for public SDK |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` | `@ai-sdk/gladia` workspace package — **official Vercel AI SDK integration** from `vercel/ai` monorepo (gladiaio/vercel-ai is a fork/mirror), not a supply-chain risk |
 
----
+## Verdict
 
-**VERDICT**
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder in screenshot fixture (`MOCK_SETTINGS`), paired with `sk-example` and `****************` display values |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official provider package from Vercel's AI SDK monorepo (`packages/gladia`), linked as workspace dependency — legitimate integration |
+| All other grep hits | **no** | Expected references: marketing sites, comparison tool, docs, SDK usage patterns, config files |
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `sk-********` masked placeholder in screenshots | INTERESTING | **no** — test fixture, not a live secret; confirms `sk-` prefix for secret scanning |
-| Local `gladia` package in `vercel-ai/packages/gladia` | INTERESTING | **yes** — investigate whether this is the unofficial `gladia@0.1.3` (alexisbouchez/gladia.ts) vendored or a fork; supply-chain relevance |
-| All production URLs (api.gladia.io, app.gladia.io, www.gladia.io, docs.gladia.io) | ENDPOINT_LEAK | **no** — public endpoints, not internal/staging leaks |
-| Tauri dev identifier `io.gladia.gladiaflow.dev` | INTERESTING | **no** — standard dev namespace |
-
-**SUMMARY**: 0 new REAL_SECRET, 0 actionable ENDPOINT_LEAK. One INTERESTING candidate warrants follow-up: the local `gladia` package inside `vercel-ai/packages/gladia` — verify if it's the unofficial npm `gladia@0.1.3` (orphaned impersonator per knowledge base) or a legitimate internal fork.
+**DELTA CONCLUSION**: 0 new hit lines vs previous scan — **no new findings**. The previously tracked `gladia@0.1.3` npm impersonation anomaly (personal repo `alexisbouchez/gladia.ts`, orphaned, `README` "Unofficial" vs `package.json` "Official", raw `x-gladia-key` in WebSocket URL) remains the sole reportable supply-chain candidate, already **ACCEPTED** and **report-ready** per knowledge base (evidence package locked, portal submission pending via `gladia.io/bug-bounty-report` → Google Forms).
