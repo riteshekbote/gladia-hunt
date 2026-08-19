@@ -6093,3 +6093,22 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, not in OpenAPI 14-path spec) confirmed informational only acros
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint confirmed fresh this cycle — OPTIONS 204 xpb=Express; POST/GET 401 xpb ab
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh — base-uri 'self', object-src 'none', frame-src allowlist, **0 form-action directives** (grep-count=0 on
+
+## RANKED HYPOTHESES 2026-08-19 19:51:11 UTC
+- [96] npm: npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [96] npm: Orphaned npm gladia@0.1.3 leaks API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com`. 1) Visit URL in browser; 2) click "Sign in 
+- NEXT(hypotheses-bigpickle.txt): NO_ACTION — all three findings blocked: SSRF requires AUTH_HELPED (authorized key for POC), app.gladia.io redirect_to requires HUMAN_ONLY (Google OAuth signin),
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, not in OpenAPI 14-path spec) confirmed informational only — pro
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI byte-size variance (125131→125680→132834B) caused by 36 dynamic timestamp + 61 UUID patterns in examples — structura
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=`https://app.gladia.io/auth/google/callback` with 
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (100+ cycles confirmed)
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms 15th endpoint outside OpenAPI's 14-path spec; informational only,

@@ -1,4 +1,4 @@
-## 2026-08-19 19:15:48 UTC [api] (model bigpickle)
+## 2026-08-19 19:45:29 UTC [api] (model bigpickle)
 [PRIO] npm gladia@0.1.3: 72/100 — attack=8, business=7, tech=7, gate=8, cloud=2, fresh=7 | ORPHANED IMPERSONATION AT DIST-TAG LATEST, KEY-IN-URL CONFIRMED 5+ REPRODUCTIONS, PASSIVE COMPLETE
 [PRIO] api.gladia.io SSRF: 61/100 — attack=8, business=8, tech=6, gate=1, cloud=5, fresh=3 | FROZEN SPEC, KEY-GATED, AUTH_HELPED BLOCKS POC
 [PRIO] app.gladia.io redirect_to: 51/100 — attack=5, business=6, tech=5, gate=2, cloud=2, fresh=6 | POST-AUTH HONORING ONLY UNVERIFIED GATE, HUMAN_ONLY
@@ -29,8 +29,16 @@ evidence_needed: post-auth 302 Location to external host after successful signin
 verify_steps: HUMAN_ONLY — complete signin with ?redirect_to=https://evil.example.com plus //evil and app.gladia.io.evil variants; capture Location + Set-Cookie
 impact: post-auth phishing redirect → session/credential capture. Severity: Medium
 testability: HUMAN_ONLY
+[PARKED] SSRF: AUTH_HELPED blocks POC — no authorized key available, cannot test fetch behavior
+[PARKED] Post-auth redirect_to: HUMAN_ONLY blocks POC — Google OAuth signin required, cannot complete programmatically
 [FINAL]
 [NEXT] NO_ACTION — all three findings blocked: SSRF requires AUTH_HELPED (authorized key for POC), app.gladia.io redirect_to requires HUMAN_ONLY (Google OAuth signin), npm gladia@0.1.3 PASSIVE complete. Surface frozen across 100+ drift-negative cycles. Further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline across 100+ cycles
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical
+[LEARN] REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (100+ cycles confirmed)
+[LEARN] REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (100+ cycles confirmed)
+[LEARN] REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only
+[LEARN] ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms 15th endpoint outside OpenAPI's 14-path spec; informational only, properly gated
 [RISK] api.gladia.io: 42 — frozen 14-path surface + undocumented /v2/live/health, SSRF-by-design fetch+callback present but AUTH_HELPED (POC blocked), preflight-only x-powered-by fingerprint informational
 [RISK] app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset
 [RISK] sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
