@@ -87283,3 +87283,62 @@ All three hypotheses survive (confidence ≥40, classes not on REJECTED list, co
 - api.gladia.io: 42 — surface frozen 100+ cycles (14 paths, 7 webhooks, OpenAPI CORS `*` + ACAH x-gladia-key); SSRF-by-design persists (audio_url/video_url/callback_config.url format:uri no scheme allowlist, FR/US egress, key-gated 401); preflight-only x-powered-by:Express fingerprint informational; undocumented /health + /v2/live/health endpoints informational only; AUTH_HELPED blocks active POC
 - app.gladia.io: 65 — /signin redirect_to form-action reflection byte-fresh (200/27448B) + CSP 0 form-action directives (gap confirmed); OAuth redirect_uri FIXED+PKCE S256 prevents code/state theft (REJECTED 100+ cycles); return-to cookie tamper-reset REJECTED; oauth2 state cookie missing Secure flag mitigated by HSTS preload (informational); /dashboard SPA shell 200 without auth (client-side enforcement); post-auth honoring sole unverified gate (HUMAN_ONLY)
 - sdk: 90 — Official SDKs @gladiaio/sdk@1.1.0 + gladiaio-sdk@1.0.5 static/clean; third-party `gladia@0.1.3` orphaned impersonation at dist-tag latest (sha256 `3b23ec7d…7f2` reproduced 6× locally) with raw API key in wss:// URL query (src/client.ts:307); GitHub 404 (orphaned/irrevocable); package.json "Official" vs README "Unofficial" contradiction — supply-chain credential harvesting vector, report-ready
+===== ANALYST laguna 2026-08-19 23:39:35 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+## STEP 1 — DELTA
+NO_DELTA — surface byte-frozen across 90+ drift-negative cycles (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B; app.gladia.io /signin reflection 27448B + CSP 0 form-action; npm gladia@0.1.3 sha256 3b23ec7d…7f2 across 6 local npm pack reproductions)
+
+## STEP 2 — PRIORITIZE
+[PRIO] app.gladia.io /signin?redirect_to= — 67 — attack_surface 9, business_value 8, tech_exposure 6, gate_ease 10, cloud_surface 0, freshness 10
+[PRIO] api.gladia.io /openapi.json+spec (SSRF) — 64 — attack_surface 10, business_value 9, tech_exposure 9, gate_ease 10, cloud_surface 6, freshness 10
+[PRIO] npm gladia@0.1.3 — 63 — attack_surface 10, business_value 7, tech_exposure 8, gate_ease 10, cloud_surface 0, freshness 10
+
+## STEP 3 — HYPOTHESES
+[HYP] Post-auth open redirect via reflected redirect_to honored after Google OAuth signin
+class: OATH
+asset: app.gladia.io — GET /signin?redirect_to=<external>
+confidence: 57
+reasoning: Fresh probe confirms GET /signin?redirect_to=https://evil.example.com → 200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` reflects URL-encoded value with no host allowlist; CSP full-set re-captured with 0 form-action directives (grep-count=0 — gap confirmed, not oversight); /auth/google/callback → 302 → accounts.google.com with PKCE S256 + FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset REJECTED (server resets to {"url":"/"})
+evidence_needed: HTTP 302 with Location: https://evil.example.com in post-auth response after completing Google OAuth signin
+verify_steps: HUMAN_ONLY — (1) visit https://app.gladia.io/signin?redirect_to=https://evil.example.com in browser; (2) click "Sign in with Google"; (3) authenticate with valid Gladia Google SSO account; (4) capture final HTTP 302 Location header + all Set-Cookie cookies in browser devtools Network tab; (5) repeat for `//evil.example.com` (protocol-relative) and `/evil.example.com` (path-only) variants
+impact: Post-auth phishing redirect to attacker-controlled domain after SSO completion → credential phishing + session capture of authenticated user. Severity: Medium (requires valid Google SSO account + user interaction)
+testability: HUMAN_ONLY
+
+[HYP] Server-side fetch of attacker-controlled audio_url/video_url/callback_url enables SSRF
+class: SSRF
+asset: api.gladia.io — POST /v2/pre-recorded (audio_url, video_url, callback_url/CallbackConfig.url + 7 webhook delivery topics)
+confidence: 73
+reasoning: Fresh probe confirms OpenAPI 3.1 (200, 125131B/125680B, CORS `*`, 14 paths, 7 webhooks, 1 server) with audio_url/video_url as plain string (no format/scheme validation) + CallbackConfig.url/callback_url as format:uri with NO scheme allowlist/pattern/enum across 22 URI-format fields; RAG of official SDK (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct path with no host allowlist/metadata-blocklist/redirect-limit forwarded to API; /v1/models (200/530B, security:null) confirms FR/US egress; POST /v2/pre-recorded (no key) → 401 NestJS `{"message":"no gladia key provided"}` (143B)
+evidence_needed: Server-originated HTTP fetch observed on self-owned canary when audio_url/callback_url point to it; 7 webhook delivery POST attempts logged
+verify_steps: AUTH_HELPED — need authorized API key. POST https://api.gladia.io/v2/pre-recorded -H "x-gladia-key:<AUTHORIZED_KEY>" -H "Content-Type: application/json" -d '{"audio_url":"http://<self-owned-canary>/listen","encoding":"mp3","language":"en","model":"general","callback_url":"http://<self-owned-canary>/cb"}' ; observe canary access logs for server-side fetch + webhook delivery POST attempts
+impact: Cloud metadata read (169.254.169.254 IMDSv1), internal network enumeration, outbound data exfiltration via 7 webhook delivery topics. Severity: High
+testability: AUTH_HELPED
+
+[HYP] Orphaned npm package impersonates official SDK at dist-tag latest and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry — `gladia`@0.1.3 (dist-tag latest)
+confidence: 96
+reasoning: `npm view gladia` confirms latest=0.1.3, description "Official TypeScript SDK for Gladia", repo git+https://github.com/alexisbouchez/gladia.ts.git → GitHub API 404 (orphaned/irrevocable); local `npm pack` reproduces sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 across 6 independent runs; package.json "Official" vs README "Unofficial" contradiction stable; src/client.ts:306-308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` confirmed in source+compiled dist; official @gladiaio/sdk@1.1.0 uses secure POST /v2/live→token-from-response→wss?token=<uuid> flow
+evidence_needed: sha256 3b23ec7d…7f2 match + npm view dist-tags.latest=0.1.3 + GitHub API 404 on repo/user + src/client.ts key-append code + package.json "Official" vs README "Unofficial" contradiction
+verify_steps: PASSIVE — (1) `npm pack gladia@0.1.3` → `sha256sum gladia-0.1.3.tgz` → verify `3b23ec7d…7f2`; (2) `npm view gladia dist-tags.latest` → 0.1.3; (3) `curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/alexisbouchez/gladia.ts` → 404; (4) extract tarball, grep `searchParams.append\('x-gladia-key'` in package/src/client.ts
+impact: Supply-chain credential harvesting + irrevocable account takeover — any consumer running `npm install gladia` executes third-party code believing it's official; raw API key transmitted in wss:// URL query (proxy logs, Referer, browser history, server access logs); orphaned account (GitHub 404) cannot be reclaimed or fixed by maintainer. Severity: Critical (CVSS ~8.1)
+testability: PASSIVE
+
+## STEP 4 — SELF-CRITIQUE
+All 3 hypotheses pass filters: confidence ≥ 40, none on REJECTED list, concrete verify_steps present. No [PARKED] entries.
+[FINAL] 1) npm: Orphaned npm package impersonates official SDK at dist-tag latest with raw API key in wss:// URL query (OTHER, 96, PASSIVE — evidence package locked across 6 local npm pack reproductions)
+[FINAL] 2) api.gladia.io: Server-side fetch of attacker-controlled audio_url/video_url/callback_url enables SSRF (SSRF, 73, AUTH_HELPED — blocked on authorized key; spec + SDK RAG confirm design, surface frozen 100+ cycles)
+[FINAL] 3) app.gladia.io: Post-auth open redirect via reflected redirect_to honored after Google OAuth signin (OATH, 57, HUMAN_ONLY — unauth reflection + CSP gap confirmed byte-fresh; post-auth honoring sole unverified gate)
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Steps: (1) Visit URL in browser; (2) Click "Sign in with Google"; (3) Authenticate with valid Gladia Google SSO account; (4) Capture final HTTP 302 `Location` header + all `Set-Cookie` cookies in browser devtools Network tab; (5) Repeat for protocol-relative `//evil.example.com` and path-only `/evil.example.com` variants. This is the sole unverified gate for app.gladia.io — resolves whether OATH confidence rises from 57 to ~90 or drops to REJECTED. Note: npm `gladia@0.1.3` (PASSIVE, evidence locked) and api.gladia.io SSRF (AUTH_HELPED, needs authorized key) remain blocked pending this result or key access.
+
+## STEP 6 — LEARNING
+No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles; surface byte-frozen on all targets
+
+## STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 72 — public OpenAPI + SSRF-by-design (audio_url/video_url/callback_url no scheme allowlist + 7 webhook topics), but AUTH_HELPED blocks active POC; key-gated 401 intact, preflight-only x-powered-by: Express fingerprint (informational)
+[RISK] app.gladia.io: 52 — /signin redirect_to unauthenticated reflection + CSP gap (0 form-action directives), but OAuth redirect_uri FIXED+PKCE S256 blocks code/state theft and return-to cookie tamper-reset REJECTED; HUMAN_ONLY blocks verification
+[RISK] sdk: 82 — npm `gladia@0.1.3` impersonates official SDK at dist-tag latest with raw API key in wss:// URL query; orphaned GitHub account (404); SHA-256 reproducible locally (3b23ec7d…7f2 across 6 runs); supply-chain credential harvesting + irrevocable account takeover risk
