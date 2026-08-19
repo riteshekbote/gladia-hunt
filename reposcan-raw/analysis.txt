@@ -1,22 +1,15 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| TEST_OR_EXAMPLE | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in screenshot fixture |
+| ENDPOINT_LEAK | compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | Production API endpoint (in scope, public) |
+| ENDPOINT_LEAK | compare-stt/src/lib/providers/gladia.ts | 36, 49 | `"x-gladia-key": apiKey` | Documented auth header usage |
+| ENDPOINT_LEAK | Multiple files | Various | `https://api.gladia.io`, `https://app.gladia.io`, `https://www.gladia.io`, `https://gladia.io`, `https://docs.gladia.io` | All production *.gladia.io endpoints (in scope) |
+| INTERESTING | vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked from `packages/gladia` | Official Vercel AI SDK integration (gladiaio org) |
+| INTERESTING | gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` | Legitimate project metadata |
+| INTERESTING | compare-stt/next.config.ts | 38, 44 | Rewrites to `https://www.gladia.io/compare-stt-apis` | Production marketing rewrite |
 
-| Category | Files | Lines | Verdict |
-|----------|-------|-------|---------|
-| **REAL_SECRET** | 0 | 0 | None — only masked placeholder `sk-********` found |
-| **TEST_OR_EXAMPLE** | 1 | 1 | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder for screenshots) |
-| **ENDPOINT_LEAK** | 0 | 0 | All `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io` references are **public production endpoints** — not internal/dev/staging leaks |
-| **INTERESTING** | 2 | 2 | 1. `vercel-ai` repo: `@ai-sdk/gladia` (official Vercel AI SDK integration, legitimate)<br>2. `compare-stt` repo: public STT comparison tool referencing Gladia legitimately |
-
-## SHORT Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladiaflow` screenshot placeholder key | **no** | Masked `sk-********` — clearly test/fixture data |
-| `compare-stt` public API references | **no** | Legitimate public comparison tool using production endpoints |
-| `vercel-ai` `@ai-sdk/gladia` | **no** | Official Vercel-maintained Gladia integration |
-| `gladia@0.1.3` npm impersonation | **no (already tracked)** | Known orphaned impersonation — **ACCEPTED OTHER** in knowledge base (2026-08-07 onward), report-ready via bug-bounty portal |
-
-**Overall**: **NO NEW REPORTABLE FINDINGS** this scan. Delta = 0 new hits. All surfaces byte-frozen across 100+ drift-negative cycles. The sole supply-chain anomaly (`gladia@0.1.3`) remains the only live candidate, already evidence-locked and portal-ready.
+**Verdict:**
+- **REPORT_CANDIDATE: no** — 0 new hits since last scan; all 617 hits are pre-existing, benign references to production *.gladia.io endpoints, documented auth patterns, or masked placeholders. The `gladia@0.1.3` npm impersonation anomaly (personal repo, "Official" vs "Unofficial" contradiction, raw API key in WebSocket URL) remains the sole reportable supply-chain finding and is already **ACCEPTED OTHER** in the knowledge base with evidence package locked. No REAL_SECRET found.
