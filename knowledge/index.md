@@ -1234,3 +1234,10 @@
 - 2026-08-18 REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only
 - 2026-08-18 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline across 100+ cycles
 - 2026-08-18 REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical; not surface drift
+- 2026-08-19 No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
+- 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented endpoint (401 NestJS, no data leakage, properly key-gated at 401) confirmed informational only — not a reportable finding class, serves no exploitable purpose at unauthenticated layer
+- 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical; etag rotates via dynamic example timestamps, not surface drift
+- 2026-08-19 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (100+ cycles confirmed)
+- 2026-08-19 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} on tamper (tamper-reset confirmed 100+ cycles)
+- 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline across 100+ cycles
+- 2026-08-19 No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface byte-frozen on all targets.
