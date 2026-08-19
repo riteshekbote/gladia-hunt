@@ -1,39 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | — | — | No hardcoded live credentials found |
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
+# Triaged Reposcan Results - gladiaio GitHub Org
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot component |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test fixtures for vocabulary validation |
-| compare-stt/test-providers.ts | 8 | Test provider slugs array |
+## REAL_SECRET: 0 findings
+(None - no hardcoded credentials with signs of life)
 
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| *(none)* | — | All URLs reference production `*.gladia.io` domains |
+## TEST_OR_EXAMPLE: 42 findings
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| compare-stt/test-providers.ts | 8 | Provider slugs list | Test fixture |
+| compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider | Test fixture |
+| compare-stt/src/lib/providers/gladia.ts | 3 | GLADIA_BASE constant | Known public API |
+| compare-stt/src/lib/providers/gladia.ts | 36,49 | x-gladia-key header usage | Example code |
+| gladiaflow/package.json | 2 | Package name "gladiaflow" | Config |
+| gladiaflow/package-lock.json | 2,8 | Package name "gladiaflow" | Lockfile |
+| gladiaflow/src-tauri/Cargo.toml | 2,5 | Rust crate name, author | Config |
+| gladiaflow/src-tauri/tauri.*.conf.json | 3,5 | Tauri app identifiers | Config |
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | **Masked placeholder** |
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Vocabulary test fixtures | Unit tests |
+| gladiaflow/src/lib/dictationStats.ts | 11 | LocalStorage key name | Config |
+| compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog URLs | Public marketing |
+| compare-stt/src/lib/site.ts | 5,20 | Site origin constants | Public marketing |
+| compare-stt/src/components/hero-provider-logos.tsx | 7 | Mailto link | Public contact |
+| compare-stt/src/app/layout.tsx | 9,87 | Analytics, footer links | Public marketing |
+| compare-stt/src/app/terms/page.tsx | 45,72,107 | Terms page links | Public marketing |
+| compare-stt/src/app/methodology/page.tsx | 80,490,513 | GitHub/issues links | Public marketing |
+| compare-stt/src/app/about/page.tsx | 68,156,172 | Normalization repo, contact | Public marketing |
 
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/src/lib/providers/gladia.ts | 3,36,49 | Official SDK auth pattern: `headers: { "x-gladia-key": apiKey }` — correct usage |
-| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked from local `packages/gladia` — official Vercel AI SDK integration |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` — production onboarding link |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` — production URL template |
+## ENDPOINT_LEAK: 18 findings
+| File | Line | Endpoint | Status |
+|------|------|----------|--------|
+| compare-stt/next.config.ts | 38,44,51 | www.gladia.io (marketing) | Known public |
+| compare-stt/src/app/layout.tsx | 87 | www.gladia.io | Known public |
+| compare-stt/src/app/terms/page.tsx | 45,72,107 | gladia.io, www.gladia.io | Known public |
+| compare-stt/src/app/methodology/page.tsx | 80,490,513 | github.com/gladiaio, gladia.io | Known public |
+| compare-stt/src/app/about/page.tsx | 68,156,172 | github.com/gladiaio, gladia.io | Known public |
+| compare-stt/src/lib/providers/gladia.ts | 3 | api.gladia.io/v2 | **Known public API** |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | app.gladia.io/transcriptions/live/ | Known public |
+| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | docs.gladia.io | Known public |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | app.gladia.io/apikeys | Known public |
+
+## INTERESTING: 2 findings
+| File | Line | Context | Notes |
+|------|------|---------|-------|
+| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` linked from `packages/gladia` | **Official Vercel AI SDK integration** - legitimate org package, not a squat |
+| compare-stt/src/components/hero-provider-logos.tsx | 7 | `privacy@gladia.io` mailto | Public contact email |
 
 ---
 
-### VERDICT
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `gladia@0.1.3` npm impersonation (orphaned, `alexisbouchez/gladia.ts` 404, key-in-WSS-URL) | INTERESTING (known) | **no** — already ACCEPTED OTHER in knowledge base, evidence package locked, report-ready via bug-bounty portal |
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** — masked placeholder |
-| All endpoint references | ENDPOINT_LEAK | **no** — production domains only |
-| Official SDK auth pattern in compare-stt | INTERESTING | **no** — correct `x-gladia-key` header usage |
+## VERDICT
 
-**SUMMARY**: 0 new reportable findings this cycle. Delta = 0 new hit lines. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) is already triaged, reproduced, and queued for disclosure. All other hits are benign references to production Gladia domains or test fixtures.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in gladiato/screenshots/Gallery.tsx:17 | **NO** | Masked placeholder (8 asterisks), not a real key |
+| `@ai-sdk/gladia` in vercel-ai | **NO** | Official Vercel AI SDK package from gladiaio org |
+| All API endpoints (api.gladia.io, app.gladia.io, docs.gladia.io) | **NO** | All known public endpoints, already in scope baseline |
+| All marketing/gh links | **NO** | Public by design |
+| No hardcoded secrets, tokens, or credentials found | **NO** | Clean scan |
+
+**OVERALL: REPORT_CANDIDATE: no** — Zero reportable findings this cycle. The sole anomaly (`gladia@0.1.3` npm impersonation) remains stable and already tracked in knowledge base (ACCEPTED OTHER, report-ready).
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
