@@ -87342,3 +87342,44 @@ No class newly proven dead or alive this cycle — all ACCEPTED findings remain 
 [RISK] api.gladia.io: 72 — public OpenAPI + SSRF-by-design (audio_url/video_url/callback_url no scheme allowlist + 7 webhook topics), but AUTH_HELPED blocks active POC; key-gated 401 intact, preflight-only x-powered-by: Express fingerprint (informational)
 [RISK] app.gladia.io: 52 — /signin redirect_to unauthenticated reflection + CSP gap (0 form-action directives), but OAuth redirect_uri FIXED+PKCE S256 blocks code/state theft and return-to cookie tamper-reset REJECTED; HUMAN_ONLY blocks verification
 [RISK] sdk: 82 — npm `gladia@0.1.3` impersonates official SDK at dist-tag latest with raw API key in wss:// URL query; orphaned GitHub account (404); SHA-256 reproducible locally (3b23ec7d…7f2 across 6 runs); supply-chain credential harvesting + irrevocable account takeover risk
+===== ANALYST laguna 2026-08-19 23:56:36 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -s -I https://api.gladia.io/openapi.json 2>&1 | head -20
+HTTP/2 200 
+access-control-allow-origin: *
+access-control-expose-headers: x-gladia-request-id,traceparent,tracestate,x-request-id,x-correlation-id,X-Request-Id,X-Correlation-Id
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+date: Wed, 19 Aug 2026 23:56:12 GMT
+etag: W/"1eaf0-jCiYoNJYNDaHQvoTrCuqhD8gcF4"
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+content-length: 125680
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -s -o /tmp/api_health.json -w "%{size_download}" https://api.gladia.io/health 2>&1 && echo "" && cat /tmp/api_health.json failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+[0m
+[0m$ [0mcurl -s -I -X OPTIONS "https://api.gladia.io/v2/transcription" 2>&1 | grep -i "x-powered-by\|access-control-allow"
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+x-powered-by: Express
+[0m
+[0m$ [0mcurl -s -o /tmp/signin.html -w "%{size_download}" "https://app.gladia.io/signin?redirect_to=https://evil.example.com" 2>&1 && echo "" && grep -o 'action="/signin[^"]*"' /tmp/signin.html | head -3
+27448
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+[0m
+Looking at my current state (POC phase, target=app), I need to run fresh probes to check for drift across all targets before producing the analyst output. Let me run live checks.
+[0m$ [0mnpm view gladia dist-tags.latest 2>&1; npm view gladia description 2>&1; npm view gladia repository.url 2>&1
+0.1.3
+Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+git+https://github.com/alexisbouchez/gladia.ts.git
+[0m

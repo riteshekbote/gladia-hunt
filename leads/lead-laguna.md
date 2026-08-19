@@ -13790,3 +13790,4 @@ testability: PASSIVE
 [RISK] api.gladia.io: 72 — public OpenAPI + SSRF-by-design (audio_url/video_url/callback_url no scheme allowlist + 7 webhook topics), but AUTH_HELPED blocks active POC; key-gated 401 intact, preflight-only x-powered-by: Express fingerprint (informational)
 [RISK] app.gladia.io: 52 — /signin redirect_to unauthenticated reflection + CSP gap (0 form-action directives), but OAuth redirect_uri FIXED+PKCE S256 blocks code/state theft and return-to cookie tamper-reset REJECTED; HUMAN_ONLY blocks verification
 [RISK] sdk: 82 — npm `gladia@0.1.3` impersonates official SDK at dist-tag latest with raw API key in wss:// URL query; orphaned GitHub account (404); SHA-256 reproducible locally (3b23ec7d…7f2 across 6 runs); supply-chain credential harvesting + irrevocable account takeover risk
+## 2026-08-19 23:56:19 UTC [app] (model laguna)
