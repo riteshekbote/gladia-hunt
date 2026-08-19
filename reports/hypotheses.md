@@ -5824,3 +5824,13 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package locked — sha256 `3b23ec7d…7f2` reproduced across 5+ local npm pack runs, src/client.ts:306-308 key-in-URL 
 - LEARN: No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; fresh probes (200/27448B signin reflection, CSP 0 form-action
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+
+## RANKED HYPOTHESES 2026-08-19 11:20:17 UTC
+- [96] npm: npm gladia@0.1.3 orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-bigpickle.txt)
+- [96] npm: npm `gladia@0.1.3` orphaned impersonation leaks raw API key in WebSocket URL query (from reports/hypotheses-laguna.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com` (phase=POC, target=app). Click "Sign in with
+- NEXT(hypotheses-bigpickle.txt): NO_ACTION — all three findings blocked: SSRF requires AUTH_HELPED (authorized key for POC), app.gladia.io redirect_to requires HUMAN_ONLY (Google OAuth signin),
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
