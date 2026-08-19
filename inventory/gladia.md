@@ -1038,3 +1038,7 @@
 - CHANGED None — all ACCEPTED findings remain alive, all REJECTED classes remain dead; no new surface items discovered
 - NEW None — surface byte-frozen across 100+ drift-negative cycles on all targets
 - CHANGED openapi.json byte-size 125131B→125680B (fresh probe 2026-08-19) — REJECTED as surface drift: structural identity preserved (14 paths, 7 webhooks, 1 server `https://api.gladia.io`), etag rotates via 36
+
+## 2026-08-19 21:47:43 UTC
+- NEW None — surface byte-frozen across 100+ drift-negative cycles on all targets (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection + CSP 0 form-acti
+- CHANGED None — all ACCEPTED findings remain alive, all REJECTED classes remain dead; no new surface items discovered
