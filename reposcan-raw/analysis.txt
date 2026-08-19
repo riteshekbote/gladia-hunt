@@ -1,24 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Tables**
+**Classification Table**
 
-| Category | Files (representative) | Notes |
-|----------|------------------------|-------|
-| **REAL_SECRET** | *(none)* | Only masked placeholder `sk-********` found in screenshot test file |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`apiKey: "sk-********"`), various test/fixture files across repos | All credential-like strings are clearly masked placeholders or test fixtures |
-| **ENDPOINT_LEAK** | *(none actionable)* | All URLs reference public production endpoints (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io`) — no internal/staging/dev hosts |
-| **INTERESTING** | `gladia@0.1.3` npm package (orphaned impersonator, personal repo `alexisbouchez/gladia.ts`, GitHub 404, embeds raw API key in WSS URL query), `vercel-ai` official `@ai-sdk/gladia` integration | The `gladia@0.1.3` anomaly is **already ACCEPTED** in knowledge base (100+ cycles confirmed) |
+| Category | Files/Lines |
+|----------|-------------|
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder) |
+| **ENDPOINT_LEAK** | None — all URLs are production `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io` |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` — `@ai-sdk/gladia` linked as local package (official Vercel AI SDK integration)<br>`gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` — `API_KEYS_URL = "https://app.gladia.io/apikeys"` (legit onboarding flow)<br>`gladiaflow/src/components/TranscriptionHistory.tsx:19` — deep link to `app.gladia.io/transcriptions/live/{sessionId}` |
+| **REAL_SECRET** | None — no live credentials found |
 
----
+**Verdict**
 
-**Verdict List**
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `gladiaflow/src/screenshots/Gallery.tsx:17` masked key | **no** (placeholder) |
+| All domain/endpoint references | **no** (legitimate production URLs) |
+| Vercel AI SDK integration | **no** (official `@ai-sdk/gladia` package) |
+| **Overall delta** | **no** — 0 new hit lines vs previous scan; surface unchanged |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` orphaned npm impersonation | **no** (already reported) | Evidence package locked across 100+ cycles; report-ready via `gladia.io/bug-bounty-report` → Google Forms |
-| Hardcoded secrets in scanned repos | **no** | Zero real secrets — only masked `sk-********` placeholders in test/screenshots |
-| New endpoint leaks | **no** | All URLs are public production surfaces already in scope baseline |
-| Supply-chain drift (npm/PyPI/GitHub) | **no** | `npm view`/`reposcan` byte-identical to 100+ prior cycles — `@gladiaio/sdk@1.1.0`, `gladiaio-sdk@1.0.5`, 19 repos static |
-
-**Summary**: No new reportable findings this cycle. Surface remains frozen across 100+ drift-negative cycles. The sole supply-chain anomaly (`gladia@0.1.3`) is already evidence-locked and submission-pending.
+No reportable findings in this delta. The previously tracked `gladia@0.1.3` npm impersonation (orphaned personal repo, key-in-WebSocket-URL) remains the sole supply-chain candidate, already ACCEPTED and report-ready per knowledge base.
