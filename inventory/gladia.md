@@ -966,3 +966,5 @@
 - CHANGED npm `gladia@0.1.3` evidence package: 5+ independent local `npm pack` reproductions confirm sha256 `3b23ec7d…7f2` + shasum `cc96f84a…`, src/client.ts:306-308 (`searchParams.append('x-gladia-key', apiKe
 
 ## 2026-08-19 07:02:14 UTC
+
+## 2026-08-19 07:51:02 UTC
