@@ -13592,3 +13592,14 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 5+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproducibly stable, GitHub user+repo 404 (orphaned/irrevocable), src/client.ts:306-308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` confirmed in source+compiled dist — PASSIVE complete, report-ready
 [LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface byte-frozen on all targets.
 [RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint confirmed; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+## 2026-08-19 16:31:25 UTC [app] (model nemotron3)
+[NEW] None — surface byte-frozen across 100+ drift-negative cycles on all targets (api.gladia.io openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B reflection + CSP 0 form-action directives, POST 401/144B NestJS, npm latest=0.1.3 sha256 3b23ec7d…7f2 reproduced via 5+ local npm pack runs)
+[CHANGED] None — all ACCEPTED findings remain alive, all REJECTED classes remain dead; no new surface items discovered
+[PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
+[PRIO] api.gladia.io: 7.25 attack_surface=8 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=7 freshness=8
+[PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK for Gladia" but repo is alexisbouchez/gladia.ts (personal, 404); maintainer softwarecitadel@gmail.com; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live query param via searchParams.append; diverges from official @gladiaio/sdk POST /v2/live → token flow; sha256 3b23ec7d7a763abc04c52db232d157a
