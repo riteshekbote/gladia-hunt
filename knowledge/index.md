@@ -1287,3 +1287,4 @@
 - 2026-08-19 No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; fresh probes (200/27448B signin reflection, CSP 0 form-action grep-confirmed, sha256 `3b23ec7d…7f2` reproduced) confirm all ACCEPTED findings alive
 - 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented endpoint returns 401 NestJS with no data leakage, properly key-gated, no bypass — informational only, not a reportable finding class (90+ cycles)
 - 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps across 100+ cycles, structural (examples-stripped) hash is the stable baseline
+- 2026-08-19 REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint returns 401 NestJS with no data leakage, properly gated — informational only, not a reportable finding class
