@@ -1917,3 +1917,11 @@ https://api.gladia.io/v2/pre-recorded -> ERR The read operation timed out
 ## 2026-08-19 20:43:09 UTC
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
 https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-19 21:20:21 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io` -> ERR <urlopen error [Errno -2] Name or service not know
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
