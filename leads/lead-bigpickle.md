@@ -13085,3 +13085,4 @@ evidence_needed: post-auth 302 Location to external host after successful signin
 verify_steps: HUMAN_ONLY — complete signin with ?redirect_to=https://evil.example.com plus //evil and app.gladia.io.evil variants; capture Location + Set-Cookie
 impact: post-auth phishing redirect → session/credential capture. Severity: Medium
 testability: HUMAN_ONLY
+## 2026-08-19 16:59:36 UTC [api] (model bigpickle)
