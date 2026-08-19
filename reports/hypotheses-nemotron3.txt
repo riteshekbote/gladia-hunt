@@ -1,4 +1,4 @@
-## 2026-08-19 05:59:13 UTC [app] (model nemotron3)
+## 2026-08-19 07:01:02 UTC [app] (model nemotron3)
 [PRIO] npm registry (gladia@0.1.3): 8.25 attack_surface=9 business_value=8 tech_exposure=8 gate_ease=10 cloud_surface=3 freshness=10
 [PRIO] api.gladia.io: 7.25 attack_surface=8 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=7 freshness=8
 [PRIO] app.gladia.io: 6.85 attack_surface=7 business_value=8 tech_exposure=6 gate_ease=6 cloud_surface=6 freshness=7
@@ -20,15 +20,6 @@ evidence_needed: Confirm server-side validation of redirect_to against allowlist
 verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final HTTP response after successful Google authentication
 impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
 testability: HUMAN_ONLY
-[HYP] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec
-class: SSRF
-asset: api.gladia.io
-confidence: 35
-reasoning: OpenAPI spec exposes audio_url/video_url as plain string and CallbackConfig.url as format:uri with no scheme allowlist on /v2/pre-recorded and /v2/transcription endpoints; /v1/models confirms FR/US egress targets; all v2 endpoints key-gated (401 NestJS HttpException); SSRF surface exists by design but requires valid API key
-evidence_needed: Valid API key to test if arbitrary internal URLs (metadata services, localhost) are fetched via audio_url/callback_url
-verify_steps: AUTH_HELPED: POST /v2/pre-recorded with audio_url=http://169.254.169.254/latest/meta-data/ and valid x-gladia-key header; observe if metadata fetched
-impact: Server-side request forgery to internal cloud metadata / private networks; severity High (if key obtained)
-testability: AUTH_HELPED
 [PARKED] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec: confidence 35 < 40 threshold; AUTH_HELPED verify step requires valid API key not available in passive phase
 [FINAL] 1) Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (OTHER, 96, PASSIVE)
 [FINAL] 2) Post-auth open redirect via reflected redirect_to on signin form action (OATH, 57, HUMAN_ONLY)
