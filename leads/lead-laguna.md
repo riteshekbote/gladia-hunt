@@ -13496,3 +13496,4 @@ impact: Post-auth open redirect to arbitrary domain → credential phishing + se
 testability: HUMAN_ONLY
 [PARKED] None — all 3 remaining hypotheses pass confidence ≥ 40, none on REJECTED class list, all have concrete verify_steps.
 [FINAL]
+## 2026-08-19 20:42:35 UTC [app] (model laguna)
