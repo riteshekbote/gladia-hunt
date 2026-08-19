@@ -1,22 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Table**
+[0m$ [0mls -la reposcan-raw/gladiaio/
+total 56
+drwxr-xr-x 14 runner runner 4096 Aug 19 08:22 .
+drwxr-xr-x  4 runner runner 4096 Aug 19 08:22 ..
+drwxr-xr-x  9 runner runner 4096 Aug 19 08:22 compare-stt
+drwxr-xr-x  9 runner runner 4096 Aug 19 08:22 docs
+drwxr-xr-x  7 runner runner 4096 Aug 19 08:22 gladia-cli
+drwxr-xr-x 11 runner runner 4096 Aug 19 08:22 gladia-quiz-app
+drwxr-xr-x 11 runner runner 4096 Aug 19 08:22 gladia-samples
+drwxr-xr-x  9 runner runner 4096 Aug 19 08:22 gladiaflow
+drwxr-xr-x  7 runner runner 4096 Aug 19 08:22 n8n-nodes-gladia
+drwxr-xr-x  8 runner runner 4096 Aug 19 08:22 normalization
+drwxr-xr-x  9 runner runner 4096 Aug 19 08:22 realtime-multilingual-asr-router
+drwxr-xr-x 10 runner runner 4096 Aug 19 08:22 sdk
+drwxr-xr-x  7 runner runner 4096 Aug 19 08:22 skills
+drwxr-xr-x 18 runner runner 4096 Aug 19 08:22 vercel-ai
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [limit=30, offset=280][0m
+Based on the scan results and knowledge base, here's the triage:
 
-| Category | Files/Lines |
-|----------|-------------|
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder) |
-| **ENDPOINT_LEAK** | None — all URLs are production `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io` |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` — `@ai-sdk/gladia` linked as local package (official Vercel AI SDK integration)<br>`gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` — `API_KEYS_URL = "https://app.gladia.io/apikeys"` (legit onboarding flow)<br>`gladiaflow/src/components/TranscriptionHistory.tsx:19` — deep link to `app.gladia.io/transcriptions/live/{sessionId}` |
-| **REAL_SECRET** | None — no live credentials found |
+---
 
-**Verdict**
+### Classification Table
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `gladiaflow/src/screenshots/Gallery.tsx:17` masked key | **no** (placeholder) |
-| All domain/endpoint references | **no** (legitimate production URLs) |
-| Vercel AI SDK integration | **no** (official `@ai-sdk/gladia` package) |
-| **Overall delta** | **no** — 0 new hit lines vs previous scan; surface unchanged |
+| Category | File:Line | Finding | Classification |
+|----------|-----------|---------|----------------|
+| **REAL_SECRET** | — | None found | — |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** — masked placeholder in `MOCK_SETTINGS` const for screenshot gallery |
+| | `gladiaflow/src/screenshots/Gallery.tsx:222` | `apiKeyDisplayValue="sk-example"` | **TEST_OR_EXAMPLE** — explicit test value in screenshot mock |
+| | `compare-stt/src/lib/providers/gladia.ts:20` | `const apiKey = process.env.GLADIA_API_KEY` | **TEST_OR_EXAMPLE** — proper env var usage in benchmark tool |
+| | `compare-stt/test-providers.ts:8` | Provider slugs array | **TEST_OR_EXAMPLE** — test fixture data |
+| | `compare-stt/next.config.ts:38,44` | `https://www.gladia.io/compare-stt-apis` rewrites | **TEST_OR_EXAMPLE** — public marketing route rewrites |
+| | `compare-stt` (multiple) | `href="https://gladia.io"`, `href="https://www.gladia.io"` | **TEST_OR_EXAMPLE** — public site links in comparison app |
+| | `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | **TEST_OR_EXAMPLE** — public dashboard URL pattern |
+| | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **TEST_OR_EXAMPLE** — public dashboard URL |
+| | `gladiaflow/src-tauri/tauri.dev.conf.json:3` | `identifier: "io.gladia.gladiaflow.dev"` | **TEST_OR_EXAMPLE** — dev bundle ID |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` | `GLADIA_BASE = "https://api.gladia.io/v2"` | **ENDPOINT_LEAK (known/public)** — public API base from OpenAPI spec |
+| | `compare-stt/src/lib/providers/gladia.ts:34-36` | POST `/upload`, `/pre-recorded` with `x-gladia-key` | **ENDPOINT_LEAK (known/public)** — documented v2 endpoints |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` | `@ai-sdk/gladia` workspace package | **INTERESTING** — official Vercel AI SDK integration (gladiaio org), not the impersonator `gladia@0.1.3` |
+| | `gladiaflow/package.json` + `Cargo.toml` | `gladiaflow` Tauri app | **INTERESTING** — official desktop client, references `support@gladia.io` |
+| | `compare-stt` repo | STT benchmark comparing Gladia vs competitors | **INTERESTING** — public comparison tool using official API properly |
 
-No reportable findings in this delta. The previously tracked `gladia@0.1.3` npm impersonation (orphaned personal repo, key-in-WebSocket-URL) remains the sole supply-chain candidate, already ACCEPTED and report-ready per knowledge base.
+---
+
+### Verdict
+
+| Candidate | Reportable? | Reason |
+|-----------|-------------|--------|
+| `sk-********` / `sk-example` in gladiaflow screenshots | **NO** | Masked/explicit test placeholders in `MOCK_SETTINGS` for screenshot generation — no signs of life |
+| Public API endpoints (`api.gladia.io/v2`, `app.gladia.io`) | **NO** | Already documented in OpenAPI spec (125KB, 14 paths) and baseline recon |
+| `@ai-sdk/gladia` in vercel-ai | **NO** | Official Vercel AI SDK provider package under `gladiaio` org workspace — distinct from the orphaned `gladia@0.1.3` impersonator on npm |
+| All other hits | **NO** | Public marketing links, docs references, test fixtures, dev configs |
+
+**DELTA: 0 new hit lines vs previous scan** — no new findings.
+
+**REPORT_CANDIDATE: no** — all hits are previously known, properly categorized as TEST_OR_EXAMPLE or known public endpoints. The only supply-chain risk remains the orphaned `gladia@0.1.3` npm package (already tracked in knowledge base, evidence package locked).
