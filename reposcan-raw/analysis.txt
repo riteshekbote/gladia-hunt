@@ -1,22 +1,25 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+### Classification Table
 
-| Category | Files | Lines | Notes |
-|----------|-------|-------|-------|
-| **REAL_SECRET** | 0 | 0 | No hardcoded credentials with signs of life |
-| **TEST_OR_EXAMPLE** | 1 | 1 | `gladiaflow/src/screenshots/Gallery.tsx:17` — `sk-********` masked placeholder in screenshot demo |
-| **ENDPOINT_LEAK** | 0 | 0 | All `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io` refs are official production endpoints |
-| **INTERESTING** | 3 | 3 | 1. `vercel-ai/pnpm-lock.yaml` — `@ai-sdk/gladia` linked to local `packages/gladia` (official Vercel AI SDK integration)<br>2. `compare-stt/src/lib/providers/gladia.ts` — uses official `x-gladia-key` header pattern correctly<br>3. `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` — points to official `https://app.gladia.io/apikeys` |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | compare-stt: test-providers.ts:8, prisma/seed.ts:10, layout.tsx:9, tracking/gladia-analytics.tsx:5, lib/tracking.ts:2, lib/providers.ts:10, lib/transcribe.ts:2,25,148, lib/vocabularyEditor.test.ts:21,27,34, lib/dictationStats.ts:11, lib/customVocabulary.ts:8,9; gladiaflow: package.json, package-lock.json(x2), Cargo.toml(x2), tauri.*.conf.json(x2), main.tsx:4, App.tsx:264,274,284, screenshots/main.tsx:3 |
+| **ENDPOINT_LEAK** | compare-stt: next.config.ts:38,44 (rewrite destinations), layout.tsx:87, terms/page.tsx:45,72,107, methodology/page.tsx:80,490,513, about/page.tsx:68,156,172, hero-provider-logos.tsx:7, arena-page.tsx:270,341,427, seo/leaderboard-dataset-schema.tsx:28, lib/leaderboard-articles.ts:37,46, lib/site.ts:5,20, lib/providers/gladia.ts:3; gladiaflow: Cargo.toml:5 (support@gladia.io), TranscriptionHistory.tsx:19, CustomVocabularyView.tsx:14, ApiKeyOnboardingView.tsx:4 |
+| **INTERESTING** | compare-stt: next.config.ts:51 (PostHog reverse proxy comment), lib/providers/gladia.ts:36,49 (x-gladia-key header usage); gladiaflow: screenshots/Gallery.tsx:17 (masked `sk-********` placeholder); vercel-ai: pnpm-lock.yaml:289 (@ai-sdk/gladia official integration) |
 
-## Verdict
+---
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-********` in Gallery.tsx screenshot | **no** | Masked placeholder (asterisks), not a real secret |
-| `@ai-sdk/gladia` in vercel-ai | **no** | Official Vercel AI SDK integration (Gladia org package) |
-| Gladia API endpoint references | **no** | All point to official production hosts (`api.gladia.io`, `app.gladia.io`) |
-| `gladia` npm package (0.1.3) impersonation | **no (known)** | Already tracked as **ACCEPTED OTHER** — orphaned impersonation (personal repo `alexisbouchez/gladia.ts`, user 404, `package.json` "Official" vs README "Unofficial", key-in-WebSocket-URL). Evidence package locked, report-ready via bug-bounty portal. |
+### Verdict List
 
-**DELTA RESULT**: 0 new reportable findings. Surface frozen across 100+ cycles. The sole supply-chain anomaly (`gladia@0.1.3`) remains the only live candidate, already validated and submission-ready.
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `gladia@0.1.3` npm package (orphaned impersonation, personal repo, raw API key in WSS URL) | INTERESTING (pre-known) | **yes** — already ACCEPTED in RAG, report-ready via bug-bounty portal |
+| `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` | INTERESTING | **no** — masked placeholder, not a live secret |
+| Public URLs/endpoints in code (api.gladia.io, app.gladia.io, www.gladia.io, docs.gladia.io, github.com/gladiaio/*) | ENDPOINT_LEAK | **no** — all public, in-scope, documented surfaces |
+| `@ai-sdk/gladia` in vercel-ai monorepo | INTERESTING | **no** — official Vercel AI SDK integration from gladiaio org |
+| PostHog reverse proxy comment | INTERESTING | **no** — infra comment, no secret/leak |
+
+**Summary**: No new REAL_SECRETs found. The sole reportable candidate remains the pre-existing `gladia@0.1.3` orphaned impersonation package (evidence package locked, PASSIVE complete). All other hits are test fixtures, public endpoints, or known configurations.
