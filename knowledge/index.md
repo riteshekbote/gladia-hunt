@@ -1319,3 +1319,6 @@
 - 2026-08-19 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` on tamper (path-validated, tamper-reset confirmed 100+ cycles).
 - 2026-08-19 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (100+ cycles confirmed)
 - 2026-08-19 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint — confirms 15th endpoint outside OpenAPI's 14-path spec; informational only, properly gated
+- 2026-08-19 ACCEPTED OTHER @ npm gladia@0.1.3: evidence package LOCKED across 5+ independent local npm pack reproductions — sha256 3b23ec7d…7f2 + shasum cc96f84a… reproducibly stable, GitHub user+repo 404 (orphaned/irrevocable), src/client.ts:306-308 key-in-URL confirmed — PASSIVE complete, report-ready
+- 2026-08-19 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_config.url format:uri/no scheme allowlist; 7 webhook delivery paths; FR/US egress; key sole gate — SSRF-by-design persists, AUTH_HELPED
+- 2026-08-19 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 CSP form-action directives; OAuth redirect_uri FIXED+PKCE S256; return-to cookie tamper-reset REJECTED — post-auth honoring sole unverified gate (HUMAN_ONLY)
