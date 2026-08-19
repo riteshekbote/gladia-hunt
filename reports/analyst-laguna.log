@@ -83789,3 +83789,59 @@ All 3 hypotheses pass: confidence ≥ 40, class not on REJECTED list, concrete v
 [RISK] api.gladia.io: 75 | OpenAPI 3.1 spec publicly exposed (CORS `*`, 14 paths, 7 webhooks, frozen 100+ cycles); SSRF-by-design persists (audio_url/video_url/callback_config.url no scheme allowlist, FR/US egress, 7 webhook delivery paths); all v2 endpoints uniformly key-gated (401 NestJS); /v2/live/health undocumented but properly gated at 401; preflight-only x-powered-by:Express fingerprint — core SSRF gated only by API key (AUTH_HELPED)
 [RISK] app.gladia.io: 60 | /signin redirect_to unauthenticated form-action reflection confirmed byte-fresh (200/27448B); CSP 0 form-action directives (gap, not oversight); OAuth redirect_uri FIXED+PKCE S256 (REJECTED for code/state theft); return-to cookie tamper-reset REJECTED; /auth/google/callback 302→accounts.google.com full PKCE initiation confirmed; server-side 302 gate intact on /apikeys,/transcriptions,/settings; post-auth honoring sole unverified gate (HUMAN_ONLY)
 [RISK] sdk: 85 | Official SDKs @gladiaio/sdk@1.1.0 + gladiaio-sdk@1.0.5 static/clean; third-party `gladia@0.1.3` orphaned impersonation at dist-tag `latest` (sha256 `3b23ec7d…7f2` reproduced 5+× locally, GitHub 404) with raw API key in wss:// URL query (src/client.ts:306-308); supply-chain credential harvesting vector; report-ready
+===== ANALYST laguna 2026-08-19 14:04:02 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
+total 948
+drwxr-xr-x 11 runner runner   4096 Aug 19 14:02 .
+drwxr-xr-x  3 runner runner   4096 Aug 19 14:02 ..
+drwxr-xr-x  7 runner runner   4096 Aug 19 14:02 .git
+drwxr-xr-x  3 runner runner   4096 Aug 19 14:02 .github
+-rw-r--r--  1 runner runner    156 Aug 19 14:02 README.md
+-rw-r--r--  1 runner runner     39 Aug 19 14:02 analyst-out.txt
+-rw-r--r--  1 runner runner 375863 Aug 19 14:02 analyst-prompt.txt
+-rw-r--r--  1 runner runner 372722 Aug 19 14:02 ctx.txt
+drwxr-xr-x  2 runner runner   4096 Aug 19 14:02 inventory
+drwxr-xr-x  2 runner runner   4096 Aug 19 14:02 knowledge
+drwxr-xr-x  2 runner runner  36864 Aug 19 14:02 leads
+-rw-r--r--  1 runner runner  92386 Aug 19 14:02 probe-results.md
+drwxr-xr-x  2 runner runner   4096 Aug 19 14:02 reports
+drwxr-xr-x  4 runner runner   4096 Aug 19 14:02 reposcan-raw
+-rw-r--r--  1 runner runner   2187 Aug 19 14:02 scope.yml
+drwxr-xr-x  2 runner runner   4096 Aug 19 14:02 scripts
+-rw-r--r--  1 runner runner     33 Aug 19 14:02 state_bigpickle.json
+-rw-r--r--  1 runner runner     33 Aug 19 14:02 state_laguna.json
+-rw-r--r--  1 runner runner     33 Aug 19 14:02 state_ling3.json
+-rw-r--r--  1 runner runner     33 Aug 19 14:02 state_longcat.json
+-rw-r--r--  1 runner runner     33 Aug 19 14:02 state_nemotron3.json
+drwxr-xr-x  2 runner runner  20480 Aug 19 14:02 triage
+[0m
+[0m✱ [0mGlob "**/*"[90m in . · 100 matches[0m
+[0m
+[0m$ [0mecho "=== api.gladia.io /openapi.json ===" && curl -s -o /tmp/openapi.json -w "HTTP:%{http_code} SIZE:%{size_download} ETAG:%{etag} CORS:%header{C Access-Control-Allow-Origin}\n" "https://api.gladia.io/openapi.json" 2>/dev/null; sha256sum /tmp/openapi.json 2>/dev/null; echo "=== /health ===" && curl -s -w "HTTP:%{http_code} SIZE:%{size_download}\n" "https://api.gladia.io/health"; echo "=== /v1/models ===" && curl -s -w "\nHTTP:%{http_code} SIZE:%{size_download}\n" "https://api.gladia.io/v1/models" | tail -2
+=== api.gladia.io /openapi.json ===
+HTTP:200 SIZE:125680 ETAG: CORS:
+f233be257bd328b4dae33414a47f2f8893bcd7a7984223143ed3192e4dcfbf39  /tmp/openapi.json
+=== /health ===
+{"health":"OK"}HTTP:200 SIZE:15
+=== /v1/models ===
+{"data":[{"id":"gladia/solaria-1","name":"Gladia: Solaria 1","created":1730000000,"input_modalities":["audio"],"output_modalities":["text","transcription"],"context_length":0,"max_output_length":0,"pricing":{"prompt":"0","completion":"0","request":"0.000055"},"supported_sampling_parameters":[],"supported_features":[],"description":"Enterprise speech-to-text model supporting 100+ languages with sub-300ms latency. Async and real-time transcription.","is_ready":true,"datacenters":[{"country_code":"FR"},{"country_code":"US"}]}]}
+HTTP:200 SIZE:530
+[0m
+[0m$ [0mecho "=== app.gladia.io /signin redirect_to reflection ===" && curl -s -w "\nHTTP:%{http_code} SIZE:%{size_download}\n" -o /tmp/signin.html "https://app.gladia.io/signin?redirect_to=https://evil.example.com" -H "User-Agent:Mozilla/5.0"; grep -o 'form action="[^"]*"' /tmp/signin.html | head -1; echo "=== /dashboard ===" && curl -s -o /dev/null -w "HTTP:%{http_code} SIZE:%{size_download}\n" "https://app.gladia.io/dashboard"; echo "=== OPTIONS preflight on /v2/pre-recorded ===" && curl -s -o /dev/null -D /tmp/options_headers.txt -X OPTIONS "https://api.gladia.io/v2/pre-recorded" -H "Access-Control-Request-Headers: x-gladia-key"; grep -i "x-powered-by\|access-control-allow-origin\|access-control-allow-headers" /tmp/options_headers.txt | tr -d '\r'
+=== app.gladia.io /signin redirect_to reflection ===
+
+HTTP:200 SIZE:27448
+=== /dashboard ===
+HTTP:200 SIZE:12229
+=== OPTIONS preflight on /v2/pre-recorded ===
+access-control-allow-headers: x-gladia-key
+access-control-allow-origin: *
+x-powered-by: Express
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mecho "=== npm gladia@0.1.3 metadata ===" && npm view gladia dist-tags.latest version description repository.url 2>/dev/null 2>&1 | head -5; echo "---shasum---"; npm view gladia@0.1.3 dist.shasum 2>/dev/null 2>&1; echo "=== npm pack reproduction ===" && cd /tmp && npm pack gladia@0.1.3 2>/dev/null && sha256sum gladia-*.tgz; echo "=== source check ===" && tar xzf gladia-*.tgz -C /tmp/gladia-pkg 2>/dev/null || (mkdir -p /tmp/gladia-pkg && tar xzf gladia-*.tgz -C /tmp/gladia-pkg 2>/dev/null); grep -n "searchParams.append\|new WebSocket\|x-gladia-key" /tmp/gladia-pkg/package/src/client.ts 2>/dev/null | head -10 failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+I'm operating as the ANALYST for the Gladia bug bounty program. Let me verify the current surface state by probing the top-priority targets to detect any drift.
