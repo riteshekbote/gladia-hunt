@@ -6448,3 +6448,8 @@
 - LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, not in OpenAPI 14-path spec) confirmed informational only — pro
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 6+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` r
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+
+## RANKED HYPOTHESES 2026-08-20 08:39:52 UTC
+- [96] npm: Orphaned npm gladia@0.1.3 leaks raw API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated via Google SSO
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
