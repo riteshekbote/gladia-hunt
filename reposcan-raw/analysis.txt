@@ -1,78 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | - | - | No hardcoded live credentials found |
+| Category | File | Line | Hit | Classification |
+|----------|------|------|-----|----------------|
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Mock API key in screenshot gallery for UI demos |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 222 | `apiKeyDisplayValue="sk-example"` | Mock API key in screenshot gallery for UI demos |
+| **TEST_OR_EXAMPLE** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Legitimate production URL reference |
+| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Production marketing redirect (legitimate) |
+| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `https://api.gladia.io/v2`, `x-gladia-key` header | Official API endpoint + auth header (legitimate) |
+| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289-291, 2368 | `@ai-sdk/gladia` linked to local packages/gladia | Official Vercel AI SDK integration for Gladia (legitimate) |
+| **INTERESTING** | gladiaflow/package.json / Cargo.toml | - | `name: "gladiaflow"`, authors `Gladia <support@gladia.io>` | Official Gladia desktop app (Tauri/Rust) |
+| **INTERESTING** | compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN = "https://www.gladia.io"` | Production site origin config (legitimate) |
+| **INTERESTING** | compare-stt/src/lib/providers.ts | 10 | `slug: "gladia", model: "Solaria-3"` | Provider config for comparison site (legitimate) |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Test provider slugs array |
-| compare-stt/prisma/seed.ts | 10 | Seed data for Gladia provider |
-| compare-stt/src/lib/transcribe.ts | 2,148 | Import/provider name reference |
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` (masked placeholder) |
-| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test expectations |
-| gladiaflow/src/lib/customVocabulary.ts | 8,9 | Example vocabulary terms |
-| gladiaflow/src/lib/dictationStats.ts | 11 | Storage key constant |
-| gladiaflow/package.json, package-lock.json, Cargo.toml, tauri*.json | - | Manifest metadata |
-| gladiaflow/src/App.tsx | 264,274,284 | Tauri invoke calls |
-| compare-stt/src/app/layout.tsx | 9 | Component import |
+### Verdict
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint/Reference |
-|------|------|-------------------|
-| compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` rewrite destinations |
-| compare-stt/src/app/layout.tsx | 87 | `https://www.gladia.io` link |
-| compare-stt/src/app/terms/page.tsx | 45,72,107 | gladia.io terms/links |
-| compare-stt/src/app/methodology/page.tsx | 80,490,513 | GitHub repo, gladia.io, issues links |
-| compare-stt/src/app/about/page.tsx | 68,156,172 | Normalization repo, gladia.io, mailto:privacy@gladia.io |
-| compare-stt/src/components/hero-provider-logos.tsx | 7 | mailto:privacy@gladia.io |
-| compare-stt/src/components/arena-page.tsx | 270,341,427 | Normalization repo links |
-| compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | `url: "https://gladia.io"` |
-| compare-stt/src/lib/leaderboard-articles.ts | 37,46 | Blog article URLs |
-| compare-stt/src/lib/site.ts | 5,20 | `NEXT_PUBLIC_SITE_ORIGIN`, `CITATION_DOMAIN` config |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` |
-| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Masked placeholder in screenshot/demo mock data (`MOCK_SETTINGS` constant) |
+| `sk-example` in Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Explicitly mock value in screenshot gallery for UI demos |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK integration (Gladia-maintained) |
+| All api.gladia.io / app.gladia.io / www.gladia.io refs | ENDPOINT_LEAK | **NO** | Legitimate production endpoints |
+| All github.com/gladiaio/* refs | ENDPOINT_LEAK | **NO** | Legitimate official repos |
+| Package names (gladiaflow, @gladiaio/sdk) | INTERESTING | **NO** | Official packages |
 
-#### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| compare-stt/next.config.ts | 51 | PostHog reverse proxy comment (third-party tracking) |
-| compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | GTM tag stack reference |
-| compare-stt/src/lib/tracking.ts | 2 | Tracking IDs sync comment |
-| compare-stt/src/lib/providers.ts | 10 | Provider config with `x-gladia-key` header |
-| compare-stt/src/lib/transcribe.ts | 25,49 | `x-gladia-key` auth header usage |
-| compare-stt/src/lib/providers/gladia.ts | 36,49 | `x-gladia-key` header in requests |
-| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `@ai-sdk/gladia` official Vercel AI SDK integration (linked package) |
-| vercel-ai/tsconfig.json | 70 | Path alias to `packages/gladia` |
-
----
-
-### Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `gladiaflow/src/screenshots/Gallery.tsx:17` masked `sk-********` | TEST_OR_EXAMPLE | **no** — placeholder only |
-| `@ai-sdk/gladia` in vercel-ai (official Vercel AI SDK integration) | INTERESTING | **no** — legitimate org-owned integration |
-| All `x-gladia-key` header usages | INTERESTING | **no** — expected auth pattern, documented in OpenAPI |
-| All gladia.io/app.gladia.io/api.gladia.io URL references | ENDPOINT_LEAK | **no** — public production endpoints |
-| mailto:privacy@gladia.io / support@gladia.io | ENDPOINT_LEAK | **no** — public contact channels |
-| **Delta since last scan** | — | **no** — 0 new hit lines |
-
----
-
-### Summary
-**No reportable findings this cycle.** The scan surface is stable (0 delta). All hits are:
-- Test fixtures / example code
-- Public production endpoint references (expected)
-- Legitimate official integrations (`@ai-sdk/gladia` in vercel-ai)
-- Known auth header patterns (`x-gladia-key`)
-
-The previously tracked `gladia@0.1.3` npm impersonation package (orphaned personal repo, "Official" vs "Unofficial" contradiction, raw API key in WebSocket URL) remains the sole supply-chain anomaly — already ACCEPTED and evidence-locked in knowledge base. No new secrets, no new endpoints, no drift.
+**SUMMARY: 0 reportable findings.** All hits are legitimate production references, official package integrations, or test/mock data. The `sk-********` and `sk-example` values are explicitly in a `MOCK_SETTINGS` constant within a screenshot gallery component for UI documentation purposes.
