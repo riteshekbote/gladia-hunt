@@ -1,30 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-### Classification Tables
+## Classification Table
 
-| Category | File | Line | Hit | Classification |
-|----------|------|------|-----|----------------|
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Mock API key in screenshot gallery for UI demos |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 222 | `apiKeyDisplayValue="sk-example"` | Mock API key in screenshot gallery for UI demos |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Legitimate production URL reference |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Production marketing redirect (legitimate) |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | `https://api.gladia.io/v2`, `x-gladia-key` header | Official API endpoint + auth header (legitimate) |
-| **INTERESTING** | vercel-ai/pnpm-lock.yaml | 289-291, 2368 | `@ai-sdk/gladia` linked to local packages/gladia | Official Vercel AI SDK integration for Gladia (legitimate) |
-| **INTERESTING** | gladiaflow/package.json / Cargo.toml | - | `name: "gladiaflow"`, authors `Gladia <support@gladia.io>` | Official Gladia desktop app (Tauri/Rust) |
-| **INTERESTING** | compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN = "https://www.gladia.io"` | Production site origin config (legitimate) |
-| **INTERESTING** | compare-stt/src/lib/providers.ts | 10 | `slug: "gladia", model: "Solaria-3"` | Provider config for comparison site (legitimate) |
+| Category | Files | Count | Notes |
+|----------|-------|-------|-------|
+| **REAL_SECRET** | *(none)* | 0 | No hardcoded credentials with signs of life |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | 1 | Masked placeholder `sk-********` in screenshot component |
+| **ENDPOINT_LEAK** | Multiple | ~600 | All are **public** endpoints: `api.gladia.io`, `app.gladia.io`, `docs.gladia.io`, `www.gladia.io`, `github.com/gladiaio/*` — no internal/staging URLs |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291,2368` | 1 | `@ai-sdk/gladia` linked as local package — official Vercel AI SDK integration in gladiaio org (legitimate) |
 
-### Verdict
+## Verdict
 
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Masked placeholder in screenshot/demo mock data (`MOCK_SETTINGS` constant) |
-| `sk-example` in Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Explicitly mock value in screenshot gallery for UI demos |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK integration (Gladia-maintained) |
-| All api.gladia.io / app.gladia.io / www.gladia.io refs | ENDPOINT_LEAK | **NO** | Legitimate production endpoints |
-| All github.com/gladiaio/* refs | ENDPOINT_LEAK | **NO** | Legitimate official repos |
-| Package names (gladiaflow, @gladiaio/sdk) | INTERESTING | **NO** | Official packages |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` | **no** | Masked placeholder in test/screenshot fixture |
+| Public API endpoints (`api.gladia.io`, `app.gladia.io`, etc.) | **no** | Known in-scope production surfaces |
+| `@ai-sdk/gladia` in vercel-ai monorepo | **no** | Official integration, Gladia-owned package |
+| `gladia@0.1.3` npm impersonation | **no** | Already **ACCEPTED** in knowledge base (orphaned personal repo, dist-tag latest persists) — not new |
 
-**SUMMARY: 0 reportable findings.** All hits are legitimate production references, official package integrations, or test/mock data. The `sk-********` and `sk-example` values are explicitly in a `MOCK_SETTINGS` constant within a screenshot gallery component for UI documentation purposes.
+**Overall: No new reportable findings this cycle.** Surface remains frozen across 100+ drift-negative cycles. The only live supply-chain anomaly is the pre-existing `gladia@0.1.3` orphaned impersonation (evidence package locked, report-ready).
