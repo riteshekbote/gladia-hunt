@@ -1,118 +1,190 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# TRIAGE RESULTS - gladiaio org static scan (2026-08-20)
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
 
-## CLASSIFICATION TABLES
-
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| (none) | - | - | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot demo |
-| compare-stt/src/lib/providers/gladia.ts | 36,49 | Test provider implementation using `x-gladia-key` header pattern |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | PUBLIC API (documented base URL) |
-| compare-stt/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | PUBLIC dashboard route |
-| compare-stt/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | PUBLIC dashboard route |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | PUBLIC dashboard route |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | PUBLIC dashboard route |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| (npm registry) | - | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` — **ownership anomaly, previously ACCEPTED 2026-08-07** |
-| vercel-ai/pnpm-lock.yaml | 289,291 | `@ai-sdk/gladia` linked as local package — official Vercel AI SDK integration (in-scope, expected) |
-| compare-stt/next.config.ts | 38,44 | Rewrites to `https://www.gladia.io/compare-stt-apis` — marketing subdomain proxy (expected) |
-
-## VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm package impersonation | INTERESTING (supply-chain) | **NO** (duplicate) | Already ACCEPTED 2026-08-07 as orphaned impersonation; evidence package locked; no new signal this delta |
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | NO | Masked placeholder in screenshot fixture |
-| Public API/dashboard URLs in source | ENDPOINT_LEAK | NO | All are documented public endpoints (`api.gladia.io`, `app.gladia.io`) |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | NO | Official Vercel AI SDK provider package (gladiaio org member) |
-
-## SUMMARY
-- **Delta**: 0 new hit lines vs previous scan
-- **New reportable findings**: 0
-- **Previously accepted findings unchanged**: 
-  - npm `gladia@0.1.3` orphaned impersonation (report-ready, evidence locked)
-  - api.gladia.io NO_DRIFT across 100+ cycles (surface frozen)
-  - app.gladia.io `/signin?redirect_to=` form-action reflection + CSP gap (post-auth honoring = HUMAN_ONLY gate)
-  - api.gladia.io SSRF-by-design surface (audio_url/video_url/callback_config.url no scheme allowlist, key-gated only)
-EOF
-# TRIAGE RESULTS - gladiaio org static scan (2026-08-20)
-
-## CLASSIFICATION TABLES
-
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| (none) | - | - | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot demo |
-| compare-stt/src/lib/providers/gladia.ts | 36,49 | Test provider implementation using `x-gladia-key` header pattern |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | PUBLIC API (documented base URL) |
-| compare-stt/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | PUBLIC dashboard route |
-| compare-stt/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | PUBLIC dashboard route |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | PUBLIC dashboard route |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | PUBLIC dashboard route |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| (npm registry) | - | `gladia@0.1.3` claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal), maintainer=`softwarecitadel@gmail.com` — **ownership anomaly, previously ACCEPTED 2026-08-07** |
-| vercel-ai/pnpm-lock.yaml | 289,291 | `@ai-sdk/gladia` linked as local package — official Vercel AI SDK integration (in-scope, expected) |
-| compare-stt/next.config.ts | 38,44 | Rewrites to `https://www.gladia.io/compare-stt-apis` — marketing subdomain proxy (expected) |
-
-## VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| `gladia@0.1.3` npm package impersonation | INTERESTING (supply-chain) | **NO** (duplicate) | Already ACCEPTED 2026-08-07 as orphaned impersonation; evidence package locked; no new signal this delta |
-| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | NO | Masked placeholder in screenshot fixture |
-| Public API/dashboard URLs in source | ENDPOINT_LEAK | NO | All are documented public endpoints (`api.gladia.io`, `app.gladia.io`) |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | NO | Official Vercel AI SDK provider package (gladiaio org member) |
-
-## SUMMARY
-- **Delta**: 0 new hit lines vs previous scan
-- **New reportable findings**: 0
-- **Previously accepted findings unchanged**: 
-  - npm `gladia@0.1.3` orphaned impersonation (report-ready, evidence locked)
-  - api.gladia.io NO_DRIFT across 100+ cycles (surface frozen)
-  - app.gladia.io `/signin?redirect_to=` form-action reflection + CSP gap (post-auth honoring = HUMAN_ONLY gate)
-  - api.gladia.io SSRF-by-design surface (audio_url/video_url/callback_config.url no scheme allowlist, key-gated only)
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
 [0m
-**Triage complete.** 
+[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
+import type { TranscribeResult, WordTimestamp } from "../transcribe";
 
-**Delta**: 0 new hit lines vs previous scan — no new findings.
+const GLADIA_BASE = "https://api.gladia.io/v2";
 
-**All 617 hits classified**:
-- **REAL_SECRET**: 0 (no live credentials)
-- **TEST_OR_EXAMPLE**: 2 (masked `sk-********` placeholder in screenshot, test provider code)
-- **ENDPOINT_LEAK**: 5 (all documented public endpoints: `api.gladia.io/v2`, `app.gladia.io` dashboard routes)
-- **INTERESTING**: 3 (previously accepted `gladia@0.1.3` npm impersonation; official `@ai-sdk/gladia` in vercel-ai; marketing rewrites)
+interface GladiaWord {
+  word: string;
+  start: number;
+  end: number;
+}
 
-**Report candidates this cycle**: **0** — all findings are either previously accepted duplicates or benign.
+interface GladiaUtterance {
+  text: string;
+  words: GladiaWord[];
+}
 
-**Previously accepted findings remain alive** (no drift):
-- npm `gladia@0.1.3` orphaned impersonation (evidence locked, report-ready)
-- api.gladia.io: NO_DRIFT 100+ cycles, SSRF-by-design surface (key-gated)
-- app.gladia.io: `/signin?redirect_to=` form-action reflection + CSP `form-action` gap (post-auth honoring = HUMAN_ONLY gate)
+export async function transcribeWithGladia(
+  audio: Buffer,
+  mimeType: string
+): Promise<TranscribeResult> {
+  const apiKey = process.env.GLADIA_API_KEY;
+  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+
+  const start = Date.now();
+
+  const ext = mimeType.includes("wav") ? "audio.wav"
+    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
+    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
+    : mimeType.includes("ogg") ? "audio.ogg"
+    : "audio.webm";
+
+  const uploadForm = new FormData();
+  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
+
+  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
+    method: "POST",
+    headers: { "x-gladia-key": apiKey },
+    body: uploadForm,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
+    method: "POST",
+    headers: {
+      "x-gladia-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url,
+      model: "solaria-3",
+      punctuation_enhanced: true,
+      language_config: { code_switching: false },
+    }),
+  });
+
+  if (!transcribeRes.ok) {
+    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
+  }
+
+  const { result_url } = await transcribeRes.json();
+
+  const { transcript, words } = await pollForResult(result_url, apiKey);
+  const durationMs = Date.now() - start;
+
+  return { transcript, words, durationMs };
+}
+
+async function pollForResult(
+  resultUrl: string,
+  apiKey: string
+): Promise<{ transcript: string; words: WordTimestamp[] }> {
+  const maxAttempts = 60;
+  const interval = 1000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(resultUrl, {
+      headers: { "x-gladia-key": apiKey },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gladia poll failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.status === "done") {
+      const utterances: GladiaUtterance[] | undefined =
+        data.result?.transcription?.utterances;
+
+      if (utterances && Array.isArray(utterances)) {
+        const transcript = utterances.map((u) => u.text).join(" ");
+        const words: WordTimestamp[] = utterances.flatMap((u) =>
+          (u.words || []).map((w) => ({
+            word: w.word,
+            start: w.start,
+            end: w.end,
+          }))
+        );
+        return { transcript, words };
+      }
+
+      const fullTranscript = data.result?.transcription?.full_transcript;
+      return { transcript: fullTranscript || "", words: [] };
+    }
+
+    if (data.status === "error") {
+      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
+    }
+
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error("Gladia transcription timed out");
+}
+[0m
+### Classification Tables
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` const | **TEST_OR_EXAMPLE** — masked placeholder in mock data |
+
+#### ENDPOINT_LEAK
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3, 36, 49 | `https://api.gladia.io/v2` base URL + `x-gladia-key` header usage | **ENDPOINT_LEAK** — public API endpoint referenced in provider integration (expected, not sensitive) |
+| `compare-stt/next.config.ts` | 38, 44 | `https://www.gladia.io/compare-stt-apis` rewrites | **ENDPOINT_LEAK** — marketing site rewrite rules (public) |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **ENDPOINT_LEAK** — public dashboard URL pattern |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | **ENDPOINT_LEAK** — public dashboard URL |
+| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/...` | **ENDPOINT_LEAK** — public docs URL |
+| Multiple `compare-stt` files | Various | `https://gladia.io`, `https://www.gladia.io` | **ENDPOINT_LEAK** — marketing site references (public) |
+
+#### INTERESTING
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| `vercel-ai/pnpm-lock.yaml` | 289, 291, 2368 | `@ai-sdk/gladia` linked as local workspace package | **INTERESTING** — official Vercel AI SDK integration lives in gladiaio org (verified official) |
+| `gladiaflow/src-tauri/Cargo.toml` | 5 | `authors = ["Gladia <support@gladia.io>"]` | **INTERESTING** — official contact in Tauri app manifest |
+
+---
+
+### SHORT Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `gladiaflow/src/screenshots/Gallery.tsx:17` — `sk-********` | TEST_OR_EXAMPLE | **no** (mock placeholder) |
+| `compare-stt/src/lib/providers/gladia.ts` — API endpoint + header usage | ENDPOINT_LEAK | **no** (public API, correct usage) |
+| All other gladia.io URL references | ENDPOINT_LEAK | **no** (public endpoints) |
+| `vercel-ai` — `@ai-sdk/gladia` workspace link | INTERESTING | **no** (official integration) |
+
+**Overall: No reportable findings in this delta.** The sole `sk-********` hit is a masked placeholder in mock settings. All endpoint references are to public production APIs. The `@ai-sdk/gladia` package in `vercel-ai` is the official Vercel AI SDK integration maintained by Gladia.
