@@ -6411,3 +6411,11 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 6+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` r
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+
+## RANKED HYPOTHESES 2026-08-20 06:04:51 UTC
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [96] npm: Orphaned npm gladia@0.1.3 leaks raw API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated via Google SSO
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface

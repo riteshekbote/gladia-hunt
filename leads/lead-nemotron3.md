@@ -14509,3 +14509,38 @@ confidence: 57
 [LEARN] ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 6+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproducibly stable, GitHub user+repo 404 (orphaned/irrevocable), src/client.ts:306-308 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` confirmed in source+compiled dist — PASSIVE complete, report-ready
 [LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface byte-frozen on all targets.
 [RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint confirmed; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
+## 2026-08-20 06:04:40 UTC [app] (model nemotron3)
+[PRIO] npm registry (gladia@0.1.3), 85, attack=9 business=6 tech=9 gate=10 cloud=3 fresh=10
+[PRIO] app.gladia.io, 65, attack=8 business=7 tech=8 gate=10 cloud=5 fresh=1
+[PRIO] api.gladia.io, 15, attack=6 business=5 tech=5 gate=2 cloud=8 fresh=1
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+reasoning: Package claims "Official TypeScript SDK for Gladia" but repo is alexisbouchez/gladia.ts (personal, GitHub 404); maintainer softwarecitadel@gmail.com; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live query param via searchParams.append; diverges from official @gladiaio/sdk POST /v2/live → token flow; sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 verified via 6+ local npm pack; dist-tag latest=0.1.3 persists while source repo+user 404 (orphaned/irrevocable)
+evidence_needed: Confirm package still publishable/maintainable by orphaned account; verify key leakage in compiled dist
+verify_steps: RAG: npm view gladia@0.1.3 dist integrity + GitHub 404 on repo/user; local npm pack reproduces sha256 + src/client.ts key-in-URL
+impact: Supply-chain takeover risk + API key leakage in WebSocket URL (logs/proxies); severity Critical (orphaned account + key exposure)
+testability: PASSIVE
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com reflects URL-encoded value into form action (confirmed live across 100+ cycles); CSP lacks form-action directive (grep-count=0 confirmed); Google-only OAuth with PKCE S256 and FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset confirmed (server resets to {"url":"/"}); post-auth honoring of arbitrary redirect_to remains unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final HTTP response after successful Google authentication
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
+[PARKED] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec: confidence 35 < 40 threshold; AUTH_HELPED verify step requires valid API key not available in passive phase
+[FINAL]
+[HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npm registry (gladia@0.1.3)
+confidence: 96
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+[NEXT] HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with Google", authenticate, capture the final HTTP response after successful Google authentication to verify if arbitrary redirect_to is honored post-auth.
+[LEARN] No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface byte-frozen on all targets.
+[RISK] api.gladia.io: 15 reason: Undocumented /v2/live/health endpoint confirmed; SSRF-by-design surface persists but AUTH_HELPED; surface otherwise frozen 100+ cycles | app.gladia.io: 65 reason: Dashboard SPA served without auth (client-side enforcement); return-to cookie validated server-side; redirect_to reflected in form action without host allowlist; CSP lacks form-action directive; Google-only OAuth with PKCE limits exploitability but post-auth honoring unverified; HSTS preload strong | sdk: 85 reason: Official SDKs (@gladiaio/sdk 1.1.0, gladiaio-sdk 1.0.5) generated from public spec; third-party gladia@0.1.3 ownership anomaly escalated to orphaned impersonation with API key leakage in WS URL; PyPI version static; supply-chain risk increased
