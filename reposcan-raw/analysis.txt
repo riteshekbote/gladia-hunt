@@ -1,22 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+### Classification Table
 
-| Category | Files | Count | Notes |
-|----------|-------|-------|-------|
-| **REAL_SECRET** | *(none)* | 0 | No hardcoded credentials with signs of life |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | 1 | Masked placeholder `sk-********` in screenshot component |
-| **ENDPOINT_LEAK** | Multiple | ~600 | All are **public** endpoints: `api.gladia.io`, `app.gladia.io`, `docs.gladia.io`, `www.gladia.io`, `github.com/gladiaio/*` — no internal/staging URLs |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291,2368` | 1 | `@ai-sdk/gladia` linked as local package — official Vercel AI SDK integration in gladiaio org (legitimate) |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | None |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` (masked placeholder in screenshot/mock) |
+| **ENDPOINT_LEAK** | All `api.gladia.io/v2`, `app.gladia.io`, `www.gladia.io` references — **public documented endpoints**, not leaks |
+| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` — `@ai-sdk/gladia` linked from local `packages/gladia` (official Vercel AI SDK integration)<br>`compare-stt/src/lib/providers/gladia.ts:3,36,49` — correct `x-gladia-key` header usage against public API<br>`gladiaflow` Tauri app — legitimate desktop client integrating Gladia API |
 
-## Verdict
+### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` | **no** | Masked placeholder in test/screenshot fixture |
-| Public API endpoints (`api.gladia.io`, `app.gladia.io`, etc.) | **no** | Known in-scope production surfaces |
-| `@ai-sdk/gladia` in vercel-ai monorepo | **no** | Official integration, Gladia-owned package |
-| `gladia@0.1.3` npm impersonation | **no** | Already **ACCEPTED** in knowledge base (orphaned personal repo, dist-tag latest persists) — not new |
+| `sk-********` in screenshot | **no** | Masked placeholder, not a real secret |
+| Public API/dashboard URLs | **no** | Documented public endpoints |
+| `@ai-sdk/gladia` in vercel-ai | **no** | Official Vercel AI provider package (in-scope, legitimate) |
+| `gladia`@0.1.3 npm package | **no** | Already **ACCEPTED** in knowledge base (orphaned impersonation, tracked separately) |
+| `@gladiaio/sdk` | **no** | Official SDK from gladiaio org, in scope but no new findings |
 
-**Overall: No new reportable findings this cycle.** Surface remains frozen across 100+ drift-negative cycles. The only live supply-chain anomaly is the pre-existing `gladia@0.1.3` orphaned impersonation (evidence package locked, report-ready).
+**Overall**: **NO new reportable findings** this delta. Surface frozen across 100+ cycles. The only live supply-chain anomaly remains the orphaned `gladia`@0.1.3 npm package (already evidence-locked, report-ready via bug-bounty portal).
