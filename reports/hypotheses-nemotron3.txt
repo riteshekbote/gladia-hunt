@@ -1,16 +1,7 @@
-## 2026-08-20 02:42:22 UTC [app] (model nemotron3)
-[PRIO] app.gladia.io, 65, attack=8 business=7 tech=8 gate=10 cloud=5 fresh=1
+## 2026-08-20 03:32:12 UTC [app] (model nemotron3)
 [PRIO] npm:gladia@0.1.3, 85, attack=9 business=6 tech=9 gate=10 cloud=3 fresh=10
+[PRIO] app.gladia.io, 65, attack=8 business=7 tech=8 gate=10 cloud=5 fresh=1
 [PRIO] api.gladia.io, 15, attack=6 business=5 tech=5 gate=2 cloud=8 fresh=1
-[HYP] Post-auth open redirect via reflected redirect_to on signin form action
-class: OATH
-asset: app.gladia.io
-confidence: 57
-reasoning: /signin?redirect_to=https://evil.example.com reflects URL-encoded value into form action (confirmed live across 100+ cycles); CSP lacks form-action directive (grep-count=0 confirmed); Google-only OAuth with PKCE S256 and FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset confirmed (server resets to {"url":"/"}); post-auth honoring of arbitrary redirect_to remains unverified (HUMAN_ONLY)
-evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
-verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final HTTP response after successful Google authentication
-impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
-testability: HUMAN_ONLY
 [HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
 class: OTHER
 asset: npm registry (gladia@0.1.3)
@@ -20,6 +11,15 @@ evidence_needed: Confirm package still publishable/maintainable by orphaned acco
 verify_steps: RAG: npm view gladia@0.1.3 dist integrity + GitHub 404 on repo/user; local npm pack reproduces sha256 + src/client.ts key-in-URL
 impact: Supply-chain takeover risk + API key leakage in WebSocket URL (logs/proxies); severity Critical (orphaned account + key exposure)
 testability: PASSIVE
+[HYP] Post-auth open redirect via reflected redirect_to on signin form action
+class: OATH
+asset: app.gladia.io
+confidence: 57
+reasoning: /signin?redirect_to=https://evil.example.com reflects URL-encoded value into form action (confirmed live across 100+ cycles); CSP lacks form-action directive (grep-count=0 confirmed); Google-only OAuth with PKCE S256 and FIXED redirect_uri prevents OAuth code/state theft; return-to cookie tamper-reset confirmed (server resets to {"url":"/"}); post-auth honoring of arbitrary redirect_to remains unverified (HUMAN_ONLY)
+evidence_needed: Confirm server-side validation of redirect_to against allowlist post-Google-OAuth; test if arbitrary external domains accepted after successful auth
+verify_steps: HUMAN: Complete Google OAuth flow on https://app.gladia.io/signin?redirect_to=https://evil.example.com and observe final HTTP response after successful Google authentication
+impact: Post-auth open redirect to arbitrary domain; severity Low-Medium (requires user interaction + Google auth)
+testability: HUMAN_ONLY
 [HYP] SSRF-by-design via audio_url/video_url/callback_config.url in OpenAPI spec
 class: SSRF
 asset: api.gladia.io
