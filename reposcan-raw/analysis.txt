@@ -1,34 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mls -la reposcan-raw/gladiaio/
+total 56
+drwxr-xr-x 14 runner runner 4096 Aug 20 15:22 .
+drwxr-xr-x  4 runner runner 4096 Aug 20 15:22 ..
+drwxr-xr-x  9 runner runner 4096 Aug 20 15:22 compare-stt
+drwxr-xr-x  9 runner runner 4096 Aug 20 15:22 docs
+drwxr-xr-x  7 runner runner 4096 Aug 20 15:22 gladia-cli
+drwxr-xr-x 11 runner runner 4096 Aug 20 15:22 gladia-quiz-app
+drwxr-xr-x 11 runner runner 4096 Aug 20 15:22 gladia-samples
+drwxr-xr-x  9 runner runner 4096 Aug 20 15:22 gladiaflow
+drwxr-xr-x  7 runner runner 4096 Aug 20 15:22 n8n-nodes-gladia
+drwxr-xr-x  8 runner runner 4096 Aug 20 15:22 normalization
+drwxr-xr-x  9 runner runner 4096 Aug 20 15:22 realtime-multilingual-asr-router
+drwxr-xr-x 10 runner runner 4096 Aug 20 15:22 sdk
+drwxr-xr-x  7 runner runner 4096 Aug 20 15:22 skills
+drwxr-xr-x 18 runner runner 4096 Aug 20 15:22 vercel-ai
+[0m
+**CLASSIFICATION TABLES**
 
-| Category | File:Line | Evidence | Classification |
-|----------|-----------|----------|----------------|
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx:17 | `apiKey: "sk-********"` | Masked placeholder in screenshot/demo |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts:38,44 | Rewrite destinations to `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite rules |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts:3 | `GLADIA_BASE = "https://api.gladia.io/v2"` | Public API base URL (known) |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts:36,49 | `"x-gladia-key": apiKey` header usage | Public auth header pattern (known) |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/TranscriptionHistory.tsx:19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public app URL pattern |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/ApiKeyOnboardingView.tsx:4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Public app URL |
-| **ENDPOINT_LEAK** | gladiaflow/src/lib/customVocabulary.ts:8 | `"gladiaflow"` as value | App identifier, not secret |
-| **INTERESTING** | vercel-ai/pnpm-lock.yaml:289,291,2368 | `@ai-sdk/gladia` linked as workspace package | Official Vercel AI SDK integration (gladiaio org) |
-| **INTERESTING** | gladiaflow/package.json / Cargo.toml / tauri.conf.json | App identifiers `io.gladia.gladiaflow` | Legitimate Tauri app metadata |
-| **TEST_OR_EXAMPLE** | compare-stt/test-providers.ts:8 | Provider slugs array `["gladia", "deepgram", ...]` | Test fixture data |
-| **TEST_OR_EXAMPLE** | compare-stt/prisma/seed.ts:10 | Seed data `{ name: "Gladia", slug: "gladia" }` | Database seed fixture |
-| **TEST_OR_EXAMPLE** | All layout/page/component files | Links to `https://gladia.io`, `github.com/gladiaio`, `mailto:privacy@gladia.io` | Public documentation/marketing links |
+### REAL_SECRET
+| File | Line | SHA256(secret) | Context |
+|------|------|----------------|---------|
+| *(none)* | — | — | No live credentials found |
+
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot/test fixture |
+| compare-stt/src/lib/providers/gladia.ts | 36, 49 | Example auth header usage in provider integration code |
+| compare-stt/prisma/seed.ts | 10 | Seed data for comparison site (slug: "gladia") |
+| All compare-stt marketing/docs links | various | Documentation URLs to gladia.io/www.gladia.io (public marketing) |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (already in OpenAPI spec) |
+| compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing site rewrite rules (public) |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` | Public dashboard deep-link pattern |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` linked as workspace package — official Vercel AI SDK integration in gladiaio org |
+| gladiaflow/src-tauri/tauri.conf.json | 5 | `identifier: "io.gladia.gladiaflow"` — Tauri app bundle ID (public) |
+| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — public metadata |
+| sdk monorepo (generator) | — | Consumes `api.gladia.io/openapi.json` for codegen (known, in-scope) |
 
 ---
 
-### Verdict List
+**VERDICT LIST**
 
-| Candidate | Reportable? | Reason |
-|-----------|-------------|--------|
-| `sk-********` in Gallery.tsx | **NO** | Masked placeholder in screenshot/test file (`TEST_OR_EXAMPLE`) |
-| Public API endpoints (`api.gladia.io`, `app.gladia.io`) | **NO** | Known public surfaces, documented in OpenAPI/spec |
-| `x-gladia-key` header pattern | **NO** | Public auth mechanism (documented in OpenAPI) |
-| `@ai-sdk/gladia` in vercel-ai | **NO** | Official integration from gladiaio org (verified in lockfile) |
-| gladiaflow Tauri app configs | **NO** | Legitimate app metadata/identifiers |
-| All markdown/link references | **NO** | Public documentation/marketing content |
-
-**REPORT_CANDIDATE: no** — No new findings. All hits are either public endpoints, documented auth patterns, test fixtures, or legitimate app integrations. The `sk-********` is a masked placeholder. The npm impersonation package `gladia@0.1.3` (personal repo) is already tracked in knowledge base as **ACCEPTED OTHER** — no new supply-chain risk this scan.
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** — masked placeholder in screenshot fixture |
+| Public API endpoints in compare-stt/gladiaflow | ENDPOINT_LEAK | **no** — all public, documented surfaces |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** — official org integration, not a leak |
+| All marketing/doc URLs | TEST_OR_EXAMPLE | **no** — public references |
+| **Overall** | — | **no** — **0 new reportable findings this scan** (DELTA: 0 new hits; all surfaces previously triaged benign)
