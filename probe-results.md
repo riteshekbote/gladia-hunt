@@ -2152,3 +2152,8 @@ https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
 https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
 https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
 https://gladia.io/bug-bounty-report -> HTTP 401
+
+## 2026-08-20 23:52:13 UTC
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://gladia.io/bug-bounty-report -> HTTP 401
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
