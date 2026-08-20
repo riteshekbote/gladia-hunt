@@ -1,20 +1,100 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-| Category | Count | Details |
-|----------|-------|---------|
-| **TEST_OR_EXAMPLE** | ~600+ | Legitimate references to Gladia in own repos: package names (`gladiaflow`, `gladia`), API endpoints (`api.gladia.io`, `app.gladia.io`), docs links, config rewrites, analytics IDs, provider slugs in compare-stt, gladiaflow Tauri app identifiers, vercel-ai SDK integration |
-| **ENDPOINT_LEAK** | 0 | All endpoint references are public production URLs (`api.gladia.io`, `app.gladia.io`, `gladia.io`); no staging/internal/dev URLs |
-| **INTERESTING** | 1 (known) | npm `gladia@0.1.3` — description "Official TypeScript SDK" but repo `alexisbouchez/gladia.ts` (personal), maintainer `softwarecitadel@gmail.com`; README says "Unofficial"; src/client.ts:307 embeds raw `x-gladia-key` in WSS URL query — **already ACCEPTED in knowledge base** |
-| **REAL_SECRET** | 0 | Only `sk-********` at `gladiaflow/src/screenshots/Gallery.tsx:17` — clearly masked placeholder |
+The user is asking me to triage a static scan of public repos from the gladiaio GitHub org and npm package metadata for @gladiaio/sdk. They've provided a massive knowledge base with findings from previous scans, and now they want me to analyze the new delta (0 new hit lines) and the full grep hits to classify each hit.
 
-### Verdict
+Let me analyze the grep hits provided:
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| npm `gladia@0.1.3` impersonation | **no** (already reported) | Orphaned personal package masquerading as official; evidence package locked (sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`); tracked since 2026-08-07 |
-| Any hardcoded secret | **no** | None found; only masked placeholder `sk-********` |
-| New endpoint leak | **no** | All endpoints are public production |
-| New supply-chain risk | **no** | Delta = 0; surface static across 100+ cycles |
+1. **compare-stt repo** - This is a Gladia repo (gladiaio/compare-stt) that appears to be a comparison tool for STT APIs. The hits are mostly:
+   - References to gladia.io URLs (marketing, documentation, etc.)
+   - Code that uses the official Gladia API (api.gladia.io/v2)
+   - Uses x-gladia-key header for authentication
+   - No hardcoded secrets - the apiKey appears to be a variable
 
-**Summary**: No new findings this scan. The sole reportable anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and already triaged.
+2. **gladiaflow repo** - This is a Gladia repo (gladiaio/gladiaflow) - a Tauri app
+   - Package.json references
+   - Some references to api.gladia.io and app.gladia.io
+   - One hit: `apiKey: "sk-********"` in screenshots/Gallery.tsx line 17 - this appears to be a masked/placeholder key in a screenshot/test file
+   - Custom vocabulary references
+
+3. **vercel-ai repo** - This is a Gladia repo (gladiaio/vercel-ai)
+   - References to @ai-sdk/gladia package
+   - pnpm-lock.yaml shows it's linked to local packages/gladia
+
+Let me classify each hit:
+
+**REAL_SECRET**: None - the only potential secret is `sk-********` which is clearly a masked placeholder (8 asterisks), not a real key.
+
+**TEST_OR_EXAMPLE**: 
+- The `sk-********` in gladi<|tool_call_begin|>assistant
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
+# Triage Results: gladiaio GitHub Org Static Scan
+**Scan Date:** 2026-08-20  
+**Delta vs Previous:** 0 new hit lines (5647 files, 617 hits)  
+**Scope:** Official Gladia org public repos (MEDIUM priority) + npm @gladiaio/sdk
+
+---
+
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *none found* | - | - | No hardcoded live credentials detected |
+
+### TEST_OR_EXAMPLE
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder in screenshot/test fixture (8 asterisks = not a real key) |
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 36, 49 | `"x-gladia-key": apiKey` | Variable reference, not hardcoded secret |
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | Public API endpoint, not secret |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Verdict |
+|------|------|----------|---------|
+| gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Public marketing rewrite rule, not internal |
+| gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | Public API base URL (in OpenAPI spec) |
+| gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public dashboard URL pattern |
+| gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL |
+| gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public documentation URL |
+
+### INTERESTING
+| File | Line | Finding | Verdict |
+|------|------|---------|---------|
+| gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291 | `@ai-sdk/gladia` linked to `../../packages/gladia` | Official Vercel AI SDK integration (in-scope, verified official) |
+| gladiaio/vercel-ai/tsconfig.json | 70 | `"path": "packages/gladia"` | Monorepo structure for official AI SDK provider |
+| gladiaio/gladiaflow/package.json | 2 | `"name": "gladiaflow"` | Official Tauri desktop app |
+| gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` | Official authorship confirmed |
+| gladiaio/compare-stt/src/lib/site.ts | 5, 20 | `NEXT_PUBLIC_SITE_ORIGIN = "https://www.gladia.io"`, `CITATION_DOMAIN = "www.gladia.io"` | Public site config |
+| gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | `mailto:privacy@gladia.io` | Public contact email |
+
+---
+
+## Verdict Summary
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **NO** | Masked placeholder (8 asterisks), screenshot fixture |
+| `x-gladia-key: apiKey` variable usage | TEST_OR_EXAMPLE | **NO** | Proper variable reference, not hardcoded |
+| Public API endpoints (api.gladia.io, app.gladia.io) | ENDPOINT_LEAK | **NO** | Public documented endpoints |
+| @ai-sdk/gladia in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK integration (verified in-scope) |
+| Gladiaflow Tauri app | INTERESTING | **NO** | Official desktop app, public repo |
+| Compare-stt marketing site | INTERESTING | **NO** | Public comparison tool, no secrets |
+
+---
+
+## Overall Assessment
+
+**NO REPORTABLE FINDINGS** in this delta scan.
+
+- **0 REAL_SECRET** candidates
+- All hits are either test fixtures, public endpoints, or official integrations
+- The `gladia@0.1.3` npm impersonation package (tracked in knowledge base) is **NOT** in this org's repos — it's under `alexisbouchez/gladia.ts` (personal)
+- Official SDKs (`@gladiaio/sdk`, `gladiaio-sdk`) remain clean
+- Supply-chain surface static per knowledge base (no new npm/PyPI/GitHub risk)
+
+**Action:** No portal submissions needed. Continue monitoring; passive recon exhausted per knowledge base (100+ NO_DRIFT cycles on api.gladia.io, app.gladia.io surfaces frozen).
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
