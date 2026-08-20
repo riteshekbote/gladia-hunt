@@ -6282,3 +6282,32 @@
 - LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 5+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` r
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
 - LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+
+## RANKED HYPOTHESES 2026-08-20 01:30:10 UTC
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- [96] npm: Orphaned npm gladia@0.1.3 leaks raw API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Complete the Google OAuth signin flow at https://app.gladia.io/signin?redirect_to=https://evil.example.com (phase=POC, target=app). Click "Sign in with G
+- NEXT(hypotheses-laguna.txt): HUMAN: Complete the Google OAuth signin flow at `https://app.gladia.io/signin?redirect_to=https://evil.example.com` (phase=POC, target=app). Steps: (1) Visit UR
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated via Google SSO
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"}
+- LEARN: REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload mitigates to informational only
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, not in OpenAPI 14-path spec) confirmed informational only — pro
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 6+ independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` r
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles. Surface
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: OpenAPI byte-size variance (125131→125680B) confirmed as dynamic example timestamps (36 timestamp + 61 UUID patterns), NOT s
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented endpoint (401 NestJS, no data leakage, properly gated at 401) confirmed informational only — no
+- LEARN: ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 6 independent local `npm pack` reproductions — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PK
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON `{"url":"/"}`) tampering does NOT yield open redirect — server resets to `{"url":"/"}` 
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh 2026-08-19 — 0 form-action directives (grep-count=0); enables /signin form-action reflection (gap confir
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (100+ cycles) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook 
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh — form action reflects URL-encoded value; CSP 0 form-action di
+- LEARN: No class newly proven dead or alive this cycle — surface byte-frozen across 100+ drift-negative cycles on all targets; further PROBE adds no signal until author
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: evidence package LOCKED across 5+ independent local npm pack reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` repro
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_config.url format:uri/no scheme allowlist; 7 webhook delivery paths; FR/US egress;
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 CSP form-action directives; OAuth redirect_uri FIXED+PKCE S256; return-to cookie ta
+- LEARN: REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256, no code/state theft
+- LEARN: REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset to {"url":"/"} — no open redirect
