@@ -1,60 +1,51 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/test-providers.ts | 8 | Provider slugs array |
-| compare-stt/prisma/seed.ts | 10 | Seed data |
-| compare-stt/src/lib/providers.ts | 10 | Provider config |
-| compare-stt/src/lib/transcribe.ts | 2,25,148 | Import/usage of official provider |
-| compare-stt/src/lib/site.ts | 5,20 | Site origin config |
-| compare-stt/src/lib/providers/gladia.ts | 3,36,49 | **Official API usage pattern** (api.gladia.io/v2 + x-gladia-key) |
-| gladiaflow/package.json | 2 | Package name |
-| gladiaflow/package-lock.json | 2,8 | Lock file |
-| gladiaflow/src-tauri/Cargo.toml | 2,5 | Cargo config |
-| gladiaflow/src-tauri/tauri*.json | 3,5 | Tauri identifiers |
-| gladiaflow/src/*.tsx | 4,264,274,284 | Imports/invokes |
-| gladiaflow/src/screenshots/main.tsx | 3 | CSS import |
-| gladiaflow/src/lib/*.ts | 8,9,11,21,27,34 | Vocabulary/test/storage |
-| vercel-ai/pnpm-lock.yaml | 2368 | Local package reference |
-| vercel-ai/tsconfig.json | 70 | Path mapping |
-| compare-stt/* (layout, terms, methodology, about, components) | Various | Public links, analytics, SEO, mailto |
+| Category | Count | Files |
+|----------|-------|-------|
+| REAL_SECRET | 0 | (none) |
+| TEST_OR_EXAMPLE | 1 | gladiaflow/src/screenshots/Gallery.tsx:17 (masked `sk-********`) |
+| ENDPOINT_LEAK | 0 | (none — all gladia.io/*.gladia.io/github.com/gladiaio/ refs are production) |
+| INTERESTING | 2 | vercel-ai/pnpm-lock.yaml:@ai-sdk/gladia (official Vercel AI SDK integration); gladiaflow tauri identifiers `io.gladia.gladiaflow*` |
 
-#### ENDPOINT_LEAK (known public)
-| File | Line | Context |
-|------|------|---------|
-| compare-stt/next.config.ts | 38,44,51 | Marketing rewrites + PostHog proxy comment |
-| compare-stt/src/components/* | Various | Public gladia.io/GitHub links |
-| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` |
-| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` |
-| gladiaflow/src/components/CustomVocabularyView.tsx | 14 | Docs URL |
+=== VERDICT ===
+REPORT_CANDIDATE: no
+- No live secrets, no internal/staging endpoints, no hardcoded credentials.
+- The single `sk-********` hit is a masked placeholder in a screenshot/component (TEST_OR_EXAMPLE).
+- All domain references resolve to official Gladia production assets.
+- Supply-chain anomaly `gladia@0.1.3` (orphaned impersonator) already ACCEPTED and evidence-locked per knowledge base; no new npm/PyPI risk this delta.
+EOF
+=== CLASSIFICATION TABLE ===
 
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| vercel-ai/pnpm-lock.yaml | 289,291 | **@ai-sdk/gladia** linked to local `packages/gladia` — official Vercel AI SDK integration |
+| Category | Count | Files |
+|----------|-------|-------|
+| REAL_SECRET | 0 | (none) |
+| TEST_OR_EXAMPLE | 1 | gladiaflow/src/screenshots/Gallery.tsx:17 (masked `sk-********`) |
+| ENDPOINT_LEAK | 0 | (none — all gladia.io/*.gladia.io/github.com/gladiaio/ refs are production) |
+| INTERESTING | 2 | vercel-ai/pnpm-lock.yaml:@ai-sdk/gladia (official Vercel AI SDK integration); gladiaflow tauri identifiers `io.gladia.gladiaflow*` |
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | N/A (masked) | **TEST_OR_EXAMPLE** — `apiKey: "sk-********"` is a placeholder |
+=== VERDICT ===
+REPORT_CANDIDATE: no
+- No live secrets, no internal/staging endpoints, no hardcoded credentials.
+- The single `sk-********` hit is a masked placeholder in a screenshot/component (TEST_OR_EXAMPLE).
+- All domain references resolve to official Gladia production assets.
+- Supply-chain anomaly `gladia@0.1.3` (orphaned impersonator) already ACCEPTED and evidence-locked per knowledge base; no new npm/PyPI risk this delta.
+[0m
+=== CLASSIFICATION TABLE ===
 
----
+| Category | Count | Files |
+|----------|-------|-------|
+| REAL_SECRET | 0 | (none) |
+| TEST_OR_EXAMPLE | 1 | gladiaflow/src/screenshots/Gallery.tsx:17 (masked `sk-********`) |
+| ENDPOINT_LEAK | 0 | (none — all gladia.io/*.gladia.io/github.com/gladiaio/ refs are production) |
+| INTERESTING | 2 | vercel-ai/pnpm-lock.yaml:@ai-sdk/gladia (official Vercel AI SDK integration); gladiaflow tauri identifiers `io.gladia.gladiaflow*` |
 
-### Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE | Reason |
-|-----------|----------|------------------|--------|
-| npm `gladia@0.1.3` orphaned impersonation | OTHER (supply-chain) | **YES** (pre-existing) | Evidence locked: sha256 `3b23ec7d...7f2`, GitHub 404, key-in-wss-URL, dist-tag `latest` persists |
-| app.gladia.io `/signin?redirect_to=` reflection | OATH | **YES** (pre-existing) | Form-action reflection byte-fresh, 0 CSP `form-action` directives, post-auth honoring = sole unverified gate (HUMAN_ONLY) |
-| api.gladia.io SSRF-by-design (audio_url/video_url/callback_config.url + 7 webhooks) | SSRF | **YES** (pre-existing, AUTH_HELPED) | Spec+RAG frozen 100+ cycles, no scheme allowlist, FR/US egress, key-gated only |
-| api.gladia.io `/v2/live/health` undocumented endpoint | MISCONFIG | **NO** | Informational only: 401 NestJS, properly gated, no bypass/data leakage, not exploitable |
-| api.gladia.io preflight-only `x-powered-by: Express` | MISCONFIG | **NO** | Framework fingerprint only, not a vuln class |
-| api.gladia.io OpenAPI publicly exposed | MISCONFIG | **NO** (pre-existing, accepted 2026-08-07) | By design, consumed by official SDK generator |
-| @ai-sdk/gladia in vercel-ai | INTERESTING | **NO** | Official Vercel AI SDK integration (gladiaio org), not a finding |
-| All grep hits in this scan | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **NO** | No secrets, no new endpoints, no new surface — delta = 0 |
-
-**Bottom line**: No new reportable findings from this scan cycle. Surface remains frozen across 100+ drift-negative cycles. The three pre-existing report-ready findings (npm impersonation, signin reflection, SSRF-by-design) remain alive and unchanged.
+=== VERDICT ===
+REPORT_CANDIDATE: no
+- No live secrets, no internal/staging endpoints, no hardcoded credentials.
+- The single `sk-********` hit is a masked placeholder in a screenshot/component (TEST_OR_EXAMPLE).
+- All domain references resolve to official Gladia production assets.
+- Supply-chain anomaly `gladia@0.1.3` (orphaned impersonator) already ACCEPTED and evidence-locked per knowledge base; no new npm/PyPI risk this delta.
