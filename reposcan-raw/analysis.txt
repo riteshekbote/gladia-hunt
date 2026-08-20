@@ -1,46 +1,33 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && ls -la reposcan-raw/gladiaio/
-total 56
-drwxr-xr-x 14 runner runner 4096 Aug 20 02:30 .
-drwxr-xr-x  4 runner runner 4096 Aug 20 02:30 ..
-drwxr-xr-x  9 runner runner 4096 Aug 20 02:30 compare-stt
-drwxr-xr-x  9 runner runner 4096 Aug 20 02:30 docs
-drwxr-xr-x  7 runner runner 4096 Aug 20 02:30 gladia-cli
-drwxr-xr-x 11 runner runner 4096 Aug 20 02:30 gladia-quiz-app
-drwxr-xr-x 11 runner runner 4096 Aug 20 02:30 gladia-samples
-drwxr-xr-x  9 runner runner 4096 Aug 20 02:30 gladiaflow
-drwxr-xr-x  7 runner runner 4096 Aug 20 02:30 n8n-nodes-gladia
-drwxr-xr-x  8 runner runner 4096 Aug 20 02:30 normalization
-drwxr-xr-x  9 runner runner 4096 Aug 20 02:30 realtime-multilingual-asr-router
-drwxr-xr-x 10 runner runner 4096 Aug 20 02:30 sdk
-drwxr-xr-x  7 runner runner 4096 Aug 20 02:30 skills
-drwxr-xr-x 18 runner runner 4096 Aug 20 02:30 vercel-ai
-[0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=20][0m
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=285, limit=20][0m
-[0m→ [0mRead reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts[90m [limit=60][0m
-Based on the scan results and knowledge base, here's the classification:
-
 ### Classification Table
 
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | *None* | No hardcoded credentials with signs of life found |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` — `apiKey: "sk-********"` | Masked placeholder in screenshot/mock fixture |
-| **ENDPOINT_LEAK** | 600+ hits across `compare-stt`, `gladiaflow`, `vercel-ai` referencing `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `gladia.io`, `github.com/gladiaio/*` | All known public endpoints/repos already in knowledge base |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` — `@ai-sdk/gladia` workspace package | Official Vercel AI SDK integration (external repo, legitimate) |
-| **INTERESTING** | `compare-stt/` entire project | Gladia-owned STT benchmarking tool comparing against competitors (Deepgram, AssemblyAI, etc.) |
+| Category | Files | Details |
+|----------|-------|---------|
+| **REAL_SECRET** | 0 | No hardcoded credentials with signs of life found |
+| **TEST_OR_EXAMPLE** | 617 | All hits are legitimate product references, test fixtures, or masked placeholders |
+| **ENDPOINT_LEAK** | 0 | All referenced endpoints are public production URLs (api.gladia.io, app.gladia.io, www.gladia.io) |
+| **INTERESTING** | 2 | 1. `gladiaflow/src/screenshots/Gallery.tsx:17` — masked placeholder `sk-********` in screenshot component<br>2. `vercel-ai` — references `@ai-sdk/gladia` (official Vercel AI SDK integration from gladiaio org) |
+
+### Key Hit Analysis
+
+| File | Line | Classification | Reason |
+|------|------|----------------|--------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | TEST_OR_EXAMPLE | `apiKey: "sk-********"` — clearly masked placeholder in screenshot/test component |
+| `compare-stt/src/lib/providers/gladia.ts` | 3, 36, 49 | TEST_OR_EXAMPLE | Legitimate SDK usage in STT comparison tool (`x-gladia-key` header, public API base) |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | TEST_OR_EXAMPLE | References public `https://app.gladia.io/apikeys` for user onboarding |
+| `vercel-ai/pnpm-lock.yaml` | 289, 291, 2368 | INTERESTING | Official `@ai-sdk/gladia` package linked from gladiaio monorepo (verified official integration) |
 
 ### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `sk-********` placeholder | **no** | Test/fixture data, clearly masked |
-| Public endpoint references | **no** | All known, documented in baseline |
-| `@ai-sdk/gladia` (Vercel AI SDK) | **no** | Official integration, external but legitimate |
-| `compare-stt` benchmarking tool | **no** | Gladia-owned, public comparison site |
-| **Overall delta** | **no** | **0 new hit lines vs previous scan** — surface unchanged |
+| **NEW findings this scan** | **no** | DELTA: 0 new hit lines; all 617 hits are pre-existing legitimate references or masked placeholders |
+| **npm `gladia@0.1.3` orphaned impersonation** | **yes (existing)** | Already ACCEPTED in RAG (2026-08-07→2026-08-20): personal repo `alexisbouchez/gladia.ts` + user 404, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WebSocket URL query (`src/client.ts:306-308`), dist-tag `latest=0.1.3` persists — evidence package locked, report-ready via `gladia.io/bug-bounty-report` |
+| **api.gladia.io SSRF-by-design** | **yes (existing, AUTH_HELPED)** | Already ACCEPTED: `audio_url`/`video_url`/`callback_config.url` as `format:uri` with no scheme allowlist; 7 webhook delivery paths; `/v1/models` confirms FR/US egress; key-gated only |
+| **app.gladia.io `/signin` redirect_to reflection** | **yes (existing, HUMAN_ONLY)** | Already ACCEPTED: form-action reflects `redirect_to` URL-encoded; CSP has 0 `form-action` directives; OAuth `redirect_uri` FIXED + PKCE S256 blocks code/state theft; post-auth honoring sole unverified gate |
+| **api.gladia.io `/v2/live/health` undocumented endpoint** | **no** | ACCEPTED as informational MISCONFIG only — returns 401 NestJS, properly key-gated, no data leakage, not exploitable |
 
-**Summary**: No new reportable findings. The scan confirms the previously documented supply-chain anomaly (`gladia@0.1.3` on npm impersonating official SDK) remains the sole actionable candidate, already tracked and report-ready. All other hits are expected public references in Gladia-owned repos.
+### Summary
+**No new reportable findings from this scan cycle.** Surface remains byte-frozen across 100+ drift-negative cycles. The only actionable report remains the **npm `gladia@0.1.3` orphaned impersonation** (supply-chain API key harvesting + irrevocable account takeover risk) — evidence package locked and reproducible via `npm pack` (sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`).
