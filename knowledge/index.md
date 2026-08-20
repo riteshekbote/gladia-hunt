@@ -1353,3 +1353,11 @@
 - 2026-08-20 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 CSP form-action directives; OAuth redirect_uri FIXED+PKCE S256; return-to cookie tamper-reset REJECTED — post-auth honoring sole unverified gate (HUMAN_ONLY)
 - 2026-08-20 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri + PKCE S256, no code/state theft
 - 2026-08-20 REJECTED AUTH @ app.gladia.io: return-to cookie tamper-reset to {"url":"/"} — no open redirect
+- 2026-08-20 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps (W/"1e8cb-…" → W/"1eaf0-…" across 100+ cycles), structural (examples-stripped) hash is stable baseline
+- 2026-08-20 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint (401 NestJS, OPTIONS 204 x-powered-by: Express — preflight-only fingerprint) confirmed informational only, not a reportable finding class
+- 2026-08-20 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI byte-size variance (125131→125680B) confirmed as 36 dynamic timestamps + 61 UUIDs in examples, structural identity preserved (14 paths, 7 webhooks, 1 server, 22 `format:uri` no scheme allowlist)
+- 2026-08-20 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (90+ cycles confirmed)
+- 2026-08-20 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} on tamper (tamper-reset confirmed 90+ cycles)
+- 2026-08-20 ACCEPTED MISCONFIG @ app.gladia.io: CSP full-set re-captured fresh — 0 form-action directives (grep-count=0); enables /signin form-action reflection (gap confirmed, not oversight)
+- 2026-08-20 ACCEPTED OTHER @ npm `gladia@0.1.3`: evidence package LOCKED across 7 independent local `npm pack` reproductions — sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` reproducibly stable; src/client.ts:306-308 raw key-in-wss URL confirmed in source+compiled dist; GitHub user+repo 404 (orphaned/irrevocable)
+- 2026-08-20 No class newly proven dead or alive this cycle — surface byte-frozen across 100+ drift-negative cycles; fresh probes byte-identical to all prior cycles
