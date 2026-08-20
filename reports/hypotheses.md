@@ -6757,3 +6757,11 @@
 - LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, "Official" description, GitHub API user+repo alexisbouchez
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh this cycle — openapi 200/125680B (dynamic-example band), 14 paths/7 webhooks/1 server, /health 1
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix `W/"1eaf0-k75avQQ2gWqPIYrNo0IgbHOkQZc"` with structural
+
+## RANKED HYPOTHESES 2026-08-20 22:22:10 UTC
+- [97] npm: Orphaned npm gladia@0.1.3 impersonates official SDK and leaks raw API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- [96] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated via Google SSO
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) — 
+- LEARN: No class newly proven dead or alive this cycle — all ACCEPTED findings remain alive, all REJECTED classes remain dead across 100+ drift-negative cycles
+- LEARN: No class newly proven dead or alive this cycle — fresh probes byte-identical to 100+ prior cycles (openapi 200/125131B-band with new etag suffix W/"1eaf0-3a+Bag
