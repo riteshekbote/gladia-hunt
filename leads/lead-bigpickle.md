@@ -14353,3 +14353,4 @@ testability: HUMAN_ONLY
 [RISK] app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY), OAuth redirect_uri FIXED+PKCE S256, return-to cookie tamper-reset
 [RISK] sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404; official @gladiaio/sdk@1.1.0 clean, no broader campaign
 ## 2026-08-20 16:00:21 UTC [api] (model bigpickle)
+## 2026-08-20 17:01:51 UTC [api] (model bigpickle)
