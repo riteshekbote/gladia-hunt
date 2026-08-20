@@ -1,42 +1,44 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mls -la reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+-rw-r--r-- 1 runner runner 13224 Aug 20 10:42 reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=30][0m
 ### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | | | No hardcoded live credentials found |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Context |
 |------|------|---------|
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot/demo code |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` constant — masked placeholder in screenshot/example code |
+| `compare-stt/src/lib/providers/gladia.ts` | 3, 36, 49 | Production API base URL (`https://api.gladia.io/v2`) and `x-gladia-key` header usage — legitimate SDK usage pattern |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` (production API base) |
-| `compare-stt/next.config.ts` | 38, 44 | `https://www.gladia.io/compare-stt-apis` (marketing rewrite) |
-| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` (dashboard) |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` (dashboard) |
-| Multiple files | Various | `https://gladia.io`, `https://www.gladia.io`, `https://api.gladia.io`, `https://app.gladia.io` — all production hosts already in scope |
+| File | Line | Context |
+|------|------|---------|
+| *(none)* | — | All `*.gladia.io` references are production endpoints (api.gladia.io, app.gladia.io, www.gladia.io) |
 
 #### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `vercel-ai/pnpm-lock.yaml` | 289, 291 | `@ai-sdk/gladia` linked as local workspace package — official Vercel AI SDK integration for Gladia (in-scope, legit) |
-| `compare-stt/src/lib/providers/gladia.ts` | 36, 49 | Uses `x-gladia-key` header per official spec — correct usage |
+| File | Line | Context |
+|------|------|---------|
+| `vercel-ai/pnpm-lock.yaml` | 289, 291, 2368 | `@ai-sdk/gladia` linked as `packages/gladia` — official Vercel AI SDK integration for Gladia (expected, in-scope) |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` — production onboarding URL |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | Dynamic URL construction for `app.gladia.io/transcriptions/live/{sessionId}` — production feature |
+
+#### REAL_SECRET
+| File | Line | SHA256 | Context |
+|------|------|--------|---------|
+| *(none)* | — | — | No live credentials found; `sk-********` is a masked placeholder |
 
 ---
 
-### Verdict List
+### Verdict
 
 | Candidate | Category | REPORT_CANDIDATE |
 |-----------|----------|------------------|
-| `gladiaflow/src/screenshots/Gallery.tsx:17` masked `sk-********` | TEST_OR_EXAMPLE | **no** — placeholder in demo/screenshot code |
-| Production endpoint references (api.gladia.io, app.gladia.io, etc.) | ENDPOINT_LEAK | **no** — all are documented in-scope production hosts |
-| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** — official Vercel AI SDK integration (Gladia-maintained) |
-| `gladia@0.1.3` npm impersonation | INTERESTING (known) | **no** — already ACCEPTED in knowledge base (orphaned personal repo, dist-tag latest persists) |
+| `gladiaflow/src/screenshots/Gallery.tsx:17` masked `sk-********` | TEST_OR_EXAMPLE | **no** — placeholder in mock settings |
+| `compare-stt` production API references | TEST_OR_EXAMPLE | **no** — legitimate SDK usage |
+| `vercel-ai` `@ai-sdk/gladia` integration | INTERESTING | **no** — official Vercel AI SDK package, in-scope |
+| `gladia@0.1.3` npm package (personal repo) | INTERESTING (pre-existing) | **no** — already tracked as **ACCEPTED OTHER** orphaned impersonation (2026-08-07→2026-08-20, 100+ cycles) |
 
-**Summary**: No new reportable findings this scan. Delta is 0 hits. All surfaces match the frozen baseline across 100+ drift-negative cycles. The only actionable item remains the pre-existing `gladia@0.1.3` orphaned impersonation package (already evidence-locked, report-ready via bug-bounty portal).
+**Overall:** **REPORT_CANDIDATE: no** — Delta scan shows 0 new hit lines. All findings are either test fixtures, legitimate production endpoint usage, or pre-existing accepted findings. No new secrets, endpoint leaks, or supply-chain anomalies detected.
