@@ -1,26 +1,33 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan results (0 new hit lines vs previous scan), here's the classification:
+## Triage Results
 
 ### Classification Table
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | None | No hardcoded credentials with signs of life found |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`apiKey: "sk-********"`), `gladiaflow/src/lib/vocabularyEditor.test.ts` (test vocab terms) | Masked placeholder in screenshot fixture + test data — not reportable |
-| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` (`https://api.gladia.io/v2`), `gladiaflow/src/components/TranscriptionHistory.tsx:19` (`app.gladia.io/transcriptions/live/`), `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` (`app.gladia.io/apikeys`) | All public/production endpoints — not leaks |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml` (`@ai-sdk/gladia` linked to `packages/gladia`) | Official Vercel AI SDK integration for Gladia (in org scope) — expected |
-| **INTERESTING** | `compare-stt/next.config.ts:38,44` (rewrites to `www.gladia.io/compare-stt-apis`) | Marketing sub-path rewrites — expected |
-| **INTERESTING** | `gladiaflow/src-tauri/tauri.dev.conf.json:3` (`io.gladia.gladiaflow.dev`) | Dev bundle identifier — expected |
+| Category | Hits | Files |
+|----------|------|-------|
+| **REAL_SECRET** | 0 | — |
+| **TEST_OR_EXAMPLE** | ~580 | compare-stt test/seed/lib, gladiaflow components/tests, vercel-ai config |
+| **ENDPOINT_LEAK** | ~35 | Production URLs: `api.gladia.io/v2`, `app.gladia.io/*`, `www.gladia.io`, `docs.gladia.io` (all known public) |
+| **INTERESTING** | 2 | `vercel-ai/pnpm-lock.yaml` → `@ai-sdk/gladia` official Vercel AI SDK integration |
 
-### Verdict List
+### Key Findings
+
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | TEST_OR_EXAMPLE | `apiKey: "sk-********"` — masked placeholder (8 asterisks), not a live key |
+| `compare-stt/src/lib/providers/gladia.ts` | 3,36,49 | ENDPOINT_LEAK + TEST_OR_EXAMPLE | Uses production `api.gladia.io/v2` + `x-gladia-key` header pattern (expected) |
+| `vercel-ai/pnpm-lock.yaml` | 289,291,2368 | INTERESTING | Official `@ai-sdk/gladia` package linked — confirms Vercel AI SDK integration |
+| All other hits | — | TEST_OR_EXAMPLE / ENDPOINT_LEAK | Public marketing URLs, seed data, config rewrites, doc links |
+
+### Verdict
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `gladia@0.1.3` npm package (personal repo, claims "Official") | **yes** | Already tracked: ownership anomaly (alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — ACCEPTED 2026-08-07, evidence package locked, report-ready via bug-bounty portal |
-| Hardcoded API keys in source | **no** | None found (only masked placeholder `sk-********` in test fixture) |
-| Internal/staging endpoints | **no** | All endpoints referenced are production public APIs |
-| New secrets in reposcan delta | **no** | **0 new hit lines** vs previous scan — surface static |
+| `sk-********` in Gallery.tsx | **no** | Masked placeholder, not a real credential |
+| Production API endpoints | **no** | Known in-scope surfaces (api.gladia.io, app.gladia.io) |
+| Vercel AI SDK integration | **no** | Official integration, not a vulnerability |
+| **Overall** | **no** | **0 new hits vs prior scan; no secrets, no new attack surface** |
 
-**Summary**: No new reportable findings this scan cycle. The sole outstanding candidate remains the `gladia@0.1.3` npm impersonation package (orphaned personal repo, dist-tag `latest`, raw API key embedded in WebSocket URL query — diverges from official `@gladiaio/sdk` POST→token flow). Evidence package is locked and reproducible; submission pending via `gladia.io/bug-bounty-report` (redirects to Google Forms, Google SSO auth-gated).
+**Summary**: Delta scan shows **0 new hit lines**. All 617 hits are pre-existing — test fixtures, public endpoint references, and one official Vercel AI SDK integration. The `sk-********` placeholder is inert. No reportable findings this cycle.
