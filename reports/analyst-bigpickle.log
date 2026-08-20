@@ -47098,3 +47098,99 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) — include tarball sha256 3b23ec7d…7f2 (8 reproductions), src/client.ts:306-308 excerpt, GitHub user+repo 404 proof, README↔package.json "Unofficial/Official" contradiction, official @gladiaio/sdk@1.1.0 contrast; request a test API key in the report to unblock the SSRF POC.
 [LEARN] No class newly proven dead or alive this cycle — fresh probes byte-identical to 100+ prior cycles (openapi 200/125131B-band with new etag suffix W/"1eaf0-3a+Bag3N5cFDA1+pJHozjBo59R0", /health 15B, /v1/models 530B, signin 27448B reflection + CSP form-action grep-count=0, npm latest=0.1.3/shasum cc96f84a…, GitHub user+repo 404); all ACCEPTED findings remain alive, all REJECTED classes remain dead; further PROBE adds no signal until authorized key (SSRF POC) or HUMAN OAuth test (post-auth redirect_to).
 [RISK] api.gladia.io: 42 — frozen 14-path surface + undocumented /v2/live/health; SSRF-by-design fetch+callback present but AUTH_HELPED (POC blocked without key); preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY); OAuth redirect_uri FIXED+PKCE S256; return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404, evidence locked across 8 reproductions; official @gladiaio/sdk@1.1.0 clean, no broader campaign
+===== ANALYST bigpickle 2026-08-20 22:54:51 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mmkdir -p /tmp/opencode && cd /tmp/opencode && { echo "== health =="; curl -s -o /dev/null -w '%{http_code} %{size_download}B\n' --max-time 15 https://api.gladia.io/health; sleep 1.2; echo "== openapi =="; curl -sD h.txt -o spec.json --max-time 20 https://api.gladia.io/openapi.json; grep -iE '^(HTTP/|etag:|access-control-allow-origin:)' h.txt; wc -c < spec.json; python3 -c "import json;d=json.load(open('spec.json'));print('paths',len(d.get('paths',{})),'webhooks',len(d.get('webhooks',{})),'servers',[s.get('url') for s in d.get('servers',[])])" 2>/dev/null || true; grep -c '"format":"uri"' spec.json || true; sleep 1.2; echo "== models =="; curl -s -o /dev/null -w '%{http_code} %{size_download}B\n' --max-time 15 https://api.gladia.io/v1/models; sleep 1.2; echo "== prerec OPTIONS =="; curl -s -D - -o /dev/null --max-time 15 -X OPTIONS -H 'Origin: https://example.com' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: x-gladia-key' https://api.gladia.io/v2/pre-recorded | grep -iE '^(HTTP/|x-powered-by|access-control-allow)'; sleep 1.2; echo "== prerec POST nokey =="; curl -s -o /dev/null --max-time 15 -X POST -w '%{http_code} %{size_download}B\n' -H 'Content-Type: application/json' -d '{}' https://api.gladia.io/v2/pre-recorded; }
+== health ==
+200 15B
+== openapi ==
+HTTP/2 200 
+access-control-allow-origin: *
+etag: W/"1eaf0-v4pz1HbnK+vcVvBugc0M8WzXFnM"
+125680
+paths 14 webhooks 7 servers ['https://api.gladia.io/']
+1
+== models ==
+200 530B
+== prerec OPTIONS ==
+HTTP/2 204 
+access-control-allow-headers: x-gladia-key
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+x-powered-by: Express
+== prerec POST nokey ==
+401 144B
+[0m
+[0m$ [0mcd /tmp/opencode && { echo "== signin reflection =="; curl -sD sh.txt -o signin.html --max-time 20 -w '%{http_code} %{size_download}B\n' 'https://app.gladia.io/signin?redirect_to=https://evil.example.com'; grep -o 'action="/signin?redirect_to=[^"]*"' signin.html | head -1; echo "form-action-in-CSP: $(grep -ci 'form-action' sh.txt)"; sleep 1.2; echo "== npm gladia =="; npm view gladia dist-tags.latest version dist.shasum 2>&1 | head -4; sleep 1.2; echo "== npm official =="; npm view @gladiaio/sdk version 2>&1 | head -2; sleep 1.2; echo "== github =="; curl -s -o /dev/null -w 'user %{http_code}\n' --max-time 15 https://api.github.com/users/alexisbouchez; sleep 1.2; curl -s -o /dev/null -w 'repo %{http_code}\n' --max-time 15 https://api.github.com/repos/alexisbouchez/gladia.ts; }
+== signin reflection ==
+200 27448B
+action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"
+form-action-in-CSP: 0
+== npm gladia ==
+dist-tags.latest = '0.1.3'
+version = '0.1.3'
+dist.shasum = 'cc96f84a200c0fd49a71e919391f9b659c39f3e9'
+== npm official ==
+1.1.0
+== github ==
+user 404
+repo 404
+[0m
+STEP 1 — DELTA
+NO_DELTA — fresh probes this cycle byte-identical to 100+ prior cycles: api.gladia.io openapi 200/125680B (dynamic-example band, new etag `W/"1eaf0-v4pz1HbnK+vcVvBugc0M8WzXFnM"`, 14 paths/7 webhooks/1 server), /health 200/15B, /v1/models 200/530B, OPTIONS 204 xpb=Express + ACAO `*` + ACAH x-gladia-key, POST nokey 401/144B; app.gladia.io signin reflection 200/27448B + CSP form-action grep-count=0; npm gladia latest=0.1.3/shasum `cc96f84a…`, @gladiaio/sdk 1.1.0, GitHub user+repo alexisbouchez both 404.
+
+STEP 2 — PRIORITIZE
+[PRIO] npm gladia@0.1.3 | 84 | attack=9 business=9 tech=7 gate=10 cloud=3 fresh=10
+[PRIO] api.gladia.io POST /v2/pre-recorded (+callback_config.url, 7 webhook topics) | 77 | attack=8 business=9 tech=8 gate=4 cloud=6 fresh=10
+[PRIO] app.gladia.io /signin?redirect_to | 54 | attack=4 business=7 tech=8 gate=2 cloud=1 fresh=10
+
+STEP 3 — HYPOTHESES
+[HYP] Orphaned npm gladia@0.1.3 impersonates official SDK and leaks raw API key in WebSocket URL query at dist-tag latest
+class: OTHER
+asset: npm registry gladia@0.1.3 (package/src/client.ts:306-308)
+confidence: 97
+reasoning: re-verified fresh this cycle — dist-tag latest=0.1.3, description claims "Official TypeScript SDK for Gladia", repo git+https://github.com/alexisbouchez/gladia.ts.git with GitHub API user+repo both 404 (orphaned/irrevocable); shasum cc96f84a… unchanged; 8 independent local `npm pack` runs reproduce sha256 3b23ec7d…7f2 exactly; src/client.ts:307 `searchParams.append('x-gladia-key', apiKey)` + line 318 `new WebSocket(wsUrl.toString())` embeds raw key in wss:// URL query, diverging from official @gladiaio/sdk@1.1.0 POST /v2/live → token-from-response flow
+evidence_needed: none remaining — PASSIVE complete (registry metadata + tarball hash + source lines + GitHub 404 all locked)
+verify_steps: PASSIVE complete — `npm view gladia dist-tags version` + `npm pack gladia@0.1.3` && sha256sum == 3b23ec7d…7f2; inspect package/src/client.ts:306-308 and dist/gladia.cjs.development.js:826-838
+impact: harvested Gladia API keys exposed in wss:// URL query (proxy/log leakage) plus supply-chain trust erosion via "Official" claim from an irrevocably orphaned repo. Severity: High
+testability: PASSIVE
+
+[HYP] SSRF via server-side fetch of audio_url/video_url plus webhook callback delivery to client-supplied URLs
+class: SSRF
+asset: api.gladia.io POST /v2/pre-recorded (+ callback_config.url, 7 webhook topics)
+confidence: 73
+reasoning: spec frozen 100+ cycles, re-confirmed fresh this cycle (openapi 200/125680B dynamic band, 14 paths/7 webhooks) — audio_url/video_url plain string, CallbackConfig.url format:uri, no scheme/host allowlist anywhere; /v1/models confirms FR/US egress; unauthenticated POST returns 401 NestJS HttpException — key sole gate
+evidence_needed: HTTP hit or timing differential at self-owned canary, or callback/webhook POST received at self-owned endpoint after job submission
+verify_steps: AUTH_HELPED — with authorized x-gladia-key: POST /v2/pre-recorded {"audio_url":"http://<self-owned-canary>/probe","encoding":"wav"} then poll GET /v1/transcriptions/<id>; repeat once each for video_url, callback_config.url, one webhook topic; self-owned endpoints only, ≤1 rps
+impact: internal egress enumeration, potential cloud-metadata read (IMDSv1), exfil channel via webhook URLs. Severity: High (key-gated)
+testability: AUTH_HELPED
+
+[HYP] Post-auth honoring of attacker-controlled redirect_to after Google SSO signin yields open redirect
+class: OATH
+asset: app.gladia.io /signin?redirect_to=
+confidence: 50
+reasoning: unauthenticated reflection into form action byte-fresh this cycle (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"); CSP has 0 form-action directives; OAuth redirect_uri FIXED+PKCE S256 blocks code/state theft; return-to cookie tamper-reset — post-auth Location behavior never observed without a session
+evidence_needed: authenticated session showing post-signin 302 Location == attacker-controlled URL
+verify_steps: HUMAN_ONLY — with existing authorized Google SSO session: GET /signin?redirect_to=https://evil.example.com, complete login, capture post-auth Location header; program forbids account creation
+impact: post-auth open redirect enabling token/credential phishing. Severity: Medium
+testability: HUMAN_ONLY
+
+STEP 4 — SELF-CRITIQUE
+[PARKED] Post-auth honoring of attacker-controlled redirect_to after Google SSO signin yields open redirect: confidence 50 < 70 POC threshold and HUMAN_ONLY (requires existing Google OAuth session; program forbids account creation); retained as valid hypothesis pending human session.
+[FINAL]
+1. Orphaned npm gladia@0.1.3 impersonates official SDK and leaks raw API key in WebSocket URL query at dist-tag latest (OTHER, conf 97, PASSIVE complete)
+2. SSRF via server-side fetch of audio_url/video_url plus webhook callback delivery (SSRF, conf 73, AUTH_HELPED)
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) — include tarball sha256 3b23ec7d…7f2 (8 reproductions), src/client.ts:306-308 excerpt, GitHub user+repo 404 proof, README↔package.json "Unofficial/Official" contradiction, official @gladiaio/sdk@1.1.0 contrast; request a test API key in the report to unblock the SSRF POC.
+
+STEP 6 — LEARNING
+[LEARN] ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable); official @gladiaio/sdk@1.1.0 static.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express, POST nokey 401/144B NestJS — surface frozen across 100+ cycles.
+[LEARN] REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix `W/"1eaf0-v4pz1HbnK+vcVvBugc0M8WzXFnM"` with structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
+[LEARN] ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh this cycle (200/27448B, form action reflects URL-encoded value, CSP form-action grep-count=0) — post-auth honoring remains sole unverified gate (HUMAN_ONLY).
+
+STEP 7 — RISK SCORE
+[RISK] api.gladia.io: 42 — frozen 14-path surface + undocumented /health and /v2/live/health; SSRF-by-design fetch+callback present but AUTH_HELPED (POC blocked without key); preflight-only x-powered-by fingerprint informational | app.gladia.io: 38 — /signin redirect_to reflection + CSP form-action gap persistent but post-auth honoring unverified (HUMAN_ONLY); OAuth redirect_uri FIXED+PKCE S256; return-to cookie tamper-reset | sdk: 52 — gladia@0.1.3 orphaned impersonation live at dist-tag latest with raw key-in-URL leakage + irrevocable GitHub 404, evidence locked across 8 reproductions; official @gladiaio/sdk@1.1.0 clean, no broader campaign
