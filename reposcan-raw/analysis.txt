@@ -1,77 +1,41 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | head -30
-import React, { useRef, useState } from "react";
-import { SidebarNav, type NavScreen } from "../components/SidebarNav";
-import { PermissionsView } from "../components/PermissionsView";
-import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
-import { HomeView } from "../components/HomeView";
-import { HistoryView } from "../components/HistoryView";
-import { CustomVocabularyView } from "../components/CustomVocabularyView";
-import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
-import { AppSettingsView } from "../components/AppSettingsView";
-import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
-import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
-import { EUROPEAN_LANGUAGES } from "../lib/languages";
-import type { AppSettings, TranscriptionHistoryPage } from "../types";
+### Classification Tables
 
-const noop = () => {};
-const MOCK_SETTINGS: AppSettings = {
-  apiKey: "sk-********",
-  languages: ["en", "fr"],
-  activationMode: "push-to-talk",
-  audioDevice: "",
-  audioDeviceSelection: { mode: "automatic" },
-  hotkey: "Fn",
-  codeSwitching: false,
-  copyToClipboard: false,
-  endpointing: 0.1,
-  customVocabulary: [
-    ...DEFAULT_CUSTOM_VOCABULARY,
-    {
-      value: "WebSocket",
-      intensity: 0.7,
-[0m
-[0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | grep -A 20 '@ai-sdk/gladia'
-'@ai-sdk/gladia':
-        specifier: workspace:*
-        version: link:../../packages/gladia
-      '@ai-sdk/google':
-        specifier: workspace:*
-        version: link:../../packages/google
-      '@ai-sdk/google-vertex':
-        specifier: workspace:*
-        version: link:../../packages/google-vertex
-      '@ai-sdk/groq':
-        specifier: workspace:*
-        version: link:../../packages/groq
-      '@ai-sdk/harness':
-        specifier: workspace:*
-        version: link:../../packages/harness
-      '@ai-sdk/harness-claude-code':
-        specifier: workspace:*
-        version: link:../../packages/harness-claude-code
-      '@ai-sdk/harness-codex':
-        specifier: workspace:*
-        version: link:../../packages/harness-codex
-[0m
-### Classification Table
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | | | No live credentials found |
 
-| Category | Files | Details |
-|----------|-------|---------|
-| **TEST_OR_EXAMPLE** | 600+ | Mock settings (`sk-********`), test fixtures, example code, documentation links, legitimate SDK usage in compare-stt/gladiaflow/vercel-ai |
-| **ENDPOINT_LEAK** | ~15 | Public API references (`https://api.gladia.io/v2`, `https://app.gladia.io/*`) — all production endpoints, no internal/staging URLs |
-| **INTERESTING** | 2 | 1) `gladiaflow/src/screenshots/Gallery.tsx:17` — masked placeholder `apiKey: "sk-********"` in mock settings (TEST_OR_EXAMPLE)<br>2) `vercel-ai` workspace link to `@ai-sdk/gladia` — official Vercel AI SDK integration (legitimate) |
-| **REAL_SECRET** | 0 | No hardcoded credentials, API keys, or tokens with signs of life |
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder in screenshot component |
+| reposcan-raw/gladiaio/compare-stt/* | multiple | Legitimate marketing/comparison site references to gladia.io domains |
 
-### Verdict
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` — public API base URL |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` — public dashboard URL |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` — public dashboard URL |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` npm impersonation (personal repo, "Official" claim) | **yes** | Already **ACCEPTED** in knowledge base (2026-08-07 through 2026-08-20) — orphaned package with raw API key in WebSocket URL, dist-tag `latest` persists, GitHub 404 |
-| Masked placeholder `sk-********` in gladiaflow screenshot | no | Test/fixture data, obviously masked |
-| Public API endpoints in source code | no | Legitimate production endpoint references |
-| `@ai-sdk/gladia` workspace reference | no | Official Vercel AI SDK provider package |
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | `@ai-sdk/gladia` — official Vercel AI SDK integration (linked from `packages/gladia` in vercel-ai monorepo) |
+| npm `gladia@0.1.3` | — | Orphaned impersonation (personal repo `alexisbouchez/gladia.ts`, user 404, description "Official" vs README "Unofficial", embeds raw `x-gladia-key` in WSS URL query) — **pre-existing, already tracked** |
 
-**No new reportable findings from this scan delta (0 new hit lines).** The sole live supply-chain anomaly remains the previously accepted `gladia@0.1.3` orphaned impersonation — evidence package locked, report-ready via `gladia.io/bug-bounty-report`.
+---
+
+### Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) | TEST_OR_EXAMPLE | **no** — masked placeholder |
+| All `gladia.io` domain references in `compare-stt` | ENDPOINT_LEAK / TEST_OR_EXAMPLE | **no** — public marketing endpoints |
+| `@ai-sdk/gladia` in `vercel-ai` | INTERESTING | **no** — official Vercel integration, in-scope but benign |
+| npm `gladia@0.1.3` orphaned impersonation | INTERESTING | **yes** — **pre-existing, already ACCEPTED** (supply-chain impersonation, report-ready via bug-bounty portal) |
+
+**Summary**: 0 new reportable findings this scan. The sole live candidate remains the pre-existing `gladia@0.1.3` npm package impersonation (evidence package locked, reproducible via `npm pack`, report-ready). All other hits are benign references to public Gladia endpoints or test fixtures.
