@@ -7067,3 +7067,8 @@
 - LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh — 0 form-action directives (grep-count=0); enables /signin form-action reflection (gap confirmed, not ov
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — SSRF-by-design surface persists (AUTH_HELPED)
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh — 0 CSP form-action directives (gap confirmed); post-auth honoring sole unverifie
+
+## RANKED HYPOTHESES 2026-08-21 14:00:55 UTC
+- [97] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated)
+- LEARN: No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; all ACCEPTED findings remain alive, all REJECTED classes rema
