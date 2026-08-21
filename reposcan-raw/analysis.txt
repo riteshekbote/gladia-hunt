@@ -1,24 +1,414 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls -la reposcan-raw/gladiaio/
-total 56
-drwxr-xr-x 14 runner runner 4096 Aug 21 06:05 .
-drwxr-xr-x  4 runner runner 4096 Aug 21 06:05 ..
-drwxr-xr-x  9 runner runner 4096 Aug 21 06:05 compare-stt
-drwxr-xr-x  9 runner runner 4096 Aug 21 06:05 docs
-drwxr-xr-x  7 runner runner 4096 Aug 21 06:05 gladia-cli
-drwxr-xr-x 11 runner runner 4096 Aug 21 06:05 gladia-quiz-app
-drwxr-xr-x 11 runner runner 4096 Aug 21 06:05 gladia-samples
-drwxr-xr-x  9 runner runner 4096 Aug 21 06:05 gladiaflow
-drwxr-xr-x  7 runner runner 4096 Aug 21 06:05 n8n-nodes-gladia
-drwxr-xr-x  8 runner runner 4096 Aug 21 06:05 normalization
-drwxr-xr-x  9 runner runner 4096 Aug 21 06:05 realtime-multilingual-asr-router
-drwxr-xr-x 10 runner runner 4096 Aug 21 06:05 sdk
-drwxr-xr-x  7 runner runner 4096 Aug 21 06:05 skills
-drwxr-xr-x 18 runner runner 4096 Aug 21 06:05 vercel-ai
-[0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx[90m [offset=10, limit=30][0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
+
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+      pronunciations: [
+        "web socket",
+        "web-socket",
+        "websockit",
+        "web soket",
+        "double-u socket",
+        "web socket protocol",
+      ],
+    },
+    { value: "diarization", intensity: 0.7 },
+    { value: "endpointing", intensity: 0.55 },
+    { value: "SaaS", intensity: 0.65 },
+    { value: "Acme Incorporated", intensity: 0.5 },
+    { value: "Gladia API", intensity: 0.8 },
+  ],
+};
+
+const MOCK_HISTORY: TranscriptionHistoryPage = {
+  items: [
+    {
+      id: "1",
+      text: "GladiaFlow makes dictation feel effortless once permissions and your API key are set up.",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+    },
+    {
+      id: "2",
+      text: "Custom vocabulary helps with product names like GladiaFlow and internal acronyms.",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: "3",
+      text: "The fixed history footer keeps navigation controls in a predictable position while moving between pages.",
+      created_at: new Date(Date.now() - 172800000).toISOString(),
+    },
+    {
+      id: "4",
+      text: "Long transcription previews use two lines so every row remains the same height without introducing a scrollbar in the desktop window.",
+      created_at: new Date(Date.now() - 259200000).toISOString(),
+    },
+  ],
+  total: 84,
+  page: 1,
+  page_size: 4,
+};
+
+function AppShell({
+  id,
+  gate,
+  activeScreen = "home",
+  children,
+}: {
+  id: string;
+  gate?: boolean;
+  activeScreen?: NavScreen;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      data-screenshot={id}
+      className={`layout${gate ? " layout-gate" : ""}`}
+      style={{ width: 800, height: 600, overflow: "hidden" }}
+    >
+      {!gate && (
+        <SidebarNav activeScreen={activeScreen} onNavigate={noop as never} />
+      )}
+      <main className="main-content">
+        <section className="content">{children}</section>
+      </main>
+    </div>
+  );
+}
+
+function ScreenFrame({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="screenshot-frame-wrap">
+      <p className="screenshot-label">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+export function ScreenshotGallery() {
+  const [settings, setSettings] = useState<AppSettings>(MOCK_SETTINGS);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const activationDropdownRef = useRef<HTMLDivElement>(null);
+  const audioDeviceDropdownRef = useRef<HTMLDivElement>(null);
+  const filteredLanguageOptions = EUROPEAN_LANGUAGES;
+
+  return (
+    <div className="screenshot-gallery">
+      <ScreenFrame id="wrap-01-permissions" label="01 Permissions">
+        <AppShell id="01-permissions" gate>
+          <PermissionsView
+            permissions={{
+              accessibilityState: "not_determined",
+              microphone: "not_determined",
+            }}
+            isMac
+            onOpenAccessibilitySettings={noop}
+            onGrantMicrophone={noop}
+            onOpenMicSettings={noop}
+            onRecheck={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-02-api-key" label="02 API Key">
+        <AppShell id="02-api-key" gate>
+          <ApiKeyOnboardingView
+            displayValue=""
+            isLocked={false}
+            isTesting={false}
+            onChangeKey={noop}
+            onSave={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-03-home-idle" label="03 Home Idle">
+        <AppShell id="03-home-idle">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="****************"
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04-home-recording" label="04 Home Recording">
+        <AppShell id="04-home-recording">
+          <HomeView
+            isRecording
+            isProcessing={false}
+            homeTitle="Listening..."
+            homeSubtitle={null}
+            dictationStats={DEFAULT_DICTATION_STATS}
+            formattedTotalTime="0 min"
+            funnyDictationComment=""
+            apiKeyDisplayValue=""
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04b-home-api-open" label="04b Home API Open">
+        <AppShell id="04b-home-api-open">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="sk-example"
+            isApiKeyLocked={false}
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05-history" label="05 History">
+        <AppShell id="05-history" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={MOCK_HISTORY}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05b-history-loading" label="05b History Loading">
+        <AppShell id="05b-history-loading" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={null}
+            isLoading
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05c-history-empty" label="05c History Empty">
+        <AppShell id="05c-history-empty" activeScreen="history">
+          <HistoryView
+            query="missing"
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={{ items: [], total: 0, page: 1, page_size: 4 }}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06-vocabulary" label="06 Vocabulary">
+        <AppShell id="06-vocabulary" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-06b-vocabulary-editor"
+        label="06b Vocabulary Editor"
+      >
+        <AppShell id="06b-vocabulary-editor" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06c-vocabulary-new" label="06c New Vocabulary Term">
+        <AppShell id="06c-vocabulary-new" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-07-transcription-settings"
+        label="07 Transcription Settings"
+      >
+        <AppShell id="07-transcription-settings" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen={false}
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-08-app-settings" label="08 App Settings">
+        <AppShell id="08-app-settings" activeScreen="settings">
+          <AppSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            activationDropdownOpen={false}
+            setActivationDropdownOpen={noop}
+            audioDeviceDropdownOpen={false}
+            setAudioDeviceDropdownOpen={noop}
+            activationDropdownRef={activationDropdownRef}
+            audioDeviceDropdownRef={audioDeviceDropdownRef}
+            handleOpenDropdown={noop}
+            activationModeOptions={[
+              { value: "toggle", label: "Toggle" },
+              { value: "push-to-talk", label: "Hold" },
+            ]}
+            selectedActivationModeLabel="Hold"
+            selectedAudioDeviceLabel="System Default"
+            audioDevices={[
+              {
+                id: "built-in",
+                name: "MacBook Pro Microphone",
+                transport: "built_in",
+                isDefault: true,
+                isBuiltIn: true,
+              },
+            ]}
+            isCapturing={false}
+            recordingKeys={[]}
+            canSaveCapture={false}
+            startCapture={noop}
+            cancelCapture={noop}
+            saveCapture={noop}
+            handleResetHotkey={noop}
+            defaultHotkey="Fn"
+            isMac
+            permissions={{ hotkeyError: null }}
+            region="EU"
+            version="0.1.0"
+            onDone={noop}
+            onOpenLogs={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-09-language-picker" label="09 Language Picker">
+        <AppShell id="09-language-picker" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+    </div>
+  );
+}
 [0m
 [0m$ [0mcat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | head -300
 lockfileVersion: '9.0'
@@ -322,78 +712,82 @@ importers:
         specifier: workspace:*
         version: link:../../packages/groq
 [0m
-[0m$ [0mnpm view gladia@0.1.3 2>/dev/null || echo "npm not available"
-gladia@0.1.3 | MIT | deps: none | versions: 4
-Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
-https://github.com/alexisbouchez/gladia.ts#readme
-
-keywords: gladia, speech-to-text, transcription, audio, video, ai, typescript, sdk
-
-dist
-.tarball: https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz
-.shasum: cc96f84a200c0fd49a71e919391f9b659c39f3e9
-.integrity: sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==
-.unpackedSize: 225.8 kB
-
-maintainers:
-- softwarecitadel <softwarecitadel@gmail.com>
-
-dist-tags:
-latest: 0.1.3
-
-published a year ago by softwarecitadel <softwarecitadel@gmail.com>
+[0m$ [0mls -la reposcan-raw/gladiaio/vercel-ai/packages/ 2>/dev/null | head -30
+total 272
+drwxr-xr-x 68 runner runner 4096 Aug 21 07:07 .
+drwxr-xr-x 18 runner runner 4096 Aug 21 07:07 ..
+drwxr-xr-x  6 runner runner 4096 Aug 21 07:07 ai
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 alibaba
+drwxr-xr-x  5 runner runner 4096 Aug 21 07:07 amazon-bedrock
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 angular
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 anthropic
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 anthropic-aws
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 assemblyai
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 azure
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 baseten
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 black-forest-labs
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 bytedance
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 cerebras
+drwxr-xr-x  4 runner runner 4096 Aug 21 07:07 codemod
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 cohere
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 deepgram
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 deepinfra
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 deepseek
+drwxr-xr-x  5 runner runner 4096 Aug 21 07:07 devtools
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 elevenlabs
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 fal
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 fireworks
+drwxr-xr-x  4 runner runner 4096 Aug 21 07:07 gateway
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 gladia
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 google
+drwxr-xr-x  6 runner runner 4096 Aug 21 07:07 google-vertex
+drwxr-xr-x  3 runner runner 4096 Aug 21 07:07 groq
+drwxr-xr-x  6 runner runner 4096 Aug 21 07:07 harness
 [0m
-[0m$ [0mnpm view @gladiaio/sdk@1.1.0 2>/dev/null || echo "npm not available"
-@gladiaio/sdk@1.1.0 | MIT | deps: none | versions: 22
-Gladia JavaScript/TypeScript SDK
-https://github.com/gladiaio/sdk#readme
+### Classification Tables
 
-keywords: gladia, sdk, typescript, javascript
+#### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | — | — | No hardcoded live credentials found. The `sk-********` in gladiaflow is a masked placeholder in screenshot mock data. |
 
-dist
-.tarball: https://registry.npmjs.org/@gladiaio/sdk/-/sdk-1.1.0.tgz
-.shasum: af89149b9469135fbf7fffd9f3b415e483d30bbc
-.integrity: sha512-iKrYT+lAQ0WiqEk+g4kj0pjOuxPLS9Lc95RixljmpXwmISn6U+32OnvSomrhCMwlv+fiweC3AqxyFmn7Imvfog==
-.unpackedSize: 806.0 kB
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | Provider slug list for STT comparison benchmarking |
+| reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | Seed data for comparison database |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | Public API endpoint + header usage in comparison tool |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `MOCK_SETTINGS` with `apiKey: "sk-********"` for screenshot generation |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | Screenshot entry point |
+| reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21, 27, 34 | Unit tests for vocabulary validation |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | Constructs public `app.gladia.io` URL for history links |
 
-maintainers:
-- clement-gladia <ccharmet@gladia.io>
-- gladia-admin <tech-certified@gladia.io>
-- commarla <lcommarieu@gladia.io>
-- hugo_gladia <himbert@gladia.io>
-- tnesztler <picobuntu@gmail.com>
-- amorin_gladia <amorin@gladia.io>
-- thibautlb <ecouprie@gladia.io>
-- remigladia <rlejeune@gladia.io>
-- acorbeau-gladia <acorbeau@gladia.io>
-- jqueguiner <jlqueguiner@gladia.io>
-- hpapier.ext.gladia <hpapier.ext@gladia.io>
-- clafaye <clafaye@gladia.io>
-- opopops <ggueutier@gladia.io>
-- bot-npmjs-gladiaio <bot-npmjs@gladia.io>
-- rpiotaix <rpiotaix@gladia.io>
-- yoannkygladia <ykeoxay@gladia.io>
-- cpire <cpire@gladia.io>
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Classification |
+|------|------|----------|----------------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | **PUBLIC API** — not a leak; documented production endpoint |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | Marketing site rewrite — public |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | Public dashboard path — not a leak |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/{id}` | Public dashboard path — not a leak |
+| reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | `https://docs.gladia.io/...` | Public docs — not a leak |
 
-dist-tags:
-latest: 1.1.0
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/gladiaio/vercel-ai/packages/gladia | (dir) | Official Vercel AI SDK provider for Gladia (`@ai-sdk/gladia`) — legitimate first-party integration in Gladia org |
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291, 2368 | Workspace link to `packages/gladia` — confirms official integration |
+| *(registry)* | — | **`gladia@0.1.3` npm package** — impersonates official SDK (description "Official TypeScript SDK", repo `alexisbouchez/gladia.ts` personal, GitHub 404, embeds raw `x-gladia-key` in WSS URL query) — **already ACCEPTED in knowledge base** |
 
-published 4 weeks ago by bot-npmjs-gladiaio <bot-npmjs@gladia.io>
-[0m
-### Classification Results
+---
 
-| Category | Count | Details |
-|----------|-------|---------|
-| **REAL_SECRET** | 0 | No hardcoded credentials with signs of life found |
-| **TEST_OR_EXAMPLE** | ~600+ | Documentation URLs, marketing references, test fixtures, mock data (`sk-********` placeholder in screenshots), Next.js config rewrites, provider implementations using public API |
-| **ENDPOINT_LEAK** | ~15 | Public API references (`https://api.gladia.io/v2` in provider code), Vercel rewrites to marketing site — all expected public endpoints |
-| **INTERESTING** | 2 | 1) `gladia@0.1.3` npm package — orphaned impersonation (personal repo `alexisbouchez/gladia.ts`, user 404, maintainer `softwarecitadel@gmail.com`, claims "Official" but README says "Unofficial", embeds raw API key in WSS URL query `x-gladia-key`) — **already tracked, report-ready**<br>2) `@ai-sdk/gladia` in vercel-ai — official Vercel AI SDK integration (workspace dependency, expected) |
+### Verdict List
 
-### Verdict
+| Candidate | Reportable? | Reason |
+|-----------|-------------|--------|
+| `sk-********` in gladiaflow Gallery.tsx | **NO** | Masked placeholder in screenshot mock data (`MOCK_SETTINGS`), not a real secret |
+| `api.gladia.io/v2` references in compare-stt | **NO** | Public production API endpoint, used in benchmarking tool |
+| `app.gladia.io` / `docs.gladia.io` references | **NO** | Public dashboard/docs URLs |
+| `@ai-sdk/gladia` in vercel-ai | **NO** | Official Vercel AI SDK provider maintained by Gladia org |
+| `gladia@0.1.3` npm impersonation | **ALREADY TRACKED** | **ACCEPTED OTHER** in knowledge base (orphaned package, personal repo, key-in-URL, report-ready) — no new finding |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `gladia@0.1.3` orphaned npm impersonation | **yes** | Confirmed supply-chain risk: dist-tag `latest=0.1.3` persists, GitHub repo+user 404 (orphaned/irrevocable), sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` reproducible, source embeds raw API key in WSS URL query (`searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())`), package.json "Official" vs README "Unofficial" contradiction. Evidence package locked across 8+ independent `npm pack` reproductions. |
-| All other hits | **no** | Documentation, marketing, test fixtures, public API usage, official integrations — no new secrets, no new endpoint leaks, no new surface changes (delta = 0 new hit lines vs prior scan) |
-
-**Summary**: Surface frozen across 100+ drift-negative cycles. Only the pre-existing `gladia@0.1.3` orphaned impersonation remains reportable (P3/P4). No new findings this scan.
+**REPORT_CANDIDATE: no** — Zero new reportable findings in this delta. All hits are test/example code, public endpoint references, or previously accepted findings. The sole supply-chain anomaly (`gladia@0.1.3`) remains stable and already evidence-locked.
