@@ -1,47 +1,37 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Triage: gladiaio GitHub repos + npm @gladiaio/sdk
+## Scan Triage Summary (2026-08-21)
 
-**Scan**: 5647 files, 617 hits, **0 new hit lines** (delta = 0)
+**Delta: 0 new hit lines** vs previous scan. 617/5647 files matched; all hits are benign.
 
-### REAL_SECRET
+### Classification Table
 
-| # | File | Line | Assessment |
-|---|------|------|------------|
-| — | — | — | **(none)** |
+| Category | Files | Verdict |
+|----------|-------|---------|
+| **URL_ENDPOINT** | `gladia.ts:3` (`api.gladia.io/v2`), `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` (`app.gladia.io/apikeys`), `gladiaflow/src/components/TranscriptionHistory.tsx:19` (`app.gladia.io/transcriptions/live/`), `compare-stt/next.config.ts:38,44` (proxy to `www.gladia.io`), ~20 UI component hrefs to `gladia.io`/`www.gladia.io`/`github.com/gladiaio/*` | **TEST_OR_EXAMPLE** — public-facing marketing/docs/SDK URLs, no internal/dev/staging exposure |
+| **API_KEY_HEADER** | `compare-stt/src/lib/providers/gladia.ts:36,49` (`x-gladia-key` header usage) | **TEST_OR_EXAMPLE** — standard SDK header, no hardcoded key value |
+| **MASKED_KEY** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) | **TEST_OR_EXAMPLE** — placeholder/masked screenshot data |
+| **PACKAGE_IDENTIFIER** | `gladiaflow/package.json:2`, `gladiaflow/src-tauri/Cargo.toml:2,5`, `vercel-ai/pnpm-lock.yaml:289,2368`, `gladiaflow/src/lib/customVocabulary.ts:8-9` | **TEST_OR_EXAMPLE** — package names, not secrets |
+| **EMAIL** | `compare-stt/src/app/about/page.tsx:172`, `compare-stt/src/components/hero-provider-logos.tsx:7` (`privacy@gladia.io`) | **TEST_OR_EXAMPLE** — public contact email |
+| **GITHUB_REF** | `compare-stt/src/app/methodology/page.tsx:80,513` (`github.com/gladiaio/compare-stt`) | **TEST_OR_EXAMPLE** — public repo link |
+| **TRACKING_CONFIG** | `gladiaflow/src-tauri/Cargo.toml:5` (`support@gladia.io`), `gladiaflow/src/lib/dictationStats.ts:11` (`gladiaflow.dictation.stats.v1` localStorage key) | **TEST_OR_EXAMPLE** — support email + localStorage key |
+| **IDENTIFIER_LEAK** | `gladiaflow/src-tauri/tauri.conf.json:5` (`io.gladia.gladiaflow`), `gladiaflow/src-tauri/tauri.dev.conf.json:3` (`io.gladia.gladiaflow.dev`) | **ENDPOINT_LEAK** — app identifiers (public Tauri manifest, informational) |
 
-### TEST_OR_EXAMPLE
+### Already-ACCEPTED Findings (from knowledge base, not new)
 
-| File | Line | Content |
-|------|------|---------|
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — literal masked placeholder, not a real key |
-| `compare-stt/test-providers.ts` | 8 | `SLUGS = ["gladia","deepgram",...]` — test fixture |
-| `compare-stt/prisma/seed.ts` | 10 | `{ name: "Gladia", slug: "gladia" }` — seed data |
-| `compare-stt/src/lib/tracking.ts` | 2 | Comment referencing tracking IDs sync (no actual values) |
-| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21-34 | `"gladiaflow"` test strings |
-| `gladiaflow/src/lib/dictationStats.ts` | 11 | `"gladiaflow.dictation.stats.v1"` — localStorage key |
+| ID | Target | Class | Status |
+|----|--------|-------|--------|
+| SSRF-1 | api.gladia.io | SSRF-by-design (audio_url/video_url/callback_url no scheme allowlist) | ACCEPTED, AUTH_HELPED |
+| SSRF-2 | api.gladia.io | 7 webhook delivery paths, /v1/models FR/US egress | ACCEPTED |
+| IMP-1 | npm gladia@0.1.3 | Orphaned impersonation (key-in-URL, repo 404, "Official" vs "Unofficial" contradiction) | ACCEPTED, report-ready |
+| OATH-1 | app.gladia.io | /signin redirect_to form-action reflection (0 CSP form-action directives) | ACCEPTED, HUMAN_ONLY |
+| INFO-1 | api.gladia.io | /v2/live/health undocumented key-gated endpoint | ACCEPTED, informational only |
 
-### ENDPOINT_LEAK
-
-| File | Line | Content |
-|------|------|---------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` — expected public API base, not internal |
-| `compare-stt/next.config.ts` | 38-51 | Rewrite proxies to `www.gladia.io/compare-stt-apis` — legitimate first-party |
-
-### PUBLIC_URL / CONFIG (not findings)
-
-~600 hits are `gladia.io`, `api.gladia.io`, `app.gladia.io`, `docs.gladia.io`, `github.com/gladiaio/*` URLs in component code, links, SEO metadata, package names, Cargo/package.json identifiers, and env fallbacks. All first-party public surface.
-
----
-
-### Verdict
+### Verdict List
 
 ```
-REAL_SECRET:         none
-TEST_OR_EXAMPLE:     sk-******** (masked placeholder), test fixtures, localStorage keys
-ENDPOINT_LEAK:       api.gladia.io/v2 (public, expected), www.gladia.io rewrites (legit first-party)
-INTERESTING:         none (no debug flags, no cloud creds, no non-Gladia third-party secrets)
+REPORT_CANDIDATE: no
 ```
 
-**REPORT_CANDIDATE: no** — zero new hits this cycle, zero real secrets, all 617 hits are benign first-party URLs, test fixtures, or masked placeholders. The sole "key-like" string (`sk-********`) is explicitly a redacted placeholder. Supply-chain surface unchanged from prior cycles.
+No new secrets, hardcoded keys, internal URLs, or supply-chain anomalies found in this delta. All 617 hits are benign URL references, package identifiers, masked placeholders, or public contact information. The 0-delta scan confirms no new exposure since the last triage cycle.
