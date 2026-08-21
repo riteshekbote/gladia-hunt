@@ -1,29 +1,31 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Scan Cycle Summary
+| Category | File | Line | Summary |
+|----------|------|------|---------|
+| **TEST_OR_EXAMPLE** | `compare-stt/test-providers.ts:8` | `SLUGS = ["gladia", ...]` | Provider slug constants for testing — not a secret |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | Masked placeholder for screenshot generation — not a real key |
+| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3` | `GLADIA_BASE = "https://api.gladia.io/v2"` | Public API base URL — matches documented OpenAPI surface |
+| **ENDPOINT_LEAK** | `gladiaflow/src/lib/customVocabulary.ts:8-9` | `"gladiaflow"` / `["gladioflow", "gladiaflaw"]` | Vocabulary test data for pronunciation engine |
+| **ENDPOINT_LEAK** | `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | Dashboard URL pattern — public app surface |
+| **ENDPOINT_LEAK** | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | Dashboard URL — public app surface |
+| **INTERESTING** | `compare-stt/src/components/tracking/gladia-analytics.tsx:5` | Comment: "Same tag stack as gladia-marketing" | Cross-repo tracking comment — informational only |
+| **INTERESTING** | `compare-stt/src/lib/tracking.ts:2` | Comment: "Tracking IDs — keep in sync with gladia-marketing" | Cross-repo sync comment — informational only |
+| **INTERESTING** | `compare-stt/src/lib/site.ts:5,20` | `CITATION_DOMAIN = "www.gladia.io"` | Marketing domain reference — in scope, no finding |
+| All other `compare-stt` hits | `next.config.ts`, `*.tsx`, `*.ts` | URLs `gladia.io`, `www.gladia.io`, `github.com/gladiaio/*` | Legitimate links to official domains/repos |
+| All `gladiaflow` hits | `Cargo.toml`, `package.json`, `tauri.conf.json` | Project metadata (`io.gladia.gladiaflow`, `support@gladia.io`) | Standard project identifiers |
+| `vercel-ai` hits | `pnpm-lock.yaml:289,291,2368` | `@ai-sdk/gladia: link:../../packages/gladia` | Official org workspace link — verified clean |
+| `compare-stt` provider links | `terms/page.tsx`, `methodology/page.tsx`, `about/page.tsx` | `gladia.io/legal/*`, `github.com/gladiaio/compare-stt`, `privacy@gladia.io` | Public legal/support pages |
 
-**DELTA: 0 new hit lines** — surface identical to prior cycle.
-
----
-
-### Classification Table
+**Verdict:**
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| **TEST_OR_EXAMPLE** | ~500+ | `sk-********` in gladiaflow screenshots, test seed data, example API keys, hardcoded test provider names |
-| **ENDPOINT_LEAK** | ~100 | Known public endpoints: `api.gladia.io/v2`, `app.gladia.io/apikeys`, `www.gladia.io`, `gladia.io` — all previously tracked |
-| **INTERESTING** | 0 | No new unusual findings |
-| **REAL_SECRET** | 0 | No new hardcoded credentials with signs of life |
+| REAL_SECRET | **0** | No hardcoded credentials found |
+| TEST_OR_EXAMPLE | 2 | Masked placeholder + provider slugs |
+| ENDPOINT_LEAK | 5 | All public-facing URLs matching documented surface |
+| INTERESTING | 2 | Cross-repo tracking comments — informational |
 
----
+**REPORT_CANDIDATE: No**
 
-### Verdict
-
-| Finding | Report Candidate |
-|---------|-----------------|
-| NEW secrets | no |
-| NEW endpoint leaks | no |
-| NEW interesting findings | no |
-
-**REPORT_CANDIDATE: no** — 0 new hits; all 617 hits are previously classified benign patterns (TEST_OR_EXAMPLE, ENDPOINT_LEAK for known public endpoints). No drift from baseline.
+All hits are legitimate references to official Gladia domains, documented endpoints, test fixtures, or project metadata. The `sk-********` is a masked placeholder, not an actual key. The `gladia@0.1.3` impersonation finding from the RAG base remains the sole supply-chain report-ready candidate. Delta = 0 new hits; surface is frozen.
