@@ -1,16 +1,53 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Triage: gladiaio reposcan 2026-08-21
+## Triage Table
 
-| Category | Count | Details |
-|----------|-------|---------|
-| REAL_SECRET | 0 | None found |
-| TEST_OR_EXAMPLE | 1 | `Gallery.tsx:17` — `sk-********` (explicitly masked placeholder for screenshots) |
-| ENDPOINT_LEAK | 0 | All URLs are public known surfaces (api.gladia.io/v2, app.gladia.io, www.gladia.io) |
-| INTERESTING | 0 | — |
-| LEGIT_CODE_REF | ~616 | Package names, imports, HTML links, tracking IDs, provider lists, test fixtures |
+### TEST_OR_EXAMPLE (all benign)
+| File | Line | Content |
+|------|------|---------|
+| compare-stt/test-providers.ts | 8 | `const SLUGS = ["gladia", "deepgram", ...]` |
+| compare-stt/prisma/seed.ts | 10 | `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" }` |
+| compare-stt/src/lib/providers.ts | 10 | `{ name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" }` |
+| compare-stt/src/lib/transcribe.ts | 2,25,148 | Import/enum map for provider names |
+| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` — masked placeholder, not a real key |
+| gladiaflow/src/lib/customVocabulary.ts | 8-9 | `value: "gladiaflow", pronunciations: [...]` |
+| gladiaflow/src/lib/vocabularyEditor.test.ts | 21,27,34 | Test assertions for vocabulary validation |
+| gladiaflow/src/lib/dictationStats.ts | 11 | `DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1"` |
+| gladiaflow/src/screenshots/main.tsx | 3 | `import "../gladia-tokens.css"` |
 
-**Verdict:** `REPORT_CANDIDATE: no`
+### ENDPOINT_LEAK (informational, all in-scope public URLs)
+| File | Line | Content |
+|------|------|---------|
+| compare-stt/next.config.ts | 38 | `destination: "https://www.gladia.io/compare-stt-apis"` |
+| compare-stt/next.config.ts | 44 | `destination: "https://www.gladia.io/compare-stt-apis/:path"` |
+| compare-stt/src/lib/site.ts | 5 | `process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"` |
+| compare-stt/src/lib/site.ts | 20 | `CITATION_DOMAIN = "www.gladia.io"` |
+| compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` |
+| compare-stt/src/lib/providers/gladia.ts | 36,49 | `"x-gladia-key": apiKey` — header usage in provider code |
+| gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` |
+| gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `const API_KEYS_URL = "https://app.gladia.io/apikeys"` |
+| Multiple compare-stt pages | various | Public links to `https://www.gladia.io`, `https://gladia.io`, `https://github.com/gladiaio/*` |
 
-No real secrets, API keys, or tokens found. The sole `sk-********` hit in `gladiaflow/src/screenshots/Gallery.tsx:17` is an explicitly masked placeholder (all asterisks) used for screenshot generation — already classified as TEST_OR_EXAMPLE in prior cycles. All other 616 hits are legitimate code references to public endpoints, package names, or test data. Surface unchanged from prior reposcan cycles (0 new hit lines).
+### INTERESTING (info only, no action)
+| File | Line | Content |
+|------|------|---------|
+| compare-stt/next.config.ts | 51 | `// PostHog reverse proxy — same hosts as gladia-marketing vercel.json.` |
+| vercel-ai/pnpm-lock.yaml | 289,291,2368 | `'@ai-sdk/gladia': link:../../packages/gladia` — local package link |
+| gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` |
+| gladiaflow/src-tauri/tauri.conf.json | 5 | `"identifier": "io.gladia.gladiaflow"` |
+| Multiple files | various | Component imports, CSS token imports, normal project wiring |
+
+### REAL_SECRET
+None found.
+
+## Verdict
+
+| Category | REPORT_CANDIDATE |
+|----------|-----------------|
+| REAL_SECRET | No |
+| TEST_OR_EXAMPLE | No |
+| ENDPOINT_LEAK | No — all public in-scope URLs (api.gladia.io, app.gladia.io, www.gladia.io) already known |
+| INTERESTING | No — PostHog proxy comment and local pnpm link are informational only |
+
+**REPORT_CANDIDATE: no** — zero new reportable findings; delta=0 new hit lines. All 617 hits are benign (public URLs, test fixtures, masked placeholders, normal project wiring). The sole live finding (`gladia@0.1.3` orphaned impersonation) was already ACCEPTED and locked in prior cycles.
