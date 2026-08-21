@@ -1,61 +1,74 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-[0m• [0mAnalyze gladia repo scan hits[90m General Agent[0m
-[0m✓ [0mAnalyze gladia repo scan hits[90m General Agent[0m
-[0m• [0mRead remaining gladia files[90m General Agent[0m
-Now let me check the remaining files that weren't covered:
-[0m✓ [0mRead remaining gladia files[90m General Agent[0m
-Here's the full triage analysis:
-
----
-
-## Triage Table: `gladiaio` GitHub Org Static Scan
-
-### REAL_SECRET
-**None found.** All API key references use environment variables (`process.env.GLADIA_API_KEY`) or are masked placeholders (`sk-********`).
-
-### TEST_OR_EXAMPLE
-| File | Line | Description |
-|------|------|-------------|
-| `compare-stt/test-providers.ts` | 8 | Test harness: SLUGS array listing 6 STT providers for comparison |
-| `compare-stt/prisma/seed.ts` | 10 | DB seed: `gladia` provider entry in fixture data |
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `sk-********` in `MOCK_SETTINGS` — screenshot gallery placeholder |
-| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21-34 | Unit tests using "gladiaflow" as sample vocabulary term |
-
-### ENDPOINT_LEAK
-| File | Line | URL | Assessment |
-|------|------|-----|------------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public production API base — no action |
-| `compare-stt/src/lib/site.ts` | 5 | `https://www.gladia.io` | Public canonical origin — no action |
-| `compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/compare-stt-apis` | Public redirect target — no action |
-| `compare-stt/next.config.ts` | 56,62 | `https://eu-assets.i.posthog.com` | Public PostHog EU assets — no action |
-| `compare-stt/next.config.ts` | 66 | `https://eu.i.posthog.com` | Public PostHog EU ingest — no action |
-| `gladiaflow/src-tauri/tauri.conf.json` | 9 | `http://localhost:1420` | Dev server URL in `devUrl` — expected |
-| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/...` | Public dashboard URL — no action |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL — no action |
-| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/chapters/...` | Public docs URL — no action |
-
-### INTERESTING
-| File | Line | Finding | Severity |
-|------|------|---------|----------|
-| `compare-stt/src/lib/tracking.ts` | — | Client-side tracking IDs: GTM `GTM-5M3X2DX`, Google Ads `AW-11135522798`, PostHog `phc_kYph4U...`, Clarity `hrmdb7ts2c` | Info (public by design) |
-| `compare-stt/next.config.ts` | 77-79 | Sentry identifiers: org `gladia-p2`, project `sentry-coquelicot-curtain` | Info (semi-public) |
-| `compare-stt/src/components/hero-provider-logos.tsx` | 7 | `mailto:privacy@gladia.io` hardcoded contact email | Info (public) |
-| `compare-stt/src/components/tracking/gladia-analytics.tsx` | — | 4 simultaneous tracking systems (GTM, Google Ads, PostHog, Clarity) on compare-stt | Info |
-| `vercel-ai/pnpm-lock.yaml` | 289,2368 | `@ai-sdk/gladia` workspace package in Vercel AI SDK monorepo — Gladia is an official Vercel AI SDK provider | Info |
-| `gladiaflow/src-tauri/Cargo.toml` | — | Desktop app (Tauri 2.x) with real-time WebSocket STT streaming, macOS/Windows native integrations | Info |
-| `compare-stt/prisma/seed.ts` | 1-2 | Duplicate `import "dotenv/config"` (harmless bug) | Trivial |
-
----
+| Category | File | Line | Classification | Notes |
+|----------|------|------|----------------|-------|
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | ENDPOINT_LEAK | `https://api.gladia.io/v2` — live API base URL, not a leak |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 36 | ENDPOINT_LEAK | `x-gladia-key` header in request — expected SDK behavior |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 49 | ENDPOINT_LEAK | `x-gladia-key` in streaming headers — expected SDK behavior |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | TEST_OR_EXAMPLE | `sk-********` masked placeholder — not a real key |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx | 14 | ENDPOINT_LEAK | `https://docs.gladia.io/...` — public docs link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | ENDPOINT_LEAK | `https://app.gladia.io/apikeys` — public dashboard URL |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | ENDPOINT_LEAK | `https://app.gladia.io/transcriptions/live/...` — public dashboard URL |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/package.json | 2 | ENDPOINT_LEAK | Package name `gladiaflow` — not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/package-lock.json | 2 | ENDPOINT_LEAK | Package name `gladiaflow` — not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | ENDPOINT_LEAK | `support@gladia.io` email — public contact, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json | 3 | ENDPOINT_LEAK | `io.gladia.gladiaflow.dev` — app identifier, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json | 5 | ENDPOINT_LEAK | `io.gladia.gladiaflow` — app identifier, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 5 | ENDPOINT_LEAK | `https://www.gladia.io` — public site, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/site.ts | 20 | ENDPOINT_LEAK | `www.gladia.io` — public domain, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/next.config.ts | 38 | ENDPOINT_LEAK | `https://www.gladia.io/compare-stt-apis` — public redirect, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/next.config.ts | 44 | ENDPOINT_LEAK | `https://www.gladia.io/compare-stt-apis/:path` — public redirect, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/next.config.ts | 51 | ENDPOINT_LEAK | PostHog reverse proxy comment — tracking infra comment, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/prisma/seed.ts | 10 | ENDPOINT_LEAK | `{ name: "Gladia", slug: "gladia" }` — seed data, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 9 | ENDPOINT_LEAK | `import gladia-analytics` — tracking component, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx | 87 | ENDPOINT_LEAK | `https://www.gladia.io` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 45 | ENDPOINT_LEAK | `https://gladia.io` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 72 | ENDPOINT_LEAK | `https://www.gladia.io/legal/terms-of-use` — public terms |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 107 | ENDPOINT_LEAK | `https://www.gladia.io` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 80 | ENDPOINT_LEAK | `https://github.com/gladiaio/compare-stt` — public repo link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 490 | ENDPOINT_LEAK | `https://gladia.io` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx | 513 | ENDPOINT_LEAK | `https://github.com/gladiaio/compare-stt/issues` — public issues link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 68 | ENDPOINT_LEAK | `https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start` — public docs |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 156 | ENDPOINT_LEAK | `https://gladia.io` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx | 172 | ENDPOINT_LEAK | `mailto:privacy@gladia.io` — public contact email |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx | 7 | ENDPOINT_LEAK | `mailto:privacy@gladia.io?subject=Apply...` — public contact email |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 270 | ENDPOINT_LEAK | `https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start` — public docs |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 341 | ENDPOINT_LEAK | Same as above |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx | 427 | ENDPOINT_LEAK | Same as above |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx | 5 | ENDPOINT_LEAK | `Same tag stack as gladia-marketing` — tracking comment |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx | 28 | ENDPOINT_LEAK | `url: "https://gladia.io"` — public site link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts | 2 | ENDPOINT_LEAK | `Tracking IDs — keep in sync with gladia-marketing` — tracking comment |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts | 10 | ENDPOINT_LEAK | `{ name: "Gladia", slug: "gladia" }` — provider config, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 2 | ENDPOINT_LEAK | `import { transcribeWithGladia }` — expected SDK import |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 25 | ENDPOINT_LEAK | `gladia: transcribeWithGladia` — expected SDK usage |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts | 148 | ENDPOINT_LEAK | `gladia: "Gladia"` — display name mapping, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 37 | ENDPOINT_LEAK | `https://www.gladia.io/blog/...` — public blog link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts | 46 | ENDPOINT_LEAK | `https://www.gladia.io/blog/...` — public blog link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289 | ENDPOINT_LEAK | `'@ai-sdk/gladia'` — dependency name, not a finding |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 291 | ENDPOINT_LEAK | `version: link:../../packages/gladia` — workspace link |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 2368 | ENDPOINT_LEAK | `packages/gladia` — workspace reference |
+| ENDPOINT_LEAK | reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | ENDPOINT_LEAK | `"path": "packages/gladia"` — workspace reference |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 21 | TEST_OR_EXAMPLE | `validateVocabularyTerm(entries, " gladiaflow ", null)` — test fixture |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 27 | TEST_OR_EXAMPLE | `validateVocabularyTerm(entries, "gladiaflow", 0)` — test fixture |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts | 34 | TEST_OR_EXAMPLE | `normalizePronunciationCandidate(...)` — test fixture |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 8 | TEST_OR_EXAMPLE | `value: "gladiaflow"` — sample vocabulary term |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts | 9 | TEST_OR_EXAMPLE | `pronunciations: ["gladioflow", "gladiaflaw"]` — sample pronunciations |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts | 11 | TEST_OR_EXAMPLE | `gladiaflow.dictation.stats.v1` — localStorage key, not a finding |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/main.tsx | 3 | TEST_OR_EXAMPLE | `import "../gladia-tokens.css"` — expected CSS import |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx | 3 | TEST_OR_EXAMPLE | `import "../gladia-tokens.css"` — expected CSS import |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/compare-stt/test-providers.ts | 8 | TEST_OR_EXAMPLE | `const SLUGS = ["gladia", ...]` — test fixture |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 72 | TEST_OR_EXAMPLE | `https://www.gladia.io/legal/terms-of-use` — public terms, not a finding |
+| TEST_OR_EXAMPLE | reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx | 107 | TEST_OR_EXAMPLE | `https://www.gladia.io` — public site link |
 
 ## Verdict
 
-| Category | REPORT_CANDIDATE |
-|----------|-----------------|
-| REAL_SECRET | **no** |
-| TEST_OR_EXAMPLE | no (all fixture/mock data) |
-| ENDPOINT_LEAK | no (all public URLs) |
-| INTERESTING | **no** (all informational, no actionable finding) |
+| Finding | REPORT_CANDIDATE | Notes |
+|---------|-----------------|-------|
+| Hardcoded API keys | No | Only `sk-********` masked placeholder found |
+| Internal/staging URLs | No | All URLs are public gladia.io / github.com |
+| Unauthorized SDK packages | No | All hits are expected SDK usage patterns |
+| Real secrets | No | No reportable secrets found |
+| Supply chain anomaly | No | gladia@0.1.3 already tracked in knowledge base |
 
-**Summary:** 617 grep hits across 5647 files — all benign. No hardcoded secrets, no internal/staging URLs, no credential leaks. The `sk-********` in Gallery.tsx is a masked placeholder in screenshot mock data. Tracking IDs are client-side public by design. The `@ai-sdk/gladia` Vercel AI SDK integration is notable but expected for an official STT provider. **0 reportable findings from this reposcan cycle.**
+**REPORT_CANDIDATE: no** — All hits are public endpoint references, test fixtures, expected SDK patterns, or already-known anomalies. No new reportable findings from this scan.
