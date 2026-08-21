@@ -1,44 +1,61 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Triage Results
-
-### Scan Summary
-- **5647** code/config files scanned
-- **617** hits (delta: **0 new** vs previous scan)
-- **Verdict: 0 reportable candidates**
-
----
-
-### Classification Table
-
-| Category | Files | Count | Notes |
-|---|---|---|---|
-| **TEST_OR_EXAMPLE** | `test-providers.ts:8`, `seed.ts:10`, `Gallery.tsx:17`, `vocabularyEditor.test.ts:21,27,34`, `customVocabulary.ts:8-9`, `dictationStats.ts:11` | 6 | Sample/test/fixture data — `"sk-********"` is a masked placeholder in a screenshot gallery, not a live key |
-| **ENDPOINT_LEAK** | `gladia.ts:3` (`api.gladia.io/v2`), `TranscriptionHistory.tsx:19` (`app.gladia.io/...`), `ApiKeyOnboardingView.tsx:4` (`app.gladia.io/apikeys`) | 3 | All production endpoint URLs already in baseline — no staging/internal leak |
-| **INTERESTING** | `gladiaflow/src/screenshots/Gallery.tsx:17`, `pnpm-lock.yaml:289-2368` | 2 | Gallery masked placeholder (already classified); `@ai-sdk/gladia` is official org integration linking to monorepo |
+[0m• [0mAnalyze gladia repo scan hits[90m General Agent[0m
+[0m✓ [0mAnalyze gladia repo scan hits[90m General Agent[0m
+[0m• [0mRead remaining gladia files[90m General Agent[0m
+Now let me check the remaining files that weren't covered:
+[0m✓ [0mRead remaining gladia files[90m General Agent[0m
+Here's the full triage analysis:
 
 ---
 
-### Verdict
+## Triage Table: `gladiaio` GitHub Org Static Scan
 
-| Finding | REPORT_CANDIDATE |
-|---|---|
-| `sk-********` in Gallery.tsx | No — masked placeholder |
-| All endpoint URLs | No — already in baseline |
-| PostHog reverse proxy config | No — standard, in-scope |
-| **No new secrets, credentials, or tokens found** | — |
+### REAL_SECRET
+**None found.** All API key references use environment variables (`process.env.GLADIA_API_KEY`) or are masked placeholders (`sk-********`).
+
+### TEST_OR_EXAMPLE
+| File | Line | Description |
+|------|------|-------------|
+| `compare-stt/test-providers.ts` | 8 | Test harness: SLUGS array listing 6 STT providers for comparison |
+| `compare-stt/prisma/seed.ts` | 10 | DB seed: `gladia` provider entry in fixture data |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `sk-********` in `MOCK_SETTINGS` — screenshot gallery placeholder |
+| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21-34 | Unit tests using "gladiaflow" as sample vocabulary term |
+
+### ENDPOINT_LEAK
+| File | Line | URL | Assessment |
+|------|------|-----|------------|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `https://api.gladia.io/v2` | Public production API base — no action |
+| `compare-stt/src/lib/site.ts` | 5 | `https://www.gladia.io` | Public canonical origin — no action |
+| `compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/compare-stt-apis` | Public redirect target — no action |
+| `compare-stt/next.config.ts` | 56,62 | `https://eu-assets.i.posthog.com` | Public PostHog EU assets — no action |
+| `compare-stt/next.config.ts` | 66 | `https://eu.i.posthog.com` | Public PostHog EU ingest — no action |
+| `gladiaflow/src-tauri/tauri.conf.json` | 9 | `http://localhost:1420` | Dev server URL in `devUrl` — expected |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/...` | Public dashboard URL — no action |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public dashboard URL — no action |
+| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/chapters/...` | Public docs URL — no action |
+
+### INTERESTING
+| File | Line | Finding | Severity |
+|------|------|---------|----------|
+| `compare-stt/src/lib/tracking.ts` | — | Client-side tracking IDs: GTM `GTM-5M3X2DX`, Google Ads `AW-11135522798`, PostHog `phc_kYph4U...`, Clarity `hrmdb7ts2c` | Info (public by design) |
+| `compare-stt/next.config.ts` | 77-79 | Sentry identifiers: org `gladia-p2`, project `sentry-coquelicot-curtain` | Info (semi-public) |
+| `compare-stt/src/components/hero-provider-logos.tsx` | 7 | `mailto:privacy@gladia.io` hardcoded contact email | Info (public) |
+| `compare-stt/src/components/tracking/gladia-analytics.tsx` | — | 4 simultaneous tracking systems (GTM, Google Ads, PostHog, Clarity) on compare-stt | Info |
+| `vercel-ai/pnpm-lock.yaml` | 289,2368 | `@ai-sdk/gladia` workspace package in Vercel AI SDK monorepo — Gladia is an official Vercel AI SDK provider | Info |
+| `gladiaflow/src-tauri/Cargo.toml` | — | Desktop app (Tauri 2.x) with real-time WebSocket STT streaming, macOS/Windows native integrations | Info |
+| `compare-stt/prisma/seed.ts` | 1-2 | Duplicate `import "dotenv/config"` (harmless bug) | Trivial |
 
 ---
 
-### Standing Findings (from RAG, unchanged)
+## Verdict
 
-| Class | Status | Target |
-|---|---|---|
-| SSRF-by-design (audio_url/video_url/callback_url) | AUTH_HELPED, POC blocked | api.gladia.io |
-| npm `gladia@0.1.3` orphaned impersonation | PASSIVE complete, report-ready | npm registry |
-| `/signin` form-action reflection + CSP gap | HUMAN_ONLY | app.gladia.io |
-| OAuth redirect_uri injection | REJECTED (FIXED+PKCE) | app.gladia.io |
-| return-to cookie tamper | REJECTED (server resets) | app.gladia.io |
+| Category | REPORT_CANDIDATE |
+|----------|-----------------|
+| REAL_SECRET | **no** |
+| TEST_OR_EXAMPLE | no (all fixture/mock data) |
+| ENDPOINT_LEAK | no (all public URLs) |
+| INTERESTING | **no** (all informational, no actionable finding) |
 
-**No new reportable candidates this cycle.**
+**Summary:** 617 grep hits across 5647 files — all benign. No hardcoded secrets, no internal/staging URLs, no credential leaks. The `sk-********` in Gallery.tsx is a masked placeholder in screenshot mock data. Tracking IDs are client-side public by design. The `@ai-sdk/gladia` Vercel AI SDK integration is notable but expected for an official STT provider. **0 reportable findings from this reposcan cycle.**
