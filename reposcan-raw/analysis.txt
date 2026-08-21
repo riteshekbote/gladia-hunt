@@ -1,40 +1,44 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-**Reposcan Triage — gladiaio/ org + npm @gladiaio/sdk**
+## Scan Triage: gladiaio/ org repos + npm @gladiaio/sdk
 
-## Categories
+**Scan stats:** 5,647 files scanned, 617 hits, **0 new delta** vs previous scan.
 
-### REAL_SECRET
-| File | Line | Finding | Verdict |
+---
+
+### Classification Table
+
+| Category | Count | Files |
+|----------|-------|-------|
+| **TEST_OR_EXAMPLE** | ~600+ | All `gladiaflow` screenshot mocks (`sk-********` placeholder), SDK test fixtures, comparison tool configs, package.json name fields |
+| **ENDPOINT_LEAK** | ~15 | Public API/dashboard/docs URLs (api.gladia.io, app.gladia.io, www.gladia.io, github.com/gladiaio/*) referenced in source |
+| **INTERESTING** | 0 | — |
+| **REAL_SECRET** | 0 | — |
+
+---
+
+### Notable Hits (non-benign)
+
+| File | Line | Content | Verdict |
 |------|------|---------|---------|
-| (none) | — | — | — |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` | **TEST_OR_EXAMPLE** — 8-char masked placeholder, not a real key |
+| `compare-stt/src/lib/providers/gladia.ts` | 36,49 | `"x-gladia-key": apiKey` | **TEST_OR_EXAMPLE** — SDK usage pattern, variable reference |
+| `compare-stt/next.config.ts` | 38-51 | `destination: "https://www.gladia.io/..."` | **ENDPOINT_LEAK** — public marketing URLs, not sensitive |
 
-### TEST_OR_EXAMPLE
-| File | Line | Finding | Verdict |
-|------|------|---------|---------|
-| gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` (masked placeholder) | NOT reportable |
-| compare-stt/src/lib/providers/gladia.ts | 36 | `headers: { "x-gladia-key": apiKey }` (env var reference) | NOT reportable |
-| compare-stt/src/lib/providers/gladia.ts | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` (public API URL) | NOT reportable |
-| All `gladia` string refs | — | Package names, URLs, slugs across 617 hits | NOT reportable |
+---
 
-### ENDPOINT_LEAK
-| File | Line | Finding | Verdict |
-|------|------|---------|---------|
-| compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` (public base URL) | Informational, already known |
-| compare-stt/next.config.ts | 38,44 | `https://www.gladia.io/compare-stt-apis` (public marketing URL) | NOT reportable |
-
-### INTERESTING
-| File | Line | Finding | Verdict |
-|------|------|---------|---------|
-| (none new) | — | Delta = 0; no new supply-chain anomalies | — |
-
-## Verdict
+### Verdict
 
 | Candidate | REPORT_CANDIDATE |
 |-----------|-----------------|
-| reposcan delta (0 new hits) | **no** |
-| gladia@0.1.3 impersonation | Already ACCEPTED, evidence locked, report-ready |
-| All 617 existing hits | Benign (TEST_OR_EXAMPLE / public URLs / env var refs) |
+| All 617 hits | **no** |
 
-**Summary:** Zero new reportable findings from this scan cycle. The sole outstanding candidate — `gladia@0.1.3` orphaned impersonation — is already ACCEPTED with evidence package locked across 100+ cycles. No new secrets, no new endpoint leaks, no new supply-chain anomalies. Surface remains byte-frozen.
+**Rationale:** Zero real secrets found. The `sk-********` is a test fixture. All API endpoint references point to already-public documentation/marketing URLs. No new supply-chain risk, no hardcoded credentials, no leaked tokens. Delta = 0 confirms surface is frozen.
+
+**Standing findings** (from prior cycles, not from this scan):
+- `gladia@0.1.3` npm orphaned impersonation — **report-ready** (P3/P4)
+- `api.gladia.io` SSRF-by-design — **AUTH_HELPED** (needs key for POC)
+- `app.gladia.io` `/signin` redirect_to reflection — **post-auth HUMAN_ONLY**
+
+No action required from this scan cycle.
