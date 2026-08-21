@@ -1,37 +1,26 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Scan Triage Summary (2026-08-21)
+| Category | File:Line | Material |
+|---|---|---|
+| TEST_OR_EXAMPLE | `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` (masked placeholder) |
+| ENDPOINT_LEAK (known) | `compare-stt/src/lib/providers/gladia.ts:3` | `GLADIA_BASE = "https://api.gladia.io/v2"` (official endpoint, in-scope) |
+| ENDPOINT_LEAK (known) | `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` |
+| ENDPOINT_LEAK (known) | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` |
+| INTERESTING | `gladiaflow/src-tauri/tauri.conf.json:5` | `"identifier": "io.gladia.gladiaflow"` |
+| INTERESTING | `gladiaflow/src-tauri/Cargo.toml:5` | `authors = ["Gladia <support@gladia.io>"]` |
 
-**Delta: 0 new hit lines** vs previous scan. 617/5647 files matched; all hits are benign.
+**SCAN SUMMARY:** 5647 files, 617 hits, **0 new hit lines** (delta = 0, byte-identical to prior scan)
 
-### Classification Table
+---
 
-| Category | Files | Verdict |
-|----------|-------|---------|
-| **URL_ENDPOINT** | `gladia.ts:3` (`api.gladia.io/v2`), `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` (`app.gladia.io/apikeys`), `gladiaflow/src/components/TranscriptionHistory.tsx:19` (`app.gladia.io/transcriptions/live/`), `compare-stt/next.config.ts:38,44` (proxy to `www.gladia.io`), ~20 UI component hrefs to `gladia.io`/`www.gladia.io`/`github.com/gladiaio/*` | **TEST_OR_EXAMPLE** — public-facing marketing/docs/SDK URLs, no internal/dev/staging exposure |
-| **API_KEY_HEADER** | `compare-stt/src/lib/providers/gladia.ts:36,49` (`x-gladia-key` header usage) | **TEST_OR_EXAMPLE** — standard SDK header, no hardcoded key value |
-| **MASKED_KEY** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) | **TEST_OR_EXAMPLE** — placeholder/masked screenshot data |
-| **PACKAGE_IDENTIFIER** | `gladiaflow/package.json:2`, `gladiaflow/src-tauri/Cargo.toml:2,5`, `vercel-ai/pnpm-lock.yaml:289,2368`, `gladiaflow/src/lib/customVocabulary.ts:8-9` | **TEST_OR_EXAMPLE** — package names, not secrets |
-| **EMAIL** | `compare-stt/src/app/about/page.tsx:172`, `compare-stt/src/components/hero-provider-logos.tsx:7` (`privacy@gladia.io`) | **TEST_OR_EXAMPLE** — public contact email |
-| **GITHUB_REF** | `compare-stt/src/app/methodology/page.tsx:80,513` (`github.com/gladiaio/compare-stt`) | **TEST_OR_EXAMPLE** — public repo link |
-| **TRACKING_CONFIG** | `gladiaflow/src-tauri/Cargo.toml:5` (`support@gladia.io`), `gladiaflow/src/lib/dictationStats.ts:11` (`gladiaflow.dictation.stats.v1` localStorage key) | **TEST_OR_EXAMPLE** — support email + localStorage key |
-| **IDENTIFIER_LEAK** | `gladiaflow/src-tauri/tauri.conf.json:5` (`io.gladia.gladiaflow`), `gladiaflow/src-tauri/tauri.dev.conf.json:3` (`io.gladia.gladiaflow.dev`) | **ENDPOINT_LEAK** — app identifiers (public Tauri manifest, informational) |
+## Verdict
 
-### Already-ACCEPTED Findings (from knowledge base, not new)
+| Class | Report Candidate |
+|---|---|
+| REAL_SECRET | no |
+| TEST_OR_EXAMPLE | no |
+| ENDPOINT_LEAK | no — all are known in-scope surfaces |
+| INTERESTING | no |
 
-| ID | Target | Class | Status |
-|----|--------|-------|--------|
-| SSRF-1 | api.gladia.io | SSRF-by-design (audio_url/video_url/callback_url no scheme allowlist) | ACCEPTED, AUTH_HELPED |
-| SSRF-2 | api.gladia.io | 7 webhook delivery paths, /v1/models FR/US egress | ACCEPTED |
-| IMP-1 | npm gladia@0.1.3 | Orphaned impersonation (key-in-URL, repo 404, "Official" vs "Unofficial" contradiction) | ACCEPTED, report-ready |
-| OATH-1 | app.gladia.io | /signin redirect_to form-action reflection (0 CSP form-action directives) | ACCEPTED, HUMAN_ONLY |
-| INFO-1 | api.gladia.io | /v2/live/health undocumented key-gated endpoint | ACCEPTED, informational only |
-
-### Verdict List
-
-```
-REPORT_CANDIDATE: no
-```
-
-No new secrets, hardcoded keys, internal URLs, or supply-chain anomalies found in this delta. All 617 hits are benign URL references, package identifiers, masked placeholders, or public contact information. The 0-delta scan confirms no new exposure since the last triage cycle.
+**REPORT_CANDIDATE: no** — zero new findings; all hits are known endpoints, masked test keys, or benign metadata. Evidence package for `gladia@0.1.3` impersonation already locked (sha256 `3b23ec7d…7f2`, src/client.ts:307 key-in-URL, GitHub 404).
