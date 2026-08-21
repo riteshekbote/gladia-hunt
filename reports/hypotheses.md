@@ -7143,3 +7143,12 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — etag suffix `W/"1eaf0-OVPemO1ty9EEmDAwwWb//oeF70o"` is new per-fetch wh
 - LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen, POST /v2/pre-recorded 401/144B NestJS key-gated fresh — SSRF-by-design surface persists (AUTH_HELPED).
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh this cycle (action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", 200/2744
+
+## RANKED HYPOTHESES 2026-08-21 17:27:20 UTC
+- [97] npm: Orphaned npm gladia@0.1.3 impersonates official SDK and leaks raw API key in WebSocket URL query at dist-tag latest (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated) — 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, 
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix `W/"1eaf0-kkHj171dHk2zK0hRV3ZprKHqn3U"` while structura
+- LEARN: ACCEPTED SSRF @ api.gladia.io: spec frozen, GET /v2/pre-recorded 401/144B NestJS key-gated fresh — SSRF-by-design surface persists (AUTH_HELPED).
+- LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh this cycle (200/27448B, 1 reflection match, CSP form-action grep-count=0) — post-
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, description "Official", GitH
