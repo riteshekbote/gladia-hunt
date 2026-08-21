@@ -347,3 +347,11 @@
   - | Q2 Reachability | ⚠️ Key-gated — `/v2/transcription/{id}/file` returns 401 without valid key |
   - | Q4 Proof (read-only) | ❌ NO — requires: (1) a valid API key, (2) creating a transcription as User A, (3) attempting to download as User B. All involve state changes / authenticated actions. |
   - | Q5 Novelty | Valid class |
+
+- 6 lead(s) marked VALID at 2026-08-21 22:48:03 UTC
+  - | Q4 Provable read-only? | **No** — requires valid x-gladia-key (POST request with body); spec-only proof is insufficient |
+  - **Verdict: HOLD** — Spec-level analysis is strong but invasive testing (POST with key) required for proof. No valid key available.
+  - **Verdict: VALID**
+  - | Q2 Reachable? | **No** — requires valid API key to initiate WS session and obtain token |
+  - | Q2 Reachable? | Requires valid key + valid ID |
+  - | 2 | npm `gladia@0.1.3` impersonation | **VALID** | 6.8 | **Report ready** — submit via gladia.io/bug-bounty-report |
