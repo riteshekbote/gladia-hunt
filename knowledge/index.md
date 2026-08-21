@@ -1433,3 +1433,5 @@
 - 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server/22 format:uri, /health {"health":"OK"} 15B, /v1/health + /v2/health 404 — surface frozen across 100+ cycles.
 - 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix W/"1eaf0-Ls7D0Ynm51A/neekwRZ5aBwAENQ" with structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, description "Official", GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable), sha256 `3b23ec7d…7f2` reproduced (10th independent npm pack).
+- 2026-08-21 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — SSRF-by-design surface persists (AUTH_HELPED)
+- 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh — 0 CSP form-action directives (gap confirmed); post-auth honoring sole unverified gate (HUMAN_ONLY)
