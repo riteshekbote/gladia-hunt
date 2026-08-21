@@ -1,26 +1,48 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File:Line | Material |
-|---|---|---|
-| TEST_OR_EXAMPLE | `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` (masked placeholder) |
-| ENDPOINT_LEAK (known) | `compare-stt/src/lib/providers/gladia.ts:3` | `GLADIA_BASE = "https://api.gladia.io/v2"` (official endpoint, in-scope) |
-| ENDPOINT_LEAK (known) | `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` |
-| ENDPOINT_LEAK (known) | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` |
-| INTERESTING | `gladiaflow/src-tauri/tauri.conf.json:5` | `"identifier": "io.gladia.gladiaflow"` |
-| INTERESTING | `gladiaflow/src-tauri/Cargo.toml:5` | `authors = ["Gladia <support@gladia.io>"]` |
+## Reposcan Triage: gladiaio/ + @gladiaio/sdk
 
-**SCAN SUMMARY:** 5647 files, 617 hits, **0 new hit lines** (delta = 0, byte-identical to prior scan)
+### Summary
+- **Delta**: 0 new hit lines vs previous scan
+- **Files scanned**: 5647
+- **Total hits**: 617 (all previously classified)
+- **New REAL_SECRET findings**: 0
 
----
+### Classification Tables
 
-## Verdict
+**REAL_SECRET**: None
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| (none) | — | — | — |
 
-| Class | Report Candidate |
-|---|---|
-| REAL_SECRET | no |
-| TEST_OR_EXAMPLE | no |
-| ENDPOINT_LEAK | no — all are known in-scope surfaces |
-| INTERESTING | no |
+**TEST_OR_EXAMPLE**: 617 hits (all previous)
+| File Pattern | Count | Example |
+|--------------|-------|---------|
+| `compare-stt/test-providers.ts` | 1 | Provider slug list `["gladia", "deepgram", ...]` |
+| `compare-stt/prisma/seed.ts` | 1 | Seed data `{ name: "Gladia", slug: "gladia" }` |
+| `compare-stt/src/**/*.tsx` | ~30 | Public URLs (`https://www.gladia.io`, `https://gladia.io`) |
+| `gladiaflow/src/**/*.{tsx,ts}` | ~20 | App references, UI components, test assertions |
+| `gladiaflow/src/screenshots/Gallery.tsx` | 1 | `apiKey: "sk-********"` — masked placeholder for screenshots |
+| `vercel-ai/pnpm-lock.yaml` | 4 | Dependency metadata `@ai-sdk/gladia` |
 
-**REPORT_CANDIDATE: no** — zero new findings; all hits are known endpoints, masked test keys, or benign metadata. Evidence package for `gladia@0.1.3` impersonation already locked (sha256 `3b23ec7d…7f2`, src/client.ts:307 key-in-URL, GitHub 404).
+**ENDPOINT_LEAK**: 0
+| File | URL | Classification |
+|------|-----|----------------|
+| (none) | — | All `gladia.io`/`api.gladia.io` references are public in-scope domains |
+
+**INTERESTING**: 1 (informational only)
+| File | Line | Detail |
+|------|------|--------|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — clearly masked placeholder, not a real key. Used in screenshot component for demo purposes. |
+
+### Verdict
+
+| Category | REPORT_CANDIDATE | Rationale |
+|----------|-----------------|-----------|
+| REAL_SECRET | **no** | No hardcoded credentials found; all key references are masked or header names only |
+| TEST_OR_EXAMPLE | **no** | All hits are test/seed data, UI placeholders, or public URL references |
+| ENDPOINT_LEAK | **no** | Only public `*.gladia.io` domains referenced |
+| INTERESTING | **no** | Masked placeholder `sk-********` is intentional, not a leak |
+
+**Overall**: **REPORT_CANDIDATE: no** — 0 new findings this cycle; all 617 hits are benign test/config/placeholder data. The sole tracked supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) remains ACCEPTED from prior cycles and is already report-ready.
