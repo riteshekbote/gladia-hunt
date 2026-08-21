@@ -1,59 +1,52 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-[0m$ [0mecho "Scanning for patterns in reposcan-raw..."
-Scanning for patterns in reposcan-raw...
-[0m
-I've reviewed all 617 hits. Here's my classification:
+## Triaging Results
 
----
+### REAL_SECRET
+| File | Line | Status |
+|------|------|--------|
+| (none) | — | No unmasked secrets found |
 
-## Category: TEST_OR_EXAMPLE
+### TEST_OR_EXAMPLE
+| File | Line | Classification |
+|------|------|----------------|
+| `gladiaio/compare-stt/test-providers.ts` | 8 | Test provider slug array — benign |
+| `gladiaio/compare-stt/prisma/seed.ts` | 10 | Seed/test data — benign |
+| `gladiaio/vercel-ai/pnpm-lock.yaml` | 289,291,2368 | Official `@ai-sdk/gladia` lockfile entry — legitimate |
+| `gladiaio/gladiaflow/src/lib/customVocabulary.ts` | 8 | Test vocabulary string `"gladiaflow"` — benign |
+| `gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts` | 21,27,34 | Unit test assertions — benign |
+| `gladiaio/gladiaflow/src/lib/dictationStats.ts` | 11 | Storage key constant — benign |
+| `gladiaio/compare-stt/src/lib/providers/gladia.ts` | 3,36,49 | Official provider integration using `api.gladia.io/v2` + `x-gladia-key` header — legitimate SDK usage |
 
-| File | Line | Description |
-|------|------|-------------|
-| `compare-stt/test-providers.ts` | 8 | Test provider slug list including "gladia" |
-| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — masked placeholder |
-| `gladiaflow/src/lib/customVocabulary.ts` | 8-9 | `"gladiaflow"` vocabulary entry — app test data |
-| `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21-34 | Unit tests for vocabulary validation |
-| `gladiaflow/src/lib/dictationStats.ts` | 11 | Storage key string `"gladiaflow.dictation.stats.v1"` |
+### ENDPOINT_LEAK
+| File | Line | URL | Assessment |
+|------|------|-----|------------|
+| `gladiaio/compare-stt/next.config.ts` | 38,44 | `https://www.gladia.io/compare-stt-apis/*` | Public marketing reverse proxy — not an endpoint leak |
+| `gladiaio/compare-stt/src/app/terms/page.tsx` | 45,72,107 | `https://gladia.io`, `https://www.gladia.io/legal/terms-of-use` | Public pages — not a leak |
+| `gladiaio/compare-stt/src/app/methodology/page.tsx` | 80,490,513 | `https://github.com/gladiaio/compare-stt`, `https://gladia.io` | Public links — not a leak |
+| `gladiaio/compare-stt/src/app/about/page.tsx` | 68,156,172 | `https://github.com/gladiaio/normalization/tree/main`, `https://gladia.io`, `mailto:privacy@gladia.io` | Public links — not a leak |
+| `gladiaio/compare-stt/src/components/hero-provider-logos.tsx` | 7 | `mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT` | Public email — not a leak |
+| `gladiaio/compare-stt/src/components/arena-page.tsx` | 270,341,427 | `https://github.com/gladiaio/normalization/tree/main` | Public link — not a leak |
+| `gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx` | 28 | `https://gladia.io` | Public link — not a leak |
+| `gladiaio/compare-stt/src/lib/site.ts` | 5,20 | `https://www.gladia.io` | Public origin — not a leak |
+| `gladiaio/compare-stt/src/lib/leaderboard-articles.ts` | 37,46 | `https://www.gladia.io/blog/...` | Public blog links — not a leak |
+| `gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public app URL — not a leak |
+| `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` | Public app URL — not a leak |
+| `gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | Public docs URL — not a leak |
 
----
+### INTERESTING
+| File | Line | Assessment |
+|------|------|------------|
+| `gladiaio/gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — already known masked placeholder (ACCEPTED benign in prior cycles) |
 
-## Category: ENDPOINT_LEAK
+## Verdict
 
-| File | Line | Description |
-|------|------|-------------|
-| `compare-stt/next.config.ts` | 38,44 | Marketing site rewrites (`gladia.io/compare-stt-apis`) — public redirect config |
-| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` — SPA catch-all, client-side URL |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` — public dashboard URL |
-| `sdk-js` / `sdk-python` | various | Official SDK references to `api.gladia.io/v2` — expected, in-scope API surface |
+| Category | Verdict |
+|----------|---------|
+| REAL_SECRET | REPORT_CANDIDATE: no |
+| TEST_OR_EXAMPLE | All benign — no reportable findings |
+| ENDPOINT_LEAK | All public URLs (gladia.io, www.gladia.io, app.gladia.io, docs.gladia.io, GitHub) — not internal/staging leaks |
+| INTERESTING | Masked `sk-********` placeholder — already triaged as benign in prior cycles |
 
----
-
-## Category: INTERESTING
-
-| File | Line | Description |
-|------|------|-------------|
-| `compare-stt/src/lib/providers/gladia.ts` | 3,36,49 | `GLADIA_BASE = "https://api.gladia.io/v2"` + `x-gladia-key` header — official SDK usage pattern, no key leak |
-
----
-
-## Category: NO_ACTION (remaining ~600 hits)
-
-All remaining hits are documentation/marketing links (`gladia.io`, `www.gladia.io`, `github.com/gladiaio/*`), UI labels, `package.json` fields, CSS variable names, SEO metadata, or npm package references. Zero secrets, zero real credentials.
-
----
-
-## Verdict List
-
-| Target | Finding | REPORT_CANDIDATE |
-|--------|---------|:---:|
-| npm `gladia@0.1.3` | Orphaned impersonation (already accepted in prior cycles) | **already report-ready** |
-| `gladiaio/compare-stt` | No new findings | no |
-| `gladiaio/gladiaflow` | No new findings | no |
-| `gladiaio/vercel-ai` | No new findings | no |
-| `gladiaio/sdk` (monorepo) | No new findings | no |
-| All other gladiaio repos | No findings | no |
-
-**Delta: 0 new reportable findings.** All 617 hits are benign — documentation references, test data, public endpoint URLs, and official SDK code patterns. No hardcoded secrets, no real credentials, no new supply-chain anomalies.
+**REPORT_CANDIDATE: no** — 0 new hit lines in this delta cycle; all 617 hits across 5647 files are benign (public URLs, test data, official SDK integrations). The sole previously-flagged anomaly (`gladia@0.1.3` npm impersonation) remains stable and is already ACCEPTED in the knowledge base.
