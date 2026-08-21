@@ -1,52 +1,795 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/gladiaio/
-total 56
-drwxr-xr-x 14 runner runner 4096 Aug 21 08:45 .
-drwxr-xr-x  4 runner runner 4096 Aug 21 08:45 ..
-drwxr-xr-x  9 runner runner 4096 Aug 21 08:45 compare-stt
-drwxr-xr-x  9 runner runner 4096 Aug 21 08:45 docs
-drwxr-xr-x  7 runner runner 4096 Aug 21 08:45 gladia-cli
-drwxr-xr-x 11 runner runner 4096 Aug 21 08:45 gladia-quiz-app
-drwxr-xr-x 11 runner runner 4096 Aug 21 08:45 gladia-samples
-drwxr-xr-x  9 runner runner 4096 Aug 21 08:45 gladiaflow
-drwxr-xr-x  7 runner runner 4096 Aug 21 08:45 n8n-nodes-gladia
-drwxr-xr-x  8 runner runner 4096 Aug 21 08:45 normalization
-drwxr-xr-x  9 runner runner 4096 Aug 21 08:45 realtime-multilingual-asr-router
-drwxr-xr-x 10 runner runner 4096 Aug 21 08:45 sdk
-drwxr-xr-x  7 runner runner 4096 Aug 21 08:45 skills
-drwxr-xr-x 18 runner runner 4096 Aug 21 08:45 vercel-ai
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && find reposcan-raw -name "Gallery.tsx" -exec cat {} \;
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
+
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+      pronunciations: [
+        "web socket",
+        "web-socket",
+        "websockit",
+        "web soket",
+        "double-u socket",
+        "web socket protocol",
+      ],
+    },
+    { value: "diarization", intensity: 0.7 },
+    { value: "endpointing", intensity: 0.55 },
+    { value: "SaaS", intensity: 0.65 },
+    { value: "Acme Incorporated", intensity: 0.5 },
+    { value: "Gladia API", intensity: 0.8 },
+  ],
+};
+
+const MOCK_HISTORY: TranscriptionHistoryPage = {
+  items: [
+    {
+      id: "1",
+      text: "GladiaFlow makes dictation feel effortless once permissions and your API key are set up.",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+    },
+    {
+      id: "2",
+      text: "Custom vocabulary helps with product names like GladiaFlow and internal acronyms.",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: "3",
+      text: "The fixed history footer keeps navigation controls in a predictable position while moving between pages.",
+      created_at: new Date(Date.now() - 172800000).toISOString(),
+    },
+    {
+      id: "4",
+      text: "Long transcription previews use two lines so every row remains the same height without introducing a scrollbar in the desktop window.",
+      created_at: new Date(Date.now() - 259200000).toISOString(),
+    },
+  ],
+  total: 84,
+  page: 1,
+  page_size: 4,
+};
+
+function AppShell({
+  id,
+  gate,
+  activeScreen = "home",
+  children,
+}: {
+  id: string;
+  gate?: boolean;
+  activeScreen?: NavScreen;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      data-screenshot={id}
+      className={`layout${gate ? " layout-gate" : ""}`}
+      style={{ width: 800, height: 600, overflow: "hidden" }}
+    >
+      {!gate && (
+        <SidebarNav activeScreen={activeScreen} onNavigate={noop as never} />
+      )}
+      <main className="main-content">
+        <section className="content">{children}</section>
+      </main>
+    </div>
+  );
+}
+
+function ScreenFrame({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="screenshot-frame-wrap">
+      <p className="screenshot-label">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+export function ScreenshotGallery() {
+  const [settings, setSettings] = useState<AppSettings>(MOCK_SETTINGS);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const activationDropdownRef = useRef<HTMLDivElement>(null);
+  const audioDeviceDropdownRef = useRef<HTMLDivElement>(null);
+  const filteredLanguageOptions = EUROPEAN_LANGUAGES;
+
+  return (
+    <div className="screenshot-gallery">
+      <ScreenFrame id="wrap-01-permissions" label="01 Permissions">
+        <AppShell id="01-permissions" gate>
+          <PermissionsView
+            permissions={{
+              accessibilityState: "not_determined",
+              microphone: "not_determined",
+            }}
+            isMac
+            onOpenAccessibilitySettings={noop}
+            onGrantMicrophone={noop}
+            onOpenMicSettings={noop}
+            onRecheck={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-02-api-key" label="02 API Key">
+        <AppShell id="02-api-key" gate>
+          <ApiKeyOnboardingView
+            displayValue=""
+            isLocked={false}
+            isTesting={false}
+            onChangeKey={noop}
+            onSave={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-03-home-idle" label="03 Home Idle">
+        <AppShell id="03-home-idle">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="****************"
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04-home-recording" label="04 Home Recording">
+        <AppShell id="04-home-recording">
+          <HomeView
+            isRecording
+            isProcessing={false}
+            homeTitle="Listening..."
+            homeSubtitle={null}
+            dictationStats={DEFAULT_DICTATION_STATS}
+            formattedTotalTime="0 min"
+            funnyDictationComment=""
+            apiKeyDisplayValue=""
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04b-home-api-open" label="04b Home API Open">
+        <AppShell id="04b-home-api-open">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="sk-example"
+            isApiKeyLocked={false}
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05-history" label="05 History">
+        <AppShell id="05-history" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={MOCK_HISTORY}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05b-history-loading" label="05b History Loading">
+        <AppShell id="05b-history-loading" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={null}
+            isLoading
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05c-history-empty" label="05c History Empty">
+        <AppShell id="05c-history-empty" activeScreen="history">
+          <HistoryView
+            query="missing"
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={{ items: [], total: 0, page: 1, page_size: 4 }}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06-vocabulary" label="06 Vocabulary">
+        <AppShell id="06-vocabulary" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-06b-vocabulary-editor"
+        label="06b Vocabulary Editor"
+      >
+        <AppShell id="06b-vocabulary-editor" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06c-vocabulary-new" label="06c New Vocabulary Term">
+        <AppShell id="06c-vocabulary-new" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-07-transcription-settings"
+        label="07 Transcription Settings"
+      >
+        <AppShell id="07-transcription-settings" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen={false}
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-08-app-settings" label="08 App Settings">
+        <AppShell id="08-app-settings" activeScreen="settings">
+          <AppSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            activationDropdownOpen={false}
+            setActivationDropdownOpen={noop}
+            audioDeviceDropdownOpen={false}
+            setAudioDeviceDropdownOpen={noop}
+            activationDropdownRef={activationDropdownRef}
+            audioDeviceDropdownRef={audioDeviceDropdownRef}
+            handleOpenDropdown={noop}
+            activationModeOptions={[
+              { value: "toggle", label: "Toggle" },
+              { value: "push-to-talk", label: "Hold" },
+            ]}
+            selectedActivationModeLabel="Hold"
+            selectedAudioDeviceLabel="System Default"
+            audioDevices={[
+              {
+                id: "built-in",
+                name: "MacBook Pro Microphone",
+                transport: "built_in",
+                isDefault: true,
+                isBuiltIn: true,
+              },
+            ]}
+            isCapturing={false}
+            recordingKeys={[]}
+            canSaveCapture={false}
+            startCapture={noop}
+            cancelCapture={noop}
+            saveCapture={noop}
+            handleResetHotkey={noop}
+            defaultHotkey="Fn"
+            isMac
+            permissions={{ hotkeyError: null }}
+            region="EU"
+            version="0.1.0"
+            onDone={noop}
+            onOpenLogs={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-09-language-picker" label="09 Language Picker">
+        <AppShell id="09-language-picker" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+    </div>
+  );
+}
 [0m
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml[90m [offset=280, limit=30][0m
-**CLASSIFICATION TABLE**
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && grep -r "sk-" reposcan-raw/ --include="*.ts" --include="*.tsx" --include="*.json" 2>/dev/null | grep -v "sk-********" | grep -v "sk-example" | head -20
+(no output)
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && grep -r "apiKey\|api_key\|secret\|token\|password" reposcan-raw/ --include="*.ts" --include="*.tsx" --include="*.json" --include="*.py" --include="*.toml" 2>/dev/null | grep -v "sk-********" | grep -v "sk-example" | grep -v "apiKeyDisplayValue" | grep -v "x-gladia-key" | grep -v "api_key" | grep -v "test" | grep -v "mock" | grep -v "example" | grep -v "placeholder" | head -30
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/models/messages.py:    tokens: list[TokenTimestamp] = Field(default_factory=list)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/rollback/engine.py:    removed_token_count: int
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/rollback/engine.py:            RollbackResult with removed token/chunk counts and sample range
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/rollback/engine.py:        removed_token_count = sum(len(chunk.tokens) for chunk in removed_chunks)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/rollback/engine.py:            f"count={removed_token_count} | sample_range={vad_boundary_sample}-{removed_end_sample} | "
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/rollback/engine.py:            removed_token_count=removed_token_count,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:    asr_token_duration_tolerance: float = 0.25
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:    @field_validator("asr_token_duration_tolerance")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:    def _validate_asr_token_duration_tolerance(cls, value: float) -> float:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:            raise ValueError("asr_token_duration_tolerance must be >= 0.0")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/components.py:_KROKO_REQUIRED_FILES = ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    tokens_seconds_to_samples,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:def _build_token_timestamps(
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    """Map segment-relative ASR token end times to monotonic session-time timestamps."""
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    tokens: list[TokenTimestamp] = []
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    limit = min(len(asr_result.tokens), len(end_times))
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:        token = asr_result.tokens[index]
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:        tokens.append(TokenTimestamp(text=token, start=session_start, end=session_end))
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    return tokens
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:def _to_sample_tokens(
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    tokens: list[TokenTimestamp],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    token_dicts = [{"text": t.text, "start": t.start, "end": t.end} for t in tokens]
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    return tokens_seconds_to_samples(token_dicts, sample_rate=sample_rate)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    token_duration_tolerance: float,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    if not (asr_result.text.strip() or asr_result.tokens):
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    tokens = _build_token_timestamps(
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:        max_end_seconds=end_seconds + token_duration_tolerance,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:    timestamp = tokens[0].start if tokens else segment_start_seconds
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:        tokens=tokens,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/api/websocket.py:        tokens=_to_sample_tokens(tokens, sample_rate=sample_rate),
+[0m
+[0m$ [0mcd /home/runner/work/gladia-hunt/gladia-hunt && cat reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | head -300
+lockfileVersion: '9.0'
 
-| Category | Files/Lines | Classification | Reason |
-|----------|-------------|----------------|--------|
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` (`apiKey: "sk-********"`) | **TEST_OR_EXAMPLE** | Mock settings in screenshot gallery component for UI screenshots; `sk-********` is an obvious masked placeholder, not a real key |
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:222` (`apiKeyDisplayValue="sk-example"`) | **TEST_OR_EXAMPLE** | Explicit test value "sk-example" in screenshot mock |
-| **ENDPOINT_LEAK** | `compare-stt/src/lib/providers/gladia.ts:3,36,49` | **ENDPOINT_LEAK** | References official `https://api.gladia.io/v2` base URL and `x-gladia-key` header usage — public API endpoint, not internal |
-| **ENDPOINT_LEAK** | `compare-stt/next.config.ts:38,44` | **ENDPOINT_LEAK** | Next.js rewrites to `https://www.gladia.io` — public marketing site |
-| **ENDPOINT_LEAK** | Multiple files in `compare-stt`, `gladiaflow`, `gladia-samples` | **ENDPOINT_LEAK** | All reference public `api.gladia.io`, `app.gladia.io`, `www.gladia.io`, `docs.gladia.io` — official production endpoints |
-| **INTERESTING** | `gladiaflow/package.json`, `gladiaflow/package-lock.json`, `gladiaflow/src-tauri/Cargo.toml` | **INTERESTING** | Package metadata naming (`gladiaflow`, `io.gladia.gladiaflow`) — official desktop app, no risk |
-| **INTERESTING** | `vercel-ai/pnpm-lock.yaml:289-291` | **INTERESTING** | `@ai-sdk/gladia` workspace link to `../../packages/gladia` — official Vercel AI SDK provider integration (in `vercel/ai` monorepo, not Gladia org) |
-| **INTERESTING** | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | **INTERESTING** | Hardcoded `API_KEYS_URL = "https://app.gladia.io/apikeys"` — public dashboard path |
-| **INTERESTING** | `compare-stt/src/components/hero-provider-logos.tsx:7` | **INTERESTING** | `mailto:privacy@gladia.io` — public contact |
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+overrides:
+  tinyexec: 1.0.2
+  oxlint: 1.56.0
+
+importers:
+
+  .:
+    devDependencies:
+      '@changesets/cli':
+        specifier: 2.27.10
+        version: 2.27.10
+      '@playwright/test':
+        specifier: ^1.60.0
+        version: 1.60.0
+      del-cli:
+        specifier: ^5.1.0
+        version: 5.1.0
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
+      konsistent:
+        specifier: 0.0.1-alpha.20
+        version: 0.0.1-alpha.20
+      konsistent-provider:
+        specifier: workspace:*
+        version: link:tools/konsistent-provider
+      lint-staged:
+        specifier: ^15.5.1
+        version: 15.5.2
+      next:
+        specifier: 15.0.7
+        version: 15.0.7(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.0.0-rc-cc1ec60d0d-20240607(react@19.0.0-rc-cc1ec60d0d-20240607))(react@19.0.0-rc-cc1ec60d0d-20240607)(sass@1.90.0)
+      oxfmt:
+        specifier: ^0.41.0
+        version: 0.41.0
+      oxlint:
+        specifier: 1.56.0
+        version: 1.56.0
+      playwright:
+        specifier: ^1.60.0
+        version: 1.60.0
+      publint:
+        specifier: 0.2.12
+        version: 0.2.12
+      react:
+        specifier: 19.0.0-rc-cc1ec60d0d-20240607
+        version: 19.0.0-rc-cc1ec60d0d-20240607
+      react-dom:
+        specifier: 19.0.0-rc-cc1ec60d0d-20240607
+        version: 19.0.0-rc-cc1ec60d0d-20240607(react@19.0.0-rc-cc1ec60d0d-20240607)
+      turbo:
+        specifier: 2.4.4
+        version: 2.4.4
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      ultracite:
+        specifier: 7.3.2
+        version: 7.3.2(oxlint@1.56.0)
+      update-ts-references:
+        specifier: ^3.6.0
+        version: 3.6.2
+      vitest:
+        specifier: 4.1.5
+        version: 4.1.5(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@22.19.19)(jsdom@26.1.0)(msw@2.14.6(@types/node@22.19.19)(typescript@5.8.3))(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(less@4.4.0)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.47.1)(tsx@4.22.0)(yaml@2.9.0))
+
+  examples/ai-e2e-next:
+    dependencies:
+      '@ai-sdk/amazon-bedrock':
+        specifier: workspace:*
+        version: link:../../packages/amazon-bedrock
+      '@ai-sdk/anthropic':
+        specifier: workspace:*
+        version: link:../../packages/anthropic
+      '@ai-sdk/azure':
+        specifier: workspace:*
+        version: link:../../packages/azure
+      '@ai-sdk/cohere':
+        specifier: workspace:*
+        version: link:../../packages/cohere
+      '@ai-sdk/deepseek':
+        specifier: workspace:*
+        version: link:../../packages/deepseek
+      '@ai-sdk/fireworks':
+        specifier: workspace:*
+        version: link:../../packages/fireworks
+      '@ai-sdk/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@ai-sdk/google-vertex':
+        specifier: workspace:*
+        version: link:../../packages/google-vertex
+      '@ai-sdk/groq':
+        specifier: workspace:*
+        version: link:../../packages/groq
+      '@ai-sdk/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
+      '@ai-sdk/mistral':
+        specifier: workspace:*
+        version: link:../../packages/mistral
+      '@ai-sdk/openai':
+        specifier: workspace:*
+        version: link:../../packages/openai
+      '@ai-sdk/otel':
+        specifier: workspace:*
+        version: link:../../packages/otel
+      '@ai-sdk/perplexity':
+        specifier: workspace:*
+        version: link:../../packages/perplexity
+      '@ai-sdk/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@ai-sdk/provider-utils':
+        specifier: workspace:*
+        version: link:../../packages/provider-utils
+      '@ai-sdk/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@ai-sdk/rsc':
+        specifier: workspace:*
+        version: link:../../packages/rsc
+      '@ai-sdk/valibot':
+        specifier: workspace:*
+        version: link:../../packages/valibot
+      '@ai-sdk/xai':
+        specifier: workspace:*
+        version: link:../../packages/xai
+      '@langfuse/otel':
+        specifier: ^4.6.1
+        version: 4.6.1(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.7.1(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.211.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.1(@opentelemetry/api@1.9.1))
+      '@langfuse/tracing':
+        specifier: ^5.3.0
+        version: 5.3.0(@opentelemetry/api@1.9.1)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.76)
+      '@opentelemetry/sdk-trace-node':
+        specifier: ^2.7.1
+        version: 2.7.1(@opentelemetry/api@1.9.1)
+      '@radix-ui/react-collapsible':
+        specifier: ^1.1.12
+        version: 1.1.12(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-use-controllable-state':
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react@18.3.28)(react@18.3.1)
+      '@valibot/to-json-schema':
+        specifier: ^1.7.0
+        version: 1.7.0(valibot@1.1.0(typescript@5.8.3))
+      '@vercel/blob':
+        specifier: ^0.26.0
+        version: 0.26.0
+      '@vercel/sandbox':
+        specifier: ^2.0.1
+        version: 2.1.1
+      ai:
+        specifier: workspace:*
+        version: link:../../packages/ai
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.545.0
+        version: 0.545.0(react@18.3.1)
+      next:
+        specifier: ^15.5.18
+        version: 15.5.18(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.90.0)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      react-markdown:
+        specifier: 9.0.1
+        version: 9.0.1(@types/react@18.3.28)(react@18.3.1)
+      redis:
+        specifier: ^4.7.1
+        version: 4.7.1
+      resumable-stream:
+        specifier: ^2.2.12
+        version: 2.2.12
+      streamdown:
+        specifier: ^1.6.11
+        version: 1.6.11(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@18.3.1)
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.19(tsx@4.22.0)(yaml@2.9.0))
+      valibot:
+        specifier: 1.1.0
+        version: 1.1.0(typescript@5.8.3)
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.19
+        version: 22.19.19
+      '@types/react':
+        specifier: ^18.3.28
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.7
+        version: 18.3.7(@types/react@18.3.28)
+      autoprefixer:
+        specifier: ^10.5.0
+        version: 10.5.0(postcss@8.5.14)
+      postcss:
+        specifier: ^8.5.14
+        version: 8.5.14
+      tailwindcss:
+        specifier: ^3.4.19
+        version: 3.4.19(tsx@4.22.0)(yaml@2.9.0)
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
+  examples/ai-functions:
+    dependencies:
+      '@ai-sdk/alibaba':
+        specifier: workspace:*
+        version: link:../../packages/alibaba
+      '@ai-sdk/amazon-bedrock':
+        specifier: workspace:*
+        version: link:../../packages/amazon-bedrock
+      '@ai-sdk/anthropic':
+        specifier: workspace:*
+        version: link:../../packages/anthropic
+      '@ai-sdk/anthropic-aws':
+        specifier: workspace:*
+        version: link:../../packages/anthropic-aws
+      '@ai-sdk/assemblyai':
+        specifier: workspace:*
+        version: link:../../packages/assemblyai
+      '@ai-sdk/azure':
+        specifier: workspace:*
+        version: link:../../packages/azure
+      '@ai-sdk/baseten':
+        specifier: workspace:*
+        version: link:../../packages/baseten
+      '@ai-sdk/black-forest-labs':
+        specifier: workspace:*
+        version: link:../../packages/black-forest-labs
+      '@ai-sdk/bytedance':
+        specifier: workspace:*
+        version: link:../../packages/bytedance
+      '@ai-sdk/cerebras':
+        specifier: workspace:*
+        version: link:../../packages/cerebras
+      '@ai-sdk/cohere':
+        specifier: workspace:*
+        version: link:../../packages/cohere
+      '@ai-sdk/deepgram':
+        specifier: workspace:*
+        version: link:../../packages/deepgram
+      '@ai-sdk/deepinfra':
+        specifier: workspace:*
+        version: link:../../packages/deepinfra
+      '@ai-sdk/deepseek':
+        specifier: workspace:*
+        version: link:../../packages/deepseek
+      '@ai-sdk/devtools':
+        specifier: workspace:^
+        version: link:../../packages/devtools
+      '@ai-sdk/elevenlabs':
+        specifier: workspace:*
+        version: link:../../packages/elevenlabs
+      '@ai-sdk/fal':
+        specifier: workspace:*
+        version: link:../../packages/fal
+      '@ai-sdk/fireworks':
+        specifier: workspace:*
+        version: link:../../packages/fireworks
+      '@ai-sdk/gateway':
+        specifier: workspace:*
+        version: link:../../packages/gateway
+      '@ai-sdk/gladia':
+        specifier: workspace:*
+        version: link:../../packages/gladia
+      '@ai-sdk/google':
+        specifier: workspace:*
+        version: link:../../packages/google
+      '@ai-sdk/google-vertex':
+        specifier: workspace:*
+        version: link:../../packages/google-vertex
+      '@ai-sdk/groq':
+        specifier: workspace:*
+        version: link:../../packages/groq
+[0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *none found* | - | - | No hardcoded credentials with signs of life |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` in `MOCK_SETTINGS` for screenshot generation |
+| reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx | ~200 | `apiKeyDisplayValue="****************"` and `"sk-example"` in mock HomeView props |
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3, 36, 49 | Test provider implementation using public `https://api.gladia.io/v2` and `x-gladia-key` header |
+| reposcan-raw/gladiaio/compare-stt/* | multiple | Marketing/comparison site referencing gladia.io domains, GitHub org, APIs |
+| reposcan-raw/gladiaio/realtime-multilingual-asr-router/* | multiple | ASR tokenizer "tokens" (model vocabulary), not API secrets |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Classification |
+|------|------|----------|----------------|
+| reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts | 3 | `https://api.gladia.io/v2` | **Public API** — documented base URL |
+| reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **Public app URL** — user-facing dashboard |
+| reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `https://app.gladia.io/apikeys` | **Public app URL** — user-facing API key management |
+| reposcan-raw/gladiaio/compare-stt/next.config.ts | 38, 44 | `https://www.gladia.io/compare-stt-apis` | **Public marketing rewrite** |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml | 289, 291 | `@ai-sdk/gladia` workspace dependency → `../../packages/gladia` — **Official Vercel AI SDK integration** maintained in gladiaio org |
+| reposcan-raw/gladiaio/vercel-ai/tsconfig.json | 70 | Path alias `"@/packages/gladia"` for official integration package |
+| reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml | 5 | `authors = ["Gladia <support@gladia.io>"]` — official contact |
+| **npm registry (external knowledge)** | — | `gladia@0.1.3` — claims "Official TypeScript SDK" but repo=`alexisbouchez/gladia.ts` (personal, 404), maintainer=`softwarecitadel@gmail.com` — **orphaned impersonation** (already ACCEPTED in knowledge base) |
 
 ---
 
-**VERDICT LIST**
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-********` in gladiaflow screenshot mock | **no** | Obvious masked placeholder in test/fixture code (`MOCK_SETTINGS` for screenshot generation) |
-| `sk-example` in gladiaflow screenshot mock | **no** | Explicit test value |
-| Official API endpoint references (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`) | **no** | Public production endpoints documented in OpenAPI spec |
-| `@ai-sdk/gladia` in vercel-ai monorepo | **no** | Official Vercel AI SDK provider package (workspace link to local `packages/gladia`) |
-| Package metadata (`gladiaflow`, `io.gladia.gladiaflow`) | **no** | Official desktop app naming |
-| `gladia@0.1.3` npm impersonation anomaly | **no** (already tracked) | Previously **ACCEPTED OTHER** in knowledge base (2026-08-07→2026-08-21): orphaned personal repo `alexisbouchez/gladia.ts` + user 404, `package.json` "Official" vs README "Unofficial" contradiction, src embeds raw API key in WebSocket URL — evidence package locked, report-ready via bug-bounty portal |
+| Candidate | Category | REPORT_CANDIDATE | Rationale |
+|-----------|----------|------------------|-----------|
+| `sk-********` in Gallery.tsx | TEST_OR_EXAMPLE | **no** | Masked placeholder in `MOCK_SETTINGS` for screenshot generation; 8 asterisks = deliberate placeholder |
+| `gladia@0.1.3` npm package | INTERESTING (known) | **no** | Already ACCEPTED in knowledge base (2026-08-07 → 2026-08-21) as orphaned impersonation; evidence package locked; report-ready via bug-bounty portal |
+| `@ai-sdk/gladia` in vercel-ai | INTERESTING | **no** | Official Vercel AI SDK integration package maintained in gladiaio/vercel-ai monorepo (`workspace:*` link) |
+| Public API/app URLs in code | ENDPOINT_LEAK | **no** | All reference documented public endpoints (`api.gladia.io`, `app.gladia.io`, `www.gladia.io`) |
+| ASR "tokens" in realtime router | TEST_OR_EXAMPLE | **no** | Model vocabulary tokens, not API credentials |
 
----
-
-**SUMMARY**: **0 new reportable findings** this scan. All 617 hits are pre-existing, benign references to public endpoints, test mocks, or official package metadata. The sole standing anomaly (`gladia@0.1.3` npm impersonation) was already validated and evidence-locked across 100+ drift-negative cycles.
+**Overall: 0 new reportable findings this scan.**  
+Delta confirms 0 new hit lines vs previous scan. The sole standing anomaly (`gladia@0.1.3` orphaned impersonation) remains stable and already triaged to report-ready state.
