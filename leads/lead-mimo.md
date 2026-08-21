@@ -139,3 +139,38 @@ testability: AUTH_HELPED
 [RISK] api.gladia.io: 45 reason | SSRF-by-design surface persists but key-gated (AUTH_HELPED), no bypass found across 100+ cycles, frozen surface
 [RISK] app.gladia.io: 55 reason | redirect_to reflection + CSP form-action gap confirmed, OAuth redirect_uri FIXED prevents code/state theft, post-auth honoring HUMAN_ONLY
 [RISK] sdk: 75 reason | gladia@0.1.3 orphaned impersonation confirmed live, report-ready, no program response yet
+## 2026-08-21 20:29:08 UTC [api] (model mimo)
+[PRIO] npmjs.com/package/gladia, 8.2, attack:8 business:9 tech:7 gate:9 cloud:8 fresh:8
+[PRIO] app.gladia.io/signin, 6.8, attack:7 business:8 tech:7 gate:6 cloud:4 fresh:7
+[PRIO] api.gladia.io/v2/pre-recorded, 5.6, attack:6 business:7 tech:6 gate:3 cloud:5 fresh:4
+[HYP] Orphaned npm gladia@0.1.3 impersonates official SDK, leaks raw API key in WebSocket URL query
+class: OTHER
+asset: npmjs.com/package/gladia
+confidence: 97
+reasoning: dist-tag latest=0.1.3, description "Official TypeScript SDK for Gladia", repo+user alexisbouchez both 404 (orphaned/irrevocable), src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query via searchParams.append, sha256 `3b23ec7d…7f2` reproduced across 10+ independent local npm pack runs
+evidence_needed: report-ready, locked across 5+ independent npm pack reproductions
+verify_steps: HUMAN: Submit report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated)
+impact: supply-chain API key harvesting + irrevocable account takeover (GitHub user+repo 404 = orphaned, dist-tag latest persists), P3/P4 severity
+testability: HUMAN_ONLY
+[HYP] app.gladia.io /signin redirect_to form-action reflection with 0 CSP form-action directives
+class: OATH
+asset: app.gladia.io/signin
+confidence: 92
+reasoning: form action reflects URL-encoded value (byte-fresh 100+ cycles), CSP has 0 form-action directives (grep-count=0), OAuth redirect_uri FIXED prevents code/state theft, return-to cookie tamper-reset REJECTED, post-auth honoring sole unverified gate
+evidence_needed: HUMAN OAuth test (post-auth redirect_to)
+verify_steps: HUMAN: authenticate via Google SSO, then access /signin?redirect_to=https://evil.example.com post-auth to test if server honors redirect
+impact: potential post-auth open redirect if server honors reflected redirect_to after authentication
+testability: HUMAN_ONLY
+[HYP] api.gladia.io SSRF-by-design via audio_url/video_url/callback_config.url with no scheme allowlist
+class: SSRF
+asset: api.gladia.io/v2/pre-recorded
+confidence: 85
+reasoning: spec confirms audio_url/video_url/callback_config.url as format:uri with NO scheme allowlist, 7 webhook delivery paths, /v1/models confirms FR/US egress, POST 401 NestJS key-gated only
+evidence_needed: authorized API key for POC
+verify_steps: AUTH_HELPED: POST /v2/pre-recorded with valid x-gladia-key and audio_url=http://internal-host/secret
+impact: server-side request forgery to internal network, P2/P3 severity
+testability: AUTH_HELPED
+[FINAL]
+[RISK] api.gladia.io: 45 reason | SSRF-by-design surface persists but key-gated (AUTH_HELPED), no bypass found across 100+ cycles, frozen surface
+[RISK] app.gladia.io: 55 reason | redirect_to reflection + CSP form-action gap confirmed, OAuth redirect_uri FIXED prevents code/state theft, post-auth honoring HUMAN_ONLY
+[RISK] sdk: 75 reason | gladia@0.1.3 orphaned impersonation confirmed live, report-ready, no program response yet
