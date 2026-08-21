@@ -1435,3 +1435,6 @@
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, description "Official", GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable), sha256 `3b23ec7d…7f2` reproduced (10th independent npm pack).
 - 2026-08-21 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — SSRF-by-design surface persists (AUTH_HELPED)
 - 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh — 0 CSP form-action directives (gap confirmed); post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, description "Official", GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable).
+- 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed by fresh probes this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, /health {"health":"OK"} — surface frozen across 100+ cycles.
+- 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix W/"1eaf0-e2Vz3pkTkCj9+D1LXXmnA4EftAQ" with structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
