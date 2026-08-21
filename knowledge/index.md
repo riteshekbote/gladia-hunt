@@ -1464,3 +1464,5 @@
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, description "Official", GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable)
 - 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection alive byte-fresh — 0 CSP form-action directives (gap confirmed); post-auth honoring sole unverified gate (HUMAN_ONLY)
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable)
+- 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh 2026-08-21 20:54 UTC — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable)
+- 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh 2026-08-21 20:54 UTC — form action reflects URL-encoded value, CSP 0 form-action directives, post-auth honoring sole unverified gate (HUMAN_ONLY)
