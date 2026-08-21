@@ -1399,3 +1399,7 @@
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, GitHub API user+repo alexisbouchez 404 (orphaned/irrevocable)
 - 2026-08-21 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint confirmed informational only — 401 NestJS, not in OpenAPI 14-path spec, properly gated, no bypass/data leakage
 - 2026-08-21 ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh — 0 form-action directives (grep-count=0); enables /signin form-action reflection (gap confirmed, not oversight)
+- 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable); official @gladiaio/sdk@1.1.0 static.
+- 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B, CORS static `*` — surface frozen across 100+ cycles.
+- 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — etag rotates via dynamic example timestamps, not surface drift; structural identity intact.
+- 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh this cycle (200/27448B, form action reflects URL-encoded value, CSP form-action grep-count=0) — post-auth honoring remains sole unverified gate (HUMAN_ONLY).
