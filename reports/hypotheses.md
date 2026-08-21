@@ -6802,3 +6802,12 @@
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh 23:51 UTC — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, /health {"h
 - LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — etag W/"1eaf0-k75avQQ2gWqPIYrNo0IgbHOkQZc" matches a prior-cycle suffix
 - LEARN: ACCEPTED OATH @ app.gladia.io: /signin?redirect_to reflection alive byte-fresh 23:51 UTC (200/27448B, action="/signin?redirect_to=https%3A%2F%2Fevil.example.com
+
+## RANKED HYPOTHESES 2026-08-21 00:40:45 UTC
+- [97] npm: Orphaned npm package impersonates official SDK and leaks raw API key in WebSocket URL query (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit the locked gladia@0.1.3 orphaned-impersonation report via https://gladia.io/bug-bounty-report (301→www→302→Google Forms, Google SSO auth-gated)
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-confirmed fresh this cycle — openapi 200/125680B (dynamic-example band)/14 paths/7 webhooks/1 server, /health 15
+- LEARN: REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix with structural identity intact; etag rotates via dynam
+- LEARN: ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, GitHub API user+repo alexisbou
+- LEARN: ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/health undocumented key-gated endpoint confirmed informational only — 401 NestJS, not in OpenAPI 14-path spec, prop
+- LEARN: ACCEPTED MISCONFIG @ app.gladia.io: CSP confirmed fresh — 0 form-action directives (grep-count=0); enables /signin form-action reflection (gap confirmed, not ov
