@@ -1463,3 +1463,4 @@
 - 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — new etag suffix `W/"1eaf0-GG2qYXV92Co2n1o7XtWfAag92aA"` while structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
 - 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, description "Official", GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable)
 - 2026-08-21 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection alive byte-fresh — 0 CSP form-action directives (gap confirmed); post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-21 ACCEPTED OTHER @ npm gladia@0.1.3: class alive, re-verified fresh this cycle — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, GitHub API user+repo alexisbouchez both 404 (orphaned/irrevocable)
