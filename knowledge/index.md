@@ -1445,3 +1445,5 @@
 - 2026-08-21 No class newly proven dead or alive this cycle — surface frozen across 100+ drift-negative cycles; all ACCEPTED findings remain alive, all REJECTED classes remain dead
 - 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — etag suffix `W/"1eaf0-0ZqTwbVT3WAGUr/YV/x8Fs43MrU"` is new per-fetch while structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
 - 2026-08-21 ACCEPTED SSRF @ api.gladia.io: spec frozen, POST /v2/pre-recorded 401/144B NestJS key-gated fresh — SSRF-by-design surface persists (AUTH_HELPED).
+- 2026-08-21 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint remains falsified — etag suffix `W/"1eaf0-OVPemO1ty9EEmDAwwWb//oeF70o"` is new per-fetch while structural identity intact; etag rotates via dynamic example timestamps, not surface drift.
+- 2026-08-21 ACCEPTED SSRF @ api.gladia.io: spec frozen, POST /v2/pre-recorded 401/144B NestJS key-gated fresh (request_id G-035e0df8) — SSRF-by-design surface persists (AUTH_HELPED).
