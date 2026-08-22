@@ -1,3 +1,13 @@
+## 2026-08-22 STATUS: REPORTED BY HUMAN — AWAITING VENDOR RESPONSE
+
+- REPORTED: 2026-08-12 (10 days ago) by riteshekbote@gmail.com -> security@gladia.io, full report + PoC attachments
+- RE-CHECKED 2026-08-22: NO vendor action yet. Package still live: latest=0.1.3, maintainer softwarecitadel unchanged, NOT unpublished, time.modified=2025-04-07 (pre-report). Repo+user still 404 -> takeover risk OPEN.
+- CLAIM VERIFIED INDEPENDENTLY: README.md line 3 says "Unofficial TypeScript SDK for Gladia" while registry description says "Official..." - the contradiction is real.
+- Typosquat ecosystem still up: @andrea_ztn/gladia@0.1.3 (200), also noted new namespace squatter candidate @keystrokehq/gladia@0.1.6.
+- FOLLOW-UP DUE: 2026-08-26 (14-day mark) -> send ONE polite status request to security@gladia.io.
+- PARALLEL TRACK: report was promised to npm Trust & Safety (npmjs.com/support) - CONFIRM whether actually sent; if not, send now (venue split per triage: root cause is npm's).
+- DO-NOT-REDO: bots must not re-flag this lead or draft new reports; this file is the single source of truth.
+
 ## 2026-08-22 TRIAGE UPDATE (7-Question Gate, strict mode)
 
 VERDICT MATRIX:
