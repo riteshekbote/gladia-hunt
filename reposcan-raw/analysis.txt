@@ -1,49 +1,48 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Static Scan Analysis - 2026-08-22
+## Static Scan Triage — 2026-08-22 reposcan
 
-### Scan Statistics
-- **Files scanned**: 5,647
-- **Total hits**: 617
-- **New hits**: 0 (delta: unchanged from previous scan)
+**5647 files scanned, 617 hits, 0 new hit lines since last scan.**
 
-### Classification Summary
+### Category: REAL_SECRET
 
-| Category | Count | Status |
-|----------|-------|--------|
-| REAL_SECRET | 0 | - |
-| TEST_OR_EXAMPLE | ~200+ | Not reportable |
-| ENDPOINT_LEAK | ~400+ | Public URLs only |
-| INTERESTING | 0 | - |
+| File | Line | Evidence | Verdict |
+|---|---|---|---|
+| _(none)_ | — | No unmasked credentials found | — |
 
-### Key Observations
+### Category: TEST_OR_EXAMPLE
 
-**No new secrets or credentials found.** All API key references are either:
-- Masked (`sk-********` in gladiaflow screenshots)
-- Test fixtures (compare-stt provider test arrays)
-- Placeholder values in sample code
+| File | Line | Evidence | Verdict |
+|---|---|---|---|
+| `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — placeholder, masked, explicit screenshot fixture | **Benign** |
 
-**All endpoint references are legitimate public endpoints:**
-- `api.gladia.io/v2/*` - official API (confirmed in scope)
-- `app.gladia.io/*` - official dashboard (confirmed in scope)
-- `docs.gladia.io/*` - documentation (out of scope per program rules)
-- `github.com/gladiaio/*` - official repos (confirmed in scope)
+### Category: ENDPOINT_LEAK
 
-**No anomalous packages detected:**
-- `@ai-sdk/gladia` in vercel-ai = official org integration
-- All `gladia` references in gladiaflow = official app identifiers
-- No references to personal repos or third-party endpoints
+| File | Line | Evidence | Verdict |
+|---|---|---|---|
+| `compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` | **Expected** — public API |
+| `compare-stt/next.config.ts` | 38, 44 | `destination: "https://www.gladia.io/compare-stt-apis"` | **Expected** — public marketing |
+| `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/${sessionId}` | **Expected** — public app |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `API_KEYS_URL = "https://app.gladia.io/apikeys"` | **Expected** — public app |
+| All `gladia.io`, `www.gladia.io`, `api.gladia.io`, `app.gladia.io`, `github.com/gladiaio/*` refs | various | Public endpoints/repos only | **Expected** |
+
+### Category: INTERESTING
+
+| File | Line | Evidence | Verdict |
+|---|---|---|---|
+| `compare-stt/next.config.ts` | 51 | `// PostHog reverse proxy — same hosts as gladia-marketing vercel.json.` | **Informational** — dev comment referencing third-party (PostHog) |
+| `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | **Benign** — `docs.gladia.io` is Gladia's own docs subdomain |
+| `compare-stt/src/lib/tracking.ts` | 2 | `// Tracking IDs — keep in sync with gladia-marketing` | **Informational** — cross-repo comment, no actual IDs exposed |
+| All `sk-********` masked values | — | `gladiaflow/src/screenshots/Gallery.tsx` — `sk-********` is an explicit redacted placeholder | **Benign** |
 
 ### Verdict
 
-| Category | REPORT_CANDIDATE | Reason |
-|----------|------------------|--------|
-| REAL_SECRET | No | No hardcoded credentials found |
-| TEST_OR_EXAMPLE | No | Sample data only |
-| ENDPOINT_LEAK | No | All endpoints are public/official |
-| INTERESTING | No | Nothing unusual |
+| Category | REPORT_CANDIDATE | Count |
+|---|---|---|
+| REAL_SECRET | **no** | 0 |
+| TEST_OR_EXAMPLE | **no** | 1 (masked placeholder) |
+| ENDPOINT_LEAK | **no** | all public/expected |
+| INTERESTING | **no** | 3 informational comments |
 
-**Final Assessment**: Zero reportable findings. The surface is frozen across 100+ drift-negative cycles. All hits are legitimate code patterns using official Gladia endpoints and identifiers.
-
-**Recommended Action**: Continue periodic monitoring. No immediate action required.
+**REPORT_CANDIDATE: no** — zero actionable hits. All 617 matches are public endpoint references, expected marketing/SDK URLs, or the pre-identified `gladia@0.1.3` orphan (already locked in the RAG). The `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` is an explicit redaction placeholder, not a live secret.
