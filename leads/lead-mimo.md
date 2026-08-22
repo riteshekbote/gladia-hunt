@@ -766,3 +766,4 @@ testability: AUTH_HELPED
 [RISK] app.gladia.io: 55 | redirect_to reflection + CSP form-action gap confirmed byte-fresh, OAuth redirect_uri FIXED prevents code/state theft, post-auth honoring HUMAN_ONLY, /dashboard 200 SPA shell without auth
 [RISK] sdk: 75 | gladia@0.1.3 orphaned impersonation confirmed live at dist-tag latest, report-ready across 10+ independent reproductions, no program response yet, irrevocable GitHub user+repo 404
 ## 2026-08-22 05:19:17 UTC [api] (model mimo)
+## 2026-08-22 05:49:34 UTC [api] (model mimo)
