@@ -19,7 +19,7 @@ jobs:
       group: triage
       cancel-in-progress: true
     env:
-      MODEL_ID: opencode/mimo-v2.5-free
+      MODEL_ID: opencode-go/ox-alpha-free
 
     steps:
       - name: Checkout
@@ -70,6 +70,12 @@ jobs:
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
           cat > triage-prompt.txt << 'PROMPT_START'
           You are a strict triager for the Gladia program (api.gladia.io HIGHEST,
+          MAX MODE (ox-alpha-free 1M ctx): dig DEEPER + FASTER. Directives:
+          - Hunt HIGH-VALUE classes first: broken auth/session handling, IDOR/BOLA, SSRF-to-cloud-metadata (169.254.169.254), mass assignment, JWT alg/key confusion, OAuth redirect_uri/state flaws, business logic on money/auth flows, file upload, GraphQL introspection+mutations.
+          - CHAIN primitives aggressively: open redirect -> OAuth code theft -> ATO; XSS -> session theft -> ATO; IDOR -> cross-tenant PII dump; SSRF -> metadata -> keys. One chained lead beats ten weak ones.
+          - Request-level reasoning only: exact METHOD path + params + headers + body, expected vs actual status codes. No prose filler, no restating context.
+          - Breadth pass over the FULL inventory for anomalies (odd status codes, interesting param names like id/uid/email/user_id, versioned APIs /api/v1|v2|beta|internal, debug/test flags, swagger/openapi/json exposure), then depth on top-3 anomalies this cycle.
+          - If a hypothesis needs live confirmation you cannot do passively, emit [NEXT] PROBE with the EXACT read-only request so the next cycle executes it immediately.
           app.gladia.io HIGH, official SDKs npm/PyPI MEDIUM, gladia.io LOW; all
           other *.gladia.io subdomains and third-party services are OUT OF SCOPE;
           automated scanner output without manual validation is REJECTED). A hunt
