@@ -1,3 +1,27 @@
+## 2026-08-22 TRIAGE UPDATE (7-Question Gate, strict mode)
+
+VERDICT MATRIX:
+- VENUE npm registry -> ACTIONABLE NOW (impersonation report, see DRAFT below)
+- VENUE gladia.io form -> HOLD: Q3 FAILS as standalone vuln (root cause lives in softwarecitadel's package, not a Gladia asset). Becomes a Gladia-side bug ONLY if wss://api.gladia.io/v2/live accepts x-gladia-key query param (legacy compat). Needs 1 valid key to prove. Until then: primitive present, not submittable.
+- Severity correction: earlier MEDIUM-HIGH / confidence 95 was pre-triage. Post-gate: npm-venue report = registry policy case ($0, removes harm); Gladia-venue = conditional, unproven end-to-end (Pre-Severity Gate #3 fail).
+
+RETRACTED CLAIM: "key leak = Gladia vulnerability". Disproving reasoning: vulnerable code is not served by Gladia infra; if the v2/live WS rejects query-param auth, the fake SDK leaks keys to an endpoint that never accepts them (broken SDK, not vuln).
+
+
+[HUMAN-ACTION] To unlock Gladia-venue leg: register free Gladia account, obtain API key, open WSS handshake to wss://api.gladia.io/v2/live?x-gladia-key=<KEY> vs header-auth control. If query-param auth succeeds -> server-side key-in-URL design flaw (keys land in proxy/access logs for ALL custom integrations) -> then submit to gladia.io form as their bug.
+
+DRAFT: NPM IMPERSONATION REPORT (copy-paste ready):
+Package: https://www.npmjs.com/package/gladia (v0.1.3, dist-tag latest)
+Issue: Impersonation of Gladia (gladia.io) official SDK.
+Evidence:
+1. Description claims "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API".
+2. Maintainer: softwarecitadel (softwarecitadel@gmail.com) - no affiliation with Gladia.
+3. Linked repository github.com/alexisbouchez/gladia.ts returns 404; user alexisbouchez does not exist (404).
+4. Genuine SDK is published under Gladia's scoped namespace: @gladiaio/sdk (publisher bot-npmjs-gladiaio).
+Requested action: transfer name to Gladia / unpublish for impersonation + abandoned-package policy.
+Note: additionally the package embeds raw API keys into WebSocket URLs (src/client.ts:307), a credential-hygiene hazard for anyone misled into using it.
+
+--- ORIGINAL EVIDENCE (verified 2026-08-22, still accurate) ---
 ## 2026-08-22 HUMAN-VALIDATED (external deep-dive, model ox-alpha-free)
 
 [NEXT] HUMAN: Submit gladia@0.1.3 orphaned-impersonation + key-in-URL report via https://www.gladia.io/bug-bounty-report (Google Forms, SSO auth-gated). Full evidence below.
@@ -11,5 +35,3 @@ evidence_needed: none further — registry metadata + tarball source verified di
 verify_steps: PASSIVE: curl -s https://registry.npmjs.org/gladia | jq '.maintainers,.dist-tags'; note maintainer softwarecitadel vs official @gladiaio org; download tarball, read package/src/client.ts line ~307 showing searchParams.append('x-gladia-key', apiKey); compare with @gladiaio/sdk dist/v2/live/session.js connectToWebSocket() which connects to server-issued session.url with no credential material.
 impact: Developers installing the impersonating "official" SDK embed raw Gladia API keys in every live-transcription WebSocket URL; keys persist in proxy/access logs enabling account takeover of the Gladia account (billing audio data). Package abandonment (dead repo) means no fix will ship. Secondary: typosquat copy @andrea_ztn/gladia@0.1.3 exists at same version. Severity: MEDIUM-HIGH supply-chain + credential exposure.
 testability: PASSIVE
-
-[UNVALIDATED] npmjs.com/package/gladia: orphaned gladia@0.1.3 impersonates official SDK ('Official TypeScript SDK', maintainer softwarecitadel, repo/user 404) + leaks raw API key in WS URL query string (client.ts:307 searchParams x-gladia-key) vs official @gladiaio/sdk session-url design | MEDIUM-HIGH | PASSIVE-PROVEN
