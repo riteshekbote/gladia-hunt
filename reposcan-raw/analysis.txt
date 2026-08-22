@@ -1,38 +1,23 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File | Line | Value / Pattern | Verdict |
-|---|---|---|---|---|
-| **TEST_OR_EXAMPLE** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked placeholder, not real |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/customVocabulary.ts | 8–9 | `"gladiaflow"`, `"gladioflow"` | Test vocabulary term |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/vocabularyEditor.test.ts | 21–34 | Test assertions with `"gladiaflow"` | Unit test data |
-| **TEST_OR_EXAMPLE** | gladiaflow/src/lib/dictationStats.ts | 11 | Storage key `"gladiaflow.dictation.stats.v1"` | App constant |
-| **TEST_OR_EXAMPLE** | compare-stt/prisma/seed.ts | 10 | `{ slug: "gladia" }` | DB seed fixture |
-| **TEST_OR_EXAMPLE** | compare-stt/src/lib/providers/gladia.ts | 10 | `{ slug: "gladia", color: "#947AFC" }` | UI config |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/providers/gladia.ts | 3 | `const GLADIA_BASE = "https://api.gladia.io/v2"` | Public API base URL (in-scope, no secret) |
-| **ENDPOINT_LEAK** | compare-stt/src/app/layout.tsx | 87 | `href="https://www.gladia.io"` | Public marketing link |
-| **ENDPOINT_LEAK** | compare-stt/src/app/terms/page.tsx | 45,107 | `href="https://gladia.io"` | Public legal link |
-| **ENDPOINT_LEAK** | compare-stt/src/app/methodology/page.tsx | 80 | `href="https://github.com/gladiaio/compare-stt"` | Public repo link |
-| **ENDPOINT_LEAK** | compare-stt/src/app/about/page.tsx | 156,172 | `href="https://gladia.io"`, `mailto:privacy@gladia.io` | Public contact |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/site.ts | 5,20 | `"https://www.gladia.io"` | Public origin config |
-| **ENDPOINT_LEAK** | compare-stt/src/lib/leaderboard-articles.ts | 37,46 | `https://www.gladia.io/blog/...` | Public blog links |
-| **ENDPOINT_LEAK** | compare-stt/next.config.ts | 38,44 | `destination: "https://www.gladia.io/compare-stt-apis"` | Public proxy rewrite |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/ApiKeyOnboardingView.tsx | 4 | `const API_KEYS_URL = "https://app.gladia.io/apikeys"` | Public dashboard URL |
-| **ENDPOINT_LEAK** | gladiaflow/src/components/TranscriptionHistory.tsx | 19 | `https://app.gladia.io/transcriptions/live/...` | Public app URL |
-| **ENDPOINT_LEAK** | gladiaflow/src-tauri/tauri.conf.json | 5 | `"identifier": "io.gladia.gladiaflow"` | App identifier |
-| **ENDPOINT_LEAK** | gladiaflow/src-tauri/tauri.dev.conf.json | 3 | `"identifier": "io.gladia.gladiaflow.dev"` | Dev app identifier |
-| **INTERESTING** | gladiaflow/src/screenshots/Gallery.tsx | 17 | `apiKey: "sk-********"` | Masked; see TEST_OR_EXAMPLE above |
-| **INTERESTING** | compare-stt/src/lib/providers/gladia.ts | 36,49 | `headers: { "x-gladia-key": apiKey }` | Auth header usage — standard SDK pattern, not a leak |
+**Classification of scan hits:**
+
+| Category | Finding | Verdict |
+|----------|---------|---------|
+| TEST_OR_EXAMPLE | `sk-********` in `gladiaflow/src/screenshots/Gallery.tsx:17` — masked/placeholder API key for screenshot generation | Not reportable |
+| TEST_OR_EXAMPLE | `"gladia"` slug references in `compare-stt/test-providers.ts:8`, `prisma/seed.ts:10`, `lib/providers.ts:10`, `lib/transcribe.ts` — test fixture/provider names | Not reportable |
+| ENDPOINT_LEAK | `api.gladia.io/v2` in `compare-stt/src/lib/providers/gladia.ts:3` — public API base URL, documented in OpenAPI spec | Not reportable |
+| ENDPOINT_LEAK | `app.gladia.io/apikeys` in `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` — documented dashboard URL | Not reportable |
+| ENDPOINT_LEAK | `app.gladia.io/transcriptions/live/` in `gladiaflow/src/components/TranscriptionHistory.tsx:19` — documented dashboard URL | Not reportable |
+| INTERESTING | `io.gladia.gladiaflow` / `io.gladia.gladiaflow.dev` Tauri identifiers in `gladiaflow/src-tauri/tauri.conf.json` — legitimate app identifiers | Not reportable |
+| INTERESTING | `https://github.com/gladiaio/normalization/tree/main` links in `compare-stt` components — public repos, informational only | Not reportable |
+| TEST_OR_EXAMPLE | `"gladiaflow"` / `"gladioflow"` / `"gladiaflaw"` in vocabulary test and custom vocab files — test data, not real credentials | Not reportable |
 
 **Verdict:**
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|---|---|---|
-| sk-******** masked placeholder | no | Masked, not a real key |
-| gladiaflow storage key / test vocab | no | TEST_OR_EXAMPLE |
-| api.gladia.io/v2 base URL | no | Public endpoint, already known |
-| app.gladia.io dashboard URLs | no | Public, already known |
-| gladia.ts x-gladia-key header usage | no | Standard auth pattern, not a leak |
-| gladiaflow.io / hyperline.co / svix.com / billing.gladia.io references | no | Third-party infra, already known from CSP |
+```
+REPORT_CANDIDATE: no
+```
 
-**Delta: 0 new hit lines. 0 reportable candidates. All 617 hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING (informational, already known). Surface unchanged from prior scans.**
+**Rationale:** All 617 hits are classified as TEST_OR_EXAMPLE (masked keys, test slugs, fixture data), ENDPOINT_LEAK (public API/dashboard URLs already documented in OpenAPI spec), or INTERESTING (legitimate app identifiers, public repo links). No hardcoded secrets, no real API keys, no internal/staging URLs, and no new supply-chain risks. Delta = 0 new hits since last scan. The sole supply-chain anomaly (`gladia@0.1.3` orphaned impersonation) is already ACCEPTED and locked in the knowledge base.
