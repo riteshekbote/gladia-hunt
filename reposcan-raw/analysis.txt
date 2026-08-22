@@ -1,31 +1,29 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File | Line | Summary |
+**Scan is static — 0 delta since last cycle.**
+
+## Classification Table
+
+| File:Line | Material | Category | Notes |
 |---|---|---|---|
-| TEST_OR_EXAMPLE | `compare-stt/test-providers.ts` | 8 | Provider slug list for test harness |
-| ENDPOINT_LEAK | `compare-stt/next.config.ts` | 38,44,51 | Proxy rewrites to `www.gladia.io`, PostHog reverse-proxy comments |
-| ENDPOINT | `compare-stt/src/lib/site.ts` | 5,20 | `NEXT_PUBLIC_SITE_ORIGIN` fallback `https://www.gladia.io`, citation domain |
-| ENDPOINT | `compare-stt/src/lib/providers/gladia.ts` | 3 | `GLADIA_BASE = "https://api.gladia.io/v2"` — known public API base |
-| ENDPOINT | `compare-stt/src/lib/leaderboard-articles.ts` | 37,46 | Blog URLs on `www.gladia.io` |
-| ENDPOINT | `compare-stt/src/app/**/*.tsx` | various | Links to `gladia.io`, `www.gladia.io`, `github.com/gladiaio/*` |
-| ENDPOINT | `compare-stt/src/components/hero-provider-logos.tsx` | 7 | `mailto:privacy@gladia.io` |
-| TEST_OR_EXAMPLE | `gladiaflow/src/screenshots/Gallery.tsx` | 17 | `apiKey: "sk-********"` — masked placeholder for screenshot |
-| TEST_OR_EXAMPLE | `gladiaflow/src/lib/customVocabulary.ts` | 8-9 | `"gladiaflow"`, `["gladioflow", "gladiaflaw"]` — test vocabulary entries |
-| TEST_OR_EXAMPLE | `gladiaflow/src/lib/vocabularyEditor.test.ts` | 21,27,34 | Unit test assertions with `"gladiaflow"` string |
-| ENDPOINT | `gladiaflow/src/components/TranscriptionHistory.tsx` | 19 | `https://app.gladia.io/transcriptions/live/{sessionId}` — known public path |
-| ENDPOINT | `gladiaflow/src/components/ApiKeyOnboardingView.tsx` | 4 | `https://app.gladia.io/apikeys` — known public path |
-| ENDPOINT | `gladiaflow/src/components/CustomVocabularyView.tsx` | 14 | `https://docs.gladia.io/...` — public docs link |
-| ENDPOINT | `gladiaflow/src-tauri/tauri.dev.conf.json` | 3 | `"identifier": "io.gladia.gladiaflow.dev"` — Tauri app identifier |
-| ENDPOINT | `gladiaflow/src-tauri/tauri.conf.json` | 5 | `"identifier": "io.gladia.gladiaflow"` — Tauri app identifier |
-| ENDPOINT | `gladiaflow/src-tauri/Cargo.toml` | 2,5 | Package name `"gladiaflow"`, author `support@gladia.io` |
-| ENDPOINT | `vercel-ai/pnpm-lock.yaml` | 289,291,2368 | `@ai-sdk/gladia` workspace link, `packages/gladia` reference |
-| ENDPOINT | `vercel-ai/tsconfig.json` | 70 | `"path": "packages/gladia"` — workspace symlink |
+| `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | TEST_OR_EXAMPLE | Masked placeholder, not a live key |
+| `compare-stt/src/lib/providers/gladia.ts:36,49` | `"x-gladia-key": apiKey` | ENDPOINT_LEAK | API key header usage in official code — standard, not a secret |
+| `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/...` | ENDPOINT_LEAK | Public dashboard URL, not internal |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | ENDPOINT_LEAK | Public dashboard URL, not internal |
+| `compare-stt/src/lib/site.ts:5` | `https://www.gladia.io` | TEST_OR_EXAMPLE | Marketing domain reference |
+| All other `gladia.io` / `www.gladia.io` refs | URL references | TEST_OR_EXAMPLE | Marketing/docs links, not secrets |
+| `vercel-ai/pnpm-lock.yaml:289-291` | `@ai-sdk/gladia: link:../../packages/gladia` | INTERESTING | Monorepo local link, expected |
 
-**Verdict:**
-- **REAL_SECRET:** no
-- **TEST_OR_EXAMPLE:** yes — `sk-********` masked placeholder at `gladiaflow/src/screenshots/Gallery.tsx:17`, test vocab strings, provider slug lists
-- **ENDPOINT_LEAK:** yes — all are known public endpoints (`api.gladia.io/v2`, `app.gladia.io/apikeys`, `docs.gladia.io`, `www.gladia.io` blog/proxy), no internal/staging/dev endpoints exposed
-- **INTERESTING:** no
+## Verdict
 
-**REPORT_CANDIDATE: no** — 0 new hit lines vs prior scan; all 617 hits are benign endpoint references, test fixtures, or masked placeholders; no hardcoded credentials, no internal URLs, no supply-chain anomalies beyond the already-accepted `gladia@0.1.3` impersonation finding.
+| Category | Count | Reportable? |
+|---|---|---|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | 615+ | No |
+| ENDPOINT_LEAK | 2 (public dashboard URLs) | No |
+| INTERESTING | 1 (vercel-ai monorepo link) | No |
+
+**REPORT_CANDIDATE: no**
+
+Delta is 0. All hits are brand-name references, public URLs, masked test keys, or standard API usage. No actionable supply-chain secret or credential leak found in this cycle.
