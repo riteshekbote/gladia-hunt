@@ -355,3 +355,8 @@
   - | Q2 Reachable? | **No** — requires valid API key to initiate WS session and obtain token |
   - | Q2 Reachable? | Requires valid key + valid ID |
   - | 2 | npm `gladia@0.1.3` impersonation | **VALID** | 6.8 | **Report ready** — submit via gladia.io/bug-bounty-report |
+
+- 3 lead(s) marked VALID at 2026-08-22 02:08:46 UTC
+  - | Q2 Reachable? | **NO** — POST /v2/pre-recorded returns 401 without a valid `x-gladia-key`. Cannot reach the SSRF surface without auth. |
+  - | Q4 Provable read-only? | **NO** — requires POST with valid API key (AUTH_HELPED) |
+  - | Q2 Reachable? | **NO** — requires valid API key (401 without) |
