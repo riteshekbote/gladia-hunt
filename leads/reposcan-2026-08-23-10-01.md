@@ -1,5 +1,5 @@
 
-===== REPOSCAN 2026-08-23 10:01:08 UTC =====
+===== REPOSCAN 2026-08-23 10:01:50 UTC =====
 ## Grep hits:
 SCAN SUMMARY: 5647 code/config files scanned, 617 hits
 reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
@@ -47,6 +47,6 @@ reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <sup
   "name": "UnknownError",
   "data": {
     "message": "Unexpected server error. Check server logs for details.",
-    "ref": "err_0e9d74fb"
+    "ref": "err_58252990"
   }
 }
