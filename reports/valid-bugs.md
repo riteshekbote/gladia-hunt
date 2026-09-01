@@ -376,3 +376,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-01 19:59:36 UTC
   - - **VERDICT: HOLD — VALID for npm registry, HOLD for Gladia infra pending query-param proof** (`leads/lead-human.md:15`).
+
+- 2 lead(s) marked VALID at 2026-09-01 22:39:57 UTC
+  - - **Verdict: VALID (DUPLICATE) / HOLD for Gladia venue** - npm venue ACTIONABLE now; Gladia venue HOLD `lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=<KEY>` proven server a
+  - - **Verdict: HOLD (AUTH_HELPED)** - design confirmed passive, proof needs program trial key. `reports/valid-bugs.md:17` PARKED 100+ cycles.
