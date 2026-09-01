@@ -366,3 +366,7 @@
   - | **B. api.gladia.io SSRF via `audio_url/video_url/CallbackConfigDto.url` `format:uri` no scheme allowlist** `inventory/gladia.md:98` `probe-results.md:4` `api.gladia.io/v2/pre-recorded ->401` | ✅ YES
   - | **C. IDOR/BOLA `/{id}/file` download** `inventory/gladia.md:96` | ✅ YES HIGHEST | ❌ NO 401 unauth, needs valid key + victim UUID (un-guessable) | ✅ YES cross-tenant PII | ❌ NO needs 2 keys + owned I
   - | **F. `x-gladia-key` / `token` in `wss://api.gladia.io/v2/live?token=<uuid>` URL** `inventory/gladia.md:41` | ✅ YES HIGHEST | ❌ PARTIAL needs valid key to `POST /v2/live` to obtain token | ⚠️ LOW des
+
+- 2 lead(s) marked VALID at 2026-09-01 12:38:56 UTC
+  - **Verdict: VALID (npm registry) / HOLD (Gladia program - Q1/Q3 fail until WS query-param accepted server-side proven) -** One-line: orphaned impersonation locked 10+ reproductions, key-in-URL primitiv
+  - **Verdict: HOLD (AUTH_HELPED - needs valid `x-gladia-key`) -** spec confirms `audio_url` forwarded verbatim (SDK `create/createUntyped` no allowlist), but auth gate blocks unauth proof.
