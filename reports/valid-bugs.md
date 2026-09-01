@@ -373,3 +373,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-01 17:00:09 UTC
   - - **Verdict: VALID (DUPLICATE)** — One-line: locked orphaned impersonation + key-in-URL primitive across 10+ repros.
+
+- 1 lead(s) marked VALID at 2026-09-01 19:59:36 UTC
+  - - **VERDICT: HOLD — VALID for npm registry, HOLD for Gladia infra pending query-param proof** (`leads/lead-human.md:15`).
