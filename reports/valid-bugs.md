@@ -370,3 +370,6 @@
 - 2 lead(s) marked VALID at 2026-09-01 12:38:56 UTC
   - **Verdict: VALID (npm registry) / HOLD (Gladia program - Q1/Q3 fail until WS query-param accepted server-side proven) -** One-line: orphaned impersonation locked 10+ reproductions, key-in-URL primitiv
   - **Verdict: HOLD (AUTH_HELPED - needs valid `x-gladia-key`) -** spec confirms `audio_url` forwarded verbatim (SDK `create/createUntyped` no allowlist), but auth gate blocks unauth proof.
+
+- 1 lead(s) marked VALID at 2026-09-01 17:00:09 UTC
+  - - **Verdict: VALID (DUPLICATE)** — One-line: locked orphaned impersonation + key-in-URL primitive across 10+ repros.
