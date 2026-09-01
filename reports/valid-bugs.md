@@ -360,3 +360,9 @@
   - | Q2 Reachable? | **NO** — POST /v2/pre-recorded returns 401 without a valid `x-gladia-key`. Cannot reach the SSRF surface without auth. |
   - | Q4 Provable read-only? | **NO** — requires POST with valid API key (AUTH_HELPED) |
   - | Q2 Reachable? | **NO** — requires valid API key (401 without) |
+
+- 4 lead(s) marked VALID at 2026-09-01 01:53:19 UTC
+  - | **A. npm `gladia@0.1.3` impersonation + key-in-WS-URL** `inventory/gladia.md:32` `reports/SUBMISSION_gladia_npm_impersonation.md:1` `probe-results.md:294` `registry.npmjs.org/gladia ->200` + `api.gi
+  - | **B. api.gladia.io SSRF via `audio_url/video_url/CallbackConfigDto.url` `format:uri` no scheme allowlist** `inventory/gladia.md:98` `probe-results.md:4` `api.gladia.io/v2/pre-recorded ->401` | ✅ YES
+  - | **C. IDOR/BOLA `/{id}/file` download** `inventory/gladia.md:96` | ✅ YES HIGHEST | ❌ NO 401 unauth, needs valid key + victim UUID (un-guessable) | ✅ YES cross-tenant PII | ❌ NO needs 2 keys + owned I
+  - | **F. `x-gladia-key` / `token` in `wss://api.gladia.io/v2/live?token=<uuid>` URL** `inventory/gladia.md:41` | ✅ YES HIGHEST | ❌ PARTIAL needs valid key to `POST /v2/live` to obtain token | ⚠️ LOW des
