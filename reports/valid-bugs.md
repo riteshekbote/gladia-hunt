@@ -388,3 +388,13 @@
 - 2 lead(s) marked VALID at 2026-09-02 05:10:14 UTC
   - - **Verdict: VALID (DUPLICATE) for npm Trust&Safety / HOLD for Gladia program** `leads/lead-human.md:15`. One-line: locked impersonation passive-proven, GladiaInfra key-in-URL primitive unproven witho
   - - **Verdict: HOLD (HUMAN_ONLY)** — needs `HUMAN: Google SSO login → GET /signin?redirect_to=https://evil.example.com` with follow-redirects=false capture `Location` header; expected 302→`/dashboard` o
+
+- 8 lead(s) marked VALID at 2026-09-02 09:44:48 UTC
+  - |Q5 Novel| **DUPLICATE** — `reports/valid-bugs.md:22` `reports/SUBMISSION_gladia_npm_impersonation.md:1` validated 2026-08-07, re-verified 10+ `npm pack` `3b23ec7d…7f2`/`cc96f84a…` `triage/run-2026-08
+  - **Verdict: VALID (DUPLICATE) — one-line: orphaned impersonation at dist-tag latest + key-in-URL primitive locked passive.**
+  - |Q4| **NO** — proving redirect requires authenticated `GET /signin?redirect_to=...` with valid Google session + observing `Location` (HUMAN_ONLY). `probe-results.md:5` shows `200` not `302`; `return-t
+  - |Q6| YES — open redirect is valid class |
+  - |Q2| **PARTIAL** — key-gated `401` `probe-results.md:4`; reachable only with valid `x-gladia-key` (low-priv trial key per `scope.yml:41 passive_first`). No unauth bypass in 100+ cycles |
+  - |Q4| **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` + error/timing oracle. `OpenAPI 125131B/14 paths` only proves design, not fetch. Violates `no_da
+  - |Q5| YES — hypothesis tracked `reports/valid-bugs.md:17` but unproven |
+  - **Verdict: HOLD — one-line: design confirmed (`format:uri` no scheme allowlist, 7 webhooks), proof gated on valid x-gladia-key.**
