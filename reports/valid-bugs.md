@@ -407,3 +407,9 @@
   - | Q2 | **NO — PARTIAL key-gated:** `GET /v2/pre-recorded →401` + `POST /v2/pre-recorded no key →401 NestJS` `inventory/gladia.md:318` ×100 cycles, no bypass found. Requires valid `x-gladia-key` (low-p
   - | Q4 | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/` comparing `error_message/status/duration` `leads/lead-bigpickle.m
   - | Q6 | YES — SSRF valid class. |
+
+- 4 lead(s) marked VALID at 2026-09-02 17:58:16 UTC
+  - | Q6 Not rejected? | YES — open redirect valid class, not `info disclosure/best practice` |
+  - | Q5 | NO — **DUPLICATE**. `REPORTED 2026-08-12` `leads/lead-human.md:3` awaiting vendor, 9+ prior `VALID` triages `triage/triage-report-2026-08-11.md:12`. Novelty fails for re-report to same channel.
+  - **Verdict: VALID (DUPLICATE) — HOLD for Gladia venue, ACTIONABLE for npm venue** — One-line: already reported impersonation+key-leak, re-report would be duplicate.
+  - | E | `GET registry.npmjs.org/gladia` | 200 | **VALID (DUPLICATE)** | Impersonation+key-leak already reported 2026-08-12, duplicate if re-filed to Gladia |
