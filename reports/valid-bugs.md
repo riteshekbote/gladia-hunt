@@ -416,3 +416,10 @@
 
 - 1 lead(s) marked VALID at 2026-09-02 21:09:30 UTC
   - **LEADS:** `triage-prompt.txt:28` — **0 leads provided this cycle** — no 7-gate table to emit. Verdict: **NO NEW VALID — HOLD** (empty batch).
+
+- 5 lead(s) marked VALID at 2026-09-02 23:24:41 UTC
+  - | Q7 Reasonable triager? | **HOLD for Gladia, VALID for npm abuse venue.** |
+  - **Verdict: HOLD (Gladia) / VALID (npm Trust & Safety) — one-line:** Orphaned impersonation confirmed but Gladia-side key-leak requires `wss://api.gladia.io/v2/live?x-gladia-key=VALID_KEY` to prove ser
+  - | Q2 | **NO** — unauth `GET`/`POST` gated `401` NestJS `inventory/gladia.md:30,40`; requires valid `x-gladia-key` (authenticated low-priv). No bypass found across 100+ cycles `leads/lead-mimo.md:32` |
+  - | Q4 | **NO** — schema review is passive, but exploitation needs `POST /v2/pre-recorded` with `audio_url=http://169.254.169.254/latest/meta-data/` + valid key (invasive, violates `scope.yml:39` `no_da
+  - | Q7 | **NO unauthenticated** — triager requires `401 bypass` or `valid-key POC`; key-gated by-design is expected, not vuln without proof of `internal metadata exfiltration`. |
