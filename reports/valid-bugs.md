@@ -398,3 +398,12 @@
   - |Q4| **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` + error/timing oracle. `OpenAPI 125131B/14 paths` only proves design, not fetch. Violates `no_da
   - |Q5| YES — hypothesis tracked `reports/valid-bugs.md:17` but unproven |
   - **Verdict: HOLD — one-line: design confirmed (`format:uri` no scheme allowlist, 7 webhooks), proof gated on valid x-gladia-key.**
+
+- 7 lead(s) marked VALID at 2026-09-02 13:55:00 UTC
+  - | Q4 GET/HEAD proof? | **YES for impersonation/orphan:** `curl -s https://registry.npmjs.org/gladia | jq .dist-tags,.maintainers`; `npm pack gladia@0.1.3; sha256=3b23ec7d7a763abc04c52db232d157a982fd3b
+  - | Q5 Novel? | **NO — DUPLICATE** Already reported `2026-08-12 riteshekbote@gmail.com → security@gladia.io` `leads/lead-human.md:3`, confirmed `reports/valid-bugs.md` 9+ prior `VALID`. Re-verified fres
+  - **Verdict: HOLD (VALID DUPLICATE for npm venue, HOLD for Gladia program)** — one-line: locked orphaned impersonation + key-in-URL primitive across 10+ `npm pack` repros, already reported 2026-08-12 aw
+  - | Q6 | YES — open redirect is valid class. |
+  - | Q2 | **NO — PARTIAL key-gated:** `GET /v2/pre-recorded →401` + `POST /v2/pre-recorded no key →401 NestJS` `inventory/gladia.md:318` ×100 cycles, no bypass found. Requires valid `x-gladia-key` (low-p
+  - | Q4 | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/` comparing `error_message/status/duration` `leads/lead-bigpickle.m
+  - | Q6 | YES — SSRF valid class. |
