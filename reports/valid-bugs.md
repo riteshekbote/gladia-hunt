@@ -384,3 +384,7 @@
 - 2 lead(s) marked VALID at 2026-09-02 00:36:02 UTC
   - **Verdict: HOLD (Gladia program) / VALID (npm registry venue)** One-line: impersonation+key-in-URL verified passive, but Gladia impact requires 1 valid key WSS proof; already reported awaiting vendor.
   - **Verdict: HOLD (AUTH_HELPED) downgraded** One-line: SSRF surface exists in spec but key-gated 401 with no bypass, needs valid key POC.
+
+- 2 lead(s) marked VALID at 2026-09-02 05:10:14 UTC
+  - - **Verdict: VALID (DUPLICATE) for npm Trust&Safety / HOLD for Gladia program** `leads/lead-human.md:15`. One-line: locked impersonation passive-proven, GladiaInfra key-in-URL primitive unproven witho
+  - - **Verdict: HOLD (HUMAN_ONLY)** — needs `HUMAN: Google SSO login → GET /signin?redirect_to=https://evil.example.com` with follow-redirects=false capture `Location` header; expected 302→`/dashboard` o
