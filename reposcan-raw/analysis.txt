@@ -1,260 +1,629 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Deep-triage scan Delta:0 — verifying 623 hits against 90-cycle frozen surface.
+Triaging 5.6k-file scan — classifying delta hits and sweeping inventory for anomalies.
 [0m→ [0mRead .
-[0m→ [0mRead reposcan-raw
-[0m→ [0mRead triage
-[0m→ [0mRead scope.yml
-[0m→ [0mRead reposcan-raw/grep-hits.txt
-[0m→ [0mRead reposcan-raw/analysis.txt
-[0m→ [0mRead reposcan-raw/grep-delta.txt
-[0m→ [0mRead reposcan-raw/rag.txt
 [0m
-[0m$ [0mwc -l /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt 2>&1; ls -lh /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/*.txt; head -n 5 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt; cat /home/runner/work/gladia-hunt/gladia-hunt/scripts/* 2>&1 | head -n 100
-61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
-   61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
-  122 total
--rw-r--r-- 1 runner runner  404 Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt
--rw-r--r-- 1 runner runner   40 Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
--rw-r--r-- 1 runner runner 7.2K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
--rw-r--r-- 1 runner runner 7.2K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
--rw-r--r-- 1 runner runner 409K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
-SCAN SUMMARY: 5650 code/config files scanned, 623 hits
-reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
-reposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";
-reposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow
-reposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "https://www.gladia.io/compare-stt-apis",
-import os, re, hashlib
-from difflib import SequenceMatcher
-from pathlib import Path
-from github import Github
+[0m$ [0mls -R reposcan-raw | head -n 100; echo "---"; wc -l reposcan-raw/*/* 2>/dev/null | tail; ls -1 reposcan-raw/gladiaio/ 2>&1 | head
+reposcan-raw:
+analysis.txt
+gladiaio
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+npm
+rag.txt
 
-REPO = os.environ["GITHUB_REPOSITORY"]
-TOKEN = os.environ["GITHUB_TOKEN"]
-GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
-TARGET = os.environ.get("TARGET_NAME", "hunt")
-MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
+reposcan-raw/gladiaio:
+compare-stt
+docs
+gladia-cli
+gladia-quiz-app
+gladia-samples
+gladiaflow
+n8n-nodes-gladia
+normalization
+realtime-multilingual-asr-router
+sdk
+skills
+vercel-ai
 
-STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
-KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
+reposcan-raw/gladiaio/compare-stt:
+LICENSE
+README.md
+docker-compose.yml
+eslint.config.mjs
+instrumentation-client.ts
+logos
+next.config.ts
+package-lock.json
+package.json
+postcss.config.mjs
+prisma
+prisma.config.ts
+public
+sentry.edge.config.ts
+sentry.server.config.ts
+src
+test-audio
+test-base-path-fetch.ts
+test-diff.ts
+test-match-token.ts
+test-providers.ts
+tsconfig.json
 
-TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
-COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
+reposcan-raw/gladiaio/compare-stt/logos:
+assemblyai.svg
+deepgram.svg
+gladia.svg
+speechmatics.svg
 
+reposcan-raw/gladiaio/compare-stt/prisma:
+migrations
+schema.prisma
+seed.ts
 
-def split_inline(title):
-    """Extract inline attributes from a single-line lead of the form:
-    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
-    Attribute matches are removed; the title is cut at the first attribute."""
-    attrs = {}
-    pats = [
-        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
-        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
-        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
-        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
-        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
-        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
-        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
-        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
-        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
-        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
-    ]
-    cut = None
-    for pat, key, transform in pats:
-        m = re.search(pat, title, re.I)
-        if m:
-            v = m.group(1).strip()
-            if transform:
-                v = transform(v)
-            if key not in attrs:
-                attrs[key] = v
-            cut = m.start() if cut is None else min(cut, m.start())
-    if cut is not None:
-        t = title[:cut]
-    else:
-        t = title
-    t = re.sub(r'^\s*[:,\s-]+\s*', '', t)
-    t = re.sub(r'\s+', ' ', t).strip()
-    return t, attrs
+reposcan-raw/gladiaio/compare-stt/prisma/migrations:
+20260311161230_init
+20260629000000_add_match_tokens
+migration_lock.toml
 
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260311161230_init:
+migration.sql
 
-def parse_blocks(text, model):
-    blocks, lines, i = [], text.splitlines(), 0
-    while i < len(lines):
-        m = re.match(r'^\[HYP\]\s*(.*)$', lines[i].strip())
-        if not m:
-            i += 1
-            continue
-        raw_title = m.group(1).strip()
-        b = {"title": raw_title, "model": model}
-        j = i + 1
-        while j < len(lines):
-            l = lines[j].strip()
-            if not l or STOP.match(l):
-                break
-            kv = KV.match(l)
-            if kv:
-                b[kv.group(1).lower()] = kv.group(2).strip()
-            j += 1
-        if "<" not in str(raw_title):
-            if not any(k in b for k in ('class', 'asset', 'confidence', 'reasoning', 'verify_steps')):
-                clean, attrs = split_inline(raw_title)
-                b['title'] = clean
-                for k, v in attrs.items():
-                    b.setdefault(k.lower(), v)
-            blocks.append(b)
-        i = j
-    return blocks
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260629000000_add_match_tokens:
+migration.sql
 
+reposcan-raw/gladiaio/compare-stt/public:
+globe.svg
+images
+logo.svg
+next.svg
+providers
 
-def norm_asset(a):
-    a = (a or "").strip().lower().strip("`")
-    a = re.sub(r'^((get|post|put|patch|delete|head|options)s?)[/,\s]+', '', a, flags=re.I)
-    a = re.sub(r'\s*\(.*?\)', ' ', a)
-    a = re.sub(r'[{}[\],].*$', '', a)
-    a = re.sub(r'\s+', ' ', a).strip()
-    return a[:120]
+reposcan-raw/gladiaio/compare-stt/public/images:
+hero-badges
 
+reposcan-raw/gladiaio/compare-stt/public/images/hero-badges:
+laurel.png
+medal.png
+trophy.png
 
-def coarse_target(a):
-    """Bare scheme+host+path of an asset (drops credentials, queries, parens)."""
-    a = (a or "").strip().lower()
-    a = re.sub(r'^`+|`+$', '', a)
-    a = re.sub(r'^\[(get|post|put|patch|delete|head|options)s?\][\s,]+', '', a)
-    m = re.match(r'^(?:https?://)?([^/\s()]+)(/[^\s()]*)?', a)
-    if not m:
-        return ""
-[0m
-[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt | head -n 100; echo "---"; wc -l /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt; grep -c "sk-" /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt; grep -i "sk-" /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt | head -n 50
-SCAN SUMMARY: 5650 code/config files scanned, 623 hits
-reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
-reposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";
-reposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow
-reposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "https://www.gladia.io/compare-stt-apis",
-reposcan-raw/gladiaio/compare-stt/next.config.ts:49: destination: "https://www.gladia.io/compare-stt-apis/:path",
-reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:10: } from "@/components/tracking/gladia-analytics";
-reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:89: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
-reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
-reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
-reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/components/navbar.tsx:33: // That path is not rewritten to this app on www.gladia.io — use the
-reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
-reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
-reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
-reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
-reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
-reposcan-raw/gladiaio/compare-stt/src/components/tracking/base-path-fetch-fix.tsx:5: * requests use that trailing-slash URL. On www.gladia.io the marketing
-reposcan-raw/gladiaio/compare-stt/src/components/tracking/base-path-fetch-fix.tsx:7: * falls through to Webflow (301 → gladia-0c772dnew.webflow.io) and
-reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
-reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
-reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
-reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:148: gladia: "Gladia",
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:37: url: "https://www.gladia.io/blog/best-speech-to-text-apis",
-reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:46: url: "https://www.gladia.io/blog/best-open-source-speech-to-text-models",
-reposcan-raw/gladiaio/compare-stt/src/lib/base-path-fetch.ts:1: /** Base path used when the app is mounted under www.gladia.io/compare-stt-apis */
-reposcan-raw/gladiaio/compare-stt/src/lib/base-path-fetch.ts:23: const u = new URL(url, origin ?? "https://www.gladia.io");
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:5: process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"
-reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:20: export const CITATION_DOMAIN = "www.gladia.io";
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:3: const GLADIA_BASE = "https://api.gladia.io/v2";
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:36: headers: { "x-gladia-key": apiKey },
-reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:49: "x-gladia-key": apiKey,
-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
-reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
-reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/compare-stt/public/providers:
+assemblyai.svg
+deepgram.svg
+elevenlabs.svg
+gladia.svg
+mistral.svg
+speechmatics.svg
+
+reposcan-raw/gladiaio/compare-stt/src:
+app
+components
+flags.ts
+instrumentation-client.ts
+instrumentation.ts
+lib
+scripts
 ---
-61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
-1
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+      0 reposcan-raw/gladiaio/gladiaflow
+      0 reposcan-raw/gladiaio/n8n-nodes-gladia
+      0 reposcan-raw/gladiaio/normalization
+      0 reposcan-raw/gladiaio/realtime-multilingual-asr-router
+      0 reposcan-raw/gladiaio/sdk
+      0 reposcan-raw/gladiaio/skills
+      0 reposcan-raw/gladiaio/vercel-ai
+      0 reposcan-raw/npm/_gladiaio_sdk.json
+      0 reposcan-raw/npm/gladia.json
+      0 total
+compare-stt
+docs
+gladia-cli
+gladia-quiz-app
+gladia-samples
+gladiaflow
+n8n-nodes-gladia
+normalization
+realtime-multilingual-asr-router
+sdk
+[0m
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/App.tsx
 [0m
 [0m$ [0mpython3 -c "
-import pathlib
-p = pathlib.Path('/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt')
-text = p.read_text()
-print(repr(text[:500]))
-# Also check analysis expectations: SCAN SUMMARY says 623 hits but file only 60 lines — maybe glob missed?
-# Check scripts
-import os, glob
-print(os.listdir('/home/runner/work/gladia-hunt/gladia-hunt/scripts'))
-for f in glob.glob('/home/runner/work/gladia-hunt/gladia-hunt/scripts/*'):
-    print(f, open(f).read()[:2000])
+import hashlib
+for s in ['secret-key', 'sk-********', 'invoke(\"close_gladia_session\").catch(console.error);']:
+    print(s[:30].replace(chr(10),''), hashlib.sha256(s.encode()).hexdigest())
+# also for placeholder
+print('secret-key sha256:', hashlib.sha256(b'secret-key').hexdigest())
+print('sk-******** sha256:', hashlib.sha256(b'sk-********').hexdigest())
+print('invoke sha256:', hashlib.sha256(b'invoke(\"close_gladia_session\").catch(console.error);').hexdigest())
 "
-'SCAN SUMMARY: 5650 code/config files scanned, 623 hits\nreposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];\nreposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";\nreposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow\nreposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "http'
-['sync-issues.py']
-/home/runner/work/gladia-hunt/gladia-hunt/scripts/sync-issues.py import os, re, hashlib
-from difflib import SequenceMatcher
-from pathlib import Path
-from github import Github
 
-REPO = os.environ["GITHUB_REPOSITORY"]
-TOKEN = os.environ["GITHUB_TOKEN"]
-GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
-TARGET = os.environ.get("TARGET_NAME", "hunt")
-MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
-
-STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
-KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
-
-TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
-COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
-
-
-def split_inline(title):
-    """Extract inline attributes from a single-line lead of the form:
-    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
-    Attribute matches are removed; the title is cut at the first attribute."""
-    attrs = {}
-    pats = [
-        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
-        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
-        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
-        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
-        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
-        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
-        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
-        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
-        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
-        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
-    ]
-    cut = None
-    for pat, key, transform in pats:
-        m = re.search(pat, title, re.I)
-        if m:
-            v = m.group(1).strip()
-            if transform:
-                v = transform(v)
-            if key not in attrs:
-                attrs[key] = v
-            cut = m.start() if cut is None else min(cut, m.start())
-    if cut is not None:
-        t
+secret-key 85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
+sk-******** 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
+invoke("close_gladia_session") 525fdee1d158a2d82087690efa3361619859b74c5cb25bc42b6ef6abd237454a
+secret-key sha256: 85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
+sk-******** sha256: 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
+invoke sha256: 525fdee1d158a2d82087690efa3361619859b74c5cb25bc42b6ef6abd237454a
 [0m
-[93m[1m! [0mpermission requested: external_directory (/home/runner/work/gladia-hunt/.github/*); auto-rejecting
-[0m✗ [0mgrep -r "SCAN SUMMARY" /home/runner/work/gladia-hunt/ 2>&1 | head; find /home/runner/work/gladia-hunt -name "*.py" | xargs grep -l "5650\|grep" 2>&1 | head -n 20; ls -R /home/runner/work/gladia-hunt/.github 2>&1 | head -n 100; cat /home/runner/work/gladia-hunt/.github/workflows/*.yml 2>&1 | head -n 300 failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+[0m$ [0mpython3 -c "
+# check compare-stt provider file for any real key pattern
+import pathlib
+p = pathlib.Path('reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts')
+print(p.read_text())
+print('---')
+# check for any hardcoded keys across all files? look for sk- pattern length >10 not masked
+import subprocess, json
+import re
+hits = open('reposcan-raw/grep-hits.txt').read()
+# count categories
+print('total hits', len(hits.splitlines())-1)
+# look for secret-like regex
+for line in open('reposcan-raw/grep-hits.txt'):
+    if 'apiKey' in line or 'sk-' in line:
+        print(line.strip())
+"
+
+import type { TranscribeResult, WordTimestamp } from "../transcribe";
+
+const GLADIA_BASE = "https://api.gladia.io/v2";
+
+interface GladiaWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
+interface GladiaUtterance {
+  text: string;
+  words: GladiaWord[];
+}
+
+export async function transcribeWithGladia(
+  audio: Buffer,
+  mimeType: string
+): Promise<TranscribeResult> {
+  const apiKey = process.env.GLADIA_API_KEY;
+  if (!apiKey) throw new Error("GLADIA_API_KEY not set");
+
+  const start = Date.now();
+
+  const ext = mimeType.includes("wav") ? "audio.wav"
+    : mimeType.includes("mp3") || mimeType.includes("mpeg") ? "audio.mp3"
+    : mimeType.includes("mp4") || mimeType.includes("m4a") ? "audio.m4a"
+    : mimeType.includes("ogg") ? "audio.ogg"
+    : "audio.webm";
+
+  const uploadForm = new FormData();
+  uploadForm.append("audio", new Blob([new Uint8Array(audio)], { type: mimeType }), ext);
+
+  const uploadRes = await fetch(`${GLADIA_BASE}/upload`, {
+    method: "POST",
+    headers: { "x-gladia-key": apiKey },
+    body: uploadForm,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error(`Gladia upload failed: ${uploadRes.status} ${await uploadRes.text()}`);
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  const transcribeRes = await fetch(`${GLADIA_BASE}/pre-recorded`, {
+    method: "POST",
+    headers: {
+      "x-gladia-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url,
+      model: "solaria-3",
+      punctuation_enhanced: true,
+      language_config: { code_switching: false },
+    }),
+  });
+
+  if (!transcribeRes.ok) {
+    throw new Error(`Gladia transcribe failed: ${transcribeRes.status} ${await transcribeRes.text()}`);
+  }
+
+  const { result_url } = await transcribeRes.json();
+
+  const { transcript, words } = await pollForResult(result_url, apiKey);
+  const durationMs = Date.now() - start;
+
+  return { transcript, words, durationMs };
+}
+
+async function pollForResult(
+  resultUrl: string,
+  apiKey: string
+): Promise<{ transcript: string; words: WordTimestamp[] }> {
+  const maxAttempts = 60;
+  const interval = 1000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(resultUrl, {
+      headers: { "x-gladia-key": apiKey },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gladia poll failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.status === "done") {
+      const utterances: GladiaUtterance[] | undefined =
+        data.result?.transcription?.utterances;
+
+      if (utterances && Array.isArray(utterances)) {
+        const transcript = utterances.map((u) => u.text).join(" ");
+        const words: WordTimestamp[] = utterances.flatMap((u) =>
+          (u.words || []).map((w) => ({
+            word: w.word,
+            start: w.start,
+            end: w.end,
+          }))
+        );
+        return { transcript, words };
+      }
+
+      const fullTranscript = data.result?.transcription?.full_transcript;
+      return { transcript: fullTranscript || "", words: [] };
+    }
+
+    if (data.status === "error") {
+      throw new Error(`Gladia transcription error: ${JSON.stringify(data)}`);
+    }
+
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error("Gladia transcription timed out");
+}
+
+---
+total hits 60
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:36: headers: { "x-gladia-key": apiKey },
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:49: "x-gladia-key": apiKey,
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+[0m
+[0m$ [0mcat reposcan-raw/rag.txt | head -n 100
+echo "---"
+cat inventory/*.md 2>/dev/null | head -n 80
+echo "---"
+cat probe-results.md | head -n 100
+=== KNOWLEDGE BASE (RAG) ===
+# Knowledge Base (seed)
+
+## Program rules (from scope.yml)
+- In scope: api.gladia.io (Highest), app.gladia.io (High), official SDKs npm/PyPI (Medium), gladia.io (Low)
+- Out of scope: all other *.gladia.io subdomains, third parties, social engineering, physical, DoS, non-Gladia assets, physical access
+- Scanner output alone is REJECTED — every finding must be manually validated
+- Passive-first: GET/HEAD only, ≤1 rps, no account creation, no data modification
+- Secrets in commits: sha256 only, never raw
+
+## Baseline surface (2026-08-07 passive recon)
+- gladia.io -> 301 to www.gladia.io (Vercel, HSTS max-age=63072000, x-vercel-id)
+- api.gladia.io: 404 JSON on /, CORS access-control-allow-origin: *, exposes x-gladia-request-id, traceparent, tracestate, x-request-id, x-correlation-id; HSTS includeSubDomains preload; no WWW-Authenticate on 404
+- api.gladia.io/openapi.json: OpenAPI schema consumed by official SDK code generator (gladiaio/sdk packages/generator)
+- app.gladia.io: 302 -> /signin, sets __sid (expired) + return-to base64url JWT-ish cookie (eyJ1cmwiOiIvIn0%3D = {"url":"/"}), HttpOnly Secure SameSite=Lax, x-robots-tag noindex, HSTS preload
+- GitHub org gladiaio (19 public repos): sdk (monorepo: sdk-js, sdk-python, generator), gladia-cli (Go), docs (MDX), gladia-samples (Python), gladiaflow (Rust), realtime-multilingual-asr-router (Python), n8n-nodes-gladia, vercel-ai, compare-stt (TS), skills, gladia-quiz-app, normalization, triton-inference-memory-allocation, gunicorn-fix-sigabort, uvicorn-fix-sigabort, 1password-scim, vllm_backend, transformers, cloudnative-pg
+- npm: @gladiaio/sdk 1.1.0 (official, from gladiaio/sdk monorepo); `gladia` 0.1.3 claims "Official TypeScript SDK for Gladia" but repository = alexisbouchez/gladia.ts (PERSONAL account — flag, verify ownership)
+- PyPI: gladiaio-sdk (Python SDK, sync + async)
+
+## Rejected / parked
+- (none yet)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI spec publicly exposed at /openapi.json with full v2 surface
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per spec
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: return-to cookie uses JWT-shaped base64url value without visible signature
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: Undocumented /health endpoint returns 200 (not in OpenAPI spec)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: WebSocket auth uses token in URL query parameter per OpenAPI spec
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does not lead to open redirect (server validates/resets)
+- 2026-08-07 ACCEPTED OTHER @ npm registry: gladia@0.1.3 ownership anomaly (personal repo, unofficial maintainer) — requires affiliation verification
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: `x-powered-by: Express` header present on CORS preflight (OPTIONS) responses only — confirms Node.js/Express.js backend; framework fingerprint for CVE targeting
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /health?full=true does NOT leak verbose output — returns identical `{"health":"OK"}` to /health; no build/version/metadata disclosure via query params
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics endpoint does NOT exist — returns 404 (no Prometheus exposition endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /debug, /admin, /actuator/health, /v1 paths do NOT exist or return 404 — no Spring Boot Actuator, no debug panel, no catch-all admin
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `Access-Control-Request-Headers: x-gladia-key` — auth header permitted in cross-origin requests (no credential support though)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v2/live/init is NOT a real endpoint — confirmed 404 "Cannot POST"; WebSocket session is created via POST /v2/live, then client connects to returned `url` (wss://api.gladia.io/v2/live?token=<uuid>)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: CORS wildcard reflects arbitrary origin — probe shows static `*` not Origin reflection
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS preflight allows `x-gladia-key` header cross-origin (no credentials) — confirmed via OPTIONS probe
+- 2026-08-07 ACCEPTED AUTH @ app.gladia.io: redirect_to parameter reflected in signin form action — confirmed via GET probe
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CORS GET responses return wildcard `*` not origin echo; expose-headers list trace/request-id headers; no allow-credentials → origin-reflection probe CLOSED, wildcard-without-credentials not exploitable
+- 2026-08-07 ACCEPTED OTHER @ npm registry: reposcan 20:02/20:06 flat (0 new hits, 5647 files) — gladia@0.1.3 anomaly remains sole reportable candidate; no new secrets
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: /v1/history and /v2/upload confirmed key-gated (401) — no unauthenticated history/upload path
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI map stable at 14 paths (re-check 21:46Z) — no new endpoints since 20:55
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 401 error body {statusCode,timestamp,path,message,request_id} is NestJS HttpException shape → backend is NestJS-on-Express, not plain Express
+- 2026-08-07 ACCEPTED OTHER @ npm registry: PyPI gladiaio-sdk latest 1.0.5; npm @gladiaio/sdk 1.1.0 unchanged — supply-chain surface static
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed /v2/transcription OPTIONS → `x-powered-by: Express` present; GET 401 → `x-powered-by` absent — confirmed preflight-only fingerprint differential (freshness 2026-08-07 21:46 UTC).
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: redirect_to reflected into form action for protocol-relative (`//evil`), bare-host, confusing-subdomain (`app.gladia.io.evil`), and path-only variants — no host allowlist enforced on reflection (post-auth honoring remains AUTH_HELPED/unverified).
+- 2026-08-07 CONFIRMED @ api.gladia.io: /openapi.json (200, 125KB, CORS *) publicly exposes full v2 surface incl. audio_url field accepted verbatim — confirms SSRF fetch-by-design path (freshly sampled).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI /v1/history exposes OBJECT-typed custom_metadata query param with additionalProperties:true — complex query parsing surface for injection/testing
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: CallbackConfigDto.url lacks scheme allowlist/pattern at schema level — SSRF guard absent by design in spec
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /v1/models public endpoint leaks datacenter regions (FR/US) and static pricing metadata — aids SSRF egress targeting
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/transcription → x-powered-by: Express present, ACAO:*, Access-Control-Allow-Headers: x-gladia-key (2026-08-07 22:22 UTC — surface unchanged from 21:46 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed GET /v2/transcription → 401 no gladia key provided, x-powered-by absent (preflight-only fingerprint confirmed, 2026-08-07 22:22 UTC)
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125KB, CORS *) exposes InitTranscriptionRequest.audio_url as format:uri with no scheme allowlist + deprecated callback_url + CallbackConfigDto.url (format:uri, no allowlist) — confirms SSRF-by-design surface
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 {"health":"OK"}; /health?full=true returns identical payload — no verbose disclosure via query param (REJECTED as verbose-leak vector, ACCEPTED as undocumented endpoint)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /metrics (404), /debug (404), /admin (404), /actuator/health (404) — no Prometheus, no debug panel, no Spring Boot Actuator (all REJECTED, surface dead)
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/live → 401 key-gated; POST /v2/live/init → 404 "Cannot POST" — WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid>, no alternative init endpoint
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: live-probed /signin?redirect_to=https://evil.example.com → form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" — server-side reflection into POST form action (confirmed for protocol-relative //evil, bare-host, confusing-subdomain app.gladia.io.evil, path-only) — post-auth Location unverified (AUTH_HELPED)
+- 2026-08-07 REJECTED AUTH @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED as redirect vector, confirmed via prior + current probe)
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable (description "Official TypeScript SDK", repo alexisbouchez/gladia.ts personal, maintainer softwarecitadel@gmail.com) — impersonation anomaly confirmed live 2026-08-07 22:22 UTC
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: 14 OpenAPI paths stable (no new endpoints since 21:46 UTC); /v1/models public (security: not set), all other v2 paths key-gated (401)
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:08Z byte-identical to 22:22Z (openapi 125131B/14 paths, /v1/models, /health, /v2/live 401, CORS, x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk 1.1.0 metadata static 23:08Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live spec still shows audio_url + CallbackConfigDto.url as `format:uri` with no scheme allowlist — SSRF-by-design fetch surface persists (re-verified 23:08Z).
+- 2026-08-07 ACCEPTED SSRF @ api.gladia.io: RAG of SDK source (packages/sdk-js/client.ts + packages/sdk-python/v2/prerecorded/core.py) confirms is_url()/uploadFile() only gates upload-vs-direct path; no host allowlist, metadata-blocklist, redirect-limit, or scheme validation forwarded to API for audio_url/video_url/callback_url — SSRF guard absent by design in SDK and spec.
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: live-probed OPTIONS /v2/pre-recorded → x-powered-by: Express present; POST → 401 x-powered-by absent — confirmed preflight-only fingerprint differential on second v2 endpoint (not isolated to /v2/transcription).
+- 2026-08-07 ACCEPTED AUTH @ api.gladia.io: POST /v2/pre-recorded with invalid key → 401 NestJS HttpException shape {statusCode,timestamp,path,message,request_id} — no x-powered-by leak on error response; uniform key-gated auth confirmed across v2 endpoints.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com verified live 23:09 UTC — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" server-side reflection persists; /apikeys and /transcriptions both 302→/signin with return-to cookie encoding their path ({'url':'/apikeys'}, {'url':'/transcriptions'}) — unsigned base64url JSON confirmed across multiple paths, server resets on tamper (REJECTED as cookie-tamper vector).
+- 2026-08-07 ACCEPTED OTHER @ npm: gladia@0.1.3 registry metadata stable 23:09 UTC (description="Official TypeScript SDK for Gladia", repo=alexisbouchez/gladia.ts personal, maintainer=softwarecitadel@gmail.com) — impersonation anomaly persists; @gladiaio/sdk@1.1.0 confirmed official from gladiaio org.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: /v2/live/init confirmed 404 "Cannot POST" — not a real endpoint; WebSocket session created via POST /v2/live then wss://api.gladia.io/v2/live?token=<uuid> (no alternative init endpoint).
+- 2026-08-07 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, CORS *) exposes video_url as plain string field with no format/scheme validation in /video/text/video-transcription multipart schema — second SSRF fetch surface confirmed alongside audio_url.
+- 2026-08-07 REJECTED MISCONFIG @ api.gladia.io: full surface re-probe 23:48Z byte-identical to 23:08Z (openapi 125131B/14 paths, /v1/models 530B, /health 15B, 401 gate, preflight x-powered-by differential) — no drift, nothing new to report.
+- 2026-08-07 ACCEPTED OTHER @ npm: `gladia`@0.1.3 (softwarecitadel, alexisbouchez/gladia.ts) + @gladiaio/sdk@1.1.0 metadata static 23:48Z — supply-chain surface unchanged.
+- 2026-08-07 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com form-action reflection re-confirmed 23:48Z — reflection surface persists, post-auth honoring still AUTH_HELPED.
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /health returns 200 `{"health":"OK"}` (x-powered-by ABSENT on GET) — undocumented endpoint + preflight-only fingerprint confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: OPTIONS /v2/transcription 204 `x-powered-by: Express` + ACAO `*` + allow `x-gladia-key`, POST 401 no`x-powered-by` — preflight-only fingerprint + creds-bypassable CORS confirmed fresh
+- 2026-08-08 ACCEPTED AUTH @ api.gladia.io: POST /v2/transcription (no key) → 401 — key-gated surface confirmed; @gladiaio/key header is the sole auth model
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: /openapi.json (200, 125131B, CORS `*`, expose-headers trace ids) + /v1/models (200 public CORS `*`) fully exposed — surface stable & fresh
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → form action reflects URL-encoded value — reflection confirmed fresh 23:5x UTC
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 text/html (SPA shell) without auth — client-side enforcement confirmed fresh
+- 2026-08-08 ACCEPTED OTHER @ npm: `gladia`@0.1.3 description "Official TypeScript SDK…", repo alexisbouchez/gladia.ts (personal), maintainer softwarecitadel@gmail.com — impersonation anomaly confirmed fresh 23:5x UTC
+- 2026-08-08 (no new REJECTED class this cycle; surface re-confirmed byte-identical to 23:08 per 23:48 prior re-probe — drift negative)
+- 2026-08-08 CONFIRMED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 02:50 UTC across protocol-relative //evil, bare-host, app.gladia.io.evil confusing-subdomain, path-only — no host allowlist at unauthenticated layer (post-auth honoring still AUTH_HELPED)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, nothing new this cycle
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 02:50 UTC (OPTIONS /v2/transcription 204 xpb=Express; POST 401 xpb absent) — not isolated to one endpoint
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec/spec+RAG unchanged 02:50 UTC (audio_url/video_url/callback_url format:uri no scheme allowlist, no client-side guard) — SSRF-by-design fetch surface remains live, gated only by key AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: artifact-level impersonation independently re-verified 02:50 UTC (tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; package.json "Official" vs README "Unofficial"; author alexisbouchez/personal repo; src/client.ts:307 raw x-gladia-key appended to wss://.../v2/live? token query)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→23:48→00:44→02:50→04:01 UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, x-powered-by Express on OPTIONS-only, CORS `*`+ACAH x-gladia-key — surface frozen, no new endpoints
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: preflight-only `x-powered-by: Express` fingerprint differential confirmed fresh 04:01 UTC (OPTIONS /v2/transcription 204 xpb=Express; GET/POST 401 xpb absent) — confirmed not isolated to one endpoint
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: GET /v2/transcription (no key) → 401 NestJS HttpException shape confirmed fresh 04:01 UTC (timestamp 2026-08-08T04:01:14.742Z, request_id G-36290736) — uniform key-gated auth across v2 endpoints
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec+RAG unchanged 04:01 UTC; audio_url/video_url/callback_url/CallbackConfig.url all `format:uri` no scheme allowlist; /v1/models confirms FR+US egress — SSRF-by-design fetch surface remains live, gated only by key (AUTH_HELPED)
+- 2026-08-08 CONFIRMED OTHER @ npm `gladia`@0.1.3: orphaned impersonation re-verified 04:01 UTC — `npm view` 4 versions [0.1.0–0.1.3], latest=0.1.3; GitHub API + web `alexisbouchez/gladia.ts` + user 404 (orphaned); description "Official" vs README "Unofficial" contradiction persists; dist-tag latest persists
+- 2026-08-08 ACCEPTED OAUTH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED (sole unverified gate for this target)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — source repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 04:01 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01 UTC) — OpenAPI 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 04:01 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; post-auth honoring still AUTH_HELPED
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 6 cycles (23:08→04:01→07:0x UTC); openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard, key-gated v2 — surface frozen, no new endpoints at 07:0x UTC
+---
+# Inventory: gladia
+
+## Seed 2026-08-07 (passive recon)
+
+### Hosts
+- gladia.io -> 301 https://www.gladia.io/ (Vercel front; HSTS 63072000)
+- www.gladia.io (marketing site, Vercel)
+- api.gladia.io — API origin; / -> 404 JSON; CORS *; exposes x-gladia-request-id/traceparent/tracestate/x-request-id/x-correlation-id; HSTS preload; /openapi.json exists
+- app.gladia.io — dashboard; / -> 302 /signin; cookies __sid + return-to (JWT-shaped); noindex; HSTS preload
+
+### Code / SDK surface (in scope: Medium)
+- github.com/gladiaio/sdk — monorepo: packages/sdk-js (@gladiaio/sdk), packages/sdk-python (gladiaio-sdk), packages/generator (fetches api.gladia.io/openapi.json)
+- github.com/gladiaio/gladia-cli (Go)
+- github.com/gladiaio/gladia-samples (Python)
+- github.com/gladiaio/docs (MDX)
+- github.com/gladiaio/gladiaflow (Rust)
+- github.com/gladiaio/realtime-multilingual-asr-router (Python)
+- github.com/gladiaio/n8n-nodes-gladia (TS)
+- github.com/gladiaio/vercel-ai
+- npm registry: @gladiaio/sdk (official), gladia 0.1.3 (repo alexisbouchez/gladia.ts — personal, VERIFY OWNERSHIP)
+- PyPI: gladiaio-sdk
+
+### Open questions
+- Gladia API key format (for passive pattern matching)
+- Disclosure/security channel for Gladia program
+- Auth model of api.gladia.io (Bearer? x-api-key?)
+
+## 2026-08-07 18:31:06 UTC
+- NEW api.gladia.io: OpenAPI 3.1 fully enumerated — 14 paths; every v2 operation declares security scheme `x_gladia_key` (header `x-gladia-key`); `/v1/models` inherits global `security: null` and returns 20
+- NEW api.gladia.io: auth gate confirmed — unauthenticated GET on /v2/transcription, /v2/pre-recorded, /v2/live, /v2/transcription/{id} → 401 `{"message":"no gladia key provided","request_id":"G-…"}`
+- NEW api.gladia.io: CORS preflight (OPTIONS, Origin: evil.example.com) → `access-control-allow-origin: *`, `allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE`, `allow-headers: x-gladia-key`, and NO `access-con
+- NEW npm `gladia` 0.1.3: registry `description` = "Official TypeScript SDK for Gladia" but packaged README title = "Unofficial TypeScript SDK"; maintainer `softwarecitadel` <softwarecitadel@gmail.com>, aut
+- NEW app.gladia.io `/signin`: Google-only OAuth; `redirect_to` query param reflected URL-encoded into form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`; post-auth redirect target handling 
+- CHANGED app.gladia.io return-to cookie re-confirmed: `eyJ1cmwiOiIvIn0=` = unsigned base64url `{"url":"/"}` (plain JSON, NOT a signed JWT); `__sid` expired/empty; both HttpOnly/Secure/SameSite=Lax
+
+## 2026-08-07 18:51:57 UTC
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+## 2026-08-07 19:05:21 UTC
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+- NEW api.gladia.io: /health endpoint returns 200 {"health":"OK"} — not in OpenAPI spec
+- NEW api.gladia.io: OpenAPI spec fully enumerated — 14 paths, all v2 operations require x-gladia-key header; /v1/models has security: null (public)
+- NEW api.gladia.io: CORS preflight confirms wildcard origin (*), allows x-gladia-key header, NO access-control-allow-credentials
+- NEW api.gladia.io: Auth gate confirmed — unauthenticated POST /v2/live, GET /v2/transcription, /v2/pre-recorded, /v2/transcription/{id} → 401 "no gladia key provided"
+- NEW api.gladia.io: InitStreamingResponse.url contains token as query param: wss://api.gladia.io/v2/live?token=<uuid>
+- NEW app.gladia.io: /signin form action reflects redirect_to query param URL-encoded (e.g., action="/signin?redirect_to=https%3A%2F%2Fevil.example.com")
+- NEW app.gladia.io: return-to cookie tampering test — server rejects tampered value and resets to default {"url":"/"}
+- NEW app.gladia.io: /dashboard returns 200 HTML (SPA shell) without auth; auth enforced on API calls client-side
+- NEW npm gladia@0.1.3: description claims "Official TypeScript SDK for Gladia" but repo=alexisbouchez/gladia.ts (personal), maintainer=softwarecitadel@gmail.com — ownership anomaly
+- CHANGED app.gladia.io return-to cookie confirmed as unsigned base64url JSON (NOT a signed JWT)
+
+## 2026-08-07 19:22:34 UTC
+---
+
+## 2026-08-08 17:05:56 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 17:52:32 UTC
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 18:18:22 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com -> 200 len=? type=text/html; charset=utf-8
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 19:06:10 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 19:45:06 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 20:12:05 UTC
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 20:49:57 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 21:19:36 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 21:52:36 UTC
+https://app.gladia.io/auth/google/callback` -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 22:24:51 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://app.gladia.io/signin?redirect_to=https://evil.example.com` -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-08 22:57:53 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-08 23:36:16 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/ -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 00:03:29 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 02:27:08 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-09 04:00:43 UTC
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-09 05:15:37 UTC
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://github.com/alexisbouchez/gladia.ts.git -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+
+## 2026-08-09 06:05:08 UTC
+https://api.github.com/repos/alexisbouchez/gladia.ts` -> HTTP 404
+https://api.gladia.io -> HTTP 404
+https://api.gladia.io/v2/pre-recorded -> HTTP 401
+https://app.gladia.io/auth/google/callback -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-09 07:14:12 UTC
+[0m
+Delta verified — now compiling final classification tables.
+[0m→ [0mRead reposcan-raw/grep-hits.prev.txt
+**Triage: gladiaio org + npm @gladiaio/sdk / `gladia` — DELTA 4 lines / FULL 60 hits (5654 files)**
+
+Manual validation `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:21-27`, `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:16-18`, `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264-294`, `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:1-51`. `reposcan-raw/grep-hits.txt:1` vs `reposcan-raw/grep-hits.prev.txt:1` — delta is line-number shift +1 test file, not new material. Scanner-alone REJECTED per `scope.yml`.
+
+### Breadth pass (FULL inventory) — anomalies
+* 14 OpenAPI paths + `/health` (15B) + `/v2/live/health` (401) — frozen 100+ cycles `api.gladia.io:200` `openapi.json:125131B/125680B` band = dynamic `timestamp`/`request_id` examples (etag `W/"1eaf0…"→W/"1e8cb…"` rotates per fetch), structural identity stable (`14 paths/7 webhooks/1 server/22 format:uri`). `GET /` 404 JSON, `POST /v2/*` no `x-gladia-key` → `401 NestJS {statusCode,timestamp,path,message,request_id}` `x-powered-by:Express` OPTIONS-only, `CORS ACAO:*` `ACAH:x-gladia-key` no creds.
+* No `id/uid/email/user_id` BOLA, no `v1|v2|beta|internal` version drift, no `?debug|test|full` disclosure (`GET /health?full=true → 200 {"health":"OK"}`), no `/metrics|/debug|/admin|/actuator` (all 404), `swagger/openapi.json` public by design (ACCEPTED MISCONFIG).
+* `app.gladia.io`: `GET /signin?redirect_to=https://evil.example.com → 200` form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflected (no host allowlist), `CSP grep-count=0 form-action` gap, `GET /auth/google/callback → 302 accounts.google.com PKCE S256 fixed redirect_uri=https://app.gladia.io/auth/google/callback` (OAuth code theft REJECTED), `return-to` `eyJ1cmwiOiIvIn0=` unsigned base64url `{"url":"/"}` tamper → server reset `{"url":"/"}` (REJECTED), `/dashboard` 200 SPA shell client-side only.
+
+Top-3 depth (all ACCEPTED, frozen, AUTH_HELPED/HUMAN_ONLY):
+1. `api.gladia.io` SSRF-by-design `audio_url:plain string` + `video_url:plain string` + `CallbackConfigDto.url:format:uri` + 7 `webhooks` topics — no scheme allowlist — `POST /v2/pre-recorded` key-gated only.
+2. `app.gladia.io` `redirect_to` post-auth honoring — sole unverified gate (HUMAN_ONLY, requires Google SSO).
+3. `npm gladia@0.1.3` orphaned impersonation `alexisbouchez/gladia.ts 404` `user 404` `src/client.ts:306-308 searchParams.append('x-gladia-key') → wss://` `sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` (already ACCEPTED OTHER, report-ready).
+
+### Classification — DELTA (4 hits)
+| Category | File:Line | sha256(secret command/material) | Reason |
+|---|---|---|---|
+| TEST_OR_EXAMPLE | `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` (`secret-key`) | `vi.fn(async ()=>"secret-key")` test mock `loadSavedApiKey` `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:22` — explicit fixture, not live key. 10-char, no `glsk_` format, no entropy. |
+| TEST_OR_EXAMPLE | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` (`sk-********`) | `MOCK_SETTINGS` `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:16` — 8×`*` mask, placeholder. Same repo re-uses `sk-example` `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:222`. |
+| BENIGN | `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272` | `525fdee1d158a2d82087690efa3361619859b74c5cb25bc42b6ef6abd237454a` | `invoke("close_gladia_session")` Tauri IPC `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272`, duplicate at `:282`, `:292` — same sha256. Line shift `prev 264,274,284→272,282,292` (+8) from file edit, not new hits. No credential. |
+| BENIGN | `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282` | `525fdee1d158a2d82087690efa3361619859b74c5cb25bc42b6ef6abd237454a` | duplicate — see above |
+| BENIGN | `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292` | `525fdee1d158a2d82087690efa3361619859b74c5cb25bc42b6ef6abd237454a` | duplicate — see above |
+
+### Classification — FULL HITS (remaining 56)
+| Category | Examples | Verdict |
+|---|---|---|
+| TEST_OR_EXAMPLE | `compare-stt/src/lib/providers/gladia.ts:36,49` `headers:{"x-gladia-key": apiKey}` where `apiKey=process.env.GLADIA_API_KEY` `reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:19` (env, not hard-coded), `gladiaflow/src/screenshots/Gallery.tsx:222 apiKeyDisplayValue="sk-example"`, all `gladia` string hits `test-providers.ts:8`, `prisma/seed.ts:10`, `customVocabulary.ts:8-9` | Not reportable |
+| ENDPOINT_LEAK (informational, public) | `GLADIA_BASE=https://api.gladia.io/v2` `compare-stt/src/lib/providers/gladia.ts:3`, `https://app.gladia.io/transcriptions/live/${sessionId}` `TranscriptionHistory.tsx:19`, `https://app.gladia.io/apikeys` `ApiKeyOnboardingView.tsx:4`, `https://docs.gladia.io/...` `CustomVocabularyView.tsx:14` — all in-scope documented hosts | Not reportable — expected surface |
+| INTERESTING (persistent) | `gladia@0.1.3` dist-tag `latest=0.1.3` shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` `package.json:description="Official..." vs README="# Unofficial"` `repo git+https://github.com/alexisbouchez/gladia.ts.git 404` `maintainer softwarecitadel@gmail.com` `src/client.ts:307` raw `x-gladia-key` in `wss://...?x-gladia-key=<key>` — diverges from official `@gladiaio/sdk@1.1.0` `POST /v2/live → token=<uuid>` flow `reposcan-raw/npm/gladia.json:1` `reposcan-raw/npm/_gladiaio_sdk.json:1`. `@gladiaio/sdk 1.1.0` clean. | ACCEPTED OTHER — sole report candidate (P3/P4 supply-chain, irrevocable orphan). No delta change. |
+| REAL_SECRET | — 0 rows — No `glsk_`, no JWT, no `x-gladia-key` literal, no cloud key. `cmp grep -r -i "sk-.*[a-z0-9]{20}"` → only masked placeholder | — |
+
+### Verdict
+* `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` — REPORT_CANDIDATE: **no** (TEST_OR_EXAMPLE)
+* `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` — REPORT_CANDIDATE: **no** (masked placeholder)
+* `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272,282,292` — REPORT_CANDIDATE: **no** (benign IPC, not secret)
+* `npm gladia@0.1.3` — REPORT_CANDIDATE: **yes** (already ACCEPTED, report-ready via `https://gladia.io/bug-bounty-report→Google Form`, sha256 `3b23ec7d…7f2` — no new disclosure needed this cycle). `@gladiaio/sdk@1.1.0` REPORT_CANDIDATE: **no**.
+
+No new REAL_SECRET. 0 new hit lines with credential signs-of-life. 624→5654 scan stable, FULL surface NO_DRIFT.
+
+[NEXT] PROBE — **none** this cycle. Per exhaustion rule: further passive GET/HEAD ≤1rps adds no signal (90+ drift-negative cycles). SSRF POC requires authorized `x-gladia-key` (AUTH_HELPED), post-auth `redirect_to` honoring requires HUMAN Google SSO — both out of passive scope.
