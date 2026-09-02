@@ -413,3 +413,6 @@
   - | Q5 | NO — **DUPLICATE**. `REPORTED 2026-08-12` `leads/lead-human.md:3` awaiting vendor, 9+ prior `VALID` triages `triage/triage-report-2026-08-11.md:12`. Novelty fails for re-report to same channel.
   - **Verdict: VALID (DUPLICATE) — HOLD for Gladia venue, ACTIONABLE for npm venue** — One-line: already reported impersonation+key-leak, re-report would be duplicate.
   - | E | `GET registry.npmjs.org/gladia` | 200 | **VALID (DUPLICATE)** | Impersonation+key-leak already reported 2026-08-12, duplicate if re-filed to Gladia |
+
+- 1 lead(s) marked VALID at 2026-09-02 21:09:30 UTC
+  - **LEADS:** `triage-prompt.txt:28` — **0 leads provided this cycle** — no 7-gate table to emit. Verdict: **NO NEW VALID — HOLD** (empty batch).
