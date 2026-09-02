@@ -1,45 +1,260 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-**TRIAGE: gladiaio org static scan — 2026-08-07 18:31→2026-08-?? PASSIVE**
+Deep-triage scan Delta:0 — verifying 623 hits against 90-cycle frozen surface.
+[0m→ [0mRead .
+[0m→ [0mRead reposcan-raw
+[0m→ [0mRead triage
+[0m→ [0mRead scope.yml
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m
+[0m$ [0mwc -l /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt 2>&1; ls -lh /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/*.txt; head -n 5 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt; cat /home/runner/work/gladia-hunt/gladia-hunt/scripts/* 2>&1 | head -n 100
+61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
+   61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
+  122 total
+-rw-r--r-- 1 runner runner  404 Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt
+-rw-r--r-- 1 runner runner   40 Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
+-rw-r--r-- 1 runner runner 7.2K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
+-rw-r--r-- 1 runner runner 7.2K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
+-rw-r--r-- 1 runner runner 409K Sep  2 20:52 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
+SCAN SUMMARY: 5650 code/config files scanned, 623 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";
+reposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow
+reposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "https://www.gladia.io/compare-stt-apis",
+import os, re, hashlib
+from difflib import SequenceMatcher
+from pathlib import Path
+from github import Github
 
-Inventory frozen: `api.gladia.io` NO_DRIFT 100+ cycles `openapi.json 125131B` / 14 paths / 7 webhooks / 1 server `https://api.gladia.io` / `x-gladia-key` header `401 NestJS {"message":"no gladia key provided"}`, `GET /health 15B {"health":"OK"}` + `GET /v2/live/health 401`, CORS `ACAO:*` `ACAH:x-gladia-key` no credentials, `x-powered-by:Express` OPTIONS-only. `app.gladia.io` `GET /signin?redirect_to=https://evil.example.com →200 form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflection alive, CSP `base-uri 'self', object-src 'none'` **0 form-action directives**, OAuth `redirect_uri FIXED https://app.gladia.io/auth/google/callback PKCE S256` REJECTED, `return-to` tamper-reset REJECTED. Supply-chain `gladia@0.1.3` sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` repo `alexisbouchez/gladia.ts` + user 404 orphaned, `src/client.ts:306-308` `searchParams.append('x-gladia-key')→new WebSocket` diverges from `@gladiaio/sdk@1.1.0` `POST /v2/live→token` — ACCEPTED OTHER report-ready.
+REPO = os.environ["GITHUB_REPOSITORY"]
+TOKEN = os.environ["GITHUB_TOKEN"]
+GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
+TARGET = os.environ.get("TARGET_NAME", "hunt")
+MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
 
-Delta vs last: `0 new hit lines` / `5650 files scanned, 623 hits` — sample 45 lines below = byte-identical baseline. No new endpoint/class.
+STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
+KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
 
-### Breadth pass (anomalies hunted)
-- Status codes: no new 200 on `/api/*`, `/health?full=true`, `/metrics`, `/debug`, `/actuator`, `/v1` — all 404 per REJECTED class.
-- Param names: `id/uid/email/user_id` — 0 hits in delta; `redirect_to` only in `/signin` already ACCEPTED OATH, `audio_url/video_url/callback_url` only in spec already ACCEPTED SSRF AUTH_HELPED.
-- Versioned APIs: `/v2` live stable in `compare-stt/src/lib/providers/gladia.ts:3` `https://api.gladia.io/v2`; no `/api/v1|v2|beta|internal` leakage.
-- Debug flags, swagger: `openapi.json` public already ACCEPTED MISCONFIG, no new `swagger.json`.
-→ **Depth top-3: none new** — delta empty.
+TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
+COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
 
-### Classification — delta sample (representative 45/623)
 
-| Category | File:Line | Snippet | Verdict |
-|---|---|---|---|
-| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | Masked placeholder `sk-********` — sha256(`sk-********`)=`[REDACTED masked]` — not a live key. Consistent with 100+ prior `reposcan` verdict `REPORT_CANDIDATE no`. |
-| **TEST_OR_EXAMPLE** | `compare-stt/test-providers.ts:8` | `SLUGS = ["gladia",...]` | Test fixture list |
-| **TEST_OR_EXAMPLE** | `compare-stt/test-base-path-fetch.ts:20` | `origin = "https://www.gladia.io"` | Test helper, public origin |
-| **ENDPOINT_LEAK** | *none new* | — | All URLs are production public: `api.gladia.io/v2` `compare-stt/src/lib/providers/gladia.ts:3`, `app.gladia.io/apikeys` `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4`, `app.gladia.io/transcriptions/live/${sessionId}` `gladiaflow/src/components/TranscriptionHistory.tsx:19`, `www.gladia.io/compare-stt-apis` `compare-stt/next.config.ts:43,49`, `docs.gladia.io` `CustomVocabularyView.tsx:14` — in-scope Low/High, no staging/dev/internal host, no `169.254.169.254`, no `*.internal` |
-| **INTERESTING** | `compare-stt/src/lib/providers/gladia.ts:36,49` | `headers: {"x-gladia-key": apiKey}` | Expected auth header, key-gated 401 confirmed live — not a leak. Already ACCEPTED AUTH |
-| **INTERESTING** | `compare-stt/src/lib/base-path-fetch.ts:23` | `new URL(url, origin ?? "https://www.gladia.io")` | Public base-path logic |
-| **INTERESTING** | `npm:gladia@0.1.3` (not in grep, registry) | `description "Official" vs README "Unofficial", repo 404` | Orphaned impersonation — ACCEPTED OTHER, report-ready via `https://gladia.io/bug-bounty-report` → Google Forms. **Not new this cycle** |
+def split_inline(title):
+    """Extract inline attributes from a single-line lead of the form:
+    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
+    Attribute matches are removed; the title is cut at the first attribute."""
+    attrs = {}
+    pats = [
+        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
+        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
+        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
+        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
+        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
+        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
+        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
+        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
+    ]
+    cut = None
+    for pat, key, transform in pats:
+        m = re.search(pat, title, re.I)
+        if m:
+            v = m.group(1).strip()
+            if transform:
+                v = transform(v)
+            if key not in attrs:
+                attrs[key] = v
+            cut = m.start() if cut is None else min(cut, m.start())
+    if cut is not None:
+        t = title[:cut]
+    else:
+        t = title
+    t = re.sub(r'^\s*[:,\s-]+\s*', '', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+    return t, attrs
 
-Checked high-value classes on delta: `auth/session` (no cookie/JWT logic), `IDOR/BOLA` (no `id=` path), `SSRF` (no new `audio_url` client code), `mass assignment` (no DTO), `JWT alg` (no token verify), `OAuth redirect_uri/state` (no new), `business logic/money` (no pricing flow), `file upload` (no `multipart`), `GraphQL` (no `__schema`) — **0 candidates**.
 
-### Verdict
+def parse_blocks(text, model):
+    blocks, lines, i = [], text.splitlines(), 0
+    while i < len(lines):
+        m = re.match(r'^\[HYP\]\s*(.*)$', lines[i].strip())
+        if not m:
+            i += 1
+            continue
+        raw_title = m.group(1).strip()
+        b = {"title": raw_title, "model": model}
+        j = i + 1
+        while j < len(lines):
+            l = lines[j].strip()
+            if not l or STOP.match(l):
+                break
+            kv = KV.match(l)
+            if kv:
+                b[kv.group(1).lower()] = kv.group(2).strip()
+            j += 1
+        if "<" not in str(raw_title):
+            if not any(k in b for k in ('class', 'asset', 'confidence', 'reasoning', 'verify_steps')):
+                clean, attrs = split_inline(raw_title)
+                b['title'] = clean
+                for k, v in attrs.items():
+                    b.setdefault(k.lower(), v)
+            blocks.append(b)
+        i = j
+    return blocks
 
-| Candidate | REPORT_CANDIDATE |
-|---|---|
-| Delta 0 new lines — `Gallery.tsx:17` masked `sk-********` | **no** — TEST_OR_EXAMPLE, scanner output alone REJECTED per `scope.yml`, no live credential |
-| All other 623 hits (seed/docs, tracking, provider lists) | **no** — benign `www.gladia.io` / `api.gladia.io` production refs |
-| Existing locked `gladia@0.1.3` orphaned impersonation `src/client.ts:307` key-in-wss-URL | **yes (existing, not new)** — P3/P4 supply-chain, evidence locked `sha256 3b23ec7d...7f2`, dist-tag `latest=0.1.3` persists — **no re-report this cycle** |
 
-**NO_DELTA** — surface frozen. No new `REAL_SECRET`, no new `ENDPOINT_LEAK`, no chainable primitive (`SSRF→metadata`, `open redirect→OAuth code theft`, `XSS→ATO`, `IDOR→PII`) in delta.
+def norm_asset(a):
+    a = (a or "").strip().lower().strip("`")
+    a = re.sub(r'^((get|post|put|patch|delete|head|options)s?)[/,\s]+', '', a, flags=re.I)
+    a = re.sub(r'\s*\(.*?\)', ' ', a)
+    a = re.sub(r'[{}[\],].*$', '', a)
+    a = re.sub(r'\s+', ' ', a).strip()
+    return a[:120]
 
-[NEXT] PROBE (read-only, gated — adds signal only with auth/HUMAN):
-- `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` — re-confirm reflection `action="/signin?redirect_to=..."` + CSP `grep -c form-action ==0` (already byte-fresh 27448B) — then HUMAN post-auth `Location:` check for open redirect honoring (HUMAN_ONLY gate).
-- `POST https://api.gladia.io/v2/pre-recorded` `headers: x-gladia-key: <VALID_KEY> body: {"audio_url":"http://169.254.169.254/latest/meta-data/","callback_url":"https://collaborator.example/cb"}` → expect `201` vs `422`/SSRF block — SSRF-by-design AUTH_HELPED POC (requires authorized key, passive-first blocks active).
 
-Per program: further `GET/HEAD ≤1rps` probes byte-identical across 100+ cycles — no further passive signal until authorized key or HUMAN OAuth test.
+def coarse_target(a):
+    """Bare scheme+host+path of an asset (drops credentials, queries, parens)."""
+    a = (a or "").strip().lower()
+    a = re.sub(r'^`+|`+$', '', a)
+    a = re.sub(r'^\[(get|post|put|patch|delete|head|options)s?\][\s,]+', '', a)
+    m = re.match(r'^(?:https?://)?([^/\s()]+)(/[^\s()]*)?', a)
+    if not m:
+        return ""
+[0m
+[0m$ [0mcat /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt | head -n 100; echo "---"; wc -l /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt; grep -c "sk-" /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt; grep -i "sk-" /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt | head -n 50
+SCAN SUMMARY: 5650 code/config files scanned, 623 hits
+reposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];
+reposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";
+reposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow
+reposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "https://www.gladia.io/compare-stt-apis",
+reposcan-raw/gladiaio/compare-stt/next.config.ts:49: destination: "https://www.gladia.io/compare-stt-apis/:path",
+reposcan-raw/gladiaio/compare-stt/prisma/seed.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg" },
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:10: } from "@/components/tracking/gladia-analytics";
+reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx:89: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="transition-colors duration-160 hover:underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:45: <a href="https://gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:72: <ProviderLink name="Gladia" href="https://www.gladia.io/legal/terms-of-use" />
+reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx:107: <a href="https://www.gladia.io" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--color-text-brand)" }}>
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:80: href="https://github.com/gladiaio/compare-stt"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:490: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx:513: href="https://github.com/gladiaio/compare-stt/issues"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:68: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:156: href="https://gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx:172: href="mailto:privacy@gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/components/navbar.tsx:33: // That path is not rewritten to this app on www.gladia.io — use the
+reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx:7: "mailto:privacy@gladia.io?subject=Apply%20to%20be%20featured%20on%20Compare%20STT";
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:270: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:341: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx:427: href="https://github.com/gladiaio/normalization/tree/main?tab=readme-ov-file#quick-start"
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx:5: * Same tag stack as gladia-marketing `components/gtm-head.html`:
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/base-path-fetch-fix.tsx:5: * requests use that trailing-slash URL. On www.gladia.io the marketing
+reposcan-raw/gladiaio/compare-stt/src/components/tracking/base-path-fetch-fix.tsx:7: * falls through to Webflow (301 → gladia-0c772dnew.webflow.io) and
+reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx:28: url: "https://gladia.io",
+reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts:2: * Tracking IDs — keep in sync with gladia-marketing
+reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts:10: { name: "Gladia", slug: "gladia", logoUrl: "/providers/gladia.svg", color: "#947AFC", model: "Solaria-3" },
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:2: import { transcribeWithGladia } from "./providers/gladia";
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:25: gladia: transcribeWithGladia,
+reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts:148: gladia: "Gladia",
+reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:37: url: "https://www.gladia.io/blog/best-speech-to-text-apis",
+reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts:46: url: "https://www.gladia.io/blog/best-open-source-speech-to-text-models",
+reposcan-raw/gladiaio/compare-stt/src/lib/base-path-fetch.ts:1: /** Base path used when the app is mounted under www.gladia.io/compare-stt-apis */
+reposcan-raw/gladiaio/compare-stt/src/lib/base-path-fetch.ts:23: const u = new URL(url, origin ?? "https://www.gladia.io");
+reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:5: process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://www.gladia.io"
+reposcan-raw/gladiaio/compare-stt/src/lib/site.ts:20: export const CITATION_DOMAIN = "www.gladia.io";
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:3: const GLADIA_BASE = "https://api.gladia.io/v2";
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:36: headers: { "x-gladia-key": apiKey },
+reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts:49: "x-gladia-key": apiKey,
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:264: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+---
+61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
+1
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+[0m
+[0m$ [0mpython3 -c "
+import pathlib
+p = pathlib.Path('/home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt')
+text = p.read_text()
+print(repr(text[:500]))
+# Also check analysis expectations: SCAN SUMMARY says 623 hits but file only 60 lines — maybe glob missed?
+# Check scripts
+import os, glob
+print(os.listdir('/home/runner/work/gladia-hunt/gladia-hunt/scripts'))
+for f in glob.glob('/home/runner/work/gladia-hunt/gladia-hunt/scripts/*'):
+    print(f, open(f).read()[:2000])
+"
+'SCAN SUMMARY: 5650 code/config files scanned, 623 hits\nreposcan-raw/gladiaio/compare-stt/test-providers.ts:8: const SLUGS = ["gladia", "deepgram", "assemblyai", "elevenlabs", "speechmatics", "mistral"];\nreposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts:20: const origin = "https://www.gladia.io";\nreposcan-raw/gladiaio/compare-stt/next.config.ts:10: // www.gladia.io that slash path is not rewritten to this app (Webflow\nreposcan-raw/gladiaio/compare-stt/next.config.ts:43: destination: "http'
+['sync-issues.py']
+/home/runner/work/gladia-hunt/gladia-hunt/scripts/sync-issues.py import os, re, hashlib
+from difflib import SequenceMatcher
+from pathlib import Path
+from github import Github
+
+REPO = os.environ["GITHUB_REPOSITORY"]
+TOKEN = os.environ["GITHUB_TOKEN"]
+GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
+TARGET = os.environ.get("TARGET_NAME", "hunt")
+MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
+
+STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
+KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
+
+TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
+COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
+
+
+def split_inline(title):
+    """Extract inline attributes from a single-line lead of the form:
+    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
+    Attribute matches are removed; the title is cut at the first attribute."""
+    attrs = {}
+    pats = [
+        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
+        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
+        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
+        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
+        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
+        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
+        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
+        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
+    ]
+    cut = None
+    for pat, key, transform in pats:
+        m = re.search(pat, title, re.I)
+        if m:
+            v = m.group(1).strip()
+            if transform:
+                v = transform(v)
+            if key not in attrs:
+                attrs[key] = v
+            cut = m.start() if cut is None else min(cut, m.start())
+    if cut is not None:
+        t
+[0m
+[93m[1m! [0mpermission requested: external_directory (/home/runner/work/gladia-hunt/.github/*); auto-rejecting
+[0m✗ [0mgrep -r "SCAN SUMMARY" /home/runner/work/gladia-hunt/ 2>&1 | head; find /home/runner/work/gladia-hunt -name "*.py" | xargs grep -l "5650\|grep" 2>&1 | head -n 20; ls -R /home/runner/work/gladia-hunt/.github 2>&1 | head -n 100; cat /home/runner/work/gladia-hunt/.github/workflows/*.yml 2>&1 | head -n 300 failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
