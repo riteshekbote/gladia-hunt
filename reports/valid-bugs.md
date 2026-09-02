@@ -380,3 +380,7 @@
 - 2 lead(s) marked VALID at 2026-09-01 22:39:57 UTC
   - - **Verdict: VALID (DUPLICATE) / HOLD for Gladia venue** - npm venue ACTIONABLE now; Gladia venue HOLD `lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=<KEY>` proven server a
   - - **Verdict: HOLD (AUTH_HELPED)** - design confirmed passive, proof needs program trial key. `reports/valid-bugs.md:17` PARKED 100+ cycles.
+
+- 2 lead(s) marked VALID at 2026-09-02 00:36:02 UTC
+  - **Verdict: HOLD (Gladia program) / VALID (npm registry venue)** One-line: impersonation+key-in-URL verified passive, but Gladia impact requires 1 valid key WSS proof; already reported awaiting vendor.
+  - **Verdict: HOLD (AUTH_HELPED) downgraded** One-line: SSRF surface exists in spec but key-gated 401 with no bypass, needs valid key POC.
