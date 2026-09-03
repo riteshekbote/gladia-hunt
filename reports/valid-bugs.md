@@ -435,3 +435,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-03 18:47:30 UTC
   - - **VERDICT: HOLD (split venue)** `leads/lead-human.md:13-15` — `Q1 FAIL + Q3 FAIL` for `scope.yml` Gladia channel; `VALID for npm Trust & Safety impersonation` ($0 registry takedown, not bounty).
+
+- 2 lead(s) marked VALID at 2026-09-03 21:26:42 UTC
+  - - **Verdict: HOLD — duplicate + Gladia impact conditional** — `NPM venue VALID but HOLD duplicate; Gladia venue HOLD Pre-Severity Gate #3 FAIL until WSS query-auth proven`
+  - - **Verdict: HOLD — AUTH_HELPED, needs valid `x-gladia-key` PoC**
