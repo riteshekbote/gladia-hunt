@@ -439,3 +439,7 @@
 - 2 lead(s) marked VALID at 2026-09-03 21:26:42 UTC
   - - **Verdict: HOLD — duplicate + Gladia impact conditional** — `NPM venue VALID but HOLD duplicate; Gladia venue HOLD Pre-Severity Gate #3 FAIL until WSS query-auth proven`
   - - **Verdict: HOLD — AUTH_HELPED, needs valid `x-gladia-key` PoC**
+
+- 2 lead(s) marked VALID at 2026-09-03 23:35:55 UTC
+  - | Q7 Triager accept | **HOLD for Gladia / VALID for npm** | Reasonable Gladia triager **REJECTS** as "not our code" until Q3 unlock; npm triager **ACCEPTS** as policy violation. |
+  - | Q4 | **FAIL** — POC requires `POST` with `x-gladia-key: <valid>` + `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` `leads/lead-mimo.md:29` — not GET/HEAD, violates `no_data_modification:t
