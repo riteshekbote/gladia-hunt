@@ -1,48 +1,33 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-**TRIAGE: gladia org static scan delta — 5654 files / 624 hits**
+Scan Triage - DELTA 40 lines vs 5654 files / 624 hits
 
-`DELTA: 0 new hit lines` — breadth pass confirms NO_DRIFT. Sampled hits byte-identical to prior 90+ cycles. No new primitives to chain.
+No new HIGH-VALUE primitives (auth/IDOR/SSRF/JWT/OAuth/mass-assign). Delta is config/docs
+[0m✱ [0mGrep "sk-|secret-key|GLADIA_API_KEY|x-gladia-key"[90m 100 matches[0m
+**Delta Triage: 5654 files / 624 hits / 40 new lines - 0 new HIGH-VALUE primitives**
 
-### 1. REAL_SECRET — 0 hits (reportable = none)
-| file:line | snippet | sha256(secret) | verdict |
+All 40 delta hits are product/config/docs - no auth/IDOR/SSRF/JWT/OAuth/mass-assign surface. Full grep confirms only `sk-********` masked placeholder and `secret-key` test fixture match secret regex - no `sk-[A-Za-z0-9]{20,}` live key.
+
+| Category | File:Line | Value/Pattern | Verdict |
 |---|---|---|---|
-| *none in delta* | — | — | — |
-| `gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | masked placeholder (`*` x 8) — not a credential | REJECTED |
-| `gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` | test fixture literal | REJECTED |
+| **REAL_SECRET** | *none* | *no `sk-[20+]`, no `x-gladia-key` value, no hardcoded token* | **0 hits** |
+| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | masked placeholder - `reposcan-raw/grep-hits.txt:13` |
+| | `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` | test fixture |
+| | `reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27,34` | `"gladiaflow"` / `"gladiaflaw"` | test vocabulary |
+| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | known app route - High scope - not leak |
+| | `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | known app route |
+| | `reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | public docs |
+| | `reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21,50` | `https://docs.gladia.io/.well-known/agent-skills/*` | public docs sync - expected |
+| **INTERESTING** | `reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21,22` | `curl https://registry.npmjs.org/@gladiaio/sdk/latest + https://pypi.org/pypi/gladiaio-sdk/json` | registry version sync - not leak, not squat |
+| | `reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14` + `cmd/main.go:23` | `GLADIA_API_KEY` / `--gladia-key` flag | env/flag name only - no value |
+| | All other delta (`.goreleaser.yaml:3,11`, `install.sh:4,5`, `normalization/*`, `skills/*`, `gladiaflow/*`) | `project_name: gladia`, `gladia-3` preset, `gladia-plugins` | product names - benign |
 
-> No `x-gladia-key`, `sk-*`, `ghp_*`, `aws_*`, JWT, private key material with entropy > test threshold in visible 70/624 hits. Remainder delta=0 per scanner.
+**Hashed material check:** Delta + full grep `sha256` pre-hashed lines (`0bbd949f...`, `58092ec4...`, `397aa3ff...` etc.) correspond to above non-secret strings - no credential material to hash.
 
-### 2. TEST_OR_EXAMPLE
-| file:line | reason |
-|---|---|
-| `compare-stt/test-providers.ts:8` | `SLUGS = ["gladia","deepgram"...]` — test matrix |
-| `compare-stt/test-base-path-fetch.ts:20` | `origin = "https://www.gladia.io"` — test fixture |
-| `compare-stt/prisma/seed.ts:10` | `{name:"Gladia",slug:"gladia"}` — seed data |
-| `gladiaflow/src/screenshots/Gallery.tsx:17` | `sk-********` — UI screenshot mock, intentional mask |
-| `gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` — unit test fixture |
-| `gladiaflow/src/lib/vocabularyEditor.test.ts:21` | `gladiaflow` vocab validation test |
-| `compare-stt/src/lib/providers/gladia.ts:36,49` | `headers: {"x-gladia-key": apiKey}` — runtime header injection, no hardcoded value |
+**Verdict list:**
+- `REPORT_CANDIDATE: no` - Delta 40 lines - 0 REAL_SECRET, 2 TEST_OR_EXAMPLE placeholders, 4 ENDPOINT_LEAK known-public, 0 new supply-chain squat
+- `REPORT_CANDIDATE: no` - Adjacent-namespace scan remains all-404 per RAG `2026-08-08` - no new `gladia@0.1.3` campaign
+- `REPORT_CANDIDATE: yes (existing, not delta)` - `npm gladia@0.1.3` orphaned impersonation `alexisbouchez/gladia.ts` 404 + `src/client.ts:306-308` `searchParams.append('x-gladia-key')` + `sha256 3b23ec7d...7f2` / `shasum cc96f84a...` - already ACCEPTED/LOCKED `100+ cycles`, reportable via `https://gladia.io/bug-bounty-report` - no change this cycle
 
-### 3. ENDPOINT_LEAK — 0 internal/staging (all public prod, expected)
-| file:line | URL | class |
-|---|---|---|
-| `compare-stt/src/lib/providers/gladia.ts:3` | `https://api.gladia.io/v2` | official API base (14 paths, `x-gladia-key` auth) — NOT leak, in-spec |
-| `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | official app link — public |
-| `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | official apikeys page — public |
-| `compare-stt/next.config.ts:43,49` `lib/base-path-fetch.ts:23` etc | `https://www.gladia.io/compare-stt-apis` | marketing site (Low scope) — expected rewrite |
-
-> No `*.gladia.io` dev/staging/internal, no `169.254.169.254`, no `files.gladia.io` private asset, no `vercel` preview, no `localhost` cloud metadata exposure in delta.
-
-### 4. INTERESTING — 0 new (standing anomaly tracked)
-* Existing `OTHER` survives: `gladia@0.1.3` — `description:"Official"` vs `README:"Unofficial"`, repo `alexisbouchez/gladia.ts` 404 orphaned, `src/client.ts:307` `searchParams.append('x-gladia-key',apiKey)` → `new WebSocket(wsUrl)` — key-in-URL leak, dist-tag `latest` persists. Already ACCEPTED, reproduced via `npm pack` sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` / shasum `cc96f84a…`. NOT new in this scan.
-* No `versioned /api/v1|v2|beta|internal`, `debug/test` flags, `swagger/openapi.json` exposure, `id/uid/email` param anomalies in sampled beacon.
-
-### Verdict list
-* `REAL_SECRET` in delta: **REPORT_CANDIDATE: no** — scanner-only hits REJECTED per `scope.yml`; no hardcoded credential with signs of life.
-* `gladia@0.1.3` orphaned impersonation (prior): **REPORT_CANDIDATE: yes (P3/P4 supply-chain, already locked)** — not new from this delta, submission via `https://gladia.io/bug-bounty-report → www → Google Forms` (auth-gated).
-* `SSRF-by-design` `audio_url/video_url/callback_url` `format:uri` no scheme allowlist + 7 webhooks (`api.gladia.io/openapi.json:200/125131B/CORS *`) : **ACCEPTED but AUTH_HELPED (401 `no gladia key provided`) — no POC without valid `x-gladia-key`; no new signal in delta.**
-* `app.gladia.io /signin?redirect_to` form-action reflection (`200/27448B`, `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"`, CSP 0 `form-action` directives): **ACCEPTED, post-auth honoring = HUMAN_ONLY gate; OAuth `redirect_uri` FIXED `https://app.gladia.io/auth/google/callback` + PKCE S256 REJECTED for code/state theft.**
-
-`[NEXT] PROBE: none` — surface frozen 90+ cycles (`openapi 125131B/14 paths/7 webhooks`, `/health 15B`, `/v1/models 530B`, preflight-only `x-powered-by:Express`); further passive probe adds no signal until authorized `x-gladia-key` (SSRF POC) or HUMAN Google SSO (post-auth `redirect_to` honoring).
+**NEXT PROBE:** none - surface NO_DRIFT `100+ cycles`, delta adds no signal. Passive exhausted per `2026-08-11` - unblock only with `HUMAN_ONLY` post-auth `redirect_to` test or `AUTH_HELPED` SSRF `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"<canary>"}`.
