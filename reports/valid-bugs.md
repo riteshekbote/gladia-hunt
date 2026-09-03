@@ -423,3 +423,6 @@
   - | Q2 | **NO** — unauth `GET`/`POST` gated `401` NestJS `inventory/gladia.md:30,40`; requires valid `x-gladia-key` (authenticated low-priv). No bypass found across 100+ cycles `leads/lead-mimo.md:32` |
   - | Q4 | **NO** — schema review is passive, but exploitation needs `POST /v2/pre-recorded` with `audio_url=http://169.254.169.254/latest/meta-data/` + valid key (invasive, violates `scope.yml:39` `no_da
   - | Q7 | **NO unauthenticated** — triager requires `401 bypass` or `valid-key POC`; key-gated by-design is expected, not vuln without proof of `internal metadata exfiltration`. |
+
+- 1 lead(s) marked VALID at 2026-09-03 01:17:04 UTC
+  - **Verdict: HOLD for Gladia program / VALID for npm registry venue** - `leads/lead-human.md:15` `HOLD: Q3 FAILS as standalone vuln`
