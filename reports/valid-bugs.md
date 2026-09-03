@@ -429,3 +429,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-03 05:55:58 UTC
   - **Verdict this cycle: HOLD — NO NEW VALID**
+
+- 1 lead(s) marked VALID at 2026-09-03 11:27:03 UTC
+  - **Verdict: HOLD (AUTH_HELPED, not VALID read-only).** One-line: SSRF surface confirmed by spec but key-gated 401; no unauth reachability.
