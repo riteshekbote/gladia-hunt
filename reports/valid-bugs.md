@@ -432,3 +432,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-03 11:27:03 UTC
   - **Verdict: HOLD (AUTH_HELPED, not VALID read-only).** One-line: SSRF surface confirmed by spec but key-gated 401; no unauth reachability.
+
+- 1 lead(s) marked VALID at 2026-09-03 18:47:30 UTC
+  - - **VERDICT: HOLD (split venue)** `leads/lead-human.md:13-15` — `Q1 FAIL + Q3 FAIL` for `scope.yml` Gladia channel; `VALID for npm Trust & Safety impersonation` ($0 registry takedown, not bounty).
