@@ -464,3 +464,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-04 11:47:57 UTC
   - *Verdict:* **HOLD for Gladia program** (one-line: primitive present, server-side query-auth acceptance unproven — needs auth key); **VALID for npm Trust & Safety** venue.
+
+- 1 lead(s) marked VALID at 2026-09-04 15:10:31 UTC
+  - | L3 | `api.gladia.io/v2/*` SSRF via `audio_url/video_url/callback_config.url format:uri` 7 webhooks `leads/lead-mimo.md:23-27` `inventory/gladia.md:92` | YES `api.gladia.io` HIGHEST `scope.yml:6` | *
