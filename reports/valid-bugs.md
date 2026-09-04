@@ -461,3 +461,6 @@
   - | Q6 | **YES** SSRF valid |
   - | Q7 | **NO/CONDITIONAL** HOLD without canary POC; accept only with valid-key proof. |
   - **VALID summary this cycle: 0 NEW VALID.** 1 duplicate HOLD awaiting vendor (npm). 2 HOLD pending `HUMAN_ONLY`/`AUTH_HELPED` keys. Automated scanner output alone `REJECTED` per `scope.yml:22`.
+
+- 1 lead(s) marked VALID at 2026-09-04 11:47:57 UTC
+  - *Verdict:* **HOLD for Gladia program** (one-line: primitive present, server-side query-auth acceptance unproven — needs auth key); **VALID for npm Trust & Safety** venue.
