@@ -481,3 +481,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-04 21:05:44 UTC
   - **Verdict: HOLD (Gladia) / VALID (npm Trust & Safety) — reason: not Gladia-owned asset; Gladia leg needs AUTH_HELPED proof**
+
+- 1 lead(s) marked VALID at 2026-09-04 23:06:18 UTC
+  - **Verdict: HOLD for Gladia program, VALID for npm registry venue** — one-line: Gladia-venue HOLD (Pre-Severity Gate #3 fail: query-param auth not proven on `wss://api.gladia.io/v2/live`); npm-venue VA
