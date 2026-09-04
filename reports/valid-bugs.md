@@ -447,3 +447,17 @@
 - 2 lead(s) marked VALID at 2026-09-04 01:26:24 UTC
   - | SSRF `audio_url/video_url/CallbackConfigDto.url format:uri` no allowlist `api.gladia.io` | HIGHEST | **HOLD AUTH_HELPED** | Q2 PARTIAL key-gated Q4 NO requires `POST -H x-gladia-key:<valid> -d {"aud
   - | `npm gladia@0.1.3` impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')` | npm/MEDIUM | **VALID (DUPLICATE)** | Q1 YES per `scope.yml:28` `npm_packages: gladia` Q2 YES public
+
+- 12 lead(s) marked VALID at 2026-09-04 06:34:58 UTC
+  - | Q5 Novel? | **NO DUPLICATE** Already reported `2026-08-12 riteshekbote@gmail.com → security@gladia.io` `leads/lead-human.md:3` 9+ `VALID` in `reports/valid-bugs.md:1`.Re- filing to Gladia = duplicat
+  - | Q6 Not rejected? | **YES** Valid class (impersonation + credential handling) not `scope.yml:42` auto-reject. |
+  - | Q7 Triager accept? | **SPLIT: HOLD for Gladia / VALID for npm** Gladia triager HOLD (duplicate + Q3 conditional); npm Trust&Safety ACCEPTS. |
+  - **Verdict: `HOLD (VALID DUPLICATE for npm Trust&Safety / HOLD for Gladia program)`** — one-line: locked 10+ `npm pack` repros, already reported awaiting vendor, Gladia-side key leak requires 1 valid k
+  - | Q4 | **PARTIAL NO** GET proves reflection/CSP gap; proving open redirect needs `GET /signin?redirect_to=...` **with valid Google SSO session + follow-redirects=false → observe Location: https://evil
+  - | Q5 | **YES** not prior VALID, always HOLD |
+  - | Q6 | **YES** open redirect valid class |
+  - | Q2 | **PARTIAL NO** unauth `GET/POST /v2/pre-recorded →401` `probe-results.md:4` key-gated. Requires valid `x-gladia-key` (low-priv trial, register at `app.gladia.io`). No `401` bypass in 100+ cycle
+  - | Q4 | **NO** Needs `POST /v2/pre-recorded -H x-gladia-key:<valid> -d '{"audio_url":"http://<canary>"}'` + timing/error oracle. Violates `scope.yml:39` `no_data_modification` + `passive_first`. GET op
+  - | Q6 | **YES** SSRF valid |
+  - | Q7 | **NO/CONDITIONAL** HOLD without canary POC; accept only with valid-key proof. |
+  - **VALID summary this cycle: 0 NEW VALID.** 1 duplicate HOLD awaiting vendor (npm). 2 HOLD pending `HUMAN_ONLY`/`AUTH_HELPED` keys. Automated scanner output alone `REJECTED` per `scope.yml:22`.
