@@ -467,3 +467,14 @@
 
 - 1 lead(s) marked VALID at 2026-09-04 15:10:31 UTC
   - | L3 | `api.gladia.io/v2/*` SSRF via `audio_url/video_url/callback_config.url format:uri` 7 webhooks `leads/lead-mimo.md:23-27` `inventory/gladia.md:92` | YES `api.gladia.io` HIGHEST `scope.yml:6` | *
+
+- 9 lead(s) marked VALID at 2026-09-04 18:30:16 UTC
+  - | Q7 Triager | SPLIT: **VALID for npm Trust&Safety** / **HOLD for Gladia program** `leads/lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=VALID_KEY` proven server-accepts que
+  - **Verdict: HOLD (VALID DUPLICATE)** — locked passive, already reported awaiting vendor; re-file to Gladia = duplicate. **If new reporter:** `CVSS 3.1: 6.5 MEDIUM AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N` i
+  - | Q5 Novel | YES not prior VALID, always HOLD |
+  - | Q6 Not rejected | YES open redirect valid class |
+  - | Q4 GET/HEAD proof | NO — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary.<you>.oast.fun"}` + timing/error oracle, violates `scope.yml:39` `no_data_modification
+  - | Q5 Novel | YES hypothesis tracked `reports/valid-bugs.md:17` unproven |
+  - | Q6 Not rejected | YES SSRF valid class |
+  - | Q7 Triager | NO unauth — conditional only with valid-key POC |
+  - **Verdict: HOLD (`AUTH_HELPED`)** — one-line: design confirmed `openapi.json 125131B 14 paths 7 webhooks` `inventory/gladia.md:96`, proof gated on valid `x-gladia-key` low-priv trial. **CVSS if proven
