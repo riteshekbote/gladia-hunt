@@ -478,3 +478,6 @@
   - | Q6 Not rejected | YES SSRF valid class |
   - | Q7 Triager | NO unauth — conditional only with valid-key POC |
   - **Verdict: HOLD (`AUTH_HELPED`)** — one-line: design confirmed `openapi.json 125131B 14 paths 7 webhooks` `inventory/gladia.md:96`, proof gated on valid `x-gladia-key` low-priv trial. **CVSS if proven
+
+- 1 lead(s) marked VALID at 2026-09-04 21:05:44 UTC
+  - **Verdict: HOLD (Gladia) / VALID (npm Trust & Safety) — reason: not Gladia-owned asset; Gladia leg needs AUTH_HELPED proof**
