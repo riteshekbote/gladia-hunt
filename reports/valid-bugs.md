@@ -443,3 +443,7 @@
 - 2 lead(s) marked VALID at 2026-09-03 23:35:55 UTC
   - | Q7 Triager accept | **HOLD for Gladia / VALID for npm** | Reasonable Gladia triager **REJECTS** as "not our code" until Q3 unlock; npm triager **ACCEPTS** as policy violation. |
   - | Q4 | **FAIL** — POC requires `POST` with `x-gladia-key: <valid>` + `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` `leads/lead-mimo.md:29` — not GET/HEAD, violates `no_data_modification:t
+
+- 2 lead(s) marked VALID at 2026-09-04 01:26:24 UTC
+  - | SSRF `audio_url/video_url/CallbackConfigDto.url format:uri` no allowlist `api.gladia.io` | HIGHEST | **HOLD AUTH_HELPED** | Q2 PARTIAL key-gated Q4 NO requires `POST -H x-gladia-key:<valid> -d {"aud
+  - | `npm gladia@0.1.3` impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')` | npm/MEDIUM | **VALID (DUPLICATE)** | Q1 YES per `scope.yml:28` `npm_packages: gladia` Q2 YES public
