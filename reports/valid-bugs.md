@@ -502,3 +502,6 @@
 - 2 lead(s) marked VALID at 2026-09-05 18:26:09 UTC
   - * **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)** one-line: locked orphaned impersonation + key-in-URL primitive across 10+ repros, already reported 2026-08-12 awaiting ven
   - * **Verdict: HOLD (HUMAN_ONLY AUTH_HELPED)** one-line: byte-fresh reflection + CSP gap confirmed, post-auth honoring sole unverified gate, needs valid Google SSO session to prove 302 to evil.
+
+- 1 lead(s) marked VALID at 2026-09-05 20:47:39 UTC
+  - **Verdict: HOLD for Gladia program (Q3 fail until query-param auth proven) / VALID for npm registry.** One-line: impersonation locked, Gladia leg needs valid-key WSS proof.
