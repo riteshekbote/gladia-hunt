@@ -494,3 +494,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-05 13:05:03 UTC
   - **Verdict: HOLD (Gladia venue) / VALID-DUPLICATE (npm venue)** — One-line: Gladia-side key leak unproven without authenticated WS test; npm impersonation already reported.
+
+- 2 lead(s) marked VALID at 2026-09-05 16:09:04 UTC
+  - **Verdict: HOLD** — need body/`Location` to confirm. Not submittable as `VALID`.
+  - **Verdict: VALID (DUPLICATE) — no new report.** Channel per `scope.yml:4` TBD + mapped `gladia.io/bug-bounty-report 301→302→Google Forms` `inventory/gladia.md:402` / `security@gladia.io` `leads/lead-h
