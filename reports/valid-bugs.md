@@ -491,3 +491,6 @@
 - 2 lead(s) marked VALID at 2026-09-05 05:52:55 UTC
   - **Verdict: HOLD (npm venue VALID for npm Trust & Safety; Gladia venue HOLD — needs WSS query-param auth proof).** One-line: orphan confirmed, Gladia bug unproven without valid-key WSS test.
   - **Verdict: HOLD (AUTH_HELPED — PARKED pending valid `x-gladia-key`; no unauth bypass in 100+ cycles).**
+
+- 1 lead(s) marked VALID at 2026-09-05 13:05:03 UTC
+  - **Verdict: HOLD (Gladia venue) / VALID-DUPLICATE (npm venue)** — One-line: Gladia-side key leak unproven without authenticated WS test; npm impersonation already reported.
