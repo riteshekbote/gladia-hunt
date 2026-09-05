@@ -484,3 +484,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-04 23:06:18 UTC
   - **Verdict: HOLD for Gladia program, VALID for npm registry venue** — one-line: Gladia-venue HOLD (Pre-Severity Gate #3 fail: query-param auth not proven on `wss://api.gladia.io/v2/live`); npm-venue VA
+
+- 1 lead(s) marked VALID at 2026-09-05 01:06:57 UTC
+  - |Q7|HOLD-Gladia/VALID-npm|Gladia triager rejects `not our code` until Q3 unlocked; npm accepts policy violation|
