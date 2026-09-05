@@ -487,3 +487,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-05 01:06:57 UTC
   - |Q7|HOLD-Gladia/VALID-npm|Gladia triager rejects `not our code` until Q3 unlocked; npm accepts policy violation|
+
+- 2 lead(s) marked VALID at 2026-09-05 05:52:55 UTC
+  - **Verdict: HOLD (npm venue VALID for npm Trust & Safety; Gladia venue HOLD — needs WSS query-param auth proof).** One-line: orphan confirmed, Gladia bug unproven without valid-key WSS test.
+  - **Verdict: HOLD (AUTH_HELPED — PARKED pending valid `x-gladia-key`; no unauth bypass in 100+ cycles).**
