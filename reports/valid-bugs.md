@@ -505,3 +505,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-05 20:47:39 UTC
   - **Verdict: HOLD for Gladia program (Q3 fail until query-param auth proven) / VALID for npm registry.** One-line: impersonation locked, Gladia leg needs valid-key WSS proof.
+
+- 2 lead(s) marked VALID at 2026-09-05 22:23:22 UTC
+  - No 7-Gate table to emit this cycle. Verdict: **NO NEW VALID — HOLD** (empty batch). `probe-results.txt:0` / `probe-results.md` confirms passive GET/HEAD only — no invasive testing.
+  - **Verdict: VALID (DUPLICATE) / HOLD (Gladia — do not re-file).** One-line: locked 10+ `npm pack` repros, orphaned GitHub 404 irrevocable, impersonation at `latest`.
