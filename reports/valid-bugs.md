@@ -498,3 +498,7 @@
 - 2 lead(s) marked VALID at 2026-09-05 16:09:04 UTC
   - **Verdict: HOLD** — need body/`Location` to confirm. Not submittable as `VALID`.
   - **Verdict: VALID (DUPLICATE) — no new report.** Channel per `scope.yml:4` TBD + mapped `gladia.io/bug-bounty-report 301→302→Google Forms` `inventory/gladia.md:402` / `security@gladia.io` `leads/lead-h
+
+- 2 lead(s) marked VALID at 2026-09-05 18:26:09 UTC
+  - * **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)** one-line: locked orphaned impersonation + key-in-URL primitive across 10+ repros, already reported 2026-08-12 awaiting ven
+  - * **Verdict: HOLD (HUMAN_ONLY AUTH_HELPED)** one-line: byte-fresh reflection + CSP gap confirmed, post-auth honoring sole unverified gate, needs valid Google SSO session to prove 302 to evil.
