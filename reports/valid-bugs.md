@@ -547,3 +547,7 @@
 - 2 lead(s) marked VALID at 2026-09-06 20:53:41 UTC
   - **Verdict: HOLD (VALID DUPLICATE for npm Trust & Safety / HOLD for Gladia program)** - one-line: locked orphaned impersonation passive-proven, Gladia key-in-URL impact unproven without valid-key WSS p
   - **Verdict: HOLD (AUTH_HELPED)** - design confirmed passive, proof gated on valid `x-gladia-key` + non-destructive canary `POST`.
+
+- 2 lead(s) marked VALID at 2026-09-06 22:37:38 UTC
+  - **Verdict: VALID (DUPLICATE) — HOLD, do not re-file to Gladia** `leads/lead-human.md:9`. One-line: already reported, awaiting vendor 14-day follow-up 2026-08-26.
+  - **Verdict: HOLD (AUTH_HELPED, not VALID passively).** One-line: SSRF-by-design surface exists but key-gated; 401 is expected.
