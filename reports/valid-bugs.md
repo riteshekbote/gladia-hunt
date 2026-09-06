@@ -519,3 +519,17 @@
   - | Q4 | **NO** requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` comparing error/timing - not GET/HEAD, violates `p
   - | Q5 | **YES** hypothesis only, never proven VALID |
   - | Q6 | **YES** SSRF valid class |
+
+- 12 lead(s) marked VALID at 2026-09-06 04:51:41 UTC
+  - | Q3 impact | **YES for registry consumers / CONDITIONAL for Gladia infra:** supply-chain name-squat at dist-tag `latest` + credential-in-URL leak to proxy/access logs. Gladia infra impact only if `ws
+  - | Q5 novel | **NO — DUPLICATE** Already validated 9+ cycles, reported `2026-08-12 riteshekbote@gmail.com→security@gladia.io` `leads/lead-human.md:3` `reports/valid-bugs.md:1`. Re-file to same channel 
+  - | Q6 not rejected list | **YES** — impersonation + credential handling is valid vuln class, not `info-disclosure of public data / best-practice / rate-limit` (`scope.yml:42`). |
+  - **Verdict: HOLD — VALID (DUPLICATE) for npm venue, HOLD for Gladia program (Q1/Q3 conditional + Q5 duplicate). One-line:** Locked orphaned impersonation + key-in-URL primitive across 10+ `npm pack` re
+  - | Q4 GET/HEAD only | **PARTIAL NO** — GET proves reflection + CSP `form-action 0`, but proving **open redirect requires authenticated `GET /signin?redirect_to=evil` with valid Google SSO session + `fo
+  - | Q5 novel | **YES** not prior VALID, always HOLD. |
+  - | Q6 not rejected | **YES** open redirect valid class. |
+  - | Q2 reachability | **NO — key-gated** `GET /v2/pre-recorded` 401 + `POST /v2/pre-recorded` 401 `{"message":"no gladia key provided"}` `probe-results.md:4` `inventory/gladia.md:30` uniform across 100+
+  - | Q4 GET/HEAD only | **NO** — GET `openapi.json` only proves **design** `audio_url: {format: uri}` no allowlist (`inventory/gladia.md:98`), SDK forwards verbatim (`is_url()` guard only). POC requires 
+  - | Q5 novel | **YES** hypothesis tracked 100+ cycles `reports/valid-bugs.md:17` PARKED, unproven. |
+  - | Q6 not rejected | **YES** SSRF valid class. |
+  - **Verdict: HOLD — AUTH_HELPED — In-scope SSRF-by-design surface confirmed via spec, but 401-gated; no unauthenticated reachability. One-line:** Spec surface persists but proof gated on valid `x-gladia
