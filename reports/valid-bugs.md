@@ -543,3 +543,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-06 16:21:01 UTC
   - No 7-Gate table to emit. Verdict: **NO NEW VALID — HOLD (empty batch)**.
+
+- 2 lead(s) marked VALID at 2026-09-06 20:53:41 UTC
+  - **Verdict: HOLD (VALID DUPLICATE for npm Trust & Safety / HOLD for Gladia program)** - one-line: locked orphaned impersonation passive-proven, Gladia key-in-URL impact unproven without valid-key WSS p
+  - **Verdict: HOLD (AUTH_HELPED)** - design confirmed passive, proof gated on valid `x-gladia-key` + non-destructive canary `POST`.
