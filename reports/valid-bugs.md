@@ -533,3 +533,6 @@
   - | Q5 novel | **YES** hypothesis tracked 100+ cycles `reports/valid-bugs.md:17` PARKED, unproven. |
   - | Q6 not rejected | **YES** SSRF valid class. |
   - **Verdict: HOLD — AUTH_HELPED — In-scope SSRF-by-design surface confirmed via spec, but 401-gated; no unauthenticated reachability. One-line:** Spec surface persists but proof gated on valid `x-gladia
+
+- 1 lead(s) marked VALID at 2026-09-06 09:00:05 UTC
+  - **Verdict: HOLD for Gladia channel, VALID for npm registry.**
