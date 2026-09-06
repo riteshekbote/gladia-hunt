@@ -509,3 +509,13 @@
 - 2 lead(s) marked VALID at 2026-09-05 22:23:22 UTC
   - No 7-Gate table to emit this cycle. Verdict: **NO NEW VALID — HOLD** (empty batch). `probe-results.txt:0` / `probe-results.md` confirms passive GET/HEAD only — no invasive testing.
   - **Verdict: VALID (DUPLICATE) / HOLD (Gladia — do not re-file).** One-line: locked 10+ `npm pack` repros, orphaned GitHub 404 irrevocable, impersonation at `latest`.
+
+- 8 lead(s) marked VALID at 2026-09-06 00:04:52 UTC
+  - | Q5 novel | **NO DUPLICATE** already `VALID 2026-08-07 21:04` `reports/valid-bugs.md:22` and `REPORTED 2026-08-12 riteshekbote@gmail.com -> security@gladia.io` `lead-human.md:3` re-checked 2026-08-22
+  - **Verdict: HOLD (VALID DUPLICATE)** - one-line: locked 10+ `npm pack` reproductions, already reported awaiting vendor, re-filing to same Gladia channel = duplicate.
+  - | Q4 | **PARTIAL** GET proves reflection+CSP gap, proving redirect requires `HUMAN: GET /signin?redirect_to=evil with valid Google SSO session + follow-redirects=false observe Location` -> not GET/HEA
+  - | Q5 | **YES** never VALID, always HOLD |
+  - | Q6 | **YES** open redirect is valid class, but unauth reflection alone would be rejected |
+  - | Q4 | **NO** requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` comparing error/timing - not GET/HEAD, violates `p
+  - | Q5 | **YES** hypothesis only, never proven VALID |
+  - | Q6 | **YES** SSRF valid class |
