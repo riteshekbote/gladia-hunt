@@ -536,3 +536,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-06 09:00:05 UTC
   - **Verdict: HOLD for Gladia channel, VALID for npm registry.**
+
+- 2 lead(s) marked VALID at 2026-09-06 12:57:53 UTC
+  - **BATCH STATUS:** `new-leads.txt:1` `triage-prompt.txt:28` `probe-results.txt:1` EMPTY. `triage-output.txt:4` `No leads to triage`. No 7-Gate table possible this cycle. Historical leads in `leads/` = 
+  - Q1 YES (`scope.yml:25-28` `npm_packages: gladia` MEDIUM) | Q2 YES public unauth `registry.npmjs.org/gladia ->200` `probe-results.md:294,323` | Q3 YES supply-chain + credential exposure | Q4 YES passiv
