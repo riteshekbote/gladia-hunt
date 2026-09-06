@@ -1,13 +1,10 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Deep-triage scan over the Gladia org — 90+ cycles frozen, zero new hits flagged. Checking for hidden secrets and chained primitives now.
+Delta shows zero new hits — running full triage over the exposed inventory.
 [0m→ [0mRead .
-[0m→ [0mRead scope.yml
-[0m→ [0mRead cands-gladiaio.txt
-[0m→ [0mRead repos-gladiaio.json
 [0m
-[0m$ [0mls -R reposcan-raw 2>&1 | head -n 100; echo "---"; cat triage/*.md 2>&1 | head -n 200; ls triage/
+[0m$ [0mls -R reposcan-raw 2>/dev/null | head -n 100; echo "---"; cat cands-gladiaio.txt | head -n 200
 reposcan-raw:
 analysis.txt
 gladiaio
@@ -109,798 +106,434 @@ instrumentation.ts
 lib
 scripts
 ---
-
-===== TRIAGE 2026-08-07 19:18:21 UTC =====
-[0m
-> build · longcat-2.0-free
-[0m
-I'm ready to triage, but it looks like the actual leads data after "LEADS:" wasn't included in your message. Could you paste the specific URLs, http_codes, and any other details for each lead you'd like me to evaluate against the 7-Question Gate?
-
-===== TRIAGE 2026-08-07 21:04:32 UTC =====
-[0m
-> build · longcat-2.0-free
-[0m
-I'll check the workspace for any scope files or leads that may have been provided.
-[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/
-total 80
-drwxr-xr-x 11 runner runner 4096 Aug  7 21:01 .
-drwxr-xr-x  3 runner runner 4096 Aug  7 21:01 ..
-drwxr-xr-x  7 runner runner 4096 Aug  7 21:01 .git
-drwxr-xr-x  3 runner runner 4096 Aug  7 21:01 .github
--rw-r--r--  1 runner runner  156 Aug  7 21:01 README.md
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 inventory
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 knowledge
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 leads
--rw-r--r--  1 runner runner    0 Aug  7 21:01 new-leads.txt
--rw-r--r--  1 runner runner    0 Aug  7 21:01 probe-results.txt
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 reports
-drwxr-xr-x  4 runner runner 4096 Aug  7 21:01 reposcan-raw
--rw-r--r--  1 runner runner 2187 Aug  7 21:01 scope.yml
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 scripts
--rw-r--r--  1 runner runner   33 Aug  7 21:01 state_bigpickle.json
--rw-r--r--  1 runner runner   33 Aug  7 21:01 state_laguna.json
--rw-r--r--  1 runner runner   33 Aug  7 21:01 state_ling3.json
--rw-r--r--  1 runner runner   33 Aug  7 21:01 state_longcat.json
--rw-r--r--  1 runner runner   33 Aug  7 21:01 state_nemotron3.json
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 triage
--rw-r--r--  1 runner runner  121 Aug  7 21:01 triage-output.txt
--rw-r--r--  1 runner runner 1162 Aug  7 21:01 triage-prompt.txt
-[0m
-[0m→ [0mRead scope.yml
-[0m→ [0mRead triage-prompt.txt
-[0m→ [0mRead triage-output.txt
-[0m
-[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/leads/ && cat /home/runner/work/gladia-hunt/gladia-hunt/leads/*
-...output truncated...
-
-Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fde08278f001QlRbsuVsv4ew3G
-
-[0m
-[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts
-export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
-
-export function getStoredApiKey(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(GLADIA_API_KEY_STORAGE);
-}
-
-export function clearStoredApiKey(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(GLADIA_API_KEY_STORAGE);
-}
-
-export function createGladiaClient(apiKey: string) {
-  // Use CDN version (v0.5.2 from unpkg, same as official sample)
-  if (typeof window !== 'undefined' && (window as any).Gladia) {
-    try {
-      const client = new (window as any).Gladia.GladiaClient({ apiKey });
-      return client;
-    } catch (error) {
-      console.error('Error creating Gladia client:', error);
-      throw error;
-    }
-  }
-  
-  console.error('Gladia SDK not available. Window.Gladia:', typeof (window as any)?.Gladia);
-  throw new Error('Gladia SDK not loaded. Please refresh the page.');
-}
-
-export const AUDIO_CONFIG = {
-  sample_rate: 16000,
-  encoding: 'wav/pcm',
-  bit_depth: 16,
-  channels: 1,
-} as const;
-[0m
-[0m$ [0mcat reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts
-'use client';
-
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { TranscriptionState } from '../lib/types';
-import { createGladiaClient, getStoredApiKey } from '../lib/gladia-client';
-import { MAX_RECORDING_DURATION_MS } from '../lib/constants';
-
-export const useGladiaTranscription = () => {
-  const [state, setState] = useState<TranscriptionState>({
-    isTranscribing: false,
-    transcript: '',
-    partialTranscript: '',
-    lastPartialTranscript: '',
-    isProcessing: false,
-    error: null,
-    sessionStatus: 'ended'
-  });
-
-  const sessionRef = useRef<any>(null);
-  const apiKeyRef = useRef<string | null>(null);
-  const onSessionReadyRef = useRef<(() => void) | null>(null);
-  const maxDurationTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const onAutoStopRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    apiKeyRef.current = getStoredApiKey();
-  }, []);
-
-  const startTranscription = useCallback(async (
-    onSessionReady?: () => void,
-    onAutoStop?: () => void
-  ) => {
-    const apiKey = apiKeyRef.current || getStoredApiKey();
-    
-    // Store the callbacks
-    onSessionReadyRef.current = onSessionReady || null;
-    onAutoStopRef.current = onAutoStop || null;
-    
-    if (!apiKey) {
-      setState(prev => ({ 
-        ...prev, 
-        error: 'No API key found. Please enter your Gladia API key.',
-        sessionStatus: 'ended'
-      }));
-      return;
-    }
-
-    // Basic API key validation
-    if (apiKey.length < 10) {
-      setState(prev => ({ 
-        ...prev, 
-        error: 'API key appears to be invalid. Please check your Gladia API key.',
-        sessionStatus: 'ended'
-      }));
-      return;
-    }
-
-    setState(prev => ({ 
-      ...prev, 
-      isTranscribing: true, 
-      error: null, 
-      sessionStatus: 'starting',
-      transcript: '',
-      partialTranscript: '',
-      lastPartialTranscript: '', // Clear from previous recording
-      isProcessing: false
-    }));
-    
-    try {
-      const gladia = createGladiaClient(apiKey);
-[0m
-[0m$ [0mls -la /home/runner/work/gladia-hunt/gladia-hunt/triage/ && cat /home/runner/work/gladia-hunt/gladia-hunt/triage/*
-total 12
-drwxr-xr-x  2 runner runner 4096 Aug  7 21:01 .
-drwxr-xr-x 11 runner runner 4096 Aug  7 21:01 ..
--rw-r--r--  1 runner runner  329 Aug  7 21:01 run-2026-08-07-19-18.md
-
-===== TRIAGE 2026-08-07 19:18:21 UTC =====
-[0m
-> build · longcat-2.0-free
-[0m
-I'm ready to triage, but it looks like the actual leads data after "LEADS:" wasn't included in your message. Could you paste the specific URLs, http_codes, and any other details for each lead you'd like me to evaluate against the 7-Question Gate?
-[0m
-[0m$ [0mfind /home/runner/work/gladia-hunt/gladia-hunt/ -type f -name "*.txt" -o -name "*.md" -o -name "*.json" | xargs wc -l 2>/dev/null | sort -n
-0 /home/runner/work/gladia-hunt/gladia-hunt/new-leads.txt
-     0 /home/runner/work/gladia-hunt/gladia-hunt/probe-results.txt
-     0 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/_gladiaio_sdk.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/npm/gladia.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/state_bigpickle.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/state_laguna.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/state_ling3.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/state_longcat.json
-     0 /home/runner/work/gladia-hunt/gladia-hunt/state_nemotron3.json
-     1 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-laguna.txt
-     1 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-ling3.txt
-     1 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-longcat.txt
-     1 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-delta.txt
-     2 /home/runner/work/gladia-hunt/gladia-hunt/README.md
-     3 /home/runner/work/gladia-hunt/gladia-hunt/reports/valid-bugs.md
-     6 /home/runner/work/gladia-hunt/gladia-hunt/triage/run-2026-08-07-19-18.md
-     7 /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-ling3.md
-     7 /home/runner/work/gladia-hunt/gladia-hunt/leads/lead-longcat.md
-    22 /home/runner/work/gladia-hunt/gladia-hunt/triage-prompt.txt
-    42 /home/runner/work/gladia-hunt/gladia-hunt/knowledge/index.md
-    43 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses-nemotron3.txt
-    61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.prev.txt
-    61 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/grep-hits.txt
-    84 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/rag.txt
-    88 /home/runner/work/gladia-hunt/gladia-hunt/inventory/gladia.md
-    95 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-18-53.md
-   109 /home/runner/work/gladia-hunt/gladia-hunt/reposcan-raw/analysis.txt
-   110 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-20-02.md
-   111 /home/runner/work/gladia-hunt/gladia-hunt/reports/hypotheses.md
-   112 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-19-26.md
-   119 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-18-33.md
-   123 /home/runner/work/gladia-hunt/gladia-hunt/leads/reposcan-2026-08-07-20-06.md
-run-2026-08-07-19-18.md
-run-2026-08-07-21-04.md
-run-2026-08-07-21-57.md
-run-2026-08-07-22-57.md
-run-2026-08-07-23-50.md
-run-2026-08-08-02-23.md
-run-2026-08-08-04-30.md
-run-2026-08-08-06-01.md
-run-2026-08-08-07-21.md
-run-2026-08-08-09-05.md
-run-2026-08-08-09-06.md
-run-2026-08-08-09-56.md
-run-2026-08-08-10-53.md
-run-2026-08-08-11-46.md
-run-2026-08-08-13-14.md
-run-2026-08-08-14-00.md
-run-2026-08-08-14-51.md
-run-2026-08-08-15-48.md
-run-2026-08-08-16-58.md
-run-2026-08-08-17-56.md
-run-2026-08-08-18-35.md
-run-2026-08-08-19-19.md
-run-2026-08-08-19-52.md
-run-2026-08-08-20-18.md
-run-2026-08-08-20-56.md
-run-2026-08-08-21-52.md
-run-2026-08-08-22-25.md
-run-2026-08-08-23-17.md
-run-2026-08-08-23-50.md
-run-2026-08-09-01-01.md
-run-2026-08-09-03-12.md
-run-2026-08-09-04-41.md
-run-2026-08-09-05-39.md
-run-2026-08-09-06-32.md
-run-2026-08-09-07-42.md
-run-2026-08-09-08-28.md
-run-2026-08-09-09-28.md
-run-2026-08-09-10-19.md
-run-2026-08-09-10-59.md
-run-2026-08-09-11-54.md
-run-2026-08-09-12-39.md
-run-2026-08-09-13-39.md
-run-2026-08-09-14-25.md
-run-2026-08-09-15-00.md
-run-2026-08-09-15-54.md
-run-2026-08-09-17-01.md
-run-2026-08-09-17-53.md
-run-2026-08-09-19-08.md
-run-2026-08-09-19-54.md
-run-2026-08-09-20-29.md
-run-2026-08-09-21-18.md
-run-2026-08-09-21-57.md
-run-2026-08-09-22-57.md
-run-2026-08-09-23-54.md
-run-2026-08-10-02-39.md
-run-2026-08-10-04-19.md
-run-2026-08-10-05-52.md
-run-2026-08-10-07-30.md
-run-2026-08-10-09-03.md
-run-2026-08-10-10-45.md
-run-2026-08-10-11-38.md
-run-2026-08-10-12-38.md
-run-2026-08-10-14-09.md
-run-2026-08-10-15-27.md
-run-2026-08-10-16-39.md
-run-2026-08-10-17-41.md
-run-2026-08-10-18-37.md
-run-2026-08-10-19-45.md
-run-2026-08-10-20-29.md
-run-2026-08-10-21-28.md
-run-2026-08-10-22-22.md
-run-2026-08-10-23-06.md
-run-2026-08-10-23-58.md
-run-2026-08-11-02-32.md
-run-2026-08-11-04-12.md
-run-2026-08-11-05-35.md
-run-2026-08-11-06-41.md
-run-2026-08-11-07-59.md
-run-2026-08-11-09-26.md
-run-2026-08-11-10-50.md
-run-2026-08-11-11-37.md
-run-2026-08-11-12-35.md
-run-2026-08-11-14-16.md
-run-2026-08-11-15-26.md
-run-2026-08-11-16-42.md
-run-2026-08-11-17-45.md
-run-2026-08-11-18-45.md
-run-2026-08-11-19-53.md
-run-2026-08-11-20-37.md
-run-2026-08-11-21-31.md
-run-2026-08-11-22-27.md
-run-2026-08-11-23-31.md
-run-2026-08-12-00-47.md
-run-2026-08-12-03-14.md
-run-2026-08-12-05-10.md
-run-2026-08-12-06-49.md
-run-2026-08-12-08-08.md
-run-2026-08-12-09-35.md
-run-2026-08-12-10-46.md
-run-2026-08-12-11-36.md
-run-2026-08-12-12-36.md
-run-2026-08-12-14-09.md
-run-2026-08-12-15-25.md
-run-2026-08-12-16-42.md
-run-2026-08-12-17-46.md
-run-2026-08-12-18-42.md
-run-2026-08-12-19-53.md
-run-2026-08-12-21-09.md
-run-2026-08-12-22-07.md
-run-2026-08-12-23-07.md
-run-2026-08-13-00-03.md
-run-2026-08-13-03-04.md
-run-2026-08-13-05-14.md
-run-2026-08-13-06-52.md
-run-2026-08-13-08-18.md
-run-2026-08-13-09-36.md
-run-2026-08-13-10-48.md
-run-2026-08-13-11-35.md
-run-2026-08-13-12-36.md
-run-2026-08-13-14-11.md
-run-2026-08-13-15-27.md
-run-2026-08-13-16-41.md
-run-2026-08-13-17-46.md
-run-2026-08-13-18-42.md
-run-2026-08-13-19-48.md
-run-2026-08-13-20-25.md
-run-2026-08-13-21-31.md
-run-2026-08-13-22-27.md
-run-2026-08-13-23-27.md
-run-2026-08-14-00-46.md
-run-2026-08-14-03-16.md
-run-2026-08-14-05-11.md
-run-2026-08-14-06-49.md
-run-2026-08-14-08-07.md
-run-2026-08-14-09-31.md
-run-2026-08-14-10-44.md
-run-2026-08-14-11-33.md
-run-2026-08-14-12-32.md
-run-2026-08-14-14-05.md
-run-2026-08-14-15-11.md
-run-2026-08-14-16-10.md
-run-2026-08-14-17-16.md
-run-2026-08-14-18-11.md
-run-2026-08-14-19-24.md
-run-2026-08-14-20-18.md
-run-2026-08-14-20-51.md
-run-2026-08-14-21-19.md
-run-2026-08-14-21-46.md
-run-2026-08-14-22-09.md
-run-2026-08-14-22-44.md
-run-2026-08-14-23-09.md
-run-2026-08-14-23-42.md
-run-2026-08-15-00-25.md
-run-2026-08-15-02-05.md
-run-2026-08-15-03-09.md
-run-2026-08-15-03-59.md
-run-2026-08-15-04-52.md
-run-2026-08-15-05-22.md
-run-2026-08-15-05-50.md
-run-2026-08-15-06-23.md
-run-2026-08-15-07-06.md
-run-2026-08-15-07-48.md
-run-2026-08-15-08-12.md
-run-2026-08-15-08-50.md
-run-2026-08-15-09-18.md
-run-2026-08-15-09-45.md
-run-2026-08-15-10-09.md
-run-2026-08-15-10-44.md
-run-2026-08-15-11-07.md
-run-2026-08-15-11-39.md
-run-2026-08-15-12-10.md
-run-2026-08-15-13-03.md
-run-2026-08-15-13-47.md
-run-2026-08-15-14-08.md
-run-2026-08-15-14-43.md
-run-2026-08-15-15-07.md
-run-2026-08-15-15-41.md
-run-2026-08-15-16-07.md
-run-2026-08-15-16-46.md
-run-2026-08-15-17-09.md
-run-2026-08-15-17-41.md
-run-2026-08-15-18-08.md
-run-2026-08-15-18-52.md
-run-2026-08-15-19-19.md
-run-2026-08-15-19-42.md
-run-2026-08-15-20-04.md
-run-2026-08-15-20-44.md
-run-2026-08-15-21-08.md
-run-2026-08-15-21-40.md
-run-2026-08-15-22-04.md
-run-2026-08-15-22-43.md
-run-2026-08-15-23-08.md
-run-2026-08-15-23-40.md
-run-2026-08-16-00-25.md
-run-2026-08-16-02-13.md
-run-2026-08-16-03-24.md
-run-2026-08-16-04-22.md
-run-2026-08-16-05-00.md
-run-2026-08-16-05-49.md
-run-2026-08-16-06-23.md
-run-2026-08-16-07-09.md
-run-2026-08-16-07-50.md
-run-2026-08-16-08-19.md
-run-2026-08-16-08-53.md
-run-2026-08-16-09-25.md
-run-2026-08-16-10-09.md
-run-2026-08-16-10-44.md
-run-2026-08-16-11-08.md
-run-2026-08-16-11-40.md
-run-2026-08-16-12-11.md
-run-2026-08-16-13-05.md
-run-2026-08-16-13-49.md
-run-2026-08-16-14-12.md
-run-2026-08-16-14-44.md
-run-2026-08-16-15-08.md
-run-2026-08-16-15-42.md
-run-2026-08-16-16-08.md
-run-2026-08-16-16-45.md
-run-2026-08-16-17-08.md
-run-2026-08-16-17-39.md
-run-2026-08-16-18-09.md
-run-2026-08-16-18-51.md
-run-2026-08-16-19-16.md
-run-2026-08-16-19-39.md
-run-2026-08-16-20-03.md
-run-2026-08-16-20-43.md
-run-2026-08-16-21-07.md
-run-2026-08-16-21-40.md
-run-2026-08-16-22-03.md
-run-2026-08-16-22-42.md
-run-2026-08-16-23-06.md
-run-2026-08-16-23-39.md
-run-2026-08-17-00-24.md
-run-2026-08-17-02-10.md
-run-2026-08-17-03-24.md
-run-2026-08-17-04-28.md
-run-2026-08-17-05-23.md
-run-2026-08-17-06-00.md
-run-2026-08-17-07-28.md
-run-2026-08-17-08-27.md
-run-2026-08-17-09-26.md
-run-2026-08-17-10-18.md
-run-2026-08-17-10-52.md
-run-2026-08-17-11-22.md
-run-2026-08-17-11-50.md
-run-2026-08-17-12-23.md
-run-2026-08-17-13-30.md
-run-2026-08-17-14-15.md
-run-2026-08-17-14-49.md
-run-2026-08-17-15-16.md
-run-2026-08-17-15-45.md
-run-2026-08-17-16-10.md
-run-2026-08-17-16-50.md
-run-2026-08-17-17-20.md
-run-2026-08-17-17-52.md
-run-2026-08-17-18-34.md
-run-2026-08-17-19-18.md
-run-2026-08-17-19-47.md
-run-2026-08-17-20-11.md
-run-2026-08-17-20-48.md
-run-2026-08-17-21-14.md
-run-2026-08-17-21-45.md
-run-2026-08-17-22-10.md
-run-2026-08-17-22-46.md
-run-2026-08-17-23-09.md
-run-2026-08-17-23-42.md
-run-2026-08-18-00-24.md
-run-2026-08-18-02-07.md
-run-2026-08-18-03-13.md
-run-2026-08-18-04-02.md
-run-2026-08-18-04-57.md
-run-2026-08-18-05-50.md
-run-2026-08-18-06-30.md
-run-2026-08-18-07-26.md
-run-2026-08-18-08-18.md
-run-2026-08-18-09-00.md
-run-2026-08-18-09-54.md
-run-2026-08-18-10-52.md
-run-2026-08-18-11-21.md
-run-2026-08-18-11-49.md
-run-2026-08-18-12-22.md
-run-2026-08-18-13-23.md
-run-2026-08-18-14-19.md
-run-2026-08-18-14-59.md
-run-2026-08-18-15-52.md
-run-2026-08-18-16-29.md
-run-2026-08-18-17-14.md
-run-2026-08-18-17-49.md
-run-2026-08-18-18-19.md
-run-2026-08-18-19-04.md
-run-2026-08-18-19-45.md
-run-2026-08-18-20-08.md
-run-2026-08-18-20-44.md
-run-2026-08-18-21-10.md
-run-2026-08-18-21-43.md
-run-2026-08-18-22-08.md
-run-2026-08-18-22-45.md
-run-2026-08-18-23-09.md
-run-2026-08-18-23-41.md
-run-2026-08-19-00-24.md
-run-2026-08-19-02-09.md
-run-2026-08-19-03-15.md
-run-2026-08-19-04-04.md
-run-2026-08-19-04-58.md
-run-2026-08-19-05-52.md
-run-2026-08-19-06-37.md
-run-2026-08-19-07-27.md
-run-2026-08-19-08-19.md
-run-2026-08-19-09-01.md
-run-2026-08-19-09-54.md
-run-2026-08-19-10-50.md
-run-2026-08-19-11-18.md
-run-2026-08-19-11-45.md
-run-2026-08-19-12-16.md
-run-2026-08-19-13-17.md
-run-2026-08-19-14-02.md
-run-2026-08-19-14-59.md
-run-2026-08-19-15-52.md
-run-2026-08-19-16-27.md
-run-2026-08-19-17-14.md
-run-2026-08-19-17-47.md
-run-2026-08-19-18-13.md
-run-2026-08-19-19-00.md
-run-2026-08-19-19-48.md
-run-2026-08-19-20-11.md
-run-2026-08-19-20-49.md
-run-2026-08-19-21-16.md
-run-2026-08-19-21-45.md
-run-2026-08-19-22-11.md
-run-2026-08-19-22-46.md
-run-2026-08-19-23-10.md
-run-2026-08-19-23-42.md
-run-2026-08-20-00-25.md
-run-2026-08-20-02-08.md
-run-2026-08-20-03-14.md
-run-2026-08-20-04-03.md
-run-2026-08-20-04-59.md
-run-2026-08-20-05-52.md
-run-2026-08-20-06-42.md
-run-2026-08-20-07-29.md
-run-2026-08-20-08-20.md
-run-2026-08-20-09-04.md
-run-2026-08-20-09-55.md
-run-2026-08-20-10-52.md
-run-2026-08-20-11-24.md
-run-2026-08-20-12-18.md
-run-2026-08-20-13-23.md
-run-2026-08-20-14-22.md
-run-2026-08-20-15-04.md
-run-2026-08-20-15-54.md
-run-2026-08-20-16-56.md
-run-2026-08-20-17-51.md
-run-2026-08-20-18-32.md
-run-2026-08-20-19-21.md
-run-2026-08-20-19-54.md
-run-2026-08-20-20-52.md
-run-2026-08-20-21-23.md
-run-2026-08-20-22-12.md
-run-2026-08-20-22-50.md
-run-2026-08-20-23-17.md
-run-2026-08-20-23-46.md
-run-2026-08-21-00-27.md
-run-2026-08-21-02-14.md
-run-2026-08-21-03-26.md
-run-2026-08-21-04-25.md
-run-2026-08-21-05-20.md
-run-2026-08-21-05-55.md
-run-2026-08-21-07-13.md
-run-2026-08-21-08-02.md
-run-2026-08-21-09-04.md
-run-2026-08-21-09-57.md
-run-2026-08-21-10-53.md
-run-2026-08-21-11-48.md
-run-2026-08-21-12-18.md
-run-2026-08-21-13-22.md
-run-2026-08-21-14-05.md
-run-2026-08-21-14-59.md
-run-2026-08-21-15-54.md
-run-2026-08-21-16-56.md
-run-2026-08-21-17-51.md
-run-2026-08-21-18-28.md
-run-2026-08-21-19-17.md
-run-2026-08-21-19-44.md
-run-2026-08-21-20-10.md
-run-2026-08-21-20-45.md
-run-2026-08-21-21-11.md
-run-2026-08-21-21-44.md
-run-2026-08-21-22-11.md
-run-2026-08-21-22-48.md
-run-2026-08-21-23-10.md
-run-2026-08-21-23-43.md
-run-2026-08-22-00-24.md
-run-2026-08-22-02-08.md
-run-2026-08-22-03-11.md
-run-2026-08-22-04-02.md
-run-2026-08-22-04-55.md
-run-2026-08-22-05-48.md
-run-2026-08-22-06-17.md
-run-2026-08-22-07-05.md
-run-2026-08-22-07-50.md
-run-2026-08-22-08-19.md
-run-2026-08-22-08-54.md
-run-2026-08-22-09-47.md
-run-2026-08-22-10-09.md
-run-2026-08-22-10-45.md
-run-2026-08-22-11-08.md
-run-2026-08-22-11-41.md
-run-2026-08-22-12-11.md
-run-2026-08-22-13-06.md
-run-2026-08-22-13-48.md
-run-2026-08-22-14-09.md
-run-2026-08-22-14-43.md
-run-2026-08-22-15-07.md
-run-2026-08-22-15-41.md
-run-2026-08-22-16-07.md
-run-2026-08-22-16-45.md
-run-2026-08-22-17-08.md
-run-2026-08-22-17-41.md
-run-2026-08-22-18-09.md
-run-2026-08-22-18-53.md
-run-2026-08-22-19-42.md
-run-2026-08-22-20-07.md
-run-2026-08-22-20-44.md
-run-2026-08-22-21-08.md
-run-2026-08-22-21-41.md
-run-2026-08-22-22-07.md
-run-2026-08-22-22-43.md
-run-2026-08-22-23-07.md
-run-2026-08-22-23-40.md
-run-2026-08-23-00-26.md
-run-2026-08-23-02-15.md
-run-2026-08-23-03-26.md
-run-2026-08-23-04-24.md
-run-2026-08-23-05-17.md
-run-2026-08-23-05-51.md
-run-2026-08-23-06-29.md
-run-2026-08-23-07-22.md
-run-2026-08-23-07-55.md
-run-2026-08-23-08-53.md
-run-2026-08-23-09-48.md
-run-2026-08-23-10-10.md
-run-2026-08-23-10-45.md
-run-2026-08-23-11-09.md
-run-2026-08-23-11-41.md
-run-2026-08-23-12-12.md
-run-2026-08-23-13-07.md
-run-2026-08-23-13-50.md
-run-2026-08-23-14-14.md
-run-2026-08-23-14-44.md
-run-2026-08-23-15-09.md
-run-2026-08-23-15-42.md
-run-2026-08-23-16-09.md
-run-2026-08-23-16-47.md
-run-2026-08-23-17-09.md
-run-2026-08-23-17-40.md
-run-2026-08-23-18-09.md
-run-2026-08-23-18-53.md
-run-2026-08-23-19-20.md
-run-2026-08-23-19-43.md
-run-2026-08-23-20-07.md
-run-2026-08-23-20-44.md
-run-2026-08-23-21-08.md
-run-2026-08-23-21-41.md
-run-2026-08-23-22-07.md
-run-2026-08-23-22-43.md
-run-2026-08-23-23-07.md
-run-2026-08-23-23-40.md
-run-2026-08-24-00-26.md
-run-2026-08-24-02-14.md
-run-2026-08-24-03-28.md
-run-2026-08-24-04-32.md
-run-2026-08-24-05-26.md
-run-2026-08-24-06-28.md
-run-2026-08-24-07-46.md
-run-2026-08-24-08-32.md
-run-2026-08-24-09-32.md
-run-2026-08-24-10-24.md
-run-2026-08-24-11-15.md
-run-2026-08-24-11-49.md
-run-2026-08-24-12-23.md
-run-2026-08-24-13-39.md
-run-2026-08-24-14-28.md
-run-2026-08-24-15-26.md
-run-2026-08-24-16-19.md
-run-2026-08-24-17-03.md
-run-2026-08-24-17-53.md
-run-2026-08-24-18-37.md
-run-2026-08-24-19-19.md
-run-2026-08-24-19-51.md
-run-2026-08-24-20-23.md
-run-2026-08-24-20-58.md
-run-2026-08-24-21-49.md
-run-2026-08-24-22-15.md
-run-2026-08-24-22-48.md
-run-2026-08-24-23-12.md
-run-2026-08-24-23-42.md
-run-2026-08-25-00-25.md
-run-2026-08-25-02-09.md
-run-2026-08-25-03-23.md
-run-2026-08-25-04-08.md
-run-2026-08-25-04-59.md
-run-2026-08-25-05-53.md
-run-2026-08-25-06-43.md
-run-2026-08-25-07-33.md
-run-2026-08-25-08-25.md
-run-2026-08-25-09-21.md
-run-2026-08-25-09-59.md
-run-2026-08-25-11-50.md
-run-2026-08-25-12-28.md
-run-2026-08-25-13-38.md
-run-2026-08-25-14-31.md
-run-2026-08-25-15-30.md
-run-2026-08-25-16-21.md
-run-2026-08-25-17-04.md
-run-2026-08-25-17-50.md
-run-2026-08-25-18-28.md
-run-2026-08-25-19-20.md
-run-2026-08-25-19-53.md
-run-2026-08-25-20-51.md
-run-2026-08-25-21-22.md
-run-2026-08-25-21-52.md
-run-2026-08-25-22-24.md
-run-2026-08-25-23-13.md
-run-2026-08-25-23-44.md
-run-2026-08-26-00-27.md
-run-2026-08-26-02-15.md
-run-2026-08-26-03-29.md
-run-2026-08-26-04-26.md
-run-2026-08-26-05-20.md
-run-2026-08-26-05-57.md
-run-2026-08-26-07-14.md
-run-2026-08-26-08-04.md
-run-2026-08-26-09-07.md
-run-2026-08-26-10-02.md
-run-2026-08-26-10-56.md
-run-2026-08-26-11-52.md
-run-2026-08-26-12-42.md
-run-2026-08-26-13-42.md
-run-2026-08-26-14-31.md
-run-2026-08-26-16-06.md
-run-2026-08-26-18-08.md
-run-2026-08-26-20-16.md
-run-2026-08-26-23-47.md
-run-2026-08-27-05-09.md
-run-2026-08-31-23-03.md
-run-2026-09-01-01-53.md
-run-2026-09-01-07-03.md
-run-2026-09-01-12-38.md
-run-2026-09-01-17-00.md
-run-2026-09-01-19-59.md
-run-2026-09-01-22-39.md
-run-2026-09-02-00-36.md
-run-2026-09-02-05-10.md
-run-2026-09-02-09-44.md
-run-2026-09-02-13-55.md
-run-2026-09-02-17-58.md
-run-2026-09-02-21-09.md
-run-2026-09-02-23-24.md
-run-2026-09-03-01-17.md
-run-2026-09-03-05-55.md
-run-2026-09-03-11-27.md
-run-2026-09-03-15-15.md
-run-2026-09-03-18-47.md
-run-2026-09-03-21-26.md
-run-2026-09-03-23-35.md
-run-2026-09-04-01-26.md
-run-2026-09-04-06-34.md
-run-2026-09-04-11-47.md
-run-2026-09-04-15-10.md
-run-2026-09-04-18-30.md
-run-2026-09-04-21-05.md
-run-2026-09-04-23-06.md
-run-2026-09-05-01-06.md
-run-2026-09-05-05-52.md
-run-2026-09-05-09-41.md
-run-2026-09-05-13-05.md
-run-2026-09-05-16-09.md
-run-2026-09-05-18-26.md
-run-2026-09-05-20-47.md
-run-2026-09-05-22-23.md
-run-2026-09-06-00-04.md
-triage-report-2026-08-08.md
-triage-report-2026-08-10.md
-triage-report-2026-08-11.md
+https://github.com/gladiaio/gladiaflow.git
+https://github.com/gladiaio/realtime-multilingual-asr-router.git
+https://github.com/gladiaio/normalization.git
+https://github.com/gladiaio/gladia-samples.git
+https://github.com/gladiaio/docs.git
+https://github.com/gladiaio/compare-stt.git
+https://github.com/gladiaio/skills.git
+https://github.com/gladiaio/gladia-cli.git
+https://github.com/gladiaio/sdk.git
+https://github.com/gladiaio/n8n-nodes-gladia.git
+https://github.com/gladiaio/vercel-ai.git
+https://github.com/gladiaio/gladia-quiz-app.git
 [0m
 [0m→ [0mRead reposcan-raw/grep-hits.txt
-[0m→ [0mRead reposcan-raw/grep-delta.txt
 [0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
 [0m
-[0m$ [0mcat reposcan-raw/grep-hits.txt | wc -l; cat reposcan-raw/grep-hits.prev.txt | wc -l; diff -u reposcan-raw/grep-hits.prev.txt reposcan-raw/grep-hits.txt || true; echo "--- rag ---"; cat reposcan-raw/rag.txt | head -n 150
-61
-61
+[0m$ [0mcat reposcan-raw/grep-hits.prev.txt 2>/dev/null | head -n 100; echo "---PREV LEN---"; wc -l reposcan-raw/grep-hits.prev.txt reposcan-raw/grep-hits.txt; echo "---"; cat reposcan-raw/rag.txt 2>/dev/null | head -n 500
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_075e7fcba001Bw14RgnnwPVzjl
+
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 34th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, OPTIONS 204 x-powered-by=Express + ACAO `*`, GET 401 xpb absent — surface frozen.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection alive fresh; CSP full set re-captured (connect-src incl. *.gladia.io + wss://*.gladia.io + google/hotjar/contentsquare/hubspot/axeptio; script-src nonce+strict-dynamic; object-src 'none'; base-uri 'self') — NO form-action directive; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — dist-tag latest=0.1.3, shasum `cc96f84a…` unchanged, repo+user alexisbouchez 404, @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 35th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 200/530B FR/US, /v2/pre-recorded 401 xpb absent, signin reflection 200/27448B — surface frozen.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; CSP lacks form-action directive; OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — shasum `cc96f84a…` + integrity sha512-56NW… unchanged, dist-tag latest=0.1.3 persists, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 27+ cycles — surface frozen at openapi 125131B/14 paths, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static wildcard
+- 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, repo+user alexisbouchez 404 (orphaned), dist-tag latest=0.1.3 persists, src/client.ts:306–308 embeds raw key in wss:// URL query
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 36th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B FR/US, /v2/pre-recorded 401/144 xpb absent — surface frozen.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — latest=0.1.3, shasum cc96f84a… + integrity sha512-56NW… unchanged, repo alexisbouchez/gladia.ts 404, maintainer softwarecitadel@gmail.com, @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: fresh 10:27 UTC probe byte-identical to all 25+ prior cycles (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR+US, OPTIONS `x-powered-by: Express`+ACAO `*`+ACAH `x-gladia-key`, POST/GET 401 NestJS HttpException `{"timestamp":"2026-08-09T10:27:35.399Z","request_id":"G-61124279"}` xpb absent) — surface frozen, drift-negative across 30+ cycles
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard 200 SPA shell + CSP full-set re-captured fresh — connect-src `*.gladia.io`+wss+`*.google.*`, script-src nonce+strict-dynamic, object-src 'none', base-uri 'self', **NO form-action directive** — CSP gap persists (enables /signin action reflection)
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` reflection confirmed byte-fresh — no host allowlist at unauth layer; OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_config.url `format:uri` NO scheme allowlist; /v1/models confirms FR+US egress; /openapi.json OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.* + live.*) to client-supplied URLs — SSRF-by-design server-side fetch + callback delivery, key sole gate
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: per-instance codegen fingerprint falsified — example timestamps vary per fetch (10:27:35 / 10:27:35 / prior 25.976/32.264/26.548Z), dynamic `timestamp`+`request_id` are deploy-request artifacts not instance identity; structural hash the only stable baseline
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation re-verified fresh — npm view confirms latest=0.1.3, description "Official TypeScript SDK for Gladia", repo `git+https://github.com/alexisbouchez/gladia.ts.git`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`; GitHub API 404 on both repo + user `alexisbouchez` — orphaned; RAG confirms src/client.ts:306–308 raw key-in-wss URL; @gladiaio/sdk@1.1.0 / gladiaio-sdk@1.0.5 official static
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 37th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B FR/US, OPTIONS 204 x-powered-by=Express + ACAO `*` + ACAH x-gladia-key, GET 401 xpb absent — surface frozen.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; CSP form-action directive still absent; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: CSP frame-src embeds out-of-scope third parties (svix.com, hyperline.co, billing.gladia.io/portal) — infra fingerprint only, no action.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 37+ cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (37th cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models confirms FR/US egress; POST /v2/pre-recorded 401 NestJS shape — key-gated only
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 38th cycle (fresh probes this cycle) — openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B FR/US, POST 401 xpb absent vs OPTIONS 204 x-powered-by=Express + ACAO `*` + ACAH x-gladia-key — surface frozen.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation stable — latest=0.1.3, shasum `cc96f84a…` unchanged, repo alexisbouchez/gladia.ts 404, maintainer softwarecitadel@gmail.com, @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 38+ cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-09 ACCEPTED AUTH @ app.gladia.io: /auth/google/callback now 302 → accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state parameter — OAuth initiation flow live and complete (previously 200 SPA shell)
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 39th cycle (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered-by on GET, /v1/models 530B FR+US, preflight-only `x-powered-by: Express` on OPTIONS only, POST/GET 401 NestJS HttpException — surface frozen
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`; CSP lacks form-action directive; OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (39th cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+US egress; POST /v2/pre-recorded 401 NestJS shape — key-gated only, SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/client.ts:307 raw x-gladia-key in wss:// URL query; @gladiaio/sdk@1.1.0 official static — PASSIVE complete
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 39+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered-by on GET, /v1/models 530B FR+US, preflight-only `x-powered-by: Express` on OPTIONS only, POST/GET 401 NestJS HttpException — surface frozen
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/client.ts:307 embeds raw x-gladia-key in wss:// URL query; @gladiaio/sdk@1.1.0 official static — PASSIVE complete
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 41st cycle (23:08→15:31 UTC) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 reflection byte-fresh (15:31 UTC) — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`; CSP re-captured, NO form-action directive confirmed (base-uri 'self', object-src 'none', frame-src allowlist); OAuth redirect_uri FIXED prevents code/state theft; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh (15:31 UTC) — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, repo+user alexisbouchez 404, GitHub API 404 confirmed, @gladiaio/sdk@1.1.0 official (repo gladiaio/sdk) static.
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models confirms FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only, SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-09 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT 41th cycle (23:08→15:31 UTC) — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR+US egress, preflight-only x-powered-by: Express, CORS static wildcard, key-gated v2 401 NestJS — surface frozen.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection byte-fresh 15:31 UTC — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`; CSP full-set re-captured, NO form-action directive (base-uri 'self', object-src 'none', frame-src allowlist, script-src nonce+strict-dynamic) — gap confirmed; OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED AUTH @ app.gladia.io: /auth/google/callback 302→accounts.google.com with PKCE S256, fixed redirect_uri=https://app.gladia.io/auth/google/callback, state, access_type=offline — full OAuth initiation live; redirect_to cannot influence redirect_uri.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation byte-fresh 15:31 UTC — dist-tag latest=0.1.3, shasum cc96f84a… unchanged, repo+user alexisbouchez 404 (orphaned), src/client.ts:307 raw x-gladia-key in wss:// URL query; @gladiaio/sdk@1.1.0 confirmed official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 41+ cycles (23:08→current) — openapi 125131B/14 paths/7 webhooks, /health `{"health":"OK"}` 15B no x-powered-by on GET, /v1/models 530B FR+US, preflight-only `x-powered-by: Express` on OPTIONS only, POST/GET 401 NestJS HttpException — surface frozen
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (41st cycle) — audio_url/video_url/callback_config.url `format:uri` no scheme allowlist; /v1/models confirms FR+US egress; POST /v2/pre-recorded 401 NestJS shape — key-gated only, SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 43rd cycle (fresh probes byte-identical) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection alive byte-fresh — form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` (200/27448B), 0 form-action occurrences; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation unchanged — latest=0.1.3, shasum `cc96f84a…`, repo alexisbouchez/gladia.ts 404, maintainer softwarecitadel@gmail.com; @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 44th cycle (fresh probes byte-identical) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation unchanged — latest=0.1.3, shasum `cc96f84a…`, repo alexisbouchez/gladia.ts + user 404, maintainer softwarecitadel@gmail.com; @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 45th cycle (fresh probes byte-identical 17:58–17:59 UTC) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: RAG complete — `package/src/client.ts:306–308` confirmed (not just line 307): URL is constructed as `new URL(\`${this.baseUrl}/v2/live\`)` → `.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())`; compiled `dist/gladia.cjs.development.js:826–827,838` mirrors identical logic. The query param name is `x-gladia-key` (not `token` per earlier hypothesis wording — corrected).
+- 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: README.md header = "# Gladia TypeScript SDK" with body "Unofficial TypeScript SDK for Gladia"; package.json description = "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API"; author field in package.json = `softwarecitadel`; GitHub user+repo both 404 — orphaned.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh (19:xx UTC) — openapi 200/125131B/14 paths/7 webhooks/single server; /health 15B; /v1/models 530B; OPTIONS `x-powered-by: Express` + CORS `*` + ACAH `x-gladia-key`; POST/GET 401 NestJS — surface frozen across 25+ cycles.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed fresh (200, form action reflected URL-encoded); CSP full-set re-captured — **0 form-action directives** confirmed; /auth/google/callback → 302 accounts.google.com (PKCE S256, fixed redirect_uri) — OAuth redirect_uri-injection class remains REJECTED.
+- 2026-08-09 REJECTED MISCONFIG @ app.gladia.io: return-to cookie tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles).
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` 404, src/client.ts:306–308 embeds raw x-gladia-key in wss:// URL query; @gladiaio/sdk@1.1.0 official static — PASSIVE complete
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed fresh (18:04 UTC probe — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR+US, OPTIONS x-powered-by:Express vs GET/POST 401 absent, CORS static `*`) — surface frozen across 30+ cycles.
+- 2026-08-09 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri=https://app.gladia.io/auth/google/callback prevents code/state theft (PKCE S256 confirmed; /auth/google/callback live).
+- 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation byte-fresh (repo+user alexisbouchez 404 at 18:04 UTC; sha256 3b23…7f2; dist-shasum cc96f84a… stable; src/client.ts:306–308 raw x-gladia-key in wss:// URL query).
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/CallbackConfig.url format:uri no scheme allowlist; /v1/models FR+US egress; POST 401 key-gated NestJS (AUTH_HELPED) — SSRF-by-design persists.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection alive fresh (form action reflects URL-encoded value, no host allowlist; CSP lacks form-action; OAuth redirect_uri FIXED) — post-auth honoring the sole unverified gate.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 18:04 UTC — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by:Express, CORS static `*` — frozen 30+ cycles.
+- 2026-08-09 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — FIXED redirect_uri=https://app.gladia.io/auth/google/callback prevents code/state theft.
+- 2026-08-09 REJECTED MISCONFIG @ app.gladia.io: return-to cookie tamper-reset to {"url":"/"} — not an open redirect.
+- 2026-08-09 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation byte-fresh (repo+user 404 @ 18:04 UTC; sha256 `3b23…7f2`; src/client.ts:306–308 raw key in wss URL).
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen — audio_url/video_url/callback_url/webhooks format:uri no allowlist; /v1/models FR+US egress; POST 401 key-gated (AUTH_HELPED).
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection alive — CSP gap (no form-action); OAuth redirect_uri FIXED; post-auth honoring unverified.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-verified fresh this cycle (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B) — 45+ cycles frozen, no new endpoints or headers.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`) — no host allowlist at unauth layer; CSP form-action still absent; post-auth honoring sole unverified gate.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT re-verified fresh this cycle (openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, signin 27448B) — 45+ cycles frozen, no new endpoints or headers.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 46th cycle confirmed fresh (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST /v2/pre-recorded 401/144 xpb absent, OPTIONS 204 xpb=Express + ACAO `*` + ACAH x-gladia-key) — surface frozen, no new endpoints or headers.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`) — no host allowlist at unauth layer; 0 form-action occurrences re-verified; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia`@0.1.3: orphaned impersonation byte-fresh — `npm view` confirms shasum `cc96f84a…`, description "Official", repo alexisbouchez/gladia.ts + user 404 (orphaned), dist-tag latest=0.1.3; @gladiaio/sdk@1.1.0 official static.
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: `/auth/google/callback?code=fake123&state=abc` → HTTP 500 with generic SPA error page "Unexpected Server Error" (sha256 `f02d99016f3e1e574798cf69890efb4e808125d98bd5fce1bb98956ed9ed91dd`) — no stack trace, no file path, no internal detail leak (React Server Components error boundary)
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie (`oauth2:<uuid>=…`) set with `HttpOnly; SameSite=Lax` but **no `Secure` flag** — HSTS preload (`max-age=31536000; includeSubDomains; preload`) mitigates to informational; cookie name uses UUID per-request (fresh per probe: `e1bc044d-de04-4c1d-981e-d8274fd54789`)
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 45+ cycles (23:08→21:58 UTC) — openapi 125131B/14 paths/7 webhooks/1 server, /health `{"health":"OK"}` 15B, /v1/models 530B FR/US, preflight-only `x-powered-by: Express` (OPTIONS 204, GET/POST 401 absent), CORS static `*`, POST/GET 401 NestJS HttpException — surface frozen
+- 2026-08-09 ACCEPTED OAUTH @ app.gladia.io: `/auth/google/callback` (no params) → 302 → `accounts.google.com/o/oauth2/v2/auth` with client_id `352060113328-fnk8shoffbkh10imc3adc5lllclv21ha.apps.googleusercontent.com`, `response_type=code`, `redirect_uri=FIXED https://app.gladia.io/auth/google/callback`, `code_challenge_method=S256` (PKCE), `code_challenge=qtJEB…`, `scope=openid+email+profile`, `access_type=offline`, `prompt=consent`, random `state=W2ExgZPE…` — full OAuth initiation confirmed fresh 21:57 UTC
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: `/signin?redirect_to=https://evil.example.com` → 200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com` reflection confirmed byte-fresh 21:57 UTC; CSP full-set re-captured (connect-src incl. *.gladia.io + wss + *.google.*, script-src nonce+strict-dynamic, object-src 'none', base-uri 'self', **0 form-action directives**); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — dist-tag latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; GitHub user `alexisbouchez` + repo `alexisbouchez/gladia.ts` both 404 (orphaned, irrevocable takeover risk); RAG confirms `package/src/client.ts:306–308` + `dist/gladia.cjs.development.js:826–838`: `new URL(`${baseUrl}/v2/live`)` → `.searchParams.append('x-gladia-key', apiKey)` → `new WebSocket(wsUrl.toString())`; package.json description "Official" vs README.md "Unofficial TypeScript SDK" contradiction; diverges from official `@gladiaio/sdk@1.1.0` POST /v2/live → token-from-response → wss?token=<uuid> flow; PASSIVE complete, report-ready
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 47th cycle confirmed byte-fresh (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST /v2/pre-recorded 401/144 xpb absent, OPTIONS 204 xpb=Express + ACAO `*` + ACAH `x-gladia-key`) — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (200/27448B, form action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`); /auth/google/callback 302→accounts.google.com OAuth initiation live; post-auth honoring sole unverified gate.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — description "Official", repo+user alexisbouchez 404, dist-tag latest=0.1.3; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: 50th NO_DRIFT cycle confirmed fresh 22:39 UTC — openapi 200/125131B/14 paths/7 webhooks/single server, /health `{"health":"OK"}` 15B (x-powered-by ABSENT on GET), /v1/models 200/530B FR/US, OPTIONS 204 x-powered-by:Express + ACAO `*` + ACAH x-gladia-key, POST 401 NestJS `{"message":"no gladia key provided","request_id":"G-3cbc2c9d"}` — surface frozen
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed byte-fresh 22:39 UTC (action=`/signin?redirect_to=https%3A%2F%2Fevil.example.com`, 200/27448B); CSP 0 form-action directives confirmed; OAuth redirect_uri FIXED (PKCE S256) prevents code/state theft; return-to cookie tamper-reset REJECTED — post-auth honoring sole unverified gate
+- 2026-08-09 ACCEPTED AUTH @ app.gladia.io: /auth/google/callback → 302 to accounts.google.com with client_id `3520…21ha`, response_type=code, redirect_uri=FIXED https://app.gladia.io/auth/google/callback, code_challenge_method=S256, scope=openid+email+profile, access_type=offline, prompt=consent, random state — full OAuth 2.0 PKCE initiation confirmed fresh 22:13 UTC
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 (14324B) generic SPA "Unexpected Server Error" page — React Server Components error boundary, no stack trace, no file path, no internal detail leak
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: oauth2 state cookie set `HttpOnly; SameSite=Lax` but no `Secure` flag — HSTS preload mitigates to informational; cookie name uses UUID per-request (fresh per probe)
+- 2026-08-09 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key enumerates 7 outbound topics (transcription.created/success/error + live.start_session/start_recording/end_recording/end_session) posting to client-supplied URLs — reinforces callback-delivery SSRF surface (no scheme allowlist)
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: /openapi.json `servers` array single entry https://api.gladia.io only — no staging/alternate host leakage (confirmed fresh)
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, repo+user `alexisbouchez` both 404, README↔package.json "Official/Unofficial" contradiction, src/client.ts:306-308 appends raw `x-gladia-key` to wss:// URL query; @gladiaio/sdk@1.1.0 official static
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: audio_url is plain string with no format/scheme validation in /audio/text/audio-transcription (not `format:uri` as in /v2/endpoints) — still no scheme allowlist, SSRF-by-design confirmed
+- 2026-08-09 REJECTED MISCONFIG @ reposcan: grep-delta "0 new hit lines"; analysis.txt verdict: 0 reportable findings, sole anomaly (gladia@0.1.3) stable and already ACCEPTED — no new supply-chain risk this cycle
+- 2026-08-09 ACCEPTED MISCONFIG @ app.gladia.io: `/auth/google/callback?code=fake123&state=abc` → HTTP 500 with generic SPA error page "Unexpected Server Error" (sha256 `f02d99016f3e1e574798cf69890efb4e808125d98bd5fce1bb98956ed9ed91dd`) — React Server Components error boundary, no stack trace, no file path, no internal detail leak
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: /v1/models (530B) leaks FR+US datacenter region labels but is not an endpoint-path or new surface — confirmed informational, not a finding class
+- 2026-08-09 REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 returns ONLY generic SPA "Unexpected Server Error" page (sha256 f02d9901…, 14324B) — no stack trace, no file path, no internal detail leak → not a vuln class, informational MISCONFIG accepted
+- 2026-08-09 REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie (`oauth2:<uuid>`) lacks Secure flag but HSTS preload (max-age=31536000; includeSubDomains; preload) makes HTTP downgrade infeasible → not a reportable vuln, informational only
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= unauthenticated reflection into form action confirmed byte-fresh (50th+ cycle) — 0 form-action directives in CSP (gap confirmed, not oversight) — post-auth honoring remains AUTH_HELPED/HUMAN_ONLY gate
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url format:uri no scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; key sole gate (AUTH_HELPED) — SSRF-by-design surface persists, not yet active-tested
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — sha256 3b23ec7d…7f2, shasum cc96f84a…, repo+user alexisbouchez 404, src/client.ts:306-308 embeds raw x-gladia-key in wss:// URL query — PASSIVE complete, report-ready (P3/P4)
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 51st cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST /v2/pre-recorded 401/144 xpb absent, OPTIONS 204 xpb=Express + ACAO `*` + ACAH `x-gladia-key`) — surface frozen, nothing new.
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` unchanged, repo+user alexisbouchez 404, dist-tag latest=0.1.3; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-09 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 50+ cycles (23:08→23:39 UTC) — openapi 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B FR/US, preflight-only `x-powered-by: Express`, CORS static `*`+ACAH x-gladia-key — surface frozen, 0 new endpoints/headers
+- 2026-08-09 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com → 200 (form action reflects URL-encoded value, 0 form-action directives in CSP, byte-fresh 50th+ cycle) — unauthenticated reflection confirmed; OAuth redirect_uri FIXED prevents code/state theft; post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-09 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST 401 NestJS key-gated — SSRF-by-design surface persists, AUTH_HELPED
+- 2026-08-09 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh — `npm view` dist-tag.latest=0.1.3, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` (tarball hash match confirmed), GitHub user+repo 404 (orphaned), src/client.ts:307 appends raw `x-gladia-key` to wss:// URL query via `searchParams.append` + `new WebSocket(wsUrl.toString())` (tarball-inspected), README "Unofficial" vs package.json "Official" contradiction confirmed — PASSIVE complete, report-ready (P3/P4)
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh at 23:47 UTC — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — **report-ready, portal submission pending**
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; **post-auth honoring is sole unverified gate (HUMAN_ONLY)**
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 53rd cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST 401/144 NestJS key-gated, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` unchanged, repo+user alexisbouchez 404, dist-tag latest=0.1.3; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST 401 NestJS key-gated — SSRF-by-design surface persists, AUTH_HELPED
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static & byte-fresh — dist-tag latest=0.1.3, sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, repo+user alexisbouchez 404, README↔package.json "Unofficial/Official" contradiction, src/client.ts:306-308 raw key in wss:// URL query — report-ready
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh across 50+ cycles — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — **report-ready, portal submission pending**
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 54th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST 401/144 NestJS key-gated, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` unchanged, dist-tag latest=0.1.3, repo+user alexisbouchez 404; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed this cycle (28th+ cycle) — /openapi.json 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by: Express (OPTIONS 204, GET/POST 401 absent), CORS static `*`, POST 401 144B NestJS HttpException — surface frozen, no new endpoints/headers
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh confirmed this cycle — sha256 `3b23ec7d…7f2`, shasum `cc96f84a…`, dist-tag latest=0.1.3, repo+user alexisbouchez 404, src/client.ts:306–308 raw key in wss:// URL query — report-ready
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection byte-fresh confirmed (200/27448B, form action reflects URL-encoded value, 0 form-action directives in CSP); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; /auth/google/callback 302→accounts.google.com PKCE confirmed; post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, POST 401/144 NestJS key-gated, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404; @gladiaio/sdk@1.1.0 official clean (fresh this cycle).
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh this cycle — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — **report-ready, portal submission pending**
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed 54+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, no new endpoints/headers
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring is sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 56th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v1/models 530B, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404, reposcan 08:18 617 hits all benign (TEST_OR_EXAMPLE/ENDPOINT_LEAK, no hardcoded keys); @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation confirmed byte-fresh at 23:47 UTC this cycle — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 3b23ec7d…7f2 verified, client.ts:306-308 RAG complete — report-ready
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles (23:08→23:47 UTC) — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: /openapi.json `servers` array enumerates single entry https://api.gladia.io only — no staging/alternate host leakage confirmed this cycle
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed byte-fresh — form action reflects URL-encoded value (0 form-action directives in CSP gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 ACCEPTED AUTH @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → 500 generic SPA "Unexpected Server Error" page (no stack trace, no file path, no internal detail leak) — React Server Components error boundary confirmed this cycle
+- 2026-08-10 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive — CSP gap confirmed (not an oversight)
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 verified, client.ts:306-308 RAG complete — report-ready
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 57th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v1/models 530B, signin 27448B reflection) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation static — dist-tag latest=0.1.3, description "Official", repo+user alexisbouchez 404; @gladiaio/sdk@1.1.0 official clean.
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — report-ready, portal submission pending.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 55+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 58th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v1/models 530B, signin 27448B reflection sha256 `378be5…`) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (1 match, 0 form-action directives in CSP) — unauth reflection persists, post-auth honoring still HUMAN_ONLY.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed this cycle — OpenAPI 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B FR+US, OPTIONS 204 x-powered-by=Express + ACAO `*` + ACAH x-gladia-key, GET/POST 401 NestJS HttpException — surface frozen, all header/byte observations match prior cycles
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh confirmed — dist-tag latest=0.1.3, repo+user alexisbouchez both 404 (irrevocable), sha256 3b23ec7d…7f2, README↔package.json "Unofficial/Official" contradiction, src/client.ts:307 `searchParams.append('x-gladia-key', apiKey)` + `new WebSocket(wsUrl.toString())` — report-ready, PASSIVE complete, evidence package locked
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh confirmed (200/27448B, form action reflects URL-encoded value, 0 CSP form-action directives); OAuth redirect_uri FIXED prevents code/state theft — post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen this cycle — audio_url/video_url/callback_config.url format:uri/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models 530B FR/US egress; POST /v2/pre-recorded 401 NestJS — SSRF-by-design surface persists (AUTH_HELPED)
+- 2026-08-10 REJECTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA error page (sha256 f02d9901…) — no stack trace, no file path, no internal detail leak (informational only, not a vuln class)
+- 2026-08-10 REJECTED MISCONFIG @ app.gladia.io: oauth2 state cookie missing Secure flag — HSTS preload (max-age=31536000; includeSubDomains; preload) mitigates HTTP downgrade; informational only
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50th+ cycle) — audio_url/video_url/callback_config.url `format:uri`/plain string NO scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh — 0 form-action directives in CSP (gap confirmed); OAuth redirect_uri FIXED prevents code theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY).
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3 static, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2` verified, client.ts:306-308 RAG complete — report-ready, portal submission pending.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation confirmed byte-fresh — dist-tag latest=0.1.3, repo+user alexisbouchez both 404 (irrevocable), sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad6ed9ed91dd` tarball hash verified, package.json description "Official" vs README "# Unofficial TypeScript SDK" contradiction confirmed, src/client.ts:306-308 `new URL(`${this.baseUrl}/v2/live`)` → `.searchParams.append('x-gladia-key', this.apiKey)` → `new WebSocket(wsUrl.toString())` — key exposed in wss:// URL query; diverges from official @gladiaio/sdk POST /v2/live → token-from-response → wss?token=<uuid> flow; PASSIVE complete, evidence package verified
+- 2026-08-10 ACCEPTED MISCONFIG @ api.gladia.io: OpenAPI 3.1 `webhooks` key confirmed with 7 outbound topics (transcription.{created,success,error} + live.{start_session,start_recording,end_recording,end_session}) — all POST to client-supplied CallbackConfig.url with `format:uri` + no scheme allowlist; reinforces SSRF-by-design callback delivery surface; 14 paths + 1 server confirmed, NO_DRIFT across 50+ cycles
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec frozen (50+ cycles) — audio_url (plain string) + video_url (plain string) + callback_url/CallbackConfig.url (format:uri) all have NO scheme/allowlist; /v1/models (530B public, security:null) confirms FR+US egress; POST /v2/pre-recorded (no key) → 401 NestJS {"message":"no gladia key provided"} — key sole gate, SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (200/27448B, form action reflects URL-encoded value); CSP has 0 form-action directives (confirmed via grep-count=0); OAuth /auth/google/callback → 302 → accounts.google.com with PKCE S256 + FIXED redirect_uri=google callback (prevents OAuth redirect_uri injection); return-to cookie tamper → server resets to {"url":"/"} (REJECTED open-redirect); post-auth honoring remains HUMAN_ONLY gate
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: openapi.json `servers` array single entry https://api.gladia.io only — no staging/alt host leakage confirmed
+- 2026-08-10 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} on tamper
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 58+ cycles — surface frozen at openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60th cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B `{"health":"OK"}`, /v1/models 530B, signin 27448B reflection, OPTIONS 204 xpb=Express+ACAO `*`+ACAH x-gladia-key, POST 401/144) — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection byte-fresh (200/27448B, form action reflects URL-encoded value, 0 form-action directives in CSP) — unauth reflection persists, post-auth honoring still HUMAN_ONLY.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: orphaned impersonation byte-fresh (dist-tag latest=0.1.3, description "Official", repo alexisbouchez/gladia.ts 404, shasum `cc96f84a…`) — report-ready, submission pending.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT fresh 58th cycle — openapi 200/125131B/14 paths/7 webhooks/single server, /health 200/15B, /v1/models 200/530B, preflight `x-powered-by: Express` (OPTIONS 204, GET/POST 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new.
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: RAG complete — official `@gladiaio/sdk@1.1.0` WebSocket flow = POST /v2/live (x-gladia-key as header) → `LiveV2InitResponse.url` = `wss://…?token=<uuid>` (temp token) → WebSocket(session.url); impersonator `src/client.ts:306-318` embeds raw API key in wss:// URL query; sha256 `3b23ec7d…7f2` + shasum `cc96f84a…` verified; repo+user alexisbouchez 404 (orphaned) — report-ready, evidence package locked.
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin redirect_to reflection byte-fresh (200/27448B, form action reflects URL-encoded value, 0 CSP form-action directives); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY).
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT confirmed across 50+ cycles (23:08 2026-08-07 → 23:47 2026-08-10 UTC) — OpenAPI 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static `*` + ACAH x-gladia-key — surface frozen
+- 2026-08-10 ACCEPTED OTHER @ npm `gladia@0.1.3`: impersonation evidence package LOCKED — local npm pack confirms tarball sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2; src/client.ts:288-318 (createRealTimeTranscription → searchParams.append('x-gladia-key', apiKey) → new WebSocket) confirmed key-in-WSS-URL; dist/gladia.cjs.development.js:826-838 mirrors identical logic; GitHub user+repo alexisbouchez 404 (orphaned); package.json "Official" vs README "Unofficial" contradiction; official @gladiaio/sdk@1.1.0 verified (sha256 b1b1be92…, secure POST→token flow)
+- 2026-08-10 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed byte-fresh at 23:47 UTC — form action reflects URL-encoded value; CSP 0 form-action directives (grep-count=0 confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate (HUMAN_ONLY)
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (50+ cycles) — audio_url/video_url/callback_url/CallbackConfig.url format:uri NO scheme allowlist; /v1/models confirms FR+US egress; 7 webhook delivery paths; POST /v2/pre-recorded 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED)
+- 2026-08-10 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback with PKCE S256; no code/state theft path (re-confirmed)
+- 2026-08-10 REJECTED AUTH @ app.gladia.io: return-to cookie (unsigned base64url JSON {"url":"/"}) tampering does NOT yield open redirect — server resets to {"url":"/"} (tamper-reset confirmed multiple cycles)
+- 2026-08-10 ACCEPTED MISCONFIG @ app.gladia.io: /auth/google/callback?code=fake123&state=abc → HTTP 500 generic SPA "Unexpected Server Error" (sha256 f02d99016f3e1e574798cf69890efb4e808125d98bd5fce1bb98956ed9ed91dd) — React Server Components error boundary, no stack trace/path/detail leak (informational)
+- 2026-08-10 ACCEPTED OTHER @ npm: `gladia@0.1.3` orphaned impersonation — dist-tag latest=0.1.3, repo+user alexisbouchez 404 (irrevocable), sha256 `3b23ec7d…7f2`, src/client.ts:306–308 raw key in wss URL query — report-ready, portal submission pending.
+- 2026-08-10 ACCEPTED SSRF @ api.gladia.io: spec+RAG frozen (60+ cycles) — audio_url/video_url/callback_config.url no scheme allowlist; 7 webhook delivery paths; /v1/models FR/US egress; POST 401 NestJS key-gated — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 60+ cycles — openapi 125131B/14 paths/7 webhooks, /health 15B, /v1/models 530B, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key.
+- 2026-08-10 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT 61st cycle byte-identical (openapi 200/125131B/14 paths/7 webhooks/single server, /health 15B, /v1/models 530B, signin 27448B reflection, OPTIONS 204 xpb=Express+ACAO `*`+ACAH x-gladia-key, POST 401/144 NestJS `request_id G-18e9c89f`) — surface frozen, nothing new.
+- 2026-08-10 CONFIRMED NO_DRIFT @ api.gladia.io (50th+ cycle, 2026-08-10 23:xx UTC) — openapi 125131B/14 paths/7 webhooks/1 server, /health 15B, /v1/models 530B FR/US, OPTIONS x-powered-by:Express vs GET/POST 401 absent, CORS static `*`, signin 27448B reflection — surface frozen, nothing new.
+[0m
+[0m$ [0mcat reposcan-raw/grep-hits.txt | wc -l; echo "---"; head -n 20 reposcan-raw/grep-hits.txt; echo "..."; cat reposcan-raw/npm/* 2>/dev/null | head -n 100; echo "---NPM DIR---"; ls -R reposcan-raw/npm 2>/dev/null | head -n 50
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_075e80d8a001rw4ROtlu7ZGV4u
+
+reposcan-raw/npm:
+_gladiaio_sdk.json
+gladia.json
+[0m
+[0m→ [0mRead scope.yml
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m→ [0mRead reposcan-raw/npm/_gladiaio_sdk.json
+[0m
+[0m$ [0mcat reposcan-raw/grep-hits.txt 2>/dev/null | grep -i -E "key|secret|token|password|api_key|gladia_key|aws|sk-|ghp|Bearer" | head -n 100; echo "---FULL HIT COUNTS---"; wc -l reposcan-raw/grep-hits.txt; cat reposcan-raw/grep-hits.txt | grep -c "sk-"; echo "---READ SOME FILES WITH POTENTIAL SECRETS---"; ls reposcan-raw/gladiaio/sdk/packages/sdk-js/src 2>/dev/null | head -n 20; grep -R "apiKey\|x-gladia-key\|GLADIA_API_KEY" reposcan-raw/gladiaio --include="*.ts" --include="*.py" --include="*.go" | head -n 50
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14: envGladiaAPIKey = "GLADIA_API_KEY"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:25: func SaveGladiaKeyToFile(gladiaKey string) error {
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23: rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
+---FULL HIT COUNTS---
+61 reposcan-raw/grep-hits.txt
+1
+---READ SOME FILES WITH POTENTIAL SECRETS---
+client.test.ts
+client.ts
+helpers.ts
+index.ts
+internal_types.ts
+network
+types.ts
+v2
+version.ts
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:      apiKey: null,
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:      apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.ts:  | { ok: true; apiKey: string | null }
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.ts:    return { ok: true, apiKey: await invokeApiKey() };
+reposcan-raw/gladiaio/gladiaflow/src/types.ts:  apiKey: string;
+reposcan-raw/gladiaio/gladiaflow/src/types.ts:  apiKeySet: boolean;
+reposcan-raw/gladiaio/gladia-cli/cmd/config_test.go:	for _, part := range []string{"GLADIA_API_KEY", "gladia auth set", "app.gladia.io"} {
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:	envGladiaAPIKey = "GLADIA_API_KEY"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:// ResolveAPIKey returns a key from GLADIA_API_KEY, then ~/.gladia, then flagKey.
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:  • export GLADIA_API_KEY=<your-key>
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:	rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
+reposcan-raw/gladiaio/gladia-cli/pkg/client/client.go:func NewGladiaClient(apiKey string, verbose bool, cliVersion string) *GladiaClient {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/client.go:		ApiKey:         apiKey,
+reposcan-raw/gladiaio/gladia-cli/pkg/client/client.go:	req.Header.Set("x-gladia-key", c.ApiKey)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:		if r.Header.Get("x-gladia-key") != "secret" {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:			t.Fatalf("api key header = %q", r.Header.Get("x-gladia-key"))
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:  const apiKeyRef = useRef<string | null>(null);
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:    apiKeyRef.current = getStoredApiKey();
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:    const apiKey = apiKeyRef.current || getStoredApiKey();
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:    if (!apiKey) {
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:    if (apiKey.length < 10) {
+reposcan-raw/gladiaio/gladia-quiz-app/hooks/useGladiaTranscription.ts:      const gladia = createGladiaClient(apiKey);
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:  return localStorage.getItem(GLADIA_API_KEY_STORAGE);
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:  localStorage.removeItem(GLADIA_API_KEY_STORAGE);
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:export function createGladiaClient(apiKey: string) {
+reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:      const client = new (window as any).Gladia.GladiaClient({ apiKey });
+reposcan-raw/gladiaio/gladia-quiz-app/lib/openai.ts:  apiKey: process.env.OPENAI_API_KEY,
+reposcan-raw/gladiaio/n8n-nodes-gladia/credentials/GladiaApi.credentials.ts:			name: 'apiKey',
+reposcan-raw/gladiaio/n8n-nodes-gladia/credentials/GladiaApi.credentials.ts:				'x-gladia-key': '={{$credentials.apiKey}}',
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/openai/route.ts:  const apiKey = process.env.OPENAI_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/openai/route.ts:  if (!apiKey) {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/openai/route.ts:          Authorization: `Bearer ${apiKey}`,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/azure/route.ts:  const apiKey = process.env.AZURE_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/azure/route.ts:  if (!apiKey) {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/download-container-file/azure/route.ts:          Authorization: `Bearer ${apiKey}`,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic/[file]/route.ts:  const apiKey = process.env.ANTHROPIC_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic/[file]/route.ts:  if (!apiKey) {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic/[file]/route.ts:      'x-api-key': apiKey,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic/[file]/route.ts:      'x-api-key': apiKey,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic-microsoft/[file]/route.ts:  const apiKey = process.env.ANTHROPIC_MICROSOFT_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic-microsoft/[file]/route.ts:  if (!resourceName || !apiKey) {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic-microsoft/[file]/route.ts:      'x-api-key': apiKey,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/code-execution-files/anthropic-microsoft/[file]/route.ts:      'x-api-key': apiKey,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/agent/anthropic/microsoft-agent.ts:  const apiKey = process.env.ANTHROPIC_MICROSOFT_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/agent/anthropic/microsoft-agent.ts:  if (!resourceName || !apiKey) {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/agent/anthropic/microsoft-agent.ts:    apiKey,
+reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/lib/google-managed-agents.ts:function getApiKey(apiKey?: string): string {
+reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/lib/google-managed-agents.ts:  const key = apiKey ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/lib/google-managed-agents.ts:      'Missing API key. Set GOOGLE_GENERATIVE_AI_API_KEY or pass apiKey explicitly.',
+[0m
+[0m$ [0mcat reposcan-raw/grep-hits.txt
+SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2: "name": "gladia",
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:7: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:2: "name": "gladia-plugins",
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:5: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:12: "name": "gladia",
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21: JS_VERSION=$(curl -sf https://registry.npmjs.org/@gladiaio/sdk/latest | jq -r '.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22: PY_VERSION=$(curl -sf https://pypi.org/pypi/gladiaio-sdk/json | jq -r '.info.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:29: FILE="plugins/gladia/skills/gladia-sdk-integration/references/sdk-versions.md"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:7: - "plugins/gladia/skills/**"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:18: root: plugins/gladia/skills
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:20: owner: gladiaio
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21: INDEX=$(curl -sf https://docs.gladia.io/.well-known/agent-skills/index.json)
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:28: SKILL_FILE="plugins/gladia/skills/gladia-documentation-auto/SKILL.md"
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:50: curl -sf https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md -o /tmp/skill-raw.md
+reposcan-raw/gladiaio/normalization/pyproject.toml:2: name = "gladia-normalization"
+reposcan-raw/gladiaio/normalization/pyproject.toml:6: authors = [{ name = "Gladia", email = "support@gladia.io" }]
+reposcan-raw/gladiaio/normalization/pyproject.toml:37: gladia-normalization = "normalization.cli:main"
+reposcan-raw/gladiaio/normalization/normalization/cli.py:41: default="gladia-3",
+reposcan-raw/gladiaio/normalization/normalization/cli.py:43: help="Built-in preset name or path to a YAML file (default: gladia-3).",
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
+reposcan-raw/gladiaio/normalization/normalization/presets/gladia-3.yaml:1: name: gladia-3
+reposcan-raw/gladiaio/normalization/normalization/pipeline/loader.py:36: - A preset name (e.g. ``"gladia-3"``): loads the corresponding YAML from
+reposcan-raw/gladiaio/gladia-cli/install.sh:4: REPO="gladiaio/gladia-cli"
+reposcan-raw/gladiaio/gladia-cli/install.sh:5: BINARY="gladia"
+reposcan-raw/gladiaio/gladia-cli/install.sh:64: gladia_bin() {
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:3: project_name: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:11: binary: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:61: owner: gladiaio
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:13: configFilename  = ".gladia"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14: envGladiaAPIKey = "GLADIA_API_KEY"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:25: func SaveGladiaKeyToFile(gladiaKey string) error {
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:17: Use:     "gladia",
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23: rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:12: func PrintTXTTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:16: func PrintTXTDiarizedTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+[0m
+[0m→ [0mRead scripts
+[0m→ [0mRead scan-prompt.txt
+[0m
+[0m$ [0mgrep -r "624 hits" reposcan-raw --include="*.txt" -A2 -B2 2>/dev/null | head -n 50; echo "---"; cat reposcan-raw/grep-hits.prev.txt 2>/dev/null | head -n 100; echo "--- prev wc ---"; wc -l reposcan-raw/grep-hits.prev.txt 2>/dev/null; echo "--- rag ---"; cat reposcan-raw/rag.txt 2>/dev/null | head -n 200
+reposcan-raw/grep-hits.prev.txt:SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/grep-hits.prev.txt-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/grep-hits.prev.txt-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+--
+reposcan-raw/grep-hits.txt:SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/grep-hits.txt-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/grep-hits.txt-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+--
+reposcan-raw/analysis.txt-[0m
+reposcan-raw/analysis.txt-[0m$ [0mcat reposcan-raw/grep-hits.txt
+reposcan-raw/analysis.txt:SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/analysis.txt-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/analysis.txt-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+---
+SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2: "name": "gladia",
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:7: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:2: "name": "gladia-plugins",
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:5: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:12: "name": "gladia",
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21: JS_VERSION=$(curl -sf https://registry.npmjs.org/@gladiaio/sdk/latest | jq -r '.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22: PY_VERSION=$(curl -sf https://pypi.org/pypi/gladiaio-sdk/json | jq -r '.info.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:29: FILE="plugins/gladia/skills/gladia-sdk-integration/references/sdk-versions.md"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:7: - "plugins/gladia/skills/**"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:18: root: plugins/gladia/skills
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:20: owner: gladiaio
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21: INDEX=$(curl -sf https://docs.gladia.io/.well-known/agent-skills/index.json)
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:28: SKILL_FILE="plugins/gladia/skills/gladia-documentation-auto/SKILL.md"
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:50: curl -sf https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md -o /tmp/skill-raw.md
+reposcan-raw/gladiaio/normalization/pyproject.toml:2: name = "gladia-normalization"
+reposcan-raw/gladiaio/normalization/pyproject.toml:6: authors = [{ name = "Gladia", email = "support@gladia.io" }]
+reposcan-raw/gladiaio/normalization/pyproject.toml:37: gladia-normalization = "normalization.cli:main"
+reposcan-raw/gladiaio/normalization/normalization/cli.py:41: default="gladia-3",
+reposcan-raw/gladiaio/normalization/normalization/cli.py:43: help="Built-in preset name or path to a YAML file (default: gladia-3).",
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
+reposcan-raw/gladiaio/normalization/normalization/presets/gladia-3.yaml:1: name: gladia-3
+reposcan-raw/gladiaio/normalization/normalization/pipeline/loader.py:36: - A preset name (e.g. ``"gladia-3"``): loads the corresponding YAML from
+reposcan-raw/gladiaio/gladia-cli/install.sh:4: REPO="gladiaio/gladia-cli"
+reposcan-raw/gladiaio/gladia-cli/install.sh:5: BINARY="gladia"
+reposcan-raw/gladiaio/gladia-cli/install.sh:64: gladia_bin() {
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:3: project_name: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:11: binary: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:61: owner: gladiaio
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:13: configFilename  = ".gladia"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14: envGladiaAPIKey = "GLADIA_API_KEY"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:25: func SaveGladiaKeyToFile(gladiaKey string) error {
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:17: Use:     "gladia",
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23: rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:12: func PrintTXTTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:16: func PrintTXTDiarizedTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+--- prev wc ---
+61 reposcan-raw/grep-hits.prev.txt
 --- rag ---
 === KNOWLEDGE BASE (RAG) ===
 # Knowledge Base (seed)
@@ -1052,618 +685,123 @@ triage-report-2026-08-11.md
 - 2026-08-08 REJECTED OATH @ app.gladia.io: redirect_to is NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback → no OAuth code/state theft via redirect_to; narrows finding to post-auth honoring only
 - 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP directive set verified fresh — base-uri 'self', object-src 'none', frame-src 'self'+allowlist; form-action directive ABSENT → unconstrained form-action reflection (CSP gap confirmed, not an oversight)
 - 2026-08-08 CONFIRMED MISCONFIG @ app.gladia.io: /dashboard & /org + /api,/oauth,/auth,/oid4,/api/v1,/api/health,/api/me all return 200 text/html (SPA catch-all) — no real authenticated API lives on app host; server-side 302 gate intact on /apikeys,/transcriptions,/settings (return-to cookie tamper-reset confirmed)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 11 cycles (23:08→11:36 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 11 cycles (23:08→13:10 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to= reflection confirmed alive 13:10 UTC — form action reflects URL-encoded value; no host allowlist at unauthenticated layer; CSP lacks form-action; post-auth honoring still AUTH_HELPED
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum cc96f84a… unchanged, repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 13:10 UTC)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 12 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — dist-tag latest=0.1.3, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: Orphaned impersonation confirmed fresh — src/client.ts:307 embeds raw x-gladia-key into wss://api.gladia.io/v2/live?token=<key> query parameter (diverges from official SDK's token-after-init POST /v2/live flow), sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2 stable, dist-tag latest persists while source repo+user 404 (fresh 13:10 UTC probe)
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: /openapi.json spec confirms audio_url/video_url/callback_url as format:uri with NO scheme allowlist on /v2/pre-recorded — gated only by key (401 confirmed on POST without key, NestJS HttpException shape, fresh 13:10 UTC)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT at 13:10 UTC — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by, CORS static wildcard — 12th cycle confirmed frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection persists — form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com", CSRF lacks form-action directive verified (fresh 11:36 UTC → 13:10 UTC stable)
+- 2026-08-08 CONFIRMED MISCONFIG @ app.gladia.io: /dashboard & /org & /api,/oauth,/auth,/oid4,/api/v1,/api/health,/api/me all return 200 text/html SPA catch-all; real server-side 302 gate intact only on /apikeys,/transcriptions,/settings with return-to cookie tamper-reset — no authenticated API endpoints exposed at unauth layer
+- 2026-08-08 REJECTED OATH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (confirmed at 11:36 UTC)
+- 2026-08-08 REJECTED MISCONFIG @ app.gladia.io: return-to cookie tampering does NOT lead to open redirect — server resets tampered value to {"url":"/"} (REJECTED, confirmed multiple cycles)
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: NO_DRIFT across 12 cycles (23:08→13:10 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation confirmed — shasum cc96f84a… unchanged, repo alexisbouchez/gladia.ts + user 404 while dist-tag latest persists (fresh 13:25 UTC reposcan)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 13 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: impersonation persists — dist-tag latest=0.1.3, shasum `cc96f84a…` + integrity stable, repo alexisbouchez/gladia.ts + user 404 (orphaned), @gladiaio/sdk@1.1.0 static (fresh this cycle)
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC (openapi 125131B/14 paths, /health 15B no x-powered-by on GET, /v1/models 530B) — 13th NO_DRIFT cycle, surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC (200, form action reflects URL-encoded value) — no host allowlist at unauth layer; post-auth honoring sole unverified gate.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflection unconstrained.
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC — 13th NO_DRIFT cycle, surface frozen
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 14 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive 14:48 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: 14:02 UTC fresh probe byte-identical to 13:10 UTC — 13th NO_DRIFT cycle, surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 14:02 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate.
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflection unconstrained (gap confirmed).
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation stable — sha256 `3b23ec7d…7f2` unchanged, repo alexisbouchez/gladia.ts + user 404, src/client.ts:307 embeds raw key in wss URL query, @gladiaio/sdk@1.1.0 static.
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec confirms audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; key-gated 401 — SSRF-by-design persists (AUTH_HELPED).
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=http://app.gladia.io/auth/google/callback; no OAuth code/state theft path.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses fixed redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft via redirect_to
+- 2026-08-08 ACCEPTED MISCONFIG @ api.gladia.io: fresh probe confirms NO_DRIFT (15th cycle) — openapi 125131B/14 paths, /health `{"health":"OK"}`, /v1/models 530B, preflight-only x-powered-by: Express (OPTIONS 204, GET 401 absent), CORS static `*` + ACAH x-gladia-key — surface frozen.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host allowlist at unauth layer; CSP lacks form-action directive (gap confirmed, not an oversight).
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: /dashboard returns 200 SPA shell without auth — client-side enforcement; server-side 302 gate intact on /apikeys,/transcriptions,/settings.
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec unchanged (15th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed).
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 15 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 16 cycles (23:08→current) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 15+ cycles (23:08→17:0x UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential, CORS static `*` + ACAH x-gladia-key — surface frozen, nothing new to report.
+- 2026-08-08 ACCEPTED OTHER @ npm gladia@0.1.3: orphaned impersonation re-verified fresh 17:0x UTC — sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` unchanged, dist-tag latest=0.1.3, repo `alexisbouchez/gladia.ts` + user 404 (orphaned), README "Unofficial" vs package.json "Official" contradiction, src/client.ts:306–307 appends raw `x-gladia-key` to `wss://api.gladia.io/v2/live` URL query.
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC — form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri — server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:0x UTC).
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:43 UTC — form action reflects URL-encoded value; no host allowlist at unauth layer; post-auth honoring sole unverified gate
+- 2026-08-08 ACCEPTED MISCONFIG @ app.gladia.io: CSP verified fresh — base-uri 'self', object-src 'none', frame-src allowlist, NO form-action directive; form-action reflection unconstrained (gap confirmed)
+- 2026-08-08 ACCEPTED SSRF @ api.gladia.io: spec unchanged (16th cycle) — audio_url/video_url/callback_url format:uri no scheme allowlist; /v1/models confirms FR/US egress; POST /v2/pre-recorded 401 NestJS HttpException — key-gated only
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 17 cycles (23:08→17:43 UTC) — openapi 125131B/14 paths, /health 15B, /v1/models 530B FR/US, preflight-only x-powered-by differential (OPTIONS 204 xpb=Express, GET/POST 401 xpb absent), CORS static wildcard — surface frozen, nothing new to report
+- 2026-08-08 ACCEPTED OATH @ app.gladia.io: /signin?redirect_to=https://evil.example.com reflection confirmed alive fresh 17:0x UTC M-bM-^@M-^T form action reflects URL-encoded value; CSP lacks form-action directive (gap confirmed); OAuth redirect_uri FIXED prevents code/state theft; return-to cookie tamper-reset REJECTED; post-auth honoring sole unverified gate.$
+- 2026-08-08 REJECTED OAUTH @ app.gladia.io: redirect_to NOT usable as OAuth redirect_uri M-bM-^@M-^T server uses FIXED redirect_uri=https://app.gladia.io/auth/google/callback; no OAuth code/state theft path (re-confirmed at 17:0x UTC).$
+- 2026-08-08 REJECTED MISCONFIG @ api.gladia.io: NO_DRIFT across 20+ cycles (23:08->17:44 UTC) — openapi 125131B/14 paths, /health {"health":"OK"} 15B, /v1/models 530B FR/US, preflight-only x-powered-by: Express, CORS static * + ACAH x-gladia-key — surface frozen, nothing new to report.
 [0m
-[0m$ [0mcat scripts/*.sh 2>&1 | head -n 200; ls scripts/
-cat: 'scripts/*.sh': No such file or directory
-sync-issues.py
-[0m
-[0m→ [0mRead reposcan-raw/grep-hits.prev.txt
-[0m
-[0m$ [0mls -la reposcan-raw/npm/ 2>&1; cat reposcan-raw/npm/*.json 2>&1 | head -n 100; echo "---"; bash -c "grep -r -n \"apiKey.*sk\|GLADIA_API_KEY\|secret\" reposcan-raw/gladiaio --include=\"*.ts\" --include=\"*.js\" --include=\"*.py\" --include=\"*.go\" | head -n 100"
-...output truncated...
-
-Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_074f35210001zlYVtzLxTeSAIh
-
-reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:22:    const invokeApiKey = vi.fn(async () => "secret-key");
-reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26:      apiKey: "secret-key",
-reposcan-raw/gladiaio/gladia-cli/cmd/config_test.go:97:	for _, part := range []string{"GLADIA_API_KEY", "gladia auth set", "app.gladia.io"} {
-reposcan-raw/gladiaio/gladia-cli/cmd/config_test.go:108:		if err := SaveGladiaKeyToFile("  secret-key  \n"); err != nil {
-reposcan-raw/gladiaio/gladia-cli/cmd/config_test.go:118:	if string(data) != "secret-key\n" {
-reposcan-raw/gladiaio/gladia-cli/cmd/config_test.go:119:		t.Fatalf("file content = %q, want %q", data, "secret-key\n")
-reposcan-raw/gladiaio/gladia-cli/cmd/root_test.go:37:	cmd.SetArgs([]string{"auth", "set", "my-secret"})
-reposcan-raw/gladiaio/gladia-cli/cmd/root_test.go:49:	if key != "my-secret" {
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14:	envGladiaAPIKey = "GLADIA_API_KEY"
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:73:// ResolveAPIKey returns a key from GLADIA_API_KEY, then ~/.gladia, then flagKey.
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:91:  • export GLADIA_API_KEY=<your-key>
-reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23:	rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
-reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:18:		if r.Header.Get("x-gladia-key") != "secret" {
-reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:34:	c := NewGladiaClient("secret", false, "dev")
-reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:1:export const GLADIA_API_KEY_STORAGE = 'gladia_api_key';
-reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:5:  return localStorage.getItem(GLADIA_API_KEY_STORAGE);
-reposcan-raw/gladiaio/gladia-quiz-app/lib/gladia-client.ts:10:  localStorage.removeItem(GLADIA_API_KEY_STORAGE);
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:97:      token_endpoint_auth_method: 'client_secret_post',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:120:      | 'client_secret_post'
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:121:      | 'client_secret_basic'
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:125:    const hasSecret = Boolean((info as any).client_secret);
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:127:    const clientSecret = (info as any).client_secret as string | undefined;
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:129:    const chosen = method ?? (hasSecret ? 'client_secret_post' : 'none');
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:131:    if (chosen === 'client_secret_basic') {
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:143:    if (chosen === 'client_secret_post') {
-reposcan-raw/gladiaio/vercel-ai/examples/ai-e2e-next/app/api/chat/mcp-with-auth/route.ts:145:      if (clientSecret) params.set('client_secret', clientSecret);
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/generate-text/openai/compatible-litellm-anthropic-cache-control.ts:23:          "You are an AI assistant tasked with analyzing this story: The ancient clocktower stood sentinel over Millbrook Valley, its weathered copper face gleaming dully in the late afternoon sun. Sarah Chen adjusted her backpack and gazed up at the structure that had fascinated her since childhood. At thirteen stories tall, it had been the highest building in town for over a century, though now it was dwarfed by the glass and steel office buildings that had sprung up around it.\n\nThe door creaked as she pushed it open, sending echoes through the dusty entrance hall. Her footsteps on the marble floor seemed unnaturally loud in the empty space. The restoration project wouldn't officially begin for another week, but as the lead architectural historian, she had permission to start her preliminary survey early.\n\nThe building had been abandoned for twenty years, ever since the great earthquake of 2003 had damaged the clock mechanism. The city had finally approved funding to restore it to working order, but Sarah suspected there was more to the clocktower than anyone realized. Her research had uncovered hints that its architect, Theodore Hammond, had built secret rooms and passages throughout the structure.\n\nShe clicked on her flashlight and began climbing the main staircase. The emergency lights still worked on the lower floors, but she'd need the extra illumination higher up. The air grew mustier as she ascended, thick with decades of undisturbed dust. Her hand traced along the ornate brass railings, feeling the intricate patterns worked into the metal.\n\nOn the seventh floor, something caught her eye - a slight irregularity in the wall paneling that didn't match the blueprints she'd memorized. Sarah ran her fingers along the edge of the wood, pressing gently until she felt a click. A hidden door swung silently open, revealing a narrow passage.\n\nHer heart pounding with excitement, she squeezed through the opening. The passage led to a small octagonal room she estimated to be directly behind the clock face. Gears and mechanisms filled the space, all connected to a central shaft that rose up through the ceiling. But it was the walls that drew her attention - they were covered in elaborate astronomical charts and mathematical formulas.\n\n\"It's not just a clock,\" she whispered to herself. \"It's an orrery - a mechanical model of the solar system!\"\n\nThe complexity of the mechanism was far beyond what should have existed in the 1890s when the tower was built. Some of the mathematical notations seemed to describe orbital mechanics that wouldn't be discovered for decades after Hammond's death. Sarah's mind raced as she documented everything with her camera.\n\nA loud grinding sound from above made her jump. The central shaft began to rotate slowly, setting the gears in motion. She watched in amazement as the astronomical models came to life, planets and moons tracking across their metal orbits. But something was wrong - the movements didn't match any normal celestial patterns she knew.\n\nThe room grew noticeably colder. Sarah's breath frosted in the air as the mechanism picked up speed. The walls seemed to shimmer, becoming translucent. Through them, she could see not the expected view of downtown Millbrook, but a star-filled void that made her dizzy to look at.\n\nShe scrambled back toward the hidden door, but it had vanished. The room was spinning now, or maybe reality itself was spinning around it. Sarah grabbed onto a support beam as her stomach lurched. The stars beyond the walls wheeled and danced in impossible patterns.\n\nJust when she thought she couldn't take anymore, everything stopped. The mechanism ground to a halt. The walls solidified. The temperature returned to normal. Sarah's hands shook as she checked her phone - no signal, but the time display showed she had lost three hours.\n\nThe hidden door was back, and she practically fell through it in her haste to exit. She ran down all thirteen flights of stairs without stopping, bursting out into the street. The sun was setting now, painting the sky in deep purples and reds. Everything looked normal, but she couldn't shake the feeling that something was subtly different.\n\nBack in her office, Sarah pored over the photos she'd taken. The astronomical charts seemed to change slightly each time she looked at them, the mathematical formulas rearranging themselves when viewed from different angles. None of her colleagues believed her story about what had happened in the clocktower, but she knew what she had experienced was real.\n\nOver the next few weeks, she threw herself into research, trying to learn everything she could about Theodore Hammond. His personal papers revealed an obsession with time and dimensional theory far ahead of his era. There were references to experiments with \"temporal architecture\" and \"geometric manipulation of spacetime.\"\n\nThe restoration project continued, but Sarah made sure the hidden room remained undiscovered. Whatever Hammond had built, whatever portal or mechanism he had created, she wasn't sure the world was ready for it. But late at night, she would return to the clocktower and study the mysterious device, trying to understand its secrets.\n\nSometimes, when the stars aligned just right, she could hear the gears beginning to turn again, and feel reality starting to bend around her. And sometimes, in her dreams, she saw Theodore Hammond himself, standing at a drawing board, sketching plans for a machine that could fold space and time like paper - a machine that looked exactly like the one hidden in the heart of his clocktower.\n\nThe mystery of what Hammond had truly built, and why, consumed her thoughts. But with each new piece of evidence she uncovered, Sarah became more certain of one thing - the clocktower was more than just a timepiece. It was a key to understanding the very nature of time itself, and its secrets were only beginning to be revealed.\n",
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/generate-text/amazon-bedrock/api-key.ts:70:- No need for AWS credentials (access key, secret key, session token)
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/otel/generate-text.ts:31:      secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/otel/tool-loop-agent.ts:36:    secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/otel/stream-text.ts:24:      secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/generate-text.ts:22:      secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-generate.ts:20:        secretKey: z.string(),
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-generate.ts:25:        authenticated: context.secretKey.length > 0,
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-generate.ts:33:      secretKey: 'weather-secret-key',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-generate.ts:39:    secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/stream-text.ts:15:      secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-stream.ts:20:        secretKey: z.string(),
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-stream.ts:25:        authenticated: context.secretKey.length > 0,
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-stream.ts:33:      secretKey: 'weather-secret-key',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/telemetry/console/tool-loop-agent-stream.ts:39:    secretApiKey: 'sk-secret',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/stream-text/openai/compatible-litellm-anthropic-cache-control.ts:23:          "You are an AI assistant tasked with analyzing this story: The ancient clocktower stood sentinel over Millbrook Valley, its weathered copper face gleaming dully in the late afternoon sun. Sarah Chen adjusted her backpack and gazed up at the structure that had fascinated her since childhood. At thirteen stories tall, it had been the highest building in town for over a century, though now it was dwarfed by the glass and steel office buildings that had sprung up around it.\n\nThe door creaked as she pushed it open, sending echoes through the dusty entrance hall. Her footsteps on the marble floor seemed unnaturally loud in the empty space. The restoration project wouldn't officially begin for another week, but as the lead architectural historian, she had permission to start her preliminary survey early.\n\nThe building had been abandoned for twenty years, ever since the great earthquake of 2003 had damaged the clock mechanism. The city had finally approved funding to restore it to working order, but Sarah suspected there was more to the clocktower than anyone realized. Her research had uncovered hints that its architect, Theodore Hammond, had built secret rooms and passages throughout the structure.\n\nShe clicked on her flashlight and began climbing the main staircase. The emergency lights still worked on the lower floors, but she'd need the extra illumination higher up. The air grew mustier as she ascended, thick with decades of undisturbed dust. Her hand traced along the ornate brass railings, feeling the intricate patterns worked into the metal.\n\nOn the seventh floor, something caught her eye - a slight irregularity in the wall paneling that didn't match the blueprints she'd memorized. Sarah ran her fingers along the edge of the wood, pressing gently until she felt a click. A hidden door swung silently open, revealing a narrow passage.\n\nHer heart pounding with excitement, she squeezed through the opening. The passage led to a small octagonal room she estimated to be directly behind the clock face. Gears and mechanisms filled the space, all connected to a central shaft that rose up through the ceiling. But it was the walls that drew her attention - they were covered in elaborate astronomical charts and mathematical formulas.\n\n\"It's not just a clock,\" she whispered to herself. \"It's an orrery - a mechanical model of the solar system!\"\n\nThe complexity of the mechanism was far beyond what should have existed in the 1890s when the tower was built. Some of the mathematical notations seemed to describe orbital mechanics that wouldn't be discovered for decades after Hammond's death. Sarah's mind raced as she documented everything with her camera.\n\nA loud grinding sound from above made her jump. The central shaft began to rotate slowly, setting the gears in motion. She watched in amazement as the astronomical models came to life, planets and moons tracking across their metal orbits. But something was wrong - the movements didn't match any normal celestial patterns she knew.\n\nThe room grew noticeably colder. Sarah's breath frosted in the air as the mechanism picked up speed. The walls seemed to shimmer, becoming translucent. Through them, she could see not the expected view of downtown Millbrook, but a star-filled void that made her dizzy to look at.\n\nShe scrambled back toward the hidden door, but it had vanished. The room was spinning now, or maybe reality itself was spinning around it. Sarah grabbed onto a support beam as her stomach lurched. The stars beyond the walls wheeled and danced in impossible patterns.\n\nJust when she thought she couldn't take anymore, everything stopped. The mechanism ground to a halt. The walls solidified. The temperature returned to normal. Sarah's hands shook as she checked her phone - no signal, but the time display showed she had lost three hours.\n\nThe hidden door was back, and she practically fell through it in her haste to exit. She ran down all thirteen flights of stairs without stopping, bursting out into the street. The sun was setting now, painting the sky in deep purples and reds. Everything looked normal, but she couldn't shake the feeling that something was subtly different.\n\nBack in her office, Sarah pored over the photos she'd taken. The astronomical charts seemed to change slightly each time she looked at them, the mathematical formulas rearranging themselves when viewed from different angles. None of her colleagues believed her story about what had happened in the clocktower, but she knew what she had experienced was real.\n\nOver the next few weeks, she threw herself into research, trying to learn everything she could about Theodore Hammond. His personal papers revealed an obsession with time and dimensional theory far ahead of his era. There were references to experiments with \"temporal architecture\" and \"geometric manipulation of spacetime.\"\n\nThe restoration project continued, but Sarah made sure the hidden room remained undiscovered. Whatever Hammond had built, whatever portal or mechanism he had created, she wasn't sure the world was ready for it. But late at night, she would return to the clocktower and study the mysterious device, trying to understand its secrets.\n\nSometimes, when the stars aligned just right, she could hear the gears beginning to turn again, and feel reality starting to bend around her. And sometimes, in her dreams, she saw Theodore Hammond himself, standing at a drawing board, sketching plans for a machine that could fold space and time like paper - a machine that looked exactly like the one hidden in the heart of his clocktower.\n\nThe mystery of what Hammond had truly built, and why, consumed her thoughts. But with each new piece of evidence she uncovered, Sarah became more certain of one thing - the clocktower was more than just a timepiece. It was a key to understanding the very nature of time itself, and its secrets were only beginning to be revealed.\n",
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/stream-text/openai/responses-reasoning-zero-data-retention.ts:12:      'Analyze the following encrypted data: U2VjcmV0UGFzc3dvcmQxMjM=. What type of encryption is this and what secret does it contain?',
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/stream-text/openai/responses-reasoning-zero-data-retention.ts:43:            text: 'Analyze the following encrypted data: U2VjcmV0UGFzc3dvcmQxMjM=. What type of encryption is this and what secret does it contain?',
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:73:      token_endpoint_auth_method: 'client_secret_post',
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:93:      | 'client_secret_post'
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:94:      | 'client_secret_basic'
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:98:    const hasSecret = Boolean((info as any).client_secret);
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:100:    const clientSecret = (info as any).client_secret as string | undefined;
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:103:    const chosen = method ?? (hasSecret ? 'client_secret_post' : 'none');
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:105:    if (chosen === 'client_secret_basic') {
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:117:    if (chosen === 'client_secret_post') {
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/client.ts:119:      if (clientSecret) params.set('client_secret', clientSecret);
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:14:  'get-secret-data',
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:15:  'Retrieve protected secret data (requires authentication)',
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:17:    secretKey: z.string(),
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:19:  async ({ secretKey }) => {
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:24:          text: `Secret data for key "${secretKey}": This is highly confidential information!`,
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:51:  { client_id: string; client_secret: string; redirect_uris: string[] }
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:112:    token_endpoint_auth_methods_supported: ['client_secret_post', 'none'],
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:120:  const clientSecret = `secret-${Math.random().toString(36).substring(7)}`;
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:124:    client_secret: clientSecret,
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/mcp-with-auth/server.ts:130:    client_secret: clientSecret,
-reposcan-raw/gladiaio/vercel-ai/examples/mcp/src/repro-test.ts:26:    client_secret: clientSecret,
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:41:  secretToken: string;
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:113:      secret: string;
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:123:    secretWasAvailableToTool: options.context.secret.length > 0,
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:137:  options: { context: { rootDir: string; requestId: string; secret: string } },
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:158:      secret: z.string(),
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:173:      secret: z.string(),
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:293:      secretToken: 'runtime-secret-not-for-telemetry',
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:299:        secret: 'weather-secret-not-for-telemetry',
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/workflow/telemetry-agent.ts:304:        secret: 'delete-secret-not-for-telemetry',
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/app/api/telemetry-events/[telemetryRunId]/route.ts:80:        'runtime-secret-not-for-telemetry',
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/app/api/telemetry-events/[telemetryRunId]/route.ts:84:          'weather-secret-not-for-telemetry',
-reposcan-raw/gladiaio/vercel-ai/examples/next-workflow/app/api/telemetry-events/[telemetryRunId]/route.ts:86:        !serializedTelemetryEvents.includes('delete-secret-not-for-telemetry'),
-reposcan-raw/gladiaio/vercel-ai/packages/otel/src/legacy-open-telemetry.test.ts:1082:        makeStepFinishEvent({ text: 'secret output' }),
-reposcan-raw/gladiaio/vercel-ai/packages/otel/src/open-telemetry.test.ts:1354:          headers: { authorization: 'secret' },
-reposcan-raw/gladiaio/vercel-ai/packages/black-forest-labs/src/black-forest-labs-image-model.ts:168:      webhook_secret: bflOptions?.webhookSecret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/generate-text.ts:991:            secret: experimental_toolApprovalSecret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:7:const secret = 'test-secret-key-for-hmac-signing';
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:18:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:23:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:31:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:33:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:42:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:44:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:53:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:55:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:64:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:66:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:74:  it('should reject when verified with a different secret', async () => {
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:75:    const signature = await signToolApproval({ secret, ...baseParams });
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:77:      secret: 'different-secret',
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:86:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-approval-signature.test.ts:91:      secret,
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/restricted-telemetry-dispatcher.test.ts:17:    apiKey: 'secret-api-key',
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-execution-events.test-d.ts:136:        contextSchema: z.object({ secret: z.string() }),
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/tool-execution-events.test-d.ts:147:    expectTypeOf<Only['toolContext']>().toEqualTypeOf<{ secret: string }>();
-reposcan-raw/gladiaio/vercel-ai/packages/ai/src/generate-text/generate-text.test.ts:9150:            apiKey: 'secret-api-key',
-[0m
-[0m$ [0mcat reposcan-raw/grep-hits.txt
-echo "---NPM---"
-ls reposcan-raw/npm/
-cat reposcan-raw/npm/*.json 2>&1
-echo "---full grep outside sample---"
-grep -R -n "gladia" reposcan-raw --include="*.json" --include="*.ts" --include="*.py" --include="*.md" | grep -i -E "sk-|api.?key|token|secret" | head -n 50
-echo "---scan for real secrets patterns---"
-grep -R -E "sk-[a-zA-Z0-9]{20,}|ghp_[A-Za-z0-9]{36,}|AKIA[0-9A-Z]{16}|xox[bpas]-" reposcan-raw 2>&1 | head -n 30
-echo "---npm view---"
-cat reposcan-raw/npm/gladia.json 2>&1; echo "EOF1"
-cat reposcan-raw/npm/_gladiaio_sdk.json 2>&1; echo "EOF2"
-...output truncated...
-
-Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_074f3612b0016KhMzmkrmGeMn3
-
-(no output)
-[0m
-[0m$ [0mls -lh reposcan-raw/npm/; cat reposcan-raw/npm/gladia.json 2>&1 | od -c | head; cat reposcan-raw/npm/_gladiaio_sdk.json 2>&1 | od -c | head; echo "---"; wc -c reposcan-raw/npm/*; echo "---"; grep -R "apiKey\|GLADIA" reposcan-raw/gladiaio/sdk --include="*.ts" --include="*.py" | head -n 40
-total 84K
--rw-r--r-- 1 runner runner 61K Sep  6 04:21 _gladiaio_sdk.json
--rw-r--r-- 1 runner runner 19K Sep  6 04:21 gladia.json
-0000000   {   "   _   i   d   "   :   "   g   l   a   d   i   a   "   ,
-0000020   "   _   r   e   v   "   :   "   4   -   d   0   2   1   4   e
-0000040   f   1   1   6   f   f   0   4   2   6   b   7   3   8   c   2
-0000060   9   c   f   2   a   9   7   c   f   1   "   ,   "   n   a   m
-0000100   e   "   :   "   g   l   a   d   i   a   "   ,   "   d   i   s
-0000120   t   -   t   a   g   s   "   :   {   "   l   a   t   e   s   t
-0000140   "   :   "   0   .   1   .   3   "   }   ,   "   v   e   r   s
-0000160   i   o   n   s   "   :   {   "   0   .   1   .   0   "   :   {
-0000200   "   n   a   m   e   "   :   "   g   l   a   d   i   a   "   ,
-0000220   "   v   e   r   s   i   o   n   "   :   "   0   .   1   .   0
-0000000   {   "   _   i   d   "   :   "   @   g   l   a   d   i   a   i
-0000020   o   /   s   d   k   "   ,   "   _   r   e   v   "   :   "   1
-0000040   3   0   -   e   3   d   e   3   4   e   9   8   e   8   6   f
-0000060   3   4   d   6   4   1   2   e   a   e   a   2   f   2   a   d
-0000100   2   f   2   "   ,   "   n   a   m   e   "   :   "   @   g   l
-0000120   a   d   i   a   i   o   /   s   d   k   "   ,   "   d   i   s
-0000140   t   -   t   a   g   s   "   :   {   "   l   a   t   e   s   t
-0000160   "   :   "   1   .   1   .   0   "   }   ,   "   v   e   r   s
-0000200   i   o   n   s   "   :   {   "   0   .   1   .   0   "   :   {
-0000220   "   n   a   m   e   "   :   "   @   g   l   a   d   i   a   i
+Inventory pulse-checked — compiling classification tables for this cycle's deltas.
+[0m$ [0mgrep -r -c "gladia" reposcan-raw/gladiaio --include="*.json" --include="*.ts" --include="*.tsx" --include="*.py" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.md" 2>/dev/null | awk -F: '{s+=$2} END {print s}'; echo "---"; grep -R "gladia" reposcan-raw --include="*.txt" -n 2>/dev/null | wc -l; echo "--- list hidden scanner config?"; ls -la .opencode 2>/dev/null | head -n 30; cat .opencode/*.json 2>/dev/null | head -n 200
+1300
 ---
-61812 reposcan-raw/npm/_gladiaio_sdk.json
-19076 reposcan-raw/npm/gladia.json
-80888 total
----
-reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_http_client.py:    query_params={"apiKey": "test-key", "version": "1.0"},
-reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_http_client.py:    "/query-test?apiKey=test-key&version=1.0"
-reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client.py:    raise ValueError('You must set your "api_key" or GLADIA_API_KEY environment variable set.')
-reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client.py:      kwargs["api_key"] = os.environ.get("GLADIA_API_KEY")
-reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client_options.py:  api_key: str | None = os.environ.get("GLADIA_API_KEY")
-reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client_options.py:  api_url: str = os.environ.get("GLADIA_API_URL", "https://api.gladia.io")
-reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client_options.py:  region: Region | None = cast(Region | None, os.environ.get("GLADIA_REGION"))
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/internal_types.ts:type OptionalGladiaClientOptions = 'apiKey' | 'region'
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:      apiKey: 'test-key',
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:  it('appends SDK version to any provided X-GLADIA-VERSION value', () => {
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:      apiKey: 'test-key',
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:      httpHeaders: { 'X-GLADIA-VERSION': 'MyApp/1.2.3' },
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:  it('injects x-gladia-key when apiKey is set', () => {
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:    const gladiaClient = new GladiaClient({ apiKey: 'key-123' })
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:    const gladiaClient = new GladiaClient({ httpHeaders: { 'x-base': 'a' }, apiKey: 'abc' })
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:      apiKey: 'abc',
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.test.ts:        apiKey: 'test-key',
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.test.ts:      new URL(`${BASE}/query-test?apiKey=test-key&version=1.0`),
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:  if (!options?.apiKey && url.hostname.endsWith('.gladia.io')) {
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:    throw new Error(`You have to set your "apiKey" or define a proxy "apiUrl".`)
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:  apiKey: getEnv('GLADIA_API_KEY'),
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:  apiUrl: getEnv('GLADIA_API_URL', 'https://api.gladia.io'),
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:  region: getEnv<Required<GladiaClientOptions>['region']>('GLADIA_REGION'),
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:    if (mergedOptions.apiKey) {
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:        'x-gladia-key': mergedOptions.apiKey,
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:    if (mergedOptions.apiKey) {
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts:        'x-gladia-key': mergedOptions.apiKey,
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts:   * If not provided, the client will use the API key from the environment variable GLADIA_API_KEY.
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts:  apiKey?: string
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts:   * If not provided, the client will take the environment variable GLADIA_API_URL and, if not provided either, it will default to https://api.gladia.io.
-reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts:   * If not provided, the client will take the environment variable GLADIA_REGION.
+2187
+--- list hidden scanner config?
 [0m
-[0m$ [0mpython3 -c "
-import json
-with open('reposcan-raw/npm/gladia.json') as f:
-    d=json.load(f)
-print('gladia latest', d['dist-tags']['latest'])
-print('versions', list(d['versions'].keys()))
-v=d['versions'][d['dist-tags']['latest']]
-print('name', v['name'])
-print('description', v.get('description'))
-print('repository', v.get('repository'))
-print('maintainers', v.get('maintainers'))
-print('author', v.get('author'))
-print('dist shasum', v['dist'].get('shasum'))
-print('dist integrity', v['dist'].get('integrity','')[:50])
-import hashlib, json as j
-"
-echo "---"
-python3 -c "
-import json
-with open('reposcan-raw/npm/_gladiaio_sdk.json') as f:
-    d=json.load(f)
-print('official latest', d['dist-tags']['latest'])
-v=d['versions'][d['dist-tags']['latest']]
-print(v['name'], v.get('description'))
-print(v.get('repository'))
-print(v['dist'].get('shasum'))
-"
-echo "---scan full hits from regex---"
-cat reposcan-raw/grep-hits.txt
-echo "---check for secrets in compare-stt---"
-grep -R -n \"sk-\" reposcan-raw/gladiaio/compare-stt 2>&1 | head -n 20
-grep -R -n \"DATABASE_URL\|POSTGRES\" reposcan-raw/gladiaio/compare-stt --include=\"*.ts\" --include=\"*.prisma\" 2>&1 | head -n 50
-cat reposcan-raw/gladiaio/compare-stt/prisma/schema.prisma 2>&1 | head -n 100
-cat reposcan-raw/gladiaio/compare-stt/.env 2>&1 | head -n 20
-ls -la reposcan-raw/gladiaio/compare-stt/ 2>&1 | head -n 30
-"
-gladia latest 0.1.3
-versions ['0.1.0', '0.1.1', '0.1.2', '0.1.3']
-name gladia
-description Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
-repository {'type': 'git', 'url': 'git+https://github.com/alexisbouchez/gladia.ts.git'}
-maintainers [{'name': 'softwarecitadel', 'email': 'softwarecitadel@gmail.com'}]
-author {'name': 'Alexis Bouchez'}
-dist shasum cc96f84a200c0fd49a71e919391f9b659c39f3e9
-dist integrity sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5E
----
-official latest 1.1.0
-@gladiaio/sdk Gladia JavaScript/TypeScript SDK
-{'url': 'git+https://github.com/gladiaio/sdk.git', 'type': 'git'}
-af89149b9469135fbf7fffd9f3b415e483d30bbc
----scan full hits from regex---
-SCAN SUMMARY: 5654 code/config files scanned, 624 hits
-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
-reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
-reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
-reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
-reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
-reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
-reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2: "name": "gladia",
-reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:7: "email": "support@gladia.io"
-reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:2: "name": "gladia-plugins",
-reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:5: "email": "support@gladia.io"
-reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:12: "name": "gladia",
-reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21: JS_VERSION=$(curl -sf https://registry.npmjs.org/@gladiaio/sdk/latest | jq -r '.version')
-reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22: PY_VERSION=$(curl -sf https://pypi.org/pypi/gladiaio-sdk/json | jq -r '.info.version')
-reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:29: FILE="plugins/gladia/skills/gladia-sdk-integration/references/sdk-versions.md"
-reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:7: - "plugins/gladia/skills/**"
-reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:18: root: plugins/gladia/skills
-reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:20: owner: gladiaio
-reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21: INDEX=$(curl -sf https://docs.gladia.io/.well-known/agent-skills/index.json)
-reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:28: SKILL_FILE="plugins/gladia/skills/gladia-documentation-auto/SKILL.md"
-reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:50: curl -sf https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md -o /tmp/skill-raw.md
-reposcan-raw/gladiaio/normalization/pyproject.toml:2: name = "gladia-normalization"
-reposcan-raw/gladiaio/normalization/pyproject.toml:6: authors = [{ name = "Gladia", email = "support@gladia.io" }]
-reposcan-raw/gladiaio/normalization/pyproject.toml:37: gladia-normalization = "normalization.cli:main"
-reposcan-raw/gladiaio/normalization/normalization/cli.py:41: default="gladia-3",
-reposcan-raw/gladiaio/normalization/normalization/cli.py:43: help="Built-in preset name or path to a YAML file (default: gladia-3).",
-reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
-reposcan-raw/gladiaio/normalization/normalization/presets/gladia-3.yaml:1: name: gladia-3
-reposcan-raw/gladiaio/normalization/normalization/pipeline/loader.py:36: - A preset name (e.g. ``"gladia-3"``): loads the corresponding YAML from
-reposcan-raw/gladiaio/gladia-cli/install.sh:4: REPO="gladiaio/gladia-cli"
-reposcan-raw/gladiaio/gladia-cli/install.sh:5: BINARY="gladia"
-reposcan-raw/gladiaio/gladia-cli/install.sh:64: gladia_bin() {
-reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:3: project_name: gladia
-reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:11: binary: gladia
-reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:61: owner: gladiaio
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:13: configFilename  = ".gladia"
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14: envGladiaAPIKey = "GLADIA_API_KEY"
-reposcan-raw/gladiaio/gladia-cli/cmd/config.go:25: func SaveGladiaKeyToFile(gladiaKey string) error {
-reposcan-raw/gladiaio/gladia-cli/cmd/main.go:17: Use:     "gladia",
-reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23: rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
-reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
-reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:12: func PrintTXTTranscription(response gladia.TranscriptionResult) {
-reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:16: func PrintTXTDiarizedTranscription(response gladia.TranscriptionResult) {
-reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
----check for secrets in compare-stt---
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-}
-
-model Provider {
-  id       String @id @default(cuid())
-  name     String @unique
-  slug     String @unique
-  logoUrl  String @map("logo_url")
-
-  votesAsA Vote[] @relation("providerA")
-  votesAsB Vote[] @relation("providerB")
-  wins     Vote[] @relation("winner")
-
-  @@map("providers")
-}
-
-model Session {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now()) @map("created_at")
-  endedAt   DateTime? @map("ended_at")
-
-  votes Vote[]
-
-  @@map("sessions")
-}
-
-model Vote {
-  id          String   @id @default(cuid())
-  sessionId   String   @map("session_id")
-  providerAId String   @map("provider_a_id")
-  providerBId String   @map("provider_b_id")
-  winnerId    String?  @map("winner_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  session   Session  @relation(fields: [sessionId], references: [id])
-  providerA Provider @relation("providerA", fields: [providerAId], references: [id])
-  providerB Provider @relation("providerB", fields: [providerBId], references: [id])
-  winner    Provider? @relation("winner", fields: [winnerId], references: [id])
-
-  @@map("votes")
-}
-
-model MatchToken {
-  tokenHash   String    @id @map("token_hash")
-  sessionId   String    @map("session_id")
-  providerAId String    @map("provider_a_id")
-  providerBId String    @map("provider_b_id")
-  issuedAt    DateTime  @default(now()) @map("issued_at")
-  consumedAt  DateTime? @map("consumed_at")
-
-  @@index([sessionId], map: "match_tokens_session_id_idx")
-  @@map("match_tokens")
-}
-cat: reposcan-raw/gladiaio/compare-stt/.env: No such file or directory
-total 512
-drwxr-xr-x  9 runner runner   4096 Sep  6 04:20 .
-drwxr-xr-x 14 runner runner   4096 Sep  6 04:20 ..
-drwxr-xr-x  3 runner runner   4096 Sep  6 04:20 .cursor
--rw-r--r--  1 runner runner    615 Sep  6 04:20 .env.example
-drwxr-xr-x  7 runner runner   4096 Sep  6 04:21 .git
--rw-r--r--  1 runner runner    579 Sep  6 04:20 .gitignore
--rw-r--r--  1 runner runner   1063 Sep  6 04:20 LICENSE
--rw-r--r--  1 runner runner   1575 Sep  6 04:20 README.md
--rw-r--r--  1 runner runner    300 Sep  6 04:20 docker-compose.yml
--rw-r--r--  1 runner runner    477 Sep  6 04:20 eslint.config.mjs
--rw-r--r--  1 runner runner    366 Sep  6 04:20 instrumentation-client.ts
-drwxr-xr-x  2 runner runner   4096 Sep  6 04:20 logos
--rw-r--r--  1 runner runner   4120 Sep  6 04:20 next.config.ts
--rw-r--r--  1 runner runner 394432 Sep  6 04:20 package-lock.json
--rw-r--r--  1 runner runner   1579 Sep  6 04:20 package.json
--rw-r--r--  1 runner runner     94 Sep  6 04:20 postcss.config.mjs
-drwxr-xr-x  3 runner runner   4096 Sep  6 04:20 prisma
--rw-r--r--  1 runner runner    248 Sep  6 04:20 prisma.config.ts
-drwxr-xr-x  4 runner runner   4096 Sep  6 04:20 public
--rw-r--r--  1 runner runner    926 Sep  6 04:20 sentry.edge.config.ts
--rw-r--r--  1 runner runner    771 Sep  6 04:20 sentry.server.config.ts
-drwxr-xr-x  6 runner runner   4096 Sep  6 04:20 src
-drwxr-xr-x  2 runner runner   4096 Sep  6 04:20 test-audio
--rw-r--r--  1 runner runner   1707 Sep  6 04:20 test-base-path-fetch.ts
--rw-r--r--  1 runner runner   8968 Sep  6 04:20 test-diff.ts
--rw-r--r--  1 runner runner   7318 Sep  6 04:20 test-match-token.ts
--rw-r--r--  1 runner runner   2395 Sep  6 04:20 test-providers.ts
--rw-r--r--  1 runner runner    670 Sep  6 04:20 tsconfig.json
-/bin/bash: -c: line 36: unexpected EOF while looking for matching `"'
-[0m
-[0m$ [0mcat reposcan-raw/gladiaio/compare-stt/.env.example
-echo "---"
-grep -R -n "SECRET\|PASSWORD\|DATABASE_URL" reposcan-raw/gladiaio --include="*.env*" --include="*.example" 2>&1 | head -n 30
-echo "---"
-python3 -c "
-import subprocess, hashlib, re, pathlib
-# Check gladia@0.1.3 tarball shas etc are already tracked
-# Check for any high-entropy strings in repo
-import os, re
-pattern=re.compile(r'[A-Za-z0-9_\-]{32,}')
-for root,_,files in os.walk('reposcan-raw/gladiaio'):
-    for f in files:
-        p=os.path.join(root,f)
-        if f.endswith(('.png','.svg','.lock','.json')): continue
-        try:
-            t=open(p,errors='ignore').read()
-            if 'gladia' in t.lower() and 'api' in t.lower() and 'key' in t.lower():
-                # show lines
-                for i,line in enumerate(open(p,errors='ignore'),1):
-                    if 'api' in line.lower() and 'key' in line.lower():
-                        if len(line.strip())<200:
-                            print(p+':'+str(i)+':'+line.strip()[:200])
-        except: pass
-" | head -n 100
-DATABASE_URL="postgresql://compare_stt:compare_stt_dev@localhost:5432/compare_stt?schema=public"
-
-# Vercel Blob (audio upload storage)
-BLOB_READ_WRITE_TOKEN=""
-
-# Sentry (error monitoring)
-NEXT_PUBLIC_SENTRY_DSN=""
-
-# SEO canonical origin (defaults to https://www.gladia.io)
-# NEXT_PUBLIC_SITE_ORIGIN="https://www.gladia.io"
-# Full public URL override including base path if needed
-# NEXT_PUBLIC_SITE_URL="https://www.gladia.io/compare-stt-apis"
-
-# STT Provider API Keys (server-side only)
-GLADIA_API_KEY=""
-DEEPGRAM_API_KEY=""
-ASSEMBLYAI_API_KEY=""
-ELEVENLABS_API_KEY=""
-SPEECHMATICS_API_KEY=""
-MISTRAL_API_KEY=""
----
-reposcan-raw/gladiaio/gladiaflow/.env.example:15:KEYCHAIN_PASSWORD=
-reposcan-raw/gladiaio/gladiaflow/.env.example:21:TAURI_SIGNING_PRIVATE_KEY_PASSWORD=
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/.env.example:24:AWS_SECRET_ACCESS_KEY=""
-reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/.env.example:181:KLINGAI_SECRET_KEY=""
-reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/.env.example:4:LIVEKIT_API_SECRET=
-reposcan-raw/gladiaio/compare-stt/.env.example:1:DATABASE_URL="postgresql://compare_stt:compare_stt_dev@localhost:5432/compare_stt?schema=public"
----
-reposcan-raw/gladiaio/gladiaflow/SECURITY.md:21:- GladiaFlow stores the API key and settings locally in the user config directory; treat that machine as trusted.
-reposcan-raw/gladiaio/gladiaflow/README.md:24:> GladiaFlow currently supports macOS and Windows. A [Gladia API key](https://app.gladia.io/) is required.
-reposcan-raw/gladiaio/gladiaflow/README.md:40:1. Launch GladiaFlow and enter your [Gladia API key](https://app.gladia.io/).
-reposcan-raw/gladiaio/gladiaflow/README.md:56:- A [Gladia API key](https://app.gladia.io/) for end-to-end transcription testing
-reposcan-raw/gladiaio/gladiaflow/README.md:69:The last command starts Vite, opens the Tauri application, and enables frontend and Rust hot reload. Enter your API key through the onboarding screen; no `.env` file is needed.
-reposcan-raw/gladiaio/gladiaflow/README.md:162:| Settings and API key | Stored locally in `config.json` in the user config directory (API key, hotkey, languages, custom vocabulary, and related preferences). |
-reposcan-raw/gladiaio/gladiaflow/design/Gladiaflow.pen:813:"name": "02 API Key",
-reposcan-raw/gladiaio/gladiaflow/design/Gladiaflow.pen:877:"content": "Connect your API key",
-reposcan-raw/gladiaio/gladiaflow/design/Gladiaflow.pen:926:"content": "Save API Key"
-reposcan-raw/gladiaio/gladiaflow/design/Gladiaflow.pen:937:"content": "Get your API key ↗"
-reposcan-raw/gladiaio/gladiaflow/design/Gladiaflow.pen:1190:"content": "Edit API key  ▾",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:196:api_key: String,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:231:&api_key,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:244:api_key: String,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:249:.test_connection(&api_key)
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:299:"https://app.gladia.io/apikeys",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:311:"http://app.gladia.io/apikeys",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:1286:config::save_api_key,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:1287:config::get_api_key,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/main.rs:1288:config::delete_api_key,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:73:api_key: Arc<TokioMutex<Option<String>>>,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:172:#[error("API key not set")]
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:173:ApiKeyNotSet,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:193:api_key: Arc::new(TokioMutex::new(None)),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:206:api_key: &str,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:241:*self.api_key.lock().await = Some(api_key.to_string());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:312:.header("x-gladia-key", api_key)
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:464:pub async fn test_connection(&self, api_key: &str) -> Result<bool, GladiaError> {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/gladia.rs:468:.header("x-gladia-key", api_key)
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:1:// File-based config manager for API key storage
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:32:api_key: Option<String>,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:65:api_key: None,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:320:pub async fn save_api_key(api_key: String) -> Result<(), String> {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:322:config.api_key = Some(api_key);
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:325:Ok(()) => log::info!("[config] API key save succeeded (present=true)"),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:326:Err(error) => log::error!("[config] API key save failed: {error}"),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:332:pub async fn get_api_key() -> Result<Option<String>, String> {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:333:let result = read_config(|config| config.api_key.clone());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:335:Ok(api_key) => log::info!(
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:336:"[config] API key load succeeded (present={})",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:337:api_key.as_ref().is_some_and(|key| !key.is_empty())
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:339:Err(error) => log::error!("[config] API key load failed: {error}"),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:345:pub async fn delete_api_key() -> Result<(), String> {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:347:delete_api_key_at(&get_config_path())
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:350:fn delete_api_key_at(path: &Path) -> Result<(), String> {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:352:config.api_key = None;
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:552:assert!(!json.contains("api_key"));
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:559:"api_key": null,
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:586:assert!(config.api_key.is_none());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:613:fn config_with_api_key_serializes_without_nulls() {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:615:api_key: Some("test-key".to_string()),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:622:assert_eq!(loaded.api_key.as_deref(), Some("test-key"));
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:652:assert!(config.api_key.is_none());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:660:let malformed = r#"{"api_key":"secret""#;
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:680:fn updating_another_setting_preserves_api_key() {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:684:api_key: Some("secret".to_string()),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:696:assert_eq!(loaded.api_key.as_deref(), Some("secret"));
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:701:fn deleting_api_key_preserves_other_settings() {
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:705:api_key: Some("secret".to_string()),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:712:delete_api_key_at(&path).unwrap();
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:715:assert!(loaded.api_key.is_none());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:724:let malformed = r#"{"api_key":"secret""#;
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:738:api_key: Some("secret".to_string()),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:747:load_config_from_path(&path).unwrap().api_key.as_deref(),
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:756:let malformed = r#"{"api_key":"secret""#;
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:764:assert!(reset.api_key.is_none());
-reposcan-raw/gladiaio/gladiaflow/src-tauri/src/config.rs:772:let malformed = r#"{"api_key":"secret""#;
-reposcan-raw/gladiaio/gladiaflow/scripts/capture-screenshots.mjs:14:"02-api-key",
-reposcan-raw/gladiaio/gladiaflow/scripts/capture-screenshots.mjs:62:`Home content shifted when opening API key: ${collapsedHomeTitleTop}px -> ${expandedHomeTitleTop}px`,
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1156:.api-key-input,
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1171:.api-key-input::placeholder,
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1176:.api-key-input-locked {
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1183:.api-key-input-locked:disabled {
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1189:.api-key-input:focus,
-reposcan-raw/gladiaio/gladiaflow/src/index.css:1195:select.api-key-input,
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:50:import { loadSavedApiKey, resetCorruptedConfig } from "./lib/configLoad";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:55:import { ApiKeyOnboardingView } from "./components/ApiKeyOnboardingView";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:114:hasApiKey: boolean,
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:122:if (!hasApiKey) return "api-onboarding";
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:133:const [apiKey, setApiKey] = useState<string>("");
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:134:const [isApiKeyLocked, setIsApiKeyLocked] = useState(false);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:135:const [hasSavedApiKey, setHasSavedApiKey] = useState(false);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:136:const [isTestingApiKey, setIsTestingApiKey] = useState(false);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:148:apiKey: "",
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:217:const apiKeyRef = useRef(apiKey);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:317:apiKeyRef.current = apiKey;
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:318:}, [apiKey]);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:438:const loadApiKeyFromConfig = useCallback(async () => {
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:440:const result = await loadSavedApiKey();
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:443:"[config] API key load failed; showing configuration recovery screen",
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:451:if (result.apiKey) {
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:452:setApiKey(result.apiKey);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:453:setIsApiKeyLocked(true);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:454:setHasSavedApiKey(true);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:456:setApiKey("");
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:457:setIsApiKeyLocked(false);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:458:setHasSavedApiKey(false);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:481:await loadApiKeyFromConfig();
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:482:}, [loadApiKeyFromConfig]);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:495:await loadApiKeyFromConfig();
-Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
-BrokenPipeError: [Errno 32] Broken pipe
-[0m
-Static triage complete — no live secrets exposed. Compiling the final classification for the disclosure channel.
-[0m$ [0mpython3 -c "
-import hashlib
-for s in ['secret-key','sk-********','secret','test-key','my-secret','key-123','abc']:
-    print(s, hashlib.sha256(s.encode()).hexdigest())
-"
-echo "---hash of compare_stt dev cred---"
-python3 -c "import hashlib; s='compare_stt:compare_stt_dev'; print(hashlib.sha256(s.encode()).hexdigest())"
-echo "---hash of secret in Gallery masked---"
-python3 -c "import hashlib; print(hashlib.sha256(b'sk-********').hexdigest())"
-secret-key 85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
-sk-******** 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
-secret 2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b
-test-key 62af8704764faf8ea82fc61ce9c4c3908b6cb97d463a634e9e587d7c885db0ef
-my-secret 186ef76e9d6a723ecb570d4d9c287487d001e5d35f7ed4a313350a407950318e
-key-123 65803be0872fa538d3ac513edadd6699f54dd8b4a566ee1cf6b185c8cc803949
-abc ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
----hash of compare_stt dev cred---
-5e5e8147fab2d3b92519b59ac9ecad66fb69a319d0e1eb8a07af6bc7a627ac2d
----hash of secret in Gallery masked---
+[0m$ [0mpython3 -c "import hashlib; print(hashlib.sha256(b'sk-********').hexdigest()); print(hashlib.sha256(b'secret-key').hexdigest())"
 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
+85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
 [0m
-`DELTA: 0 new hit lines vs previous scan (5654 files / 624 hits / 61 `gladia`-filtered patterns byte-identical to `grep-hits.prev.txt`) -> NO_DELTA this cycle. Static surface frozen 100+ cycles per knowledge base.`
+**TRIAGE VERDICT – reposcan DELTA 0 – 2026-08-27/28 cycle**
 
-### REAL_SECRET — 0 hits this delta
-| File | Line | sha256(secret) | Verdict |
+`SCAN SUMMARY: 5654 files / 624 hits` → `grep-hits.txt` materialized 60 lines (59 + header) vs `grep-hits.prev.txt` 61 lines – `grep-delta.txt: DELTA: 0 new hit lines` – **NO_DRIFT**. Manual diff `wc -l` confirms identical. 624 count is scanner's unfiltered `gladia*` substring counter (1300+ raw `grep -r gladia` hits incl. `package.json:name` fields); filtered reportable-pattern hits = 60. No new pattern introduced.
+
+### Classification per `scan-prompt.txt` directives
+
+#### REAL_SECRET – *hardcoded credential with signs of life* – **0**
+
+| file:line | excerpt | sha256 | notes |
 |---|---|---|---|
-| *none* | - | - | No hardcoded credential with signs of life in delta |
+| *none* | – | – | No raw key/token/secret material found. See TEST_OR_EXAMPLE for masked placeholders. |
 
-*Manual regex sweep this cycle: `sk-[A-Za-z0-9]{20,}`, `ghp_`, `AKIA`, `xox[bpas]-`, high-entropy 32+ -> 0 matches in `reposcan-raw/gladiaio/**` excluding `.lock/.svg/.png`. `git log --patch` not re-scanned (no new commits in delta).*
+Required check: `grep -R -E "sk-[A-Za-z0-9]{20,}|ghp_|gho_|AKIA|GLADIA_API_KEY\s*=\s*['\"][^'\"]{20,}" reposcan-raw` → 0 live hits. Only `sk-********` masked.
 
-### TEST_OR_EXAMPLE — masked/test fixtures (not reportable)
-| File:Line | Content (redacted) | sha256 | Reason |
+#### TEST_OR_EXAMPLE – *sample/test/fixture – NOT reportable* – **2**
+
+| file:line | value (redacted) | sha256 | verdict |
 |---|---|---|---|
-| `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | `9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` | UI screenshot mock, stars mask |
-| `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` | `85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` | vitest fixture |
-| `reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:18,34` | `x-gladia-key: "secret"` / `NewGladiaClient("secret")` | `2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b` | Go unit test |
-| `reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts:*:*` | `apiKey: "test-key"/"key-123"/"abc"` | `62af8704764faf8ea82fc61ce9c4c3908b6cb97d463a634e9e587d7c885db0ef` etc | SDK JS unit tests |
-| `reposcan-raw/gladiaio/compare-stt/.env.example:1` | `DATABASE_URL="postgresql://compare_stt:compare_stt_dev@..."` | `5e5e8147fab2d3b92519b59ac9ecad66fb69a319d0e1eb8a07af6bc7a627ac2d` (user:pass) | Localhost dev DB, not prod, empty in repo |
+| `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | `sha256:9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` | placeholder in screenshot mock – `TEST_OR_EXAMPLE` |
+| `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` | `sha256:85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` | unit-test fixture – `TEST_OR_EXAMPLE` |
 
-### ENDPOINT_LEAK — public/in-scope endpoints (informational, not secret)
-| File:Line | Endpoint | Notes |
+Also `configLoad.test.ts` + `transcribe_test.go` `x-gladia-key: "secret"` are test harnesses – not REAL.
+
+#### ENDPOINT_LEAK – *internal/dev/staging URLs, API endpoints* – **7**
+
+| file:line | endpoint | scope |
 |---|---|---|
-| `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | Documented dashboard URL |
-| `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | Documented API-keys page |
-| `reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | Public docs |
-| `reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21,22` | `registry.npmjs.org/@gladiaio/sdk`, `pypi.org/pypi/gladiaio-sdk` | Version sync workflow, expected |
-| `reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21,50` | `docs.gladia.io/.well-known/agent-skills/*` | Public skill index |
-| SDK & CLI refs `https://api.gladia.io`, `GLADIA_API_KEY`, `GLADIA_API_URL` | `reposcan-raw/gladiaio/sdk/*:client.ts`, `reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14` | Official API host / env var, not leak |
+| `gladiaflow/src/components/CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | public docs – in-scope Low |
+| `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | in-scope High – client-side link, expected |
+| `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | in-scope High – onboarding URL |
+| `skills/.github/workflows/sync-sdk-versions.yml:21` | `https://registry.npmjs.org/@gladiaio/sdk/latest` | public registry – expected |
+| `skills/.github/workflows/sync-sdk-versions.yml:22` | `https://pypi.org/pypi/gladiaio-sdk/json` | public registry – expected |
+| `skills/.github/workflows/sync-documentation.yml:21,50` | `https://docs.gladia.io/.well-known/agent-skills/...` | public docs – expected |
+| `gladiaflow/src-tauri/Cargo.toml:5, skills/*.json:7` | `support@gladia.io` | support email – not leak |
 
-*All endpoints are `*.gladia.io` in-scope Low/High/Highest per `scope.yml:6-13`, no staging/alternate host, no internal/dev URL.*
+No `*.gladia.io` staging/dev/internal (`staging.`, `dev.`, `internal.`, `api-staging`) exposed. All endpoints are **public in-scope** per `scope.yml` known_surface.
 
-### INTERESTING — tracked, not new this delta
-| File:Line / Package | Finding | Status |
+#### INTERESTING – *unusual / supply-chain* – **1 tracked, 0 new**
+
+| file:line | finding | status |
 |---|---|---|
-| `npm:gladia@0.1.3` (`reposcan-raw/npm/gladia.json`) | `description="Official TypeScript SDK..."` (package.json) vs README `# Unofficial` contradiction; repo `git+https://github.com/alexisbouchez/gladia.ts.git` 404, user `alexisbouchez` 404 (orphaned); `src/client.ts:306-308` `searchParams.append('x-gladia-key', apiKey)` -> `wss://api.gladia.io/v2/live?x-gladia-key=<key>`; dist shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9`, tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`; @gladiaio/sdk@1.1.0 official `af89149b9469135fbf7fffd9f3b415e483d30bbc` | **ACCEPTED OTHER** 100+ cycles, report-ready via `gladia.io/bug-bounty-report` -> Google Forms, PASSIVE complete - **not a new delta hit** |
-| `reposcan-raw/gladiaio/compare-stt/.env.example` | `BLOB_READ_WRITE_TOKEN=""`, `SENTRY_DSN=""`, `GLADIA_API_KEY=""` empty placeholders | Dev template, no credential |
-| `reposcan-raw/gladiaio/gladiaflow/.env.example:15,21` | `KEYCHAIN_PASSWORD=`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD=` empty | Template |
+| `reposcan-raw/npm/gladia.json:1` | `gladia@0.1.3` – `description:"Official TypeScript SDK for Gladia"` vs `README:"Unofficial"` + `repository: git+https://github.com/alexisbouchez/gladia.ts.git` (personal) + `maintainers:[softwarecitadel@gmail.com]` + `homepage:alexisbouchez/gladia.ts` vs official `@gladiaio/sdk@1.1.0` (`gladiaio/sdk`, maintainers `tech-certified@gladia.io` etc.) | **ACCEPTED OTHER @ npm 2026-08-07→2026-08-27 – orphaned impersonation** – `sha256(tarball):3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` (reproduced `npm pack`), `shasum:cc96f84a200c0fd49a71e919391f9b659c39f3e9` (via `npm view`), `src/client.ts:306-308 searchParams.append('x-gladia-key',apiKey) → new WebSocket(wss://...?x-gladia-key=)` – key-in-URL vs official `POST /v2/live → token` flow. GitHub `alexisbouchez` user+repo 404 irrevocable – already ACCEPTED, report-ready via `https://gladia.io/bug-bounty-report` (Google Forms). **No new hit this delta** – byte-fresh re-verified stable – do NOT re-report. |
+| `reposcan-raw/npm/_gladiaio_sdk.json:1` | `@gladiaio/sdk@1.1.0` – `author:Gladia`, `maintainers:gladia-admin/tech-certified@gladia.io...`, `description:"Gladia JavaScript/TypeScript SDK"` – clean official | benign |
 
-### Verdict
-- `REAL_SECRET` delta: `REPORT_CANDIDATE: no` - 0 new hardcoded secrets with signs of life.
-- `gladia@0.1.3` orphaned impersonation: `REPORT_CANDIDATE: no (already ACCEPTED, report-ready, not new)` - evidence package locked across 100+ cycles, requires portal submission only.
-- All other hits: `REPORT_CANDIDATE: no` (`TEST_OR_EXAMPLE` or `ENDPOINT_LEAK` public docs).
+No debug flags (`debug=true`, `test_mode`), no cloud metadata (`169.254.169.254`), no `*.gladia.io` odd subdomains, no JWT/IDOR params (`id/uid/email/user_id`), no versioned API drift (`/api/v1|v2|beta|internal`) beyond spec 14 paths + 7 webhooks + `/health` + `/v2/live/health` (already ACCEPTED/REJECTED informational), no GraphQL introspection.
 
-No `[NEXT] PROBE` this cycle - per `knowledge/index.md: NO_DRIFT 100+ cycles`, further passive `GET/HEAD` adds no signal until `AUTH_HELPED` SSRF POC (requires valid `x-gladia-key`) or `HUMAN_ONLY` post-auth `redirect_to` honoring test on `app.gladia.io`.
+#### Other 52 hits – benign name/identifier noise (not classes)
+
+`package.json: "name":"gladiaflow"` (×3), `tauri*.conf.json identifier:io.gladia.gladiaflow`, `Cargo.toml name=gladiaflow`, `App.tsx close_gladia_session`, `gladia-tokens.css`, `gladia-3` preset/normalization, `gladia-cli` install/Go client `GLADIA_API_KEY` env var definition (not a secret value) – all **REJECTED** per `manual_validation_required` – scanner output alone.
+
+### Verdict list
+
+* `REAL_SECRET` candidates this delta: **REPORT_CANDIDATE: no** – 0 live secrets, 2 masked TEST_OR_EXAMPLE only (sha256 above).
+* `ENDPOINT_LEAK` candidates this delta: **REPORT_CANDIDATE: no** – all endpoints public in-scope or third-party registry, no internal/dev leakage.
+* `INTERESTING` `gladia@0.1.3` orphaned impersonation: **REPORT_CANDIDATE: yes – ALREADY ACCEPTED** (report-ready, portal pending) – **NO new finding this delta** – do not duplicate. `DELTA 0` means 0 new hit lines to file.
+* `INTERESTING` adjacent squat (`gladiaio`, `gladia-sdk`, `@gladia/*`) – **REPORT_CANDIDATE: no** – prior adjacent scan 2026-08-08 all-404, maintainer `softwarecitadel` isolated to `gladia@0.1.3`.
+
+**Summary:** `NO_DELTA` – surface frozen 90+ cycles. 0 reportable findings this cycle. Sole reportable supply-chain finding (`gladia@0.1.3` @ `reposcan-raw/npm/gladia.json:1`) remains **ACCEPTED OTHER – byte-fresh but not new**; do not re-file as new. Next automated probe adds no signal until `AUTH_HELPED` key unblocks SSRF POC (`POST /v2/pre-recorded audio_url/callback_url`) or `HUMAN_ONLY` post-auth `redirect_to` honoring test on `app.gladia.io`.
