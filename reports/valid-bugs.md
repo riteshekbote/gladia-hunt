@@ -551,3 +551,8 @@
 - 2 lead(s) marked VALID at 2026-09-06 22:37:38 UTC
   - **Verdict: VALID (DUPLICATE) — HOLD, do not re-file to Gladia** `leads/lead-human.md:9`. One-line: already reported, awaiting vendor 14-day follow-up 2026-08-26.
   - **Verdict: HOLD (AUTH_HELPED, not VALID passively).** One-line: SSRF-by-design surface exists but key-gated; 401 is expected.
+
+- 3 lead(s) marked VALID at 2026-09-07 00:24:58 UTC
+  - **TRIAGE: 2026-09-07 00:16 UTC — EMPTY BATCH** `new-leads.txt:1` empty, `triage-prompt.txt:28` `LEADS:` null. `probe-results.md:1-1113` no `200` bypass, no IDs, no `169.254.169.254` signal. **Verdict 
+  - - **Verdict: VALID (DUPLICATE) / HOLD — one-line: locked orphaned impersonation, already reported 2026-08-12 awaiting vendor, no re-file to Gladia until query-param unlock.**
+  - - **Verdict: HOLD (AUTH_HELPED) — design confirmed via `openapi.json` spec+SDK, proof gated on program-provided trial key. Not VALID with GET/HEAD only.**
