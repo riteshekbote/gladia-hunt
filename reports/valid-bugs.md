@@ -563,3 +563,16 @@
 - 2 lead(s) marked VALID at 2026-09-07 20:02:12 UTC
   - * **Verdict: VALID (DUPLICATE) — HOLD for re-report to Gladia, VALID for npm Trust&Safety.** One-line: locked orphaned impersonation at dist-tag latest, key-in-URL primitive verified passive.
   - * **Verdict: HOLD (AUTH_HELPED).** One-line: design fetch-by-design confirmed via OpenAPI/SDK, proof gated on valid key, no 401 bypass in 100+ cycles.
+
+- 11 lead(s) marked VALID at 2026-09-07 22:54:07 UTC
+  - |Q5 Novel|`NO` - duplicate `reports/valid-bugs.md:213` `leads/lead-human.md:1` REPORTED 2026-08-12 `riteshekbote@gmail.com -> security@gladia.io` re-verified 2026-08-22 `leads/lead-human.md:3` 10+ `np
+  - |Q7 Triager accept|`SPLIT` - npm Trust & Safety: `VALID`; Gladia program: `HOLD` - root cause not Gladia infra until `wss://api.gladia.io/v2/live?x-gladia-key=<valid>` query-auth proven `leads/lead-hu
+  - **Verdict: HOLD (VALID DUPLICATE)** - one-line: locked orphaned impersonation + WS key-in-URL primitive passive-proven across 10+ cycles, already reported awaiting vendor (2026-08-12), re-filing = dup
+  - |Q4|`NO` - proving needs `HUMAN_ONLY` `GET /signin?redirect_to=...` with valid Google SSO session `follow-redirects=false` observe `Location: https://evil.example.com` `leads/lead-mimo.md:20` - not GE
+  - |Q5|`YES` - HOLD, never VALID |
+  - |Q6|`YES` - open redirect valid class |
+  - |Q2|`PARTIAL` - key-gated 401 unauth, reachable only with valid `x-gladia-key` (low-priv trial key) `probe-results.md:4` no bypass 100+ cycles `leads/lead-mimo.md:32` |
+  - |Q4|`NO` - requires `POST https://api.gladia.io/v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/` compare `status/error_message/duration` `leads/le
+  - |Q5|`YES` - tracked HOLD `reports/valid-bugs.md:17` unproven |
+  - |Q6|`YES` - SSRF valid class |
+  - **Verdict: HOLD (AUTH_HELPED)** - one-line: design confirmed by spec+SDK verbatim forward, proof gated on valid `x-gladia-key` POST (invasive), no unauth bypass found.
