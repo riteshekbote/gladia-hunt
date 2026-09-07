@@ -559,3 +559,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-07 10:30:53 UTC
   - |Q4|NO violates `passive_first: true` `scope.yml:35` - needs `POST {"audio_url":"http://169.254.169.254/..."}` with valid key, not `GET/HEAD`|
+
+- 2 lead(s) marked VALID at 2026-09-07 20:02:12 UTC
+  - * **Verdict: VALID (DUPLICATE) — HOLD for re-report to Gladia, VALID for npm Trust&Safety.** One-line: locked orphaned impersonation at dist-tag latest, key-in-URL primitive verified passive.
+  - * **Verdict: HOLD (AUTH_HELPED).** One-line: design fetch-by-design confirmed via OpenAPI/SDK, proof gated on valid key, no 401 bypass in 100+ cycles.
