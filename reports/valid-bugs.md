@@ -556,3 +556,6 @@
   - **TRIAGE: 2026-09-07 00:16 UTC — EMPTY BATCH** `new-leads.txt:1` empty, `triage-prompt.txt:28` `LEADS:` null. `probe-results.md:1-1113` no `200` bypass, no IDs, no `169.254.169.254` signal. **Verdict 
   - - **Verdict: VALID (DUPLICATE) / HOLD — one-line: locked orphaned impersonation, already reported 2026-08-12 awaiting vendor, no re-file to Gladia until query-param unlock.**
   - - **Verdict: HOLD (AUTH_HELPED) — design confirmed via `openapi.json` spec+SDK, proof gated on program-provided trial key. Not VALID with GET/HEAD only.**
+
+- 1 lead(s) marked VALID at 2026-09-07 10:30:53 UTC
+  - |Q4|NO violates `passive_first: true` `scope.yml:35` - needs `POST {"audio_url":"http://169.254.169.254/..."}` with valid key, not `GET/HEAD`|
