@@ -596,3 +596,8 @@
 
 - 1 lead(s) marked VALID at 2026-09-08 11:30:13 UTC
   - **Verdict: VALID (DUPLICATE/HOLD)** — Already reported 2026-08-12 by `riteshekbote@gmail.com→security@gladia.io` per `leads/lead-human.md:3`, NO vendor action as of 2026-08-22 `leads/lead-human.md:4` 
+
+- 3 lead(s) marked VALID at 2026-09-08 15:24:17 UTC
+  - | A | Open redirect `GET /signin?redirect_to=https://evil.example.com` `inventory/gladia.md:33` | `app.gladia.io` HIGH `scope.yml:8` | YES | PARTIAL unauth reflection yes, exploit requires valid Googl
+  - | C | SSRF `audio_url/video_url/CallbackConfigDto.url -> 169.254.169.254` `inventory/gladia.md:98` | `api.gladia.io` HIGHEST `scope.yml:6` | YES | PARTIAL `401` without `x-gladia-key` `probe-results.m
+  - | D | npm `gladia@0.1.3` "Official" vs README "Unofficial" + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key',apiKey)` `inventory/gladia.md:32` `reports/SUBMISSION_gladia_npm_impersonation.
