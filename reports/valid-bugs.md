@@ -576,3 +576,17 @@
   - |Q5|`YES` - tracked HOLD `reports/valid-bugs.md:17` unproven |
   - |Q6|`YES` - SSRF valid class |
   - **Verdict: HOLD (AUTH_HELPED)** - one-line: design confirmed by spec+SDK verbatim forward, proof gated on valid `x-gladia-key` POST (invasive), no unauth bypass found.
+
+- 12 lead(s) marked VALID at 2026-09-08 01:15:48 UTC
+  - | Q5 Novel? | ❌ NO — `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io` `leads/lead-human.md:3` 10+ prior `VALID` `reports/valid-bugs.md:1` | ❌ DUPLICATE |
+  - **Verdict: `HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)`** — one-line: locked 10+ `npm pack` reproductions, byte-fresh, already reported awaiting vendor (14-day follow-up 2026-08-26
+  - | Q4 | Anon `GET` proves reflection+CSP gap. Proving **open redirect** requires `GET /signin?redirect_to=https://evil.example.com` **with valid Google SSO session + follow-redirects=false observe `Loc
+  - | Q5 | Not previously `VALID`, always `HOLD` `reports/valid-bugs.md:2` | ✅ YES |
+  - | Q6 | Open redirect valid class | ✅ YES |
+  - | Q2 | `GET /v2/pre-recorded`→401, `POST`→401 `probe-results.md:4` `inventory/gladia.md:30` — key-gated. Needs `x-gladia-key:<valid>` low-priv | ⚠️ PARTIAL (auth) |
+  - | Q4 | Spec `format:uri` proves design, not fetch. Proof needs `POST /v2/pre-recorded -H x-gladia-key:<valid> -H Content-Type:application/json -d '{"audio_url":"http://<canary>"}'` vs `http://169.254.
+  - | Q5 | Tracked but unproven `reports/valid-bugs.md:17` | ✅ YES (hypothesis) |
+  - | Q6 | SSRF valid class | ✅ YES |
+  - | Q7 | Triager needs `401 bypass` or valid-key POC with `error/timing` oracle | ❌ CONDITIONAL HOLD |
+  - | `GET /{id}/file` IDOR/BOLA `lead-laguna.md:73` | **HOLD** AUTH_HELPED | Needs 2 valid keys + UUID `/{id}`; spec opaque, no ownership binding leaked |
+  - | `wss://api.gladia.io/v2/live?token=<uuid>` token-in-URL `lead-nemotron3.md:18` | **HOLD** (design smell) | Public spec design, proof needs valid key to `POST /v2/live` |
