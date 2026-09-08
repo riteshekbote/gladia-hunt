@@ -590,3 +590,6 @@
   - | Q7 | Triager needs `401 bypass` or valid-key POC with `error/timing` oracle | ❌ CONDITIONAL HOLD |
   - | `GET /{id}/file` IDOR/BOLA `lead-laguna.md:73` | **HOLD** AUTH_HELPED | Needs 2 valid keys + UUID `/{id}`; spec opaque, no ownership binding leaked |
   - | `wss://api.gladia.io/v2/live?token=<uuid>` token-in-URL `lead-nemotron3.md:18` | **HOLD** (design smell) | Public spec design, proof needs valid key to `POST /v2/live` |
+
+- 1 lead(s) marked VALID at 2026-09-08 06:03:01 UTC
+  - **Verdict this cycle: NO NEW VALID — HOLD (empty batch).** No 7Q table to emit. All prior surfaces frozen 100+ cycles `inventory/gladia.md:848` NO_DRIFT.
