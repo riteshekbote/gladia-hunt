@@ -593,3 +593,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-08 06:03:01 UTC
   - **Verdict this cycle: NO NEW VALID — HOLD (empty batch).** No 7Q table to emit. All prior surfaces frozen 100+ cycles `inventory/gladia.md:848` NO_DRIFT.
+
+- 1 lead(s) marked VALID at 2026-09-08 11:30:13 UTC
+  - **Verdict: VALID (DUPLICATE/HOLD)** — Already reported 2026-08-12 by `riteshekbote@gmail.com→security@gladia.io` per `leads/lead-human.md:3`, NO vendor action as of 2026-08-22 `leads/lead-human.md:4` 
