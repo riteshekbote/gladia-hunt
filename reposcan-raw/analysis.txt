@@ -1,59 +1,1030 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Delta shows zero new hits — running full triage on the 624-hit snapshot.
-[0m$ [0mpython3 -c "import hashlib; print(hashlib.sha256(b'sk-********').hexdigest()); print(hashlib.sha256(b'secret-key').hexdigest())"
-9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
-85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
-[0m
+Deep triage mode — hunting high-value chains across the full inventory.
 [0m→ [0mRead .
-[0m→ [0mRead scope.yml
-[0m→ [0mRead inventory
-Triage: `gladia` delta 0 — 5654 files / 624 hits, 0 new hit lines vs previous scan. Scanner output alone REJECTED per `scope.yml:22,41` — manual validation required. No new high-value chainable primitive.
+[0m
+[0m$ [0mls -R reposcan-raw 2>&1 | head -n 200; echo "---"; cat repos-gladiaio.json | head -n 100; echo "---"; cat cands-gladiaio.txt | head -n 100
+reposcan-raw:
+analysis.txt
+gladiaio
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+npm
+rag.txt
 
-**Breadth pass (full inventory):**
-- Anomalies scanned: `id/uid/email/user_id` param names, versioned `/api/v1|v2|beta|internal`, debug flags, `swagger/openapi.json`, odd status codes.
-- Result: 0 new anomalies. Surface frozen per RAG 80+ cycles: `api.gladia.io/openapi.json` 125131B/14 paths/7 webhooks/1 server `scope.yml:31`, `/health` 200 `{"health":"OK"}` 15B undocumented, `/v2/live/health` 401 undocumented (properly gated), `/v1/models` 200 530B `security: null` public, CORS `*` + `ACAH: x-gladia-key` no credentials, preflight `x-powered-by: Express` differential, `app.gladia.io/signin?redirect_to=` reflection live 200/27448B CSP 0 `form-action`. No new endpoint/path/header drift.
+reposcan-raw/gladiaio:
+compare-stt
+docs
+gladia-cli
+gladia-quiz-app
+gladia-samples
+gladiaflow
+n8n-nodes-gladia
+normalization
+realtime-multilingual-asr-router
+sdk
+skills
+vercel-ai
 
-**Depth on top-3 prior anomalies (this cycle — all pre-accepted, no new depth):** 1) `npm:gladia@0.1.3` orphaned impersonation 2) `app.gladia.io:OATH` redirect_to post-auth honoring (HUMAN_ONLY) 3) `api.gladia.io:SSRF` audio_url/video_url/callback_url `format:uri` no allowlist (AUTH_HELPED) — all unchanged, no new probe adds signal without authorized key/HUMAN OAuth.
+reposcan-raw/gladiaio/compare-stt:
+LICENSE
+README.md
+docker-compose.yml
+eslint.config.mjs
+instrumentation-client.ts
+logos
+next.config.ts
+package-lock.json
+package.json
+postcss.config.mjs
+prisma
+prisma.config.ts
+public
+sentry.edge.config.ts
+sentry.server.config.ts
+src
+test-audio
+test-base-path-fetch.ts
+test-diff.ts
+test-match-token.ts
+test-providers.ts
+tsconfig.json
 
-### Classification — delta hits shown (sample 50/624, representative of 624):
+reposcan-raw/gladiaio/compare-stt/logos:
+assemblyai.svg
+deepgram.svg
+gladia.svg
+speechmatics.svg
 
-**REAL_SECRET — 0 rows**
-| file_path:line | sha256 | notes |
-|---|---|---|
-| — | — | No hardcoded live credential. No `x-gladia-key` value, no JWT, no cloud key with signs of life. |
+reposcan-raw/gladiaio/compare-stt/prisma:
+migrations
+schema.prisma
+seed.ts
 
-**TEST_OR_EXAMPLE**
-| file_path:line | sha256 | notes |
-|---|---|---|
-| `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` | `apiKey: "sk-********"` masked placeholder — TEST_OR_EXAMPLE |
-| `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` | `apiKey: "secret-key"` test fixture — TEST_OR_EXAMPLE |
-| `reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8-9` | — | `gladiaflow` vocab values — not credential |
-| `reposcan-raw/gladiaio/normalization/normalization/cli.py:41` | — | `default="gladia-3"` preset — not credential |
+reposcan-raw/gladiaio/compare-stt/prisma/migrations:
+20260311161230_init
+20260629000000_add_match_tokens
+migration_lock.toml
 
-**ENDPOINT_LEAK — all expected official endpoints, not leak**
-| file_path:line | value | verdict |
-|---|---|---|
-| `reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | `ENDPOINT_LEAK: no` — `gladia.io` Low in-scope `scope.yml:12`, official docs |
-| `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | `ENDPOINT_LEAK: no` — `app.gladia.io` High in-scope `scope.yml:8` expected client link |
-| `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | `ENDPOINT_LEAK: no` — expected dashboard link |
-| `reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21` | `https://registry.npmjs.org/@gladiaio/sdk/latest` | `ENDPOINT_LEAK: no` — official SDK registry `scope.yml:26` |
-| `reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22` | `https://pypi.org/pypi/gladiaio-sdk/json` | `ENDPOINT_LEAK: no` — official PyPI `scope.yml:29` |
-| `reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21,50` | `https://docs.gladia.io/.well-known/agent-skills/` | `ENDPOINT_LEAK: no` — official docs |
-| `reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14` | `GLADIA_API_KEY` env var name | Not leak — env placeholder |
-| `reposcan-raw/gladiaio/gladia-cli/install.sh:4` | `gladiaio/gladia-cli` | In-scope org repo |
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260311161230_init:
+migration.sql
 
-No `169.254.169.254` SSRF target, no `*.amazonaws.com` metadata, no staging/dev host, no debug flag `?debug|test|full=true` in hits.
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260629000000_add_match_tokens:
+migration.sql
 
-**INTERESTING — 0 new rows**
-| file_path:line | notes |
-|---|---|
-| — | No cloud config, no debug flag, no `alexisbouchez/gladia.ts` reference in this delta (prior orphaned `gladia@0.1.3` already `ACCEPTED OTHER @ npm` 60+ cycles, shasum `cc96f84a…` sha256 `3b23ec7d…7f2`), no mass-assignment/JWT alg/OAuth `state` primitive in grep. Adjacent-namespace squat scan previously all-404 — isolated impersonator, no broader campaign. |
+reposcan-raw/gladiaio/compare-stt/public:
+globe.svg
+images
+logo.svg
+next.svg
+providers
 
-**Verdict:**
-- `REPORT_CANDIDATE: no` — 0 new `REAL_SECRET` with signs of life in this delta. Both key-like strings are masked/test fixtures with sha256 logged above, no live credential.
-- `REPORT_CANDIDATE: no` — 0 new `ENDPOINT_LEAK` reportable. All URLs are official in-scope assets.
-- Existing locked report-ready `ACCEPTED OTHER @ npm:gladia@0.1.3` (orphaned impersonation, raw `x-gladia-key` in `wss://.../v2/live?x-gladia-key=` `src/client.ts:306-308`) persists but is **not** a new finding from this scan — already triaged across 60+ cycles, evidence reproduced via `npm pack`.
+reposcan-raw/gladiaio/compare-stt/public/images:
+hero-badges
 
-No `[NEXT] PROBE` required this cycle — surface byte-identical to 90+ prior cycles; further passive `GET` adds no signal until `AUTH_HELPED` SSRF POC (valid `x-gladia-key`) or `HUMAN_ONLY` post-auth `/signin?redirect_to` honoring test.
+reposcan-raw/gladiaio/compare-stt/public/images/hero-badges:
+laurel.png
+medal.png
+trophy.png
+
+reposcan-raw/gladiaio/compare-stt/public/providers:
+assemblyai.svg
+deepgram.svg
+elevenlabs.svg
+gladia.svg
+mistral.svg
+speechmatics.svg
+
+reposcan-raw/gladiaio/compare-stt/src:
+app
+components
+flags.ts
+instrumentation-client.ts
+instrumentation.ts
+lib
+scripts
+
+reposcan-raw/gladiaio/compare-stt/src/app:
+about
+api
+favicon.ico
+global-error.tsx
+globals.css
+layout.tsx
+leaderboard
+methodology
+page.tsx
+robots.ts
+sitemap.ts
+terms
+
+reposcan-raw/gladiaio/compare-stt/src/app/about:
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/app/api:
+leaderboard
+session
+transcribe
+upload
+vote
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/leaderboard:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session:
+[id]
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]:
+stats
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]/stats:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/upload:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/leaderboard:
+leaderboard-articles-loader.tsx
+leaderboard-client.tsx
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/app/methodology:
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/app/terms:
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components:
+arena-page.tsx
+audio-input-picker.tsx
+audio-player.tsx
+audio-recorder.tsx
+audio-uploader.tsx
+collapsible-text.tsx
+glass-icon-button.tsx
+hero-provider-logos.tsx
+home-seo-section.tsx
+leaderboard-articles-section.tsx
+leaderboard-news-bubble.tsx
+leaderboard-table.tsx
+navbar.tsx
+secondary-button.tsx
+seo
+session-summary.tsx
+tracking
+transcript-card.tsx
+vote-buttons.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components/seo:
+about-faq.tsx
+leaderboard-dataset-schema.tsx
+leaderboard-static-table.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components/tracking:
+base-path-fetch-fix.tsx
+gladia-analytics.tsx
+page-view-tracker.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/lib:
+base-path-fetch.ts
+db.ts
+diff.ts
+elo-confidence.ts
+elo.ts
+encode-wav.ts
+env.ts
+leaderboard-articles.ts
+leaderboard-data.ts
+match-token.ts
+pending-audio.ts
+---
+[
+  {
+    "id": 1317221874,
+    "node_id": "R_kgDOToM18g",
+    "name": "gladiaflow",
+    "full_name": "gladiaio/gladiaflow",
+    "private": false,
+    "owner": {
+      "login": "gladiaio",
+      "id": 92447723,
+      "node_id": "O_kgDOBYKj6w",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92447723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/gladiaio",
+      "html_url": "https://github.com/gladiaio",
+      "followers_url": "https://api.github.com/users/gladiaio/followers",
+      "following_url": "https://api.github.com/users/gladiaio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/gladiaio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/gladiaio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/gladiaio/subscriptions",
+      "organizations_url": "https://api.github.com/users/gladiaio/orgs",
+      "repos_url": "https://api.github.com/users/gladiaio/repos",
+      "events_url": "https://api.github.com/users/gladiaio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/gladiaio/received_events",
+      "type": "Organization",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "html_url": "https://github.com/gladiaio/gladiaflow",
+    "description": "A desktop app for real-time voice dictation powered by Gladia's realtime transcription",
+    "fork": false,
+    "url": "https://api.github.com/repos/gladiaio/gladiaflow",
+    "forks_url": "https://api.github.com/repos/gladiaio/gladiaflow/forks",
+    "keys_url": "https://api.github.com/repos/gladiaio/gladiaflow/keys{/key_id}",
+    "collaborators_url": "https://api.github.com/repos/gladiaio/gladiaflow/collaborators{/collaborator}",
+    "teams_url": "https://api.github.com/repos/gladiaio/gladiaflow/teams",
+    "hooks_url": "https://api.github.com/repos/gladiaio/gladiaflow/hooks",
+    "issue_events_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues/events{/number}",
+    "events_url": "https://api.github.com/repos/gladiaio/gladiaflow/events",
+    "assignees_url": "https://api.github.com/repos/gladiaio/gladiaflow/assignees{/user}",
+    "branches_url": "https://api.github.com/repos/gladiaio/gladiaflow/branches{/branch}",
+    "tags_url": "https://api.github.com/repos/gladiaio/gladiaflow/tags",
+    "blobs_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/blobs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/tags{/sha}",
+    "git_refs_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/refs{/sha}",
+    "trees_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/trees{/sha}",
+    "statuses_url": "https://api.github.com/repos/gladiaio/gladiaflow/statuses/{sha}",
+    "languages_url": "https://api.github.com/repos/gladiaio/gladiaflow/languages",
+    "stargazers_url": "https://api.github.com/repos/gladiaio/gladiaflow/stargazers",
+    "contributors_url": "https://api.github.com/repos/gladiaio/gladiaflow/contributors",
+    "subscribers_url": "https://api.github.com/repos/gladiaio/gladiaflow/subscribers",
+    "subscription_url": "https://api.github.com/repos/gladiaio/gladiaflow/subscription",
+    "commits_url": "https://api.github.com/repos/gladiaio/gladiaflow/commits{/sha}",
+    "git_commits_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/commits{/sha}",
+    "comments_url": "https://api.github.com/repos/gladiaio/gladiaflow/comments{/number}",
+    "issue_comment_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues/comments{/number}",
+    "contents_url": "https://api.github.com/repos/gladiaio/gladiaflow/contents/{+path}",
+    "compare_url": "https://api.github.com/repos/gladiaio/gladiaflow/compare/{base}...{head}",
+    "merges_url": "https://api.github.com/repos/gladiaio/gladiaflow/merges",
+    "archive_url": "https://api.github.com/repos/gladiaio/gladiaflow/{archive_format}{/ref}",
+    "downloads_url": "https://api.github.com/repos/gladiaio/gladiaflow/downloads",
+    "issues_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues{/number}",
+    "pulls_url": "https://api.github.com/repos/gladiaio/gladiaflow/pulls{/number}",
+    "milestones_url": "https://api.github.com/repos/gladiaio/gladiaflow/milestones{/number}",
+    "notifications_url": "https://api.github.com/repos/gladiaio/gladiaflow/notifications{?since,all,participating}",
+    "labels_url": "https://api.github.com/repos/gladiaio/gladiaflow/labels{/name}",
+    "releases_url": "https://api.github.com/repos/gladiaio/gladiaflow/releases{/id}",
+    "deployments_url": "https://api.github.com/repos/gladiaio/gladiaflow/deployments",
+    "created_at": "2026-07-30T12:02:12Z",
+    "updated_at": "2026-09-02T21:34:35Z",
+    "pushed_at": "2026-09-02T21:37:03Z",
+    "git_url": "git://github.com/gladiaio/gladiaflow.git",
+    "ssh_url": "git@github.com:gladiaio/gladiaflow.git",
+    "clone_url": "https://github.com/gladiaio/gladiaflow.git",
+    "svn_url": "https://github.com/gladiaio/gladiaflow",
+    "homepage": "https://www.gladia.io/gladiaflow",
+    "size": 946,
+    "stargazers_count": 10,
+    "watchers_count": 10,
+    "language": "Rust",
+    "has_issues": true,
+    "has_projects": false,
+    "has_downloads": false,
+    "has_wiki": false,
+    "has_pages": false,
+    "has_discussions": false,
+    "forks_count": 5,
+    "mirror_url": null,
+    "archived": false,
+    "disabled": false,
+    "open_issues_count": 2,
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    },
+    "allow_forking": true,
+    "is_template": false,
+---
+https://github.com/gladiaio/gladiaflow.git
+https://github.com/gladiaio/realtime-multilingual-asr-router.git
+https://github.com/gladiaio/normalization.git
+https://github.com/gladiaio/gladia-samples.git
+https://github.com/gladiaio/docs.git
+https://github.com/gladiaio/compare-stt.git
+https://github.com/gladiaio/skills.git
+https://github.com/gladiaio/gladia-cli.git
+https://github.com/gladiaio/sdk.git
+https://github.com/gladiaio/n8n-nodes-gladia.git
+https://github.com/gladiaio/vercel-ai.git
+https://github.com/gladiaio/gladia-quiz-app.git
+[0m
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m
+[0m$ [0mwc -l reposcan-raw/grep-hits.txt reposcan-raw/grep-hits.prev.txt 2>&1; echo "---"; cat reposcan-raw/grep-hits.prev.txt 2>&1 | head -n 50; echo "---DELTA file---"; cat reposcan-raw/grep-delta.txt; echo "---ANALYSIS---"; cat reposcan-raw/analysis.txt 2>&1 | tail -n 200
+61 reposcan-raw/grep-hits.txt
+   61 reposcan-raw/grep-hits.prev.txt
+  122 total
+---
+SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2: "name": "gladia",
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:7: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:2: "name": "gladia-plugins",
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:5: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:12: "name": "gladia",
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21: JS_VERSION=$(curl -sf https://registry.npmjs.org/@gladiaio/sdk/latest | jq -r '.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22: PY_VERSION=$(curl -sf https://pypi.org/pypi/gladiaio-sdk/json | jq -r '.info.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:29: FILE="plugins/gladia/skills/gladia-sdk-integration/references/sdk-versions.md"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:7: - "plugins/gladia/skills/**"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:18: root: plugins/gladia/skills
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:20: owner: gladiaio
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21: INDEX=$(curl -sf https://docs.gladia.io/.well-known/agent-skills/index.json)
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:28: SKILL_FILE="plugins/gladia/skills/gladia-documentation-auto/SKILL.md"
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:50: curl -sf https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md -o /tmp/skill-raw.md
+reposcan-raw/gladiaio/normalization/pyproject.toml:2: name = "gladia-normalization"
+reposcan-raw/gladiaio/normalization/pyproject.toml:6: authors = [{ name = "Gladia", email = "support@gladia.io" }]
+reposcan-raw/gladiaio/normalization/pyproject.toml:37: gladia-normalization = "normalization.cli:main"
+reposcan-raw/gladiaio/normalization/normalization/cli.py:41: default="gladia-3",
+reposcan-raw/gladiaio/normalization/normalization/cli.py:43: help="Built-in preset name or path to a YAML file (default: gladia-3).",
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
+reposcan-raw/gladiaio/normalization/normalization/presets/gladia-3.yaml:1: name: gladia-3
+reposcan-raw/gladiaio/normalization/normalization/pipeline/loader.py:36: - A preset name (e.g. ``"gladia-3"``): loads the corresponding YAML from
+reposcan-raw/gladiaio/gladia-cli/install.sh:4: REPO="gladiaio/gladia-cli"
+reposcan-raw/gladiaio/gladia-cli/install.sh:5: BINARY="gladia"
+reposcan-raw/gladiaio/gladia-cli/install.sh:64: gladia_bin() {
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:3: project_name: gladia
+---DELTA file---
+DELTA: 0 new hit lines vs previous scan
+---ANALYSIS---
+leaderboard
+session
+transcribe
+upload
+vote
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/leaderboard:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session:
+[id]
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]:
+stats
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]/stats:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/upload:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/api/vote:
+route.ts
+
+reposcan-raw/gladiaio/compare-stt/src/app/leaderboard:
+leaderboard-articles-loader.tsx
+leaderboard-client.tsx
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/app/methodology:
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/app/terms:
+page.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components:
+arena-page.tsx
+audio-input-picker.tsx
+audio-player.tsx
+audio-recorder.tsx
+audio-uploader.tsx
+collapsible-text.tsx
+glass-icon-button.tsx
+hero-provider-logos.tsx
+home-seo-section.tsx
+leaderboard-articles-section.tsx
+leaderboard-news-bubble.tsx
+leaderboard-table.tsx
+navbar.tsx
+secondary-button.tsx
+seo
+session-summary.tsx
+tracking
+transcript-card.tsx
+vote-buttons.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components/seo:
+about-faq.tsx
+leaderboard-dataset-schema.tsx
+leaderboard-static-table.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/components/tracking:
+base-path-fetch-fix.tsx
+gladia-analytics.tsx
+page-view-tracker.tsx
+
+reposcan-raw/gladiaio/compare-stt/src/lib:
+base-path-fetch.ts
+db.ts
+diff.ts
+elo-confidence.ts
+elo.ts
+encode-wav.ts
+env.ts
+leaderboard-articles.ts
+leaderboard-data.ts
+match-token.ts
+pending-audio.ts
+---
+[
+  {
+    "id": 1317221874,
+    "node_id": "R_kgDOToM18g",
+    "name": "gladiaflow",
+    "full_name": "gladiaio/gladiaflow",
+    "private": false,
+    "owner": {
+      "login": "gladiaio",
+      "id": 92447723,
+      "node_id": "O_kgDOBYKj6w",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92447723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/gladiaio",
+      "html_url": "https://github.com/gladiaio",
+      "followers_url": "https://api.github.com/users/gladiaio/followers",
+      "following_url": "https://api.github.com/users/gladiaio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/gladiaio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/gladiaio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/gladiaio/subscriptions",
+      "organizations_url": "https://api.github.com/users/gladiaio/orgs",
+      "repos_url": "https://api.github.com/users/gladiaio/repos",
+      "events_url": "https://api.github.com/users/gladiaio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/gladiaio/received_events",
+      "type": "Organization",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "html_url": "https://github.com/gladiaio/gladiaflow",
+    "description": "A desktop app for real-time voice dictation powered by Gladia's realtime transcription",
+    "fork": false,
+    "url": "https://api.github.com/repos/gladiaio/gladiaflow",
+    "forks_url": "https://api.github.com/repos/gladiaio/gladiaflow/forks",
+    "keys_url": "https://api.github.com/repos/gladiaio/gladiaflow/keys{/key_id}",
+    "collaborators_url": "https://api.github.com/repos/gladiaio/gladiaflow/collaborators{/collaborator}",
+    "teams_url": "https://api.github.com/repos/gladiaio/gladiaflow/teams",
+    "hooks_url": "https://api.github.com/repos/gladiaio/gladiaflow/hooks",
+    "issue_events_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues/events{/number}",
+    "events_url": "https://api.github.com/repos/gladiaio/gladiaflow/events",
+    "assignees_url": "https://api.github.com/repos/gladiaio/gladiaflow/assignees{/user}",
+    "branches_url": "https://api.github.com/repos/gladiaio/gladiaflow/branches{/branch}",
+    "tags_url": "https://api.github.com/repos/gladiaio/gladiaflow/tags",
+    "blobs_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/blobs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/tags{/sha}",
+    "git_refs_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/refs{/sha}",
+    "trees_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/trees{/sha}",
+    "statuses_url": "https://api.github.com/repos/gladiaio/gladiaflow/statuses/{sha}",
+    "languages_url": "https://api.github.com/repos/gladiaio/gladiaflow/languages",
+    "stargazers_url": "https://api.github.com/repos/gladiaio/gladiaflow/stargazers",
+    "contributors_url": "https://api.github.com/repos/gladiaio/gladiaflow/contributors",
+    "subscribers_url": "https://api.github.com/repos/gladiaio/gladiaflow/subscribers",
+    "subscription_url": "https://api.github.com/repos/gladiaio/gladiaflow/subscription",
+    "commits_url": "https://api.github.com/repos/gladiaio/gladiaflow/commits{/sha}",
+    "git_commits_url": "https://api.github.com/repos/gladiaio/gladiaflow/git/commits{/sha}",
+    "comments_url": "https://api.github.com/repos/gladiaio/gladiaflow/comments{/number}",
+    "issue_comment_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues/comments{/number}",
+    "contents_url": "https://api.github.com/repos/gladiaio/gladiaflow/contents/{+path}",
+    "compare_url": "https://api.github.com/repos/gladiaio/gladiaflow/compare/{base}...{head}",
+    "merges_url": "https://api.github.com/repos/gladiaio/gladiaflow/merges",
+    "archive_url": "https://api.github.com/repos/gladiaio/gladiaflow/{archive_format}{/ref}",
+    "downloads_url": "https://api.github.com/repos/gladiaio/gladiaflow/downloads",
+    "issues_url": "https://api.github.com/repos/gladiaio/gladiaflow/issues{/number}",
+    "pulls_url": "https://api.github.com/repos/gladiaio/gladiaflow/pulls{/number}",
+    "milestones_url": "https://api.github.com/repos/gladiaio/gladiaflow/milestones{/number}",
+    "notifications_url": "https://api.github.com/repos/gladiaio/gladiaflow/notifications{?since,all,participating}",
+    "labels_url": "https://api.github.com/repos/gladiaio/gladiaflow/labels{/name}",
+    "releases_url": "https://api.github.com/repos/gladiaio/gladiaflow/releases{/id}",
+    "deployments_url": "https://api.github.com/repos/gladiaio/gladiaflow/deployments",
+    "created_at": "2026-07-30T12:02:12Z",
+    "updated_at": "2026-09-02T21:34:35Z",
+    "pushed_at": "2026-09-02T21:37:03Z",
+    "git_url": "git://github.com/gladiaio/gladiaflow.git",
+    "ssh_url": "git@github.com:gladiaio/gladiaflow.git",
+    "clone_url": "https://github.com/gladiaio/gladiaflow.git",
+    "svn_url": "https://github.com/gladiaio/gladiaflow",
+    "homepage": "https://www.gladia.io/gladiaflow",
+    "size": 946,
+    "stargazers_count": 10,
+    "watchers_count": 10,
+    "language": "Rust",
+    "has_issues": true,
+    "has_projects": false,
+    "has_downloads": false,
+    "has_wiki": false,
+    "has_pages": false,
+    "has_discussions": false,
+    "forks_count": 5,
+    "mirror_url": null,
+    "archived": false,
+    "disabled": false,
+    "open_issues_count": 2,
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    },
+    "allow_forking": true,
+    "is_template": false,
+---
+https://github.com/gladiaio/gladiaflow.git
+https://github.com/gladiaio/realtime-multilingual-asr-router.git
+https://github.com/gladiaio/normalization.git
+https://github.com/gladiaio/gladia-samples.git
+https://github.com/gladiaio/docs.git
+https://github.com/gladiaio/compare-stt.git
+https://github.com/gladiaio/skills.git
+https://github.com/gladiaio/gladia-cli.git
+https://github.com/gladiaio/sdk.git
+https://github.com/gladiaio/n8n-nodes-gladia.git
+https://github.com/gladiaio/vercel-ai.git
+https://github.com/gladiaio/gladia-quiz-app.git
+[0m
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m
+[0m$ [0mcat reposcan-raw/grep-hits.txt | wc -l; cat reposcan-raw/npm/* 2>&1 | head -n 100; ls -la reposcan-raw/npm/ 2>&1 | head -n 50
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_07f766eda00118le0Ptd0ag8Ch
+
+drwxr-xr-x 2 runner runner  4096 Sep  8 05:20 .
+drwxr-xr-x 4 runner runner  4096 Sep  8 05:20 ..
+-rw-r--r-- 1 runner runner 61812 Sep  8 05:20 _gladiaio_sdk.json
+-rw-r--r-- 1 runner runner 19076 Sep  8 05:20 gladia.json
+[0m
+[0m→ [0mRead reposcan-raw/npm/gladia.json
+[0m
+[0m$ [0mpython3 -c "
+import json, pathlib
+with open('reposcan-raw/npm/gladia.json') as f:
+    j=json.load(f)
+print('name', j.get('name'))
+print('dist-tags', j.get('dist-tags'))
+print('description', j.get('description'))
+print('versions', list(j.get('versions',{}).keys())[-5:])
+latest=j.get('dist-tags',{}).get('latest')
+v=j['versions'][latest]
+print('latest description', v.get('description'))
+print('repo', v.get('repository'))
+print('maintainers', j.get('maintainers'))
+# check _gladiaio_sdk
+import json as js
+with open('reposcan-raw/npm/_gladiaio_sdk.json') as f2:
+    j2=js.load(f2)
+print('--- official ---')
+print(j2.get('name'), j2.get('dist-tags'))
+print(j2['versions'][j2['dist-tags']['latest']].get('description'))
+print(j2['versions'][j2['dist-tags']['latest']].get('repository'))
+"
+
+name gladia
+dist-tags {'latest': '0.1.3'}
+description Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+versions ['0.1.0', '0.1.1', '0.1.2', '0.1.3']
+latest description Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API
+repo {'type': 'git', 'url': 'git+https://github.com/alexisbouchez/gladia.ts.git'}
+maintainers [{'name': 'softwarecitadel', 'email': 'softwarecitadel@gmail.com'}]
+--- official ---
+@gladiaio/sdk {'latest': '1.1.0'}
+Gladia JavaScript/TypeScript SDK
+{'url': 'git+https://github.com/gladiaio/sdk.git', 'type': 'git'}
+[0m
+[0m$ [0mpython3 -c "
+import json
+with open('reposcan-raw/npm/gladia.json') as f:
+    j=json.load(f)
+v=j['versions']['0.1.3']
+print(json.dumps({k: v[k] for k in ['name','version','description','repository','author','maintainers']}, indent=2))
+print('dist', v['dist'])
+"
+# hash check
+cat reposcan-raw/grep-hits.txt
+{
+  "name": "gladia",
+  "version": "0.1.3",
+  "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexisbouchez/gladia.ts.git"
+  },
+  "author": {
+    "name": "Alexis Bouchez"
+  },
+  "maintainers": [
+    {
+      "name": "softwarecitadel",
+      "email": "softwarecitadel@gmail.com"
+    }
+  ]
+}
+dist {'integrity': 'sha512-56NWQ9pEVyd/E+jwafDydzcopimFayKQatP6oz0tL5EF5v9aQLAQ6P03H93nEqZCiD10UqqZMR1c6GaC3YBztw==', 'shasum': 'cc96f84a200c0fd49a71e919391f9b659c39f3e9', 'tarball': 'https://registry.npmjs.org/gladia/-/gladia-0.1.3.tgz', 'fileCount': 16, 'unpackedSize': 225780, 'signatures': [{'keyid': 'SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U', 'sig': 'MEQCIATiiYQSNgsmQdpzMxy0/J9jcf6RsccvWZ1tNNrvK4IZAiAPkjKPTOYBQgB7d4CJbfX/MxeXJ7XSDswDMJP3Zc4R4Q=='}]}
+SCAN SUMMARY: 5654 code/config files scanned, 624 hits
+reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:272: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:282: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/App.tsx:292: invoke("close_gladia_session").catch(console.error);
+reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
+reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
+reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
+reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+reposcan-raw/gladiaio/gladiaflow/src/lib/dictationStats.ts:11: export const DICTATION_STATS_STORAGE_KEY = "gladiaflow.dictation.stats.v1";
+reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14: "https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary";
+reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19: return `https://app.gladia.io/transcriptions/live/${sessionId}`;
+reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4: const API_KEYS_URL = "https://app.gladia.io/apikeys";
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2: "name": "gladia",
+reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:7: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:2: "name": "gladia-plugins",
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:5: "email": "support@gladia.io"
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:12: "name": "gladia",
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21: JS_VERSION=$(curl -sf https://registry.npmjs.org/@gladiaio/sdk/latest | jq -r '.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:22: PY_VERSION=$(curl -sf https://pypi.org/pypi/gladiaio-sdk/json | jq -r '.info.version')
+reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:29: FILE="plugins/gladia/skills/gladia-sdk-integration/references/sdk-versions.md"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:7: - "plugins/gladia/skills/**"
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:18: root: plugins/gladia/skills
+reposcan-raw/gladiaio/skills/.github/workflows/publish-clawhub.yml:20: owner: gladiaio
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21: INDEX=$(curl -sf https://docs.gladia.io/.well-known/agent-skills/index.json)
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:28: SKILL_FILE="plugins/gladia/skills/gladia-documentation-auto/SKILL.md"
+reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:50: curl -sf https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md -o /tmp/skill-raw.md
+reposcan-raw/gladiaio/normalization/pyproject.toml:2: name = "gladia-normalization"
+reposcan-raw/gladiaio/normalization/pyproject.toml:6: authors = [{ name = "Gladia", email = "support@gladia.io" }]
+reposcan-raw/gladiaio/normalization/pyproject.toml:37: gladia-normalization = "normalization.cli:main"
+reposcan-raw/gladiaio/normalization/normalization/cli.py:41: default="gladia-3",
+reposcan-raw/gladiaio/normalization/normalization/cli.py:43: help="Built-in preset name or path to a YAML file (default: gladia-3).",
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/replacements.py:3: Keys and values use the same ASCII-folded surface form as the rest of the gladia-3
+reposcan-raw/gladiaio/normalization/normalization/presets/gladia-3.yaml:1: name: gladia-3
+reposcan-raw/gladiaio/normalization/normalization/pipeline/loader.py:36: - A preset name (e.g. ``"gladia-3"``): loads the corresponding YAML from
+reposcan-raw/gladiaio/gladia-cli/install.sh:4: REPO="gladiaio/gladia-cli"
+reposcan-raw/gladiaio/gladia-cli/install.sh:5: BINARY="gladia"
+reposcan-raw/gladiaio/gladia-cli/install.sh:64: gladia_bin() {
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:3: project_name: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:11: binary: gladia
+reposcan-raw/gladiaio/gladia-cli/.goreleaser.yaml:61: owner: gladiaio
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:13: configFilename  = ".gladia"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:14: envGladiaAPIKey = "GLADIA_API_KEY"
+reposcan-raw/gladiaio/gladia-cli/cmd/config.go:25: func SaveGladiaKeyToFile(gladiaKey string) error {
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:17: Use:     "gladia",
+reposcan-raw/gladiaio/gladia-cli/cmd/main.go:23: rootCmd.PersistentFlags().StringVar(&rootGladiaKey, "gladia-key", "", "Gladia API key (used when GLADIA_API_KEY and ~/.gladia are unset)")
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:12: func PrintTXTTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:16: func PrintTXTDiarizedTranscription(response gladia.TranscriptionResult) {
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
+[0m
+[0m$ [0mpython3 -c "
+import re, hashlib, pathlib
+# Check actual file contents for the hits to classify
+hits = open('reposcan-raw/grep-hits.txt').read().splitlines()[1:]
+for line in hits:
+    m=re.match(r'(.+?):\d+:(.*)', line)
+    if m:
+        path=m.group(1)
+        # we just collect categories
+        pass
+
+# Now inspect the two suspicious apiKey hits
+import pathlib
+for p in ['reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx','reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts']:
+    print('---',p)
+    print(open(p).read()[:2000])
+"
+
+--- reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
+
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+      pronunciations: [
+        "web socket",
+        "web-socket",
+        "websockit",
+        "web soket",
+        "double-u socket",
+        "web socket protocol",
+      ],
+    },
+    { value: "diarization", intensity: 0.7 },
+    { value: "endpointing", intensity: 0.55 },
+    { value: "SaaS", intensity: 0.65 },
+    { value: "Acme Incorporated", intensity: 0.5 },
+    { value: "Gladia API", intensity: 0.8 },
+  ],
+};
+
+const MOCK_HISTORY: TranscriptionHistoryPage = {
+  items: [
+    {
+      id: "1",
+      text: "GladiaFlow makes dictation feel effortless once permissions and your API key are set up.",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+    },
+    {
+      id: "2",
+      text: "Custom vocabulary helps w
+--- reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts
+import { describe, expect, it, vi } from "vitest";
+import { loadSavedApiKey, resetCorruptedConfig } from "./configLoad";
+
+describe("loadSavedApiKey", () => {
+  it("distinguishes a missing key from a load failure", async () => {
+    await expect(loadSavedApiKey(async () => null)).resolves.toEqual({
+      ok: true,
+      apiKey: null,
+    });
+
+    const failure = await loadSavedApiKey(async () => {
+      throw new Error("malformed config");
+    });
+    expect(failure).toEqual({
+      ok: false,
+      message:
+        "GladiaFlow couldn't read your saved settings. Your API key has not been changed.",
+    });
+  });
+
+  it("returns the saved key without logging its value", async () => {
+    const invokeApiKey = vi.fn(async () => "secret-key");
+
+    await expect(loadSavedApiKey(invokeApiKey)).resolves.toEqual({
+      ok: true,
+      apiKey: "secret-key",
+    });
+    expect(invokeApiKey).toHaveBeenCalledOnce();
+  });
+
+  it("passes explicit confirmation only when reset is called", async () => {
+    const invokeReset = vi.fn(async (confirmed: boolean) => "/backup.json");
+
+    await expect(resetCorruptedConfig(invokeReset)).resolves.toEqual({
+      ok: true,
+      backupPath: "/backup.json",
+    });
+    expect(invokeReset).toHaveBeenCalledWith(true);
+  });
+
+  it("returns a safe reset error without claiming settings were deleted", async () => {
+    const result = await resetCorruptedConfig(async () => {
+      throw new Error("disk failure");
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      message:
+        "GladiaFlow couldn't reset your settings. Your original settings file was not deleted.",
+    });
+  });
+});
+[0m
+[0m$ [0mgrep -R -n "gladia\|apiKey\|secret\|token\|password\|key" reposcan-raw/gladiaio/sdk 2>&1 | head -n 100
+ls reposcan-raw/gladiaio/sdk/packages/ 2>&1 | head -n 20
+cat reposcan-raw/analysis.txt 2>&1 | grep -A2 -B2 "REPORT"
+reposcan-raw/gladiaio/sdk/.npmrc:3:@gladiaio:registry=https://registry.npmjs.org/
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:11:# The hook is passed a version (currently 2) and last update token
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:12:# formatted as a string and outputs to stdout a new update token and
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:13:# all files that have been modified since the update token. Paths must
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:19:my ($version, $last_update_token) = @ARGV;
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:22:# print STDERR "$0 $version $last_update_token\n";
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:81:	# changed since $last_update_token but not from the .git folder.
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:88:	if (substr($last_update_token, 0, 1) eq "c") {
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:89:		$last_update_token = "\"$last_update_token\"";
+reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample:90:		$last_update_line = qq[\n"since": $last_update_token,];
+reposcan-raw/gladiaio/sdk/.git/logs/HEAD:1:0000000000000000000000000000000000000000 0ceed6a8bb09a21673084eed29d95533b87585b3 runner <runner@runnervmejwal.yimtlvvijh4e1dtrpdxz1g0ona.bx.internal.cloudapp.net> 1788844829 +0000	clone: from https://github.com/gladiaio/sdk.git
+reposcan-raw/gladiaio/sdk/.git/logs/refs/heads/main:1:0000000000000000000000000000000000000000 0ceed6a8bb09a21673084eed29d95533b87585b3 runner <runner@runnervmejwal.yimtlvvijh4e1dtrpdxz1g0ona.bx.internal.cloudapp.net> 1788844829 +0000	clone: from https://github.com/gladiaio/sdk.git
+reposcan-raw/gladiaio/sdk/.git/logs/refs/remotes/origin/HEAD:1:0000000000000000000000000000000000000000 0ceed6a8bb09a21673084eed29d95533b87585b3 runner <runner@runnervmejwal.yimtlvvijh4e1dtrpdxz1g0ona.bx.internal.cloudapp.net> 1788844829 +0000	clone: from https://github.com/gladiaio/sdk.git
+grep: reposcan-raw/gladiaio/sdk/.git/index: binary file matches
+reposcan-raw/gladiaio/sdk/.git/config:7:	url = https://github.com/gladiaio/sdk.git
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/package.json:2:  "name": "@gladiaio/sdk-e2e-node-esm",
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/package.json:11:    "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/package.json:12:    "@gladiaio/sdk-e2e-javascript-fixtures": "workspace:*"
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_session.test.ts:6:} from '@gladiaio/sdk'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_session.test.ts:7:import { parseAudioFile, sendAudioFile } from '@gladiaio/sdk-e2e-javascript-fixtures'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/prerecorded_v2_async.test.ts:9:} from '@gladiaio/sdk'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/prerecorded_v2_async.test.ts:10:import { getDataFile } from '@gladiaio/sdk-e2e-javascript-fixtures'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_job_management.test.ts:8:import { GladiaClient, type LiveV2Response } from '@gladiaio/sdk'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_job_management.test.ts:9:import { parseAudioFile, sendAudioFile } from '@gladiaio/sdk-e2e-javascript-fixtures'
+reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/package.json:2:  "name": "@gladiaio/sdk-e2e-javascript-fixtures",
+reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/package.json:12:    "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/src/index.ts:1:import type { LiveV2InitRequest, LiveV2Session } from '@gladiaio/sdk'
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/package.json:2:  "name": "@gladiaio/sdk-e2e-node-cjs",
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/package.json:10:    "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/package.json:11:    "@gladiaio/sdk-e2e-javascript-fixtures": "workspace:*"
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_job_management.test.cjs:8:const { GladiaClient } = require('@gladiaio/sdk')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_job_management.test.cjs:9:const { parseAudioFile, sendAudioFile } = require('@gladiaio/sdk-e2e-javascript-fixtures')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/prerecorded_v2_async.test.cjs:5:const { GladiaClient } = require('@gladiaio/sdk')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/prerecorded_v2_async.test.cjs:6:const { getDataFile } = require('@gladiaio/sdk-e2e-javascript-fixtures')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:1:const { GladiaClient } = require('@gladiaio/sdk')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:3:const { parseAudioFile, sendAudioFile } = require('@gladiaio/sdk-e2e-javascript-fixtures')
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:10:  /** @type {(import('@gladiaio/sdk').LiveV2TranscriptMessage)[]} */
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:57:  /** @type {(import('@gladiaio/sdk').LiveV2TranscriptMessage)[]} */
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:59:  /** @type {(import('@gladiaio/sdk').LiveV2NamedEntityRecognitionMessage)[]} */
+reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs:106:  /** @type {import('@gladiaio/sdk').LiveV2NamedEntityRecognitionResult[]} */
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/pyproject.toml:2:name = "gladiaio-sdk-e2e-python"
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/pyproject.toml:7:dependencies = ["gladiaio-sdk"]
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/pyproject.toml:36:gladiaio-sdk = { path = "../../packages/sdk-python", editable = true }
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_session.py:8:from gladiaio_sdk import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_session.py:13:from gladiaio_sdk.v2.live.generated_types import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_job_management.py:11:from gladiaio_sdk import GladiaClient, HttpError
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_job_management.py:12:from gladiaio_sdk.v2.live.generated_types import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_prerecorded_v2_async.py:8:from gladiaio_sdk import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_prerecorded_v2_async.py:13:from gladiaio_sdk.v2.prerecorded.generated_types import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/helpers.py:6:from gladiaio_sdk import LiveV2AsyncSession
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/helpers.py:7:from gladiaio_sdk.v2.live.generated_types import LiveV2BitDepth, LiveV2Encoding, LiveV2SampleRate
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_async_session.py:8:from gladiaio_sdk import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_async_session.py:13:from gladiaio_sdk.v2.live.generated_types import (
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/uv.lock:86:name = "gladiaio-sdk"
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/uv.lock:116:name = "gladiaio-sdk-e2e-python"
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/uv.lock:120:    { name = "gladiaio-sdk" },
+reposcan-raw/gladiaio/sdk/e2e/e2e-python/uv.lock:134:requires-dist = [{ name = "gladiaio-sdk", editable = "../../packages/sdk-python" }]
+reposcan-raw/gladiaio/sdk/tools/scripts/release.mjs:66:const releasedProjects = Object.keys(projectChangelogs)
+reposcan-raw/gladiaio/sdk/.cursor/rules/nx-rules.mdc:34:If the user wants help with tasks or commands (which include keywords like "test", "build", "lint", or other similar actions), use the following flow:
+reposcan-raw/gladiaio/sdk/package.json:2:  "name": "gladia-sdk",
+reposcan-raw/gladiaio/sdk/bun.lock:6:      "name": "gladia-sdk",
+reposcan-raw/gladiaio/sdk/bun.lock:36:      "name": "@gladiaio/sdk-e2e-node-cjs",
+reposcan-raw/gladiaio/sdk/bun.lock:39:        "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/bun.lock:40:        "@gladiaio/sdk-e2e-javascript-fixtures": "workspace:*",
+reposcan-raw/gladiaio/sdk/bun.lock:44:      "name": "@gladiaio/sdk-e2e-node-esm",
+reposcan-raw/gladiaio/sdk/bun.lock:47:        "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/bun.lock:48:        "@gladiaio/sdk-e2e-javascript-fixtures": "workspace:*",
+reposcan-raw/gladiaio/sdk/bun.lock:59:      "name": "@gladiaio/sdk-e2e-javascript-fixtures",
+reposcan-raw/gladiaio/sdk/bun.lock:62:        "@gladiaio/sdk": "workspace:*",
+reposcan-raw/gladiaio/sdk/bun.lock:69:      "name": "@gladiaio/generator",
+reposcan-raw/gladiaio/sdk/bun.lock:86:      "name": "@gladiaio/sdk",
+reposcan-raw/gladiaio/sdk/bun.lock:108:    "@babel/code-frame": ["@babel/code-frame@7.27.1", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.27.1", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg=="],
+reposcan-raw/gladiaio/sdk/bun.lock:156:    "@babel/plugin-bugfix-firefox-class-in-computed-class-key": ["@babel/plugin-bugfix-firefox-class-in-computed-class-key@7.27.1", "", { "dependencies": { "@babel/helper-plugin-utils": "^7.27.1", "@babel/traverse": "^7.27.1" }, "peerDependencies": { "@babel/core": "^7.0.0" } }, "sha512-QPG3C9cCVRQLxAVwmefEmwdTanECuUBMQZ/ym5kiw3XKCGA7qkuQLcjWWHcrD/GKbn/WmJwaezfuuAOcyKlRPA=="],
+reposcan-raw/gladiaio/sdk/bun.lock:204:    "@babel/plugin-transform-duplicate-keys": ["@babel/plugin-transform-duplicate-keys@7.27.1", "", { "dependencies": { "@babel/helper-plugin-utils": "^7.27.1" }, "peerDependencies": { "@babel/core": "^7.0.0-0" } }, "sha512-MTyJk98sHvSs+cvZ4nOauwTTG1JeonDjSGvGGUNHreGQns+Mpt6WX/dVzWBHgg+dYZhkC4X+zTDfkTU+Vy9y7Q=="],
+reposcan-raw/gladiaio/sdk/bun.lock:288:    "@babel/preset-env": ["@babel/preset-env@7.28.3", "", { "dependencies": { "@babel/compat-data": "^7.28.0", "@babel/helper-compilation-targets": "^7.27.2", "@babel/helper-plugin-utils": "^7.27.1", "@babel/helper-validator-option": "^7.27.1", "@babel/plugin-bugfix-firefox-class-in-computed-class-key": "^7.27.1", "@babel/plugin-bugfix-safari-class-field-initializer-scope": "^7.27.1", "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression": "^7.27.1", "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining": "^7.27.1", "@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly": "^7.28.3", "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2", "@babel/plugin-syntax-import-assertions": "^7.27.1", "@babel/plugin-syntax-import-attributes": "^7.27.1", "@babel/plugin-syntax-unicode-sets-regex": "^7.18.6", "@babel/plugin-transform-arrow-functions": "^7.27.1", "@babel/plugin-transform-async-generator-functions": "^7.28.0", "@babel/plugin-transform-async-to-generator": "^7.27.1", "@babel/plugin-transform-block-scoped-functions": "^7.27.1", "@babel/plugin-transform-block-scoping": "^7.28.0", "@babel/plugin-transform-class-properties": "^7.27.1", "@babel/plugin-transform-class-static-block": "^7.28.3", "@babel/plugin-transform-classes": "^7.28.3", "@babel/plugin-transform-computed-properties": "^7.27.1", "@babel/plugin-transform-destructuring": "^7.28.0", "@babel/plugin-transform-dotall-regex": "^7.27.1", "@babel/plugin-transform-duplicate-keys": "^7.27.1", "@babel/plugin-transform-duplicate-named-capturing-groups-regex": "^7.27.1", "@babel/plugin-transform-dynamic-import": "^7.27.1", "@babel/plugin-transform-explicit-resource-management": "^7.28.0", "@babel/plugin-transform-exponentiation-operator": "^7.27.1", "@babel/plugin-transform-export-namespace-from": "^7.27.1", "@babel/plugin-transform-for-of": "^7.27.1", "@babel/plugin-transform-function-name": "^7.27.1", "@babel/plugin-transform-json-strings": "^7.27.1", "@babel/plugin-transform-literals": "^7.27.1", "@babel/plugin-transform-logical-assignment-operators": "^7.27.1", "@babel/plugin-transform-member-expression-literals": "^7.27.1", "@babel/plugin-transform-modules-amd": "^7.27.1", "@babel/plugin-transform-modules-commonjs": "^7.27.1", "@babel/plugin-transform-modules-systemjs": "^7.27.1", "@babel/plugin-transform-modules-umd": "^7.27.1", "@babel/plugin-transform-named-capturing-groups-regex": "^7.27.1", "@babel/plugin-transform-new-target": "^7.27.1", "@babel/plugin-transform-nullish-coalescing-operator": "^7.27.1", "@babel/plugin-transform-numeric-separator": "^7.27.1", "@babel/plugin-transform-object-rest-spread": "^7.28.0", "@babel/plugin-transform-object-super": "^7.27.1", "@babel/plugin-transform-optional-catch-binding": "^7.27.1", "@babel/plugin-transform-optional-chaining": "^7.27.1", "@babel/plugin-transform-parameters": "^7.27.7", "@babel/plugin-transform-private-methods": "^7.27.1", "@babel/plugin-transform-private-property-in-object": "^7.27.1", "@babel/plugin-transform-property-literals": "^7.27.1", "@babel/plugin-transform-regenerator": "^7.28.3", "@babel/plugin-transform-regexp-modifiers": "^7.27.1", "@babel/plugin-transform-reserved-words": "^7.27.1", "@babel/plugin-transform-shorthand-properties": "^7.27.1", "@babel/plugin-transform-spread": "^7.27.1", "@babel/plugin-transform-sticky-regex": "^7.27.1", "@babel/plugin-transform-template-literals": "^7.27.1", "@babel/plugin-transform-typeof-symbol": "^7.27.1", "@babel/plugin-transform-unicode-escapes": "^7.27.1", "@babel/plugin-transform-unicode-property-regex": "^7.27.1", "@babel/plugin-transform-unicode-regex": "^7.27.1", "@babel/plugin-transform-unicode-sets-regex": "^7.27.1", "@babel/preset-modules": "0.1.6-no-external-plugins", "babel-plugin-polyfill-corejs2": "^0.4.14", "babel-plugin-polyfill-corejs3": "^0.13.0", "babel-plugin-polyfill-regenerator": "^0.6.5", "core-js-compat": "^3.43.0", "semver": "^6.3.1" }, "peerDependencies": { "@babel/core": "^7.0.0-0" } }, "sha512-ROiDcM+GbYVPYBOeCR6uBXKkQpBExLl8k9HO1ygXEyds39j+vCCsjmj7S8GOniZQlEs81QlkdJZe76IpLSiqpg=="],
+reposcan-raw/gladiaio/sdk/bun.lock:396:    "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.9.0", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-ayVFHdtZ+hsq1t2Dy24wCmGXGe4q9Gu3smhLYALJrr473ZH27MsnSL+LKUlimp4BWJqMDMLmPpx/Q9R3OAlL4g=="],
+reposcan-raw/gladiaio/sdk/bun.lock:414:    "@gladiaio/generator": ["@gladiaio/generator@workspace:packages/generator"],
+reposcan-raw/gladiaio/sdk/bun.lock:416:    "@gladiaio/sdk": ["@gladiaio/sdk@workspace:packages/sdk-js"],
+reposcan-raw/gladiaio/sdk/bun.lock:418:    "@gladiaio/sdk-e2e-javascript-fixtures": ["@gladiaio/sdk-e2e-javascript-fixtures@workspace:e2e/javascript-fixtures"],
+reposcan-raw/gladiaio/sdk/bun.lock:420:    "@gladiaio/sdk-e2e-node-cjs": ["@gladiaio/sdk-e2e-node-cjs@workspace:e2e/e2e-node-cjs"],
+reposcan-raw/gladiaio/sdk/bun.lock:422:    "@gladiaio/sdk-e2e-node-esm": ["@gladiaio/sdk-e2e-node-esm@workspace:e2e/e2e-node-esm"],
+reposcan-raw/gladiaio/sdk/bun.lock:472:    "@nx/js": ["@nx/js@21.6.3", "", { "dependencies": { "@babel/core": "^7.23.2", "@babel/plugin-proposal-decorators": "^7.22.7", "@babel/plugin-transform-class-properties": "^7.22.5", "@babel/plugin-transform-runtime": "^7.23.2", "@babel/preset-env": "^7.23.2", "@babel/preset-typescript": "^7.22.5", "@babel/runtime": "^7.22.6", "@nx/devkit": "21.6.3", "@nx/workspace": "21.6.3", "@zkochan/js-yaml": "0.0.7", "babel-plugin-const-enum": "^1.0.1", "babel-plugin-macros": "^3.1.0", "babel-plugin-transform-typescript-metadata": "^0.3.1", "chalk": "^4.1.0", "columnify": "^1.6.0", "detect-port": "^1.5.1", "enquirer": "~2.3.6", "ignore": "^5.0.4", "js-tokens": "^4.0.0", "jsonc-parser": "3.2.0", "npm-package-arg": "11.0.1", "npm-run-path": "^4.0.1", "ora": "5.3.0", "picocolors": "^1.1.0", "picomatch": "4.0.2", "semver": "^7.5.3", "source-map-support": "0.5.19", "tinyglobby": "^0.2.12", "tslib": "^2.3.0" }, "peerDependencies": { "verdaccio": "^6.0.5" }, "optionalPeers": ["verdaccio"] }, "sha512-eowlJNxmO4BPS8QnNvu8bs9FuXXECj3vMtR+nVVYvqpjN1sPll/46nOfeJGLsqo6m9QU0WynmVLnmNOudmSUew=="],
+reposcan-raw/gladiaio/sdk/bun.lock:682:    "@typescript-eslint/eslint-plugin": ["@typescript-eslint/eslint-plugin@8.46.0", "", { "dependencies": { "@eslint-community/regexpp": "^4.10.0", "@typescript-eslint/scope-manager": "8.46.0", "@typescript-eslint/type-utils": "8.46.0", "@typescript-eslint/utils": "8.46.0", "@typescript-eslint/visitor-keys": "8.46.0", "graphemer": "^1.4.0", "ignore": "^7.0.0", "natural-compare": "^1.4.0", "ts-api-utils": "^2.1.0" }, "peerDependencies": { "@typescript-eslint/parser": "^8.46.0", "eslint": "^8.57.0 || ^9.0.0", "typescript": ">=4.8.4 <6.0.0" } }, "sha512-hA8gxBq4ukonVXPy0OKhiaUh/68D0E88GSmtC1iAEnGaieuDi38LhS7jdCHRLi6ErJBNDGCzvh5EnzdPwUc0DA=="],
+reposcan-raw/gladiaio/sdk/bun.lock:684:    "@typescript-eslint/parser": ["@typescript-eslint/parser@8.46.0", "", { "dependencies": { "@typescript-eslint/scope-manager": "8.46.0", "@typescript-eslint/types": "8.46.0", "@typescript-eslint/typescript-estree": "8.46.0", "@typescript-eslint/visitor-keys": "8.46.0", "debug": "^4.3.4" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0", "typescript": ">=4.8.4 <6.0.0" } }, "sha512-n1H6IcDhmmUEG7TNVSspGmiHHutt7iVKtZwRppD7e04wha5MrkV1h3pti9xQLcCMt6YWsncpoT0HMjkH1FNwWQ=="],
+reposcan-raw/gladiaio/sdk/bun.lock:688:    "@typescript-eslint/scope-manager": ["@typescript-eslint/scope-manager@8.46.0", "", { "dependencies": { "@typescript-eslint/types": "8.46.0", "@typescript-eslint/visitor-keys": "8.46.0" } }, "sha512-lWETPa9XGcBes4jqAMYD9fW0j4n6hrPtTJwWDmtqgFO/4HF4jmdH/Q6wggTw5qIT5TXjKzbt7GsZUBnWoO3dqw=="],
+reposcan-raw/gladiaio/sdk/bun.lock:696:    "@typescript-eslint/typescript-estree": ["@typescript-eslint/typescript-estree@8.46.0", "", { "dependencies": { "@typescript-eslint/project-service": "8.46.0", "@typescript-eslint/tsconfig-utils": "8.46.0", "@typescript-eslint/types": "8.46.0", "@typescript-eslint/visitor-keys": "8.46.0", "debug": "^4.3.4", "fast-glob": "^3.3.2", "is-glob": "^4.0.3", "minimatch": "^9.0.4", "semver": "^7.6.0", "ts-api-utils": "^2.1.0" }, "peerDependencies": { "typescript": ">=4.8.4 <6.0.0" } }, "sha512-ekDCUfVpAKWJbRfm8T1YRrCot1KFxZn21oV76v5Fj4tr7ELyk84OS+ouvYdcDAwZL89WpEkEj2DKQ+qg//+ucg=="],
+reposcan-raw/gladiaio/sdk/bun.lock:700:    "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.46.0", "", { "dependencies": { "@typescript-eslint/types": "8.46.0", "eslint-visitor-keys": "^4.2.1" } }, "sha512-FrvMpAK+hTbFy7vH5j1+tMYHMSKLE6RzluFJlkFNKD0p9YsUT75JlBSmr5so3QRzvMwU5/bIEdeNrxm8du8l3Q=="],
+reposcan-raw/gladiaio/sdk/bun.lock:756:    "ast-v8-to-istanbul": ["ast-v8-to-istanbul@0.3.5", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.30", "estree-walker": "^3.0.3", "js-tokens": "^9.0.1" } }, "sha512-9SdXjNheSiE8bALAQCQQuT6fgQaoxJh7IRYrRGZ8/9nv8WhJeC1aXAwN8TbaOssGOukUvyvnkgD9+Yuykvl1aA=="],
+reposcan-raw/gladiaio/sdk/bun.lock:872:    "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
+reposcan-raw/gladiaio/sdk/bun.lock:936:    "eslint": ["eslint@9.37.0", "", { "dependencies": { "@eslint-community/eslint-utils": "^4.8.0", "@eslint-community/regexpp": "^4.12.1", "@eslint/config-array": "^0.21.0", "@eslint/config-helpers": "^0.4.0", "@eslint/core": "^0.16.0", "@eslint/eslintrc": "^3.3.1", "@eslint/js": "9.37.0", "@eslint/plugin-kit": "^0.4.0", "@humanfs/node": "^0.16.6", "@humanwhocodes/module-importer": "^1.0.1", "@humanwhocodes/retry": "^0.4.2", "@types/estree": "^1.0.6", "@types/json-schema": "^7.0.15", "ajv": "^6.12.4", "chalk": "^4.0.0", "cross-spawn": "^7.0.6", "debug": "^4.3.2", "escape-string-regexp": "^4.0.0", "eslint-scope": "^8.4.0", "eslint-visitor-keys": "^4.2.1", "espree": "^10.4.0", "esquery": "^1.5.0", "esutils": "^2.0.2", "fast-deep-equal": "^3.1.3", "file-entry-cache": "^8.0.0", "find-up": "^5.0.0", "glob-parent": "^6.0.2", "ignore": "^5.2.0", "imurmurhash": "^0.1.4", "is-glob": "^4.0.0", "json-stable-stringify-without-jsonify": "^1.0.1", "lodash.merge": "^4.6.2", "minimatch": "^3.1.2", "natural-compare": "^1.4.0", "optionator": "^0.9.3" }, "peerDependencies": { "jiti": "*" }, "optionalPeers": ["jiti"], "bin": { "eslint": "bin/eslint.js" } }, "sha512-XyLmROnACWqSxiGYArdef1fItQd47weqB7iwtfr9JHwRrqIXZdcFMvvEcL9xHCmL0SNsOvF0c42lWyM1U5dgig=="],
+reposcan-raw/gladiaio/sdk/bun.lock:940:    "eslint-visitor-keys": ["eslint-visitor-keys@4.2.1", "", {}, "sha512-Uhdk5sfqcee/9H/rCOJikYz67o0a2Tw2hGRPOG2Y1R2dg7brRe1uG0yaNQDHu+TO/uQPF/5eCapvYSmHUjt7JQ=="],
+reposcan-raw/gladiaio/sdk/bun.lock:942:    "espree": ["espree@10.4.0", "", { "dependencies": { "acorn": "^8.15.0", "acorn-jsx": "^5.3.2", "eslint-visitor-keys": "^4.2.1" } }, "sha512-j6PAQ2uUr79PZhBjP5C5fhl8e39FmRnOjsD5lGnWrFU8i2G776tBK7+nP8KuQUTTyAZUwfQqXAgrVH5MbH9CYQ=="],
+reposcan-raw/gladiaio/sdk/bun.lock:996:    "flat-cache": ["flat-cache@4.0.1", "", { "dependencies": { "flatted": "^3.2.9", "keyv": "^4.5.4" } }, "sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1126:    "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1142:    "jsonc-eslint-parser": ["jsonc-eslint-parser@2.4.0", "", { "dependencies": { "acorn": "^8.5.0", "eslint-visitor-keys": "^3.0.0", "espree": "^9.0.0", "semver": "^7.3.5" } }, "sha512-WYDyuc/uFcGp6YtM2H0uKmUwieOuzeE/5YocFJLnLfclZ4inf3mRn8ZVy1s7Hxji7Jxm6Ss8gqpexD/GlKoGgg=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1150:    "keyv": ["keyv@4.5.4", "", { "dependencies": { "json-buffer": "3.0.1" } }, "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1234:    "npm-run-path": ["npm-run-path@4.0.1", "", { "dependencies": { "path-key": "^3.0.0" } }, "sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1270:    "path-key": ["path-key@3.1.1", "", {}, "sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1538:    "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
+reposcan-raw/gladiaio/sdk/bun.lock:1548:    "@gladiaio/generator/@types/node": ["@types/node@22.18.8", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-pAZSHMiagDR7cARo/cch1f3rXy0AEXwsVsVH09FcyeJVAzCnGgmYis7P3JidtTUjyadhTeSo8TgRPswstghDaw=="],
+generator
+sdk-js
+sdk-python
+[0m
+Inventory zero-drift confirmed — classifying the latest hits and chaining the remaining live surfaces.
+[0m$ [0mpython3 -c "
+import hashlib
+for s in ['sk-********','secret-key']:
+    print(s, hashlib.sha256(s.encode()).hexdigest())
+# also check if any other secret-like pattern exists in grep hits
+import re
+hits=open('reposcan-raw/grep-hits.txt').read()
+# look for potential real keys: 32+ hex, etc.
+print('--- hits count', len(hits.splitlines()))
+"
+cat reposcan-raw/analysis.txt | grep -c \"gladia\" | head
+sk-******** 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
+secret-key 85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
+--- hits count 61
+8
+[0m
+**TRIAGE: 2026-08-07 delta — `gladiaio/*` + npm `gladia@0.1.3` — 5654 files / 624 raw hits / 60 filtered hits / 0 delta**
+
+Passive-first, scanner-output alone REJECTED per `scope.yml`. All hits below manually validated. No raw secrets printed (sha256 only).
+
+### Breadth pass (FULL inventory)
+- Odd status codes: none in code scan (runtime probes already covered in RAG: `api.gladia.io` 404 on `/`, 401 key-gated on `/v2/*`, 200 on `/health` undocumented, 200 on `/v1/models` public)
+- Interesting param names: no `id/uid/email/user_id` hijack in scan hits (compare-stt `/api/session/[id]` uses `[id]` but DB layer is Prisma — requires auth probe, see NEXT)
+- Versioned APIs: `/api/v1|v2` not exposed as code paths; OpenAPI spec is 14 paths + 7 webhooks (`api.gladia.io/openapi.json` 125131B, CORS `*`), frozen 100+ cycles
+- Debug/test flags: `tauri.dev.conf.json`, test fixtures only
+- swagger/openapi: `api.gladia.io/openapi.json` public (ACCEPTED MISCONFIG), `packages/generator` codegen fetches it
+
+### Classification
+
+| Category | Count | File:Line | Value/Note | sha256 (if secret) |
+|---|---|---|---|---|
+| **REAL_SECRET** | 0 | — | No hardcoded live credential. All `apiKey` hits are masked or test fixtures (verified below). Raw 624 hits → 0 reportable. |
+| **TEST_OR_EXAMPLE** | 2 | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` — MOCK_SETTINGS fixture for screenshots | `9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` (mask literal) |
+| | | `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` — vitest mock for `loadSavedApiKey` | `85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` |
+| **ENDPOINT_LEAK** | 7 | `.../CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` — public docs | — |
+| | | `.../TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` — in-scope `app.gladia.io` (High) but client-side link, no IDOR | — |
+| | | `.../ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` — in-scope, expected | — |
+| | | `.../skills/.../sync-sdk-versions.yml:21` | `https://registry.npmjs.org/@gladiaio/sdk/latest` — official npm | — |
+| | | `.../sync-sdk-versions.yml:22` | `https://pypi.org/pypi/gladiaio-sdk/json` — official PyPI | — |
+| | | `.../sync-documentation.yml:21` | `https://docs.gladia.io/.well-known/agent-skills/index.json` — public | — |
+| | | `.../sync-documentation.yml:50` | `https://docs.gladia.io/.well-known/agent-skills/gladia/skill.md` — public | — |
+| **INTERESTING** | 51 | `.../gladiaflow/*:2-11` | `gladiaflow` name/identifier/Cargo — product strings, not secret | — |
+| | | `.../gladia-cli/cmd/config.go:14` | `envGladiaAPIKey = "GLADIA_API_KEY"` — env var name, no value | — |
+| | | `.../gladia-cli/cmd/config.go:25,main.go:23` | `SaveGladiaKeyToFile`, `--gladia-key` flag — code plumbing | — |
+| | | `.../normalization/*`, `skills/*`, `gladia-cli/install.sh:4` | internal package names `gladia-normalization`, `gladia` binary, `gladiaio/*` owner refs | — |
+| | | `npm:gladia@0.1.3` | **Orphaned impersonation** `description="Official..."` vs repo `alexisbouchez/gladia.ts` (404) + maintainer `softwarecitadel@gmail.com`, dist `cc96f84a200c0fd49a71e919391f9b659c39f3e9` / `sha512-56NWQ9...` — SUPPLY-CHAIN (already ACCEPTED OTHER, report-ready, not in grep hits but in `reposcan-raw/npm/gladia.json:1`) | `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` (tarball) |
+| | | `npm:@gladiaio/sdk@1.1.0` | Official SDK `repo=gladiaio/sdk` — MEDIUM, clean | — |
+
+No `ENDPOINT_LEAK` reveals staging/dev/internal (no `*.gladia.io` other than `api/app/docs`, no `169.254.169.254`, no `vercel` internal).
+
+### Depth on top-3 live anomalies (from RAG, re-confirmed frozen)
+1. **SSRF-by-design `api.gladia.io`** — `audio_url/video_url/callback_url/CallbackConfig.url` (`format:uri`, no scheme allowlist) + 7 webhooks → `POST /v2/pre-recorded` → server fetches `audio_url`. Key-gated 401 (`reposcan-raw: sdk is_url() only gates upload`), AUTH_HELPED. Chain: `SSRF → 169.254.169.254 → keys` blocked at key gate.
+2. **Open redirect reflection `app.gladia.io/signin?redirect_to=`** — `GET /signin?redirect_to=https://evil.example.com` → 200, form `action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflected, CSP `0 form-action directives` (gap). OAuth `redirect_uri` FIXED `https://app.gladia.io/auth/google/callback` + PKCE S256 → no code theft (REJECTED OAUTH), `return-to` cookie `eyJ1cmwiOiIvIn0=` unsigned but tamper-reset to `{"url":"/"}` (REJECTED). Post-auth honoring remains HUMAN_ONLY.
+3. **Supply-chain `gladia@0.1.3` impersonation** — `src/client.ts:307` embeds raw `x-gladia-key` in `wss://api.gladia.io/v2/live?x-gladia-key=<key>` vs official `POST /v2/live` → token flow. Orphaned repo/user 404, irrevocable `latest` dist-tag persists — ATO via `npm install gladia` typo.
+
+### Verdict
+- `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` (`sk-********`) — TEST_OR_EXAMPLE — **REPORT_CANDIDATE: no**
+- `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` (`secret-key`) — TEST_OR_EXAMPLE — **REPORT_CANDIDATE: no**
+- `ENDPOINT_LEAK` 7 hits — public docs/official registries/in-scope app links, no auth bypass — **REPORT_CANDIDATE: no**
+- `INTERESTING` 51 hits — benign strings/env names — **REPORT_CANDIDATE: no**
+- `npm:gladia@0.1.3` impersonation — already ACCEPTED, locally reproduced `sha256 3b23ec7d…7f2`, report-ready via `https://gladia.io/bug-bounty-report` — **REPORT_CANDIDATE: yes (existing, no new delta)**
+- **DELTA 0 new hit lines** — `5654 files, 624→60 hits` — no new REAL_SECRET, no new chainable primitive this cycle.
+
+### [NEXT] PROBE (read-only, ≤1 rps, no account creation)
+- `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` — confirm reflection + `content-security-policy` lacks `form-action` (repeat)
+- `GET https://app.gladia.io/apikeys?redirect_to=https://evil.example.com` — 302→`/signin` check `return-to` cookie stores relative path only
+- `GET https://app.gladia.io/auth/google/callback` — 302→`accounts.google.com` with `redirect_uri=https://app.gladia.io/auth/google/callback` + `code_challenge_method=S256` (FALSIFIES OAuth hijack)
+- `POST https://api.gladia.io/v2/pre-recorded` (no key) — 401 NestJS `{"message":"no gladia key provided"}` confirms key gate; SSRF POC requires authorized key (blocked passive)
