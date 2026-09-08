@@ -601,3 +601,6 @@
   - | A | Open redirect `GET /signin?redirect_to=https://evil.example.com` `inventory/gladia.md:33` | `app.gladia.io` HIGH `scope.yml:8` | YES | PARTIAL unauth reflection yes, exploit requires valid Googl
   - | C | SSRF `audio_url/video_url/CallbackConfigDto.url -> 169.254.169.254` `inventory/gladia.md:98` | `api.gladia.io` HIGHEST `scope.yml:6` | YES | PARTIAL `401` without `x-gladia-key` `probe-results.m
   - | D | npm `gladia@0.1.3` "Official" vs README "Unofficial" + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key',apiKey)` `inventory/gladia.md:32` `reports/SUBMISSION_gladia_npm_impersonation.
+
+- 1 lead(s) marked VALID at 2026-09-08 19:01:04 UTC
+  - | 2 | `npm gladia@0.1.3` orphaned impersonation + `src/client.ts:307 searchParams.append('x-gladia-key',apiKey)` → `wss://api.gladia.io/v2/live?x-gladia-key=` | `GET https://registry.npmjs.org/gladia 
