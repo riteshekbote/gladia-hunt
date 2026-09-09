@@ -610,3 +610,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-09 04:56:29 UTC
   - **Verdict: HOLD** — reflection without confirmed redirect execution. Minimal read-only proof (requires HUMAN_ONLY, not next-cycle autonomous): `GET /signin?redirect_to=https://evil.example.com` inspec
+
+- 2 lead(s) marked VALID at 2026-09-09 09:54:38 UTC
+  - - **Verdict: HOLD (VALID DUPLICATE) — one-line: locked orphaned impersonation passive-proven, re-report to same Gladia channel = duplicate.**
+  - - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed passive, proof gated on valid x-gladia-key + POST.**
