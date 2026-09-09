@@ -630,3 +630,6 @@
 - 2 lead(s) marked VALID at 2026-09-09 21:02:03 UTC
   - | Q7 triager accept | **HOLD** Gladia venue / **VALID** npm venue | Reasonable triager rejects as Gladia infra vuln without query-param auth proof; accepts as npm impersonation policy case. |
   - | Q2 | **NO** unauth – `POST /v2/pre-recorded` -> `401` key-gated; YES with valid `x-gladia-key` (low-priv auth) |
+
+- 1 lead(s) marked VALID at 2026-09-09 23:22:30 UTC
+  - **Verdict: VALID.** Minimal read-only proof: `GET https://registry.npmjs.org/gladia` (note `description` vs `readme` + `repository.url` + `maintainer`), `GET https://api.github.com/repos/alexisbouchez
