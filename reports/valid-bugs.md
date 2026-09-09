@@ -619,3 +619,10 @@
   - | Q2 | Reachable | **NO (key-gated)** - `GET /v2/pre-recorded` -> `401 {"message":"no gladia key provided","request_id":"G-..."}` (`probe-results.md:4`) `POST /v2/pre-recorded` same 401. OpenAPI `14 p
   - | Q4 | Prove GET/HEAD only? | **NO** - requires `POST /v2/pre-recorded` with body `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` + valid key. Violates `scope.yml:39` `no_data_modification`
   - **Verdict: HOLD (AUTH_HELPED) - `surface exists by design, but uniform 401 gate prevents unauth proof; needs valid key POC not allowed passively`**
+
+- 5 lead(s) marked VALID at 2026-09-09 18:03:43 UTC
+  - | Q7 Triager accept | **HOLD for Gladia**, **VALID for npm Trust & Safety** |
+  - **Verdict: HOLD (Gladia program) / VALID (npm registry venue)** — One-line: Gladia-venue fails Q1+Q3 until `wss://api.gladia.io/v2/live?x-gladia-key=<KEY>` acceptance proven with valid key; npm-venue 
+  - | Q4 | **FAIL** — requires `POST` with valid `x-gladia-key: <KEY>` + JSON body `{"audio_url":"http://169.254.169.254/..."}` `leads/lead-bigpickle.md:56`. `GET/HEAD` only yields 401, no fetch. Violates
+  - | Q7 | Triager would HOLD pending authorized proof, not accept as VALID on 401 alone |
+  - **Verdict: HOLD — Q4 FAIL** Requires valid key + two tenants to prove `200` vs `403` cross-account `leads/lead-laguna.md:78`. Spec opaque. Passive `GET /v2/transcription/00000000-0000-0000-0000-000000
