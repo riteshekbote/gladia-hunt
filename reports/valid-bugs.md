@@ -614,3 +614,8 @@
 - 2 lead(s) marked VALID at 2026-09-09 09:54:38 UTC
   - - **Verdict: HOLD (VALID DUPLICATE) — one-line: locked orphaned impersonation passive-proven, re-report to same Gladia channel = duplicate.**
   - - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed passive, proof gated on valid x-gladia-key + POST.**
+
+- 3 lead(s) marked VALID at 2026-09-09 14:41:45 UTC
+  - | Q2 | Reachable | **NO (key-gated)** - `GET /v2/pre-recorded` -> `401 {"message":"no gladia key provided","request_id":"G-..."}` (`probe-results.md:4`) `POST /v2/pre-recorded` same 401. OpenAPI `14 p
+  - | Q4 | Prove GET/HEAD only? | **NO** - requires `POST /v2/pre-recorded` with body `{"audio_url":"http://169.254.169.254/latest/meta-data/"}` + valid key. Violates `scope.yml:39` `no_data_modification`
+  - **Verdict: HOLD (AUTH_HELPED) - `surface exists by design, but uniform 401 gate prevents unauth proof; needs valid key POC not allowed passively`**
