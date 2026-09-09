@@ -604,3 +604,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-08 19:01:04 UTC
   - | 2 | `npm gladia@0.1.3` orphaned impersonation + `src/client.ts:307 searchParams.append('x-gladia-key',apiKey)` → `wss://api.gladia.io/v2/live?x-gladia-key=` | `GET https://registry.npmjs.org/gladia 
+
+- 1 lead(s) marked VALID at 2026-09-09 00:22:34 UTC
+  - Q1 YES `api.gladia.io` Highest. Q2 NO - unauth `GET /v2/pre-recorded->401` `probe-results.md:4`, `POST /v2/pre-recorded` w/o `x-gladia-key->401 NestJS` `inventory/gladia.md:142`; key-gated only. Q3 IF
