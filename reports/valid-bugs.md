@@ -626,3 +626,7 @@
   - | Q4 | **FAIL** — requires `POST` with valid `x-gladia-key: <KEY>` + JSON body `{"audio_url":"http://169.254.169.254/..."}` `leads/lead-bigpickle.md:56`. `GET/HEAD` only yields 401, no fetch. Violates
   - | Q7 | Triager would HOLD pending authorized proof, not accept as VALID on 401 alone |
   - **Verdict: HOLD — Q4 FAIL** Requires valid key + two tenants to prove `200` vs `403` cross-account `leads/lead-laguna.md:78`. Spec opaque. Passive `GET /v2/transcription/00000000-0000-0000-0000-000000
+
+- 2 lead(s) marked VALID at 2026-09-09 21:02:03 UTC
+  - | Q7 triager accept | **HOLD** Gladia venue / **VALID** npm venue | Reasonable triager rejects as Gladia infra vuln without query-param auth proof; accepts as npm impersonation policy case. |
+  - | Q2 | **NO** unauth – `POST /v2/pre-recorded` -> `401` key-gated; YES with valid `x-gladia-key` (low-priv auth) |
