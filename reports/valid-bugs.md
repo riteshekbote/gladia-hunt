@@ -640,3 +640,14 @@
 
 - 1 lead(s) marked VALID at 2026-09-10 06:06:46 UTC
   - - **Verdict: VALID** — one-line: orphaned impersonator at `latest` + key-in-URL is report-ready.
+
+- 9 lead(s) marked VALID at 2026-09-10 11:33:51 UTC
+  - | **Q3 real impact?** | **SPLIT:** `YES` for npm registry policy (impersonation + credential leak `wsUrl.searchParams.append('x-gladia-key', apiKey):REPORTS/SUBMISSION_gladia_npm_impersonation.md:32` 
+  - | **Q5 novel?** | **NO — DUPLICATE** `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io` `lead-human.md:3`; 9+ prior `VALID` `reports/valid-bugs.md:1`; re-file to same Gladia channel = dup
+  - **Verdict: `HOLD (VALID DUPLICATE)` — one-line: locked orphaned impersonation + key-in-URL primitive across 10+ repros (`shasum cc96f84a…`, `tar sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703
+  - | Q4 | **NO** `return-to` cookie `eyJ1cmwiOiIvIn0=` unsigned but `server resets on tampering →REJECTED` `inventory/gladia.md:43`; OAuth `redirect_uri FIXED https://app.gladia.io/auth/google/callback` 
+  - | Q5 | YES not prior VALID, always HOLD |
+  - | Q6 | YES open redirect valid class |
+  - | Q2 | **PARTIAL** `GET/POST /v2/pre-recorded →401 "no gladia key provided"` `probe-results.md:4` uniform NestJS gate (`x-gladia-key` header `scope.yml:30`); reachable only with valid `x-gladia-key` (
+  - | Q4 | **NO** spec confirms `format:uri` with no scheme allowlist `inventory/gladia.md:92` + SDK forwards verbatim `reports/hypotheses-bigpickle.txt`, but proof requires `POST /v2/pre-recorded -H x-gl
+  - **Verdict: `HOLD (AUTH_HELPED)` — one-line: design confirmed (`format:uri` no allowlist, 7 webhooks `inventory/gladia.md:202`, FR/US egress), proof gated on valid `x-gladia-key`; 100+ cycles no `401` 
