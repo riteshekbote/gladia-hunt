@@ -651,3 +651,15 @@
   - | Q2 | **PARTIAL** `GET/POST /v2/pre-recorded →401 "no gladia key provided"` `probe-results.md:4` uniform NestJS gate (`x-gladia-key` header `scope.yml:30`); reachable only with valid `x-gladia-key` (
   - | Q4 | **NO** spec confirms `format:uri` with no scheme allowlist `inventory/gladia.md:92` + SDK forwards verbatim `reports/hypotheses-bigpickle.txt`, but proof requires `POST /v2/pre-recorded -H x-gl
   - **Verdict: `HOLD (AUTH_HELPED)` — one-line: design confirmed (`format:uri` no allowlist, 7 webhooks `inventory/gladia.md:202`, FR/US egress), proof gated on valid `x-gladia-key`; 100+ cycles no `401` 
+
+- 10 lead(s) marked VALID at 2026-09-10 15:15:04 UTC
+  - | Q5 Novel | **NO** — `reports/valid-bugs.md:22,353` `leads/lead-human.md:3` `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io` + 9+ prior `VALID` triages `triage/run-2026-08-11-19-53.md`
+  - | Q6 Not rejected | **YES** — supply-chain impersonation+credential-in-URL valid class, not `scope.yml:42` auto-reject `info disclosure of public data/best practice/rate limit/self-XSS` |
+  - | Q7 Triager | **SPLIT** — `npm` triager **ACCEPTS** (policy violation takedown). Gladia triager **HOLD duplicate** per `leads/lead-human.md:15` `Q3 FAILS standalone until wss://api.gladia.io/v2/live?
+  - **Verdict: `HOLD (VALID DUPLICATE)`** — locked 10+ `npm pack` repros, already reported awaiting vendor, do not re-file to Gladia. One-line reason: impersonation+key-in-URL passive-proven but duplicate
+  - | Q4 | **NO** — need `HUMAN: GET /signin?redirect_to=https://evil.example.com` with valid session + `follow-redirects=false` capture `Location`. `probe-results.md:5` shows `200` not `302` |
+  - | Q6 | **YES** — open redirect valid class, but unauth reflection alone is rejected as vuln |
+  - | Q4 | **NO** — requires `AUTH_HELPED POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://169.254.169.254/latest/meta-data/"}` vs canary compare `error_message/status/duration` viola
+  - | Q5 | **YES** — hypothesis tracked `reports/valid-bugs.md:17` unproven |
+  - | Q6 | **YES** — SSRF valid class |
+  - | Q7 | **CONDITIONAL** — accept only with valid-key POC showing internal fetch |
