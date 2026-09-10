@@ -667,3 +667,7 @@
 - 2 lead(s) marked VALID at 2026-09-10 18:34:58 UTC
   - | **A** | `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` | 200 `text/html` | **Q1** YES `app.gladia.io` HIGH `scope.yml:8` **Q2** YES public unauth `inventory/gladia.md:9` **Q
   - | **G** | `GET https://registry.npmjs.org/gladia` (+ `gladia-0.1.3.tgz`) | 200 `19076B` / `48516B` | **Q1** MEDIUM - `npm_packages` lists `gladia` `scope.yml:26` but asset is `Official SDKs`; imperson
+
+- 2 lead(s) marked VALID at 2026-09-10 21:15:38 UTC
+  - - **Verdict:** `HOLD` (VENUE-SPLIT) — **One-line:** npm impersonation VALID for npm Trust&Safety, Gladia bug `Q3 FAIL` until key-in-URL end-to-end proven.
+  - - **Verdict:** `HOLD` — **Key-gated fetch surface, no unauth SSRF, needs valid key PoC.**
