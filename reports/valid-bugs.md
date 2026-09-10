@@ -633,3 +633,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-09 23:22:30 UTC
   - **Verdict: VALID.** Minimal read-only proof: `GET https://registry.npmjs.org/gladia` (note `description` vs `readme` + `repository.url` + `maintainer`), `GET https://api.github.com/repos/alexisbouchez
+
+- 2 lead(s) marked VALID at 2026-09-10 01:13:52 UTC
+  - - **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)** — one-line: locked 10+ `npm pack` `sha256:3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`/`shasum:cc96f8
+  - - **Verdict: HOLD (AUTH_HELPED)** — one-line: design confirmed passive, proof gated on valid key.
