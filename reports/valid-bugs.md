@@ -671,3 +671,8 @@
 - 2 lead(s) marked VALID at 2026-09-10 21:15:38 UTC
   - - **Verdict:** `HOLD` (VENUE-SPLIT) — **One-line:** npm impersonation VALID for npm Trust&Safety, Gladia bug `Q3 FAIL` until key-in-URL end-to-end proven.
   - - **Verdict:** `HOLD` — **Key-gated fetch surface, no unauth SSRF, needs valid key PoC.**
+
+- 3 lead(s) marked VALID at 2026-09-11 01:13:59 UTC
+  - | **A: npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:306-308` `searchParams.append('x-gladia-key',apiKey)` -> `wss://api.gladia.io/v2/live?x-gladia-key=<raw>`** `asset: npmjs.com/package/
+  - | **C: `api.gladia.io SSRF-by-design` `audio_url/video_url/callback_config.url format:uri` no scheme allowlist (`/v2/pre-recorded` etc.)** | PASS - `api.gladia.io` HIGHEST | FAIL - `GET /v2/pre-record
+  - | **E: IDOR `GET /v2/{pre-recorded,live,transcription}/{id}/file`** | PASS - `api.gladia.io` | FAIL - 401 key-gated | Hypothetical - no ownership-binding evidence in spec | FAIL - needs two keys + val
