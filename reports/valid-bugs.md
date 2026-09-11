@@ -676,3 +676,6 @@
   - | **A: npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:306-308` `searchParams.append('x-gladia-key',apiKey)` -> `wss://api.gladia.io/v2/live?x-gladia-key=<raw>`** `asset: npmjs.com/package/
   - | **C: `api.gladia.io SSRF-by-design` `audio_url/video_url/callback_config.url format:uri` no scheme allowlist (`/v2/pre-recorded` etc.)** | PASS - `api.gladia.io` HIGHEST | FAIL - `GET /v2/pre-record
   - | **E: IDOR `GET /v2/{pre-recorded,live,transcription}/{id}/file`** | PASS - `api.gladia.io` | FAIL - 401 key-gated | Hypothetical - no ownership-binding evidence in spec | FAIL - needs two keys + val
+
+- 1 lead(s) marked VALID at 2026-09-11 06:09:41 UTC
+  - * **Verdict: VALID - PASSIVE supply-chain impersonation** (not RCE/SSRF chain, but reportable Medium-High).
