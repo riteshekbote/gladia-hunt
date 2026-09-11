@@ -688,3 +688,9 @@
   - | Q4 | **NO** - requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs internal timing/error oracle; violates `scope.yml:39 no_data_modification + passive_first` 
   - | Q6 | **YES** - SSRF valid class |
   - | Q7 | **NO** - triager requires valid-key POC |
+
+- 4 lead(s) marked VALID at 2026-09-11 18:40:06 UTC
+  - | Q4 Prove w/ GET/HEAD only | PASS (npm venue) / FAIL (Gladia venue) | `curl registry.npmjs.org/gladia | jq` + `npm pack + tar -x + grep -n searchParams` passive. Gladia chain needs `WSS` handshake wi
+  - | Q2 | **FAIL (unauth)** → `AUTH_HELPED` All `GET/POST /v2/pre-recorded|/v2/upload|/video/text/video-transcription` without `x-gladia-key` → `401 NestJS {"statusCode":401,"message":"no gladia key prov
+  - | Q7 | **FAIL** Triager rejects gated `SSRF-by-design` without PoC reaching internal host; would be `High` only with valid key + metadata exfil. |
+  - | npm `gladia@0.1.3` | FAIL-Gladia / PASS-npm | PASS | FAIL-Gladia / PASS-npm | PASS-npm | PASS | PASS | HOLD→PASS-npm | **HOLD (Gladia) / VALID (npm)** |
