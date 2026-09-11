@@ -679,3 +679,12 @@
 
 - 1 lead(s) marked VALID at 2026-09-11 06:09:41 UTC
   - * **Verdict: VALID - PASSIVE supply-chain impersonation** (not RCE/SSRF chain, but reportable Medium-High).
+
+- 7 lead(s) marked VALID at 2026-09-11 15:17:01 UTC
+  - | Q5 novel? | **NO - DUPLICATE** `leads/lead-human.md:3` reported 2026-08-12 `riteshekbote@gmail.com→security@gladia.io`, 9+ prior `VALID` in `reports/valid-bugs.md:1`, `lead-mimo.md:13` re-verified `
+  - **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia venue)** - one-line: orphaned impersonation locked passive, already reported awaiting vendor; Gladia-side key-leak primitive needs 1 va
+  - | Q5 | **YES** - never VALID, always HOLD |
+  - | Q6 | **YES** - open redirect valid class |
+  - | Q4 | **NO** - requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs internal timing/error oracle; violates `scope.yml:39 no_data_modification + passive_first` 
+  - | Q6 | **YES** - SSRF valid class |
+  - | Q7 | **NO** - triager requires valid-key POC |
