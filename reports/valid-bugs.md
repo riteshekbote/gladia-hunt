@@ -701,3 +701,7 @@
 - 2 lead(s) marked VALID at 2026-09-12 06:33:49 UTC
   - | **Q6 Not rejected** | **YES** | Impersonation not on always-rejected list (valid npm Trust & Safety policy case). |
   - | **Q7** | **NO** No triager accepts SSRF without 1 valid-key error/timeout differential. |
+
+- 2 lead(s) marked VALID at 2026-09-12 11:18:17 UTC
+  - - **Verdict: HOLD (VALID DUPLICATE for npm) / HOLD for Gladia - one-line: already reported awaiting vendor, Gladia leg conditional on 1-key WSS proof** CVSS 7.5 `SUBMISSION:9` Reporting: npm `npmjs.co
+  - - **Verdict: HOLD (AUTH_HELPED) - one-line: design confirmed spec+RAG frozen 100+ cycles, proof gated on valid key**
