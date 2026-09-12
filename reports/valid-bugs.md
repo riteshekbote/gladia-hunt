@@ -726,3 +726,18 @@
 
 - 1 lead(s) marked VALID at 2026-09-12 21:43:13 UTC
   - **7-Question Gate:** No lead → no Q1-Q7 table to emit. Verdict: **NO NEW VALID — HOLD (empty batch)** — identical to `triage/run-2026-09-02-21-09.md` precedent.
+
+- 13 lead(s) marked VALID at 2026-09-12 23:28:29 UTC
+  - | **Q5 Novel?** | **NO — DUPLICATE** | `REPORTED 2026-08-12 riteshekbote@gmail.com → security@gladia.io` `leads/lead-human.md:3`, re-verified `2026-08-22` still live `leads/lead-human.md:4`, 9+ prior 
+  - | **Q6 Not rejected?** | **YES** | Impersonation + credential-in-URL = valid class, not `info disclosure of public data/best practice` `scope.yml:42` |
+  - **Verdict: HOLD — VALID (DUPLICATE) for npm venue / HOLD duplicate for Gladia program** — *one-line: locked orphaned impersonation + key-in-URL primitive (10+ `npm pack` repros) already reported 2026-
+  - | **Q5** | **YES** (never VALID, always HOLD) |
+  - | **Q6** | **YES** — open redirect valid class |
+  - | **Q7** | **NO** — triager rejects unauth reflection without post-auth 302 proof; 200 SPA shell is expected `reports/valid-bugs.md:71` |
+  - | **Q2** | **NO** — `GET /v2/pre-recorded →401` `probe-results.md:4`, `POST /v2/pre-recorded →401 NestJS` `inventory/gladia.md:318` key-gated; no bypass in 100+ cycles `lead-mimo.md:106`; reachable on
+  - | **Q4** | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://169.254.169.254/..."}` + timing/error oracle `lead-mimo.md:29` — violates `passive_first` `scope.yml
+  - | **Q5** | **YES** (HOLD, not duplicate VALID) |
+  - | **Q6** | **YES** — SSRF valid class |
+  - | **Q7** | **NO — CONDITIONAL** — triager accepts only with valid-key POC showing internal fetch; spec-only = HOLD `reports/valid-bugs.md:324` |
+  - **Verdict: HOLD — AUTH_HELPED, requires valid `x-gladia-key` + non-destructive canary POC** — *one-line: spec+RAG confirms fetch-by-design, proof gated on key* `lead-mimo.md:32`.
+  - **VALID summary this cycle: 0 new VALID** (1 duplicate HOLD). Prior VALID remains npm duplicate awaiting vendor response `lead-human.md:4` (14-day follow-up due 2026-08-26).
