@@ -723,3 +723,6 @@
   - | `GET https://api.gladia.io/v2/pre-recorded` `probe-results.md:4` `GET https://api.gladia.io/v2/live/health` `probe-results.md:449` | GET | 401 no key | 401 `{"message":"no gladia key provided"}` `in
   - | `GET https://registry.npmjs.org/gladia` `probe-results.md:322` | GET | — | 200 `gladia@0.1.3` | VALID DUPLICATE — already REPORTED `leads/lead-human.md:3` 2026-08-12 `riteshekbote@gmail.com->securit
   - **Verdict:** `HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)` — one-line: locked orphaned impersonation + WS key-in-URL primitive across 10+ repros, already reported awaiting vendor, G
+
+- 1 lead(s) marked VALID at 2026-09-12 21:43:13 UTC
+  - **7-Question Gate:** No lead → no Q1-Q7 table to emit. Verdict: **NO NEW VALID — HOLD (empty batch)** — identical to `triage/run-2026-09-02-21-09.md` precedent.
