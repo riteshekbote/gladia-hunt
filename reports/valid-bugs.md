@@ -705,3 +705,16 @@
 - 2 lead(s) marked VALID at 2026-09-12 11:18:17 UTC
   - - **Verdict: HOLD (VALID DUPLICATE for npm) / HOLD for Gladia - one-line: already reported awaiting vendor, Gladia leg conditional on 1-key WSS proof** CVSS 7.5 `SUBMISSION:9` Reporting: npm `npmjs.co
   - - **Verdict: HOLD (AUTH_HELPED) - one-line: design confirmed spec+RAG frozen 100+ cycles, proof gated on valid key**
+
+- 11 lead(s) marked VALID at 2026-09-12 14:15:39 UTC
+  - | Q3 | Real security impact vs weirdness? | **YES for npm venue** — supply-chain impersonation + credential hygiene hazard (`x-gladia-key` in `wss://` query leaks via proxy/access logs, `Referer`, dev
+  - | Q5 | Novel/unreported? | **NO — DUPLICATE** — `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io` `leads/lead-human.md:3`, 10+ independent `npm pack` reproductions, tracked in `reports/v
+  - | Q6 | Not on always-rejected list? | **YES** — supply-chain impersonation + orphaned/irrevocable package is valid class, not `info disclosure of public data / best practice / rate-limit alone` `scope
+  - **Verdict: HOLD — VALID DUPLICATE (npm venue ACTIONABLE, Gladia venue HOLD Q3/Q5 fail)** — one-line: locked orphaned impersonation + key-in-URL primitive across 10+ `npm pack` repros, already reported
+  - | Q5 | Novel? | **YES** — not previously VALID, always `HOLD`. |
+  - | Q6 | Not rejected? | **YES** — open redirect is valid class, but alone `form-action reflection` + `CSP missing directive` is treated as best-practice unless `Location` proven. |
+  - | Q2 | Reachable? | **PARTIAL / NO unauth** — `GET/POST /v2/pre-recorded` → `401` uniform gate; fetch logic only reachable with valid `x-gladia-key` (low-priv trial key per `scope.yml:41`). No bypass 
+  - | Q4 | GET/HEAD proof? | **NO** — spec confirms *design* `format:uri` no scheme allowlist, but proving fetch requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://<canary>"}`
+  - | Q6 | Not rejected? | **YES** — SSRF is valid class, but `fetch-by-design` behind `x-gladia-key` is often `WONTFIX` without metadata proof; `automated scanner output without manual validation is REJE
+  - | Q7 | Triager accept? | **NO without key-gated POC** — triager requires `error_message/status/timing` oracle with valid key; key-gated `400/422` vs `500/timeout` differential not observable via `GET 
+  - **Verdict: HOLD — AUTH_HELPED (spec design confirmed, unauth proof impossible; needs valid x-gladia-key POC)** — one-line: `format:uri` no allowlist + SDK verbatim forwarding confirmed passive, but `4
