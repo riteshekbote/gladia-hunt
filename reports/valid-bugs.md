@@ -697,3 +697,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-11 21:22:32 UTC
   - **Verdict: VALID for NPM Trust & Safety / HOLD for Gladia security channel**
+
+- 2 lead(s) marked VALID at 2026-09-12 06:33:49 UTC
+  - | **Q6 Not rejected** | **YES** | Impersonation not on always-rejected list (valid npm Trust & Safety policy case). |
+  - | **Q7** | **NO** No triager accepts SSRF without 1 valid-key error/timeout differential. |
