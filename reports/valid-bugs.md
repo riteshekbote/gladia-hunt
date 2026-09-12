@@ -718,3 +718,8 @@
   - | Q6 | Not rejected? | **YES** — SSRF is valid class, but `fetch-by-design` behind `x-gladia-key` is often `WONTFIX` without metadata proof; `automated scanner output without manual validation is REJE
   - | Q7 | Triager accept? | **NO without key-gated POC** — triager requires `error_message/status/timing` oracle with valid key; key-gated `400/422` vs `500/timeout` differential not observable via `GET 
   - **Verdict: HOLD — AUTH_HELPED (spec design confirmed, unauth proof impossible; needs valid x-gladia-key POC)** — one-line: `format:uri` no allowlist + SDK verbatim forwarding confirmed passive, but `4
+
+- 3 lead(s) marked VALID at 2026-09-12 19:28:55 UTC
+  - | `GET https://api.gladia.io/v2/pre-recorded` `probe-results.md:4` `GET https://api.gladia.io/v2/live/health` `probe-results.md:449` | GET | 401 no key | 401 `{"message":"no gladia key provided"}` `in
+  - | `GET https://registry.npmjs.org/gladia` `probe-results.md:322` | GET | — | 200 `gladia@0.1.3` | VALID DUPLICATE — already REPORTED `leads/lead-human.md:3` 2026-08-12 `riteshekbote@gmail.com->securit
+  - **Verdict:** `HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)` — one-line: locked orphaned impersonation + WS key-in-URL primitive across 10+ repros, already reported awaiting vendor, G
