@@ -759,3 +759,16 @@
   - |Q6|YES SSRF valid class|
   - |Q7|CONDITIONAL only with valid-key POC -> without HOLD|
   - **Verdict: HOLD (AUTH_HELPED)** - design confirmed, proof gated on valid `x-gladia-key`. Requires program trial key.
+
+- 11 lead(s) marked VALID at 2026-09-13 16:30:51 UTC
+  - | Q5 Novel? | **NO DUPLICATE** `REPORTED 2026-08-12 riteshekbote@gmail.com -> security@gladia.io` `lead-human.md:3` 10+ prior VALID `reports/valid-bugs.md:22` |
+  - | Q7 Triager accept? | **SPLIT: VALID npm Trust&Safety / HOLD Gladia program (duplicate+conditional)** `lead-human.md:15` |
+  - **Verdict: VALID (DUPLICATE) for npm venue; HOLD for Gladia program** - one-line: locked orphaned impersonation at `dist-tag latest` passive-proven, Gladia infra key-in-URL requires 1 valid-key WSS pr
+  - | Q4 | **NO** requires `HUMAN: GET /signin?redirect_to=https://evil.example.com` with valid Google SSO session + `curl -i --no-follow` capture `Location` header; unauth `200` is SPA shell not redirect
+  - | Q5 | YES not prior VALID (always HOLD) |
+  - | Q6 | YES open redirect valid class |
+  - | Q2 | **PARTIAL** `GET /v2/pre-recorded ->401 {"message":"no gladia key provided"}` `probe-results.md:4` key-gated; reachable only with valid `x-gladia-key` low-priv trial key |
+  - | Q4 | **NO** requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://<canary>"}` + error_code/timing oracle; violates `scope.yml:39 no_data_modification` `35 passive_first`; `
+  - | Q6 | YES SSRF valid class |
+  - | Q7 | **NO unauthenticated** HOLD - triager requires valid-key POC bypass; key-gated by-design is expected not vuln `reports/valid-bugs.md:318` |
+  - **Verdict: HOLD (AUTH_HELPED)** - one-line: design confirmed (`format:uri` no allowlist 7 webhooks `inventory/gladia.md:92`) proof gated on valid key.
