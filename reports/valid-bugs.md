@@ -782,3 +782,6 @@
   - | Q4 | NO requires `POST -H x-gladia-key:<valid> -d {"audio_url":"http://<canary>"}` violates `scope.yml:39` |
   - | Q6 | YES SSRF valid |
   - | Q7 | NO HOLD without valid-key POC |
+
+- 1 lead(s) marked VALID at 2026-09-13 21:30:26 UTC
+  - - **Verdict: HOLD (Gladia) / VALID (npm Trust & Safety)** — reason: orphaned+impersonation locked 10+ `npm pack` repros but Gladia-side bug unproven (needs 1 valid key), duplicate.
