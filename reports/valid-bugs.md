@@ -747,3 +747,15 @@
   - |7|HOLD|Reasonable triager: **HOLD** for Gladia program; **VALID** for `npmjs.com/support` venue|
   - |6|PASS Open redirect is valid class, but unproven reflection alone is `best-practice/weirdness` reject|
   - |2|FAIL `GET /v2/pre-recorded→401`, `POST /v2/pre-recorded (no key)→401 144B NestJS` (`inventory/gladia.md:39`) → attacker is low-priv unauth; reachability requires valid `x-gladia-key` (`gate:3`)|
+
+- 10 lead(s) marked VALID at 2026-09-13 06:49:43 UTC
+  - |Q5|Novel?|NO DUPLICATE `leads/lead-human.md:3` REPORTED 2026-08-12 `riteshekbote@gmail.com->security@gladia.io` 9+ VALID in `reports/valid-bugs.md:1`|
+  - |Q7|Triager accept?|SPLIT: npm Trust&Safety VALID; Gladia program HOLD - `leads/lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=VALID_KEY` proven server accepts query-param (
+  - **Verdict: HOLD (VALID DUPLICATE npm venue / HOLD Gladia venue)** - one-line: locked 10+ pack repros, already reported awaiting vendor (2026-08-22 re-check still live). **For VALID venue:** Proof `GET
+  - |Q5|YES not prior VALID (always HOLD)|
+  - |Q6|YES open redirect valid class|
+  - |Q2|NO unauth - `401` without `x-gladia-key`; reachable only low-priv with valid key|
+  - |Q4|NO - needs `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `169.254.169.254` error/timing oracle - violates `scope.yml:39` `no_data_modification` + not GET/HEAD
+  - |Q6|YES SSRF valid class|
+  - |Q7|CONDITIONAL only with valid-key POC -> without HOLD|
+  - **Verdict: HOLD (AUTH_HELPED)** - design confirmed, proof gated on valid `x-gladia-key`. Requires program trial key.
