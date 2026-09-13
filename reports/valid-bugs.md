@@ -785,3 +785,16 @@
 
 - 1 lead(s) marked VALID at 2026-09-13 21:30:26 UTC
   - - **Verdict: HOLD (Gladia) / VALID (npm Trust & Safety)** — reason: orphaned+impersonation locked 10+ `npm pack` repros but Gladia-side bug unproven (needs 1 valid key), duplicate.
+
+- 11 lead(s) marked VALID at 2026-09-13 23:41:02 UTC
+  - | Q5 Novel? | **NO — DUPLICATE** `REPORTED 2026-08-12 riteshekbote@gmail.com -> security@gladia.io` `leads/lead-human.md:3` 10+ prior VALID `reports/valid-bugs.md:351` |
+  - | Q7 Triager accept? | **SPLIT** npm Trust&Safety **VALID**; Gladia program **HOLD** (duplicate + Q3 conditional) |
+  - **Verdict: `HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia program)`** — one-line: locked orphaned impersonation + key-in-URL primitive across 10+ `npm pack` repros, already reported awaiting v
+  - | Q5 | YES not previously VALID |
+  - | Q6 | YES open redirect valid class |
+  - **Verdict: `HOLD (HUMAN_ONLY)`** — primitive present, CSP `form-action` 0 directives gap confirmed `leads/lead-bigpickle.md:399`, but post-auth honoring sole unverified gate. **NEXT PROBE (read-only, 
+  - | Q2 | **NO unauth** `GET /v2/pre-recorded ->401` `probe-results.md:4` — needs valid `x-gladia-key` low-priv `leads/lead-mimo.md:29` — no 401 bypass in 100+ cycles `inventory/gladia.md:263` |
+  - | Q4 | **NO** requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://<canary>"}` `scope.yml:39 no_data_modification` violation + not GET/HEAD |
+  - | Q5 | YES tracked but unproven `reports/valid-bugs.md:17` |
+  - | Q6 | YES SSRF valid class |
+  - **Verdict: `HOLD (AUTH_HELPED)`** — design confirmed via `openapi.json 14 paths/7 webhooks` `inventory/gladia.md:29` `format:uri` no scheme allowlist `leads/lead-laguna.md:337`, but **cannot prove wit
