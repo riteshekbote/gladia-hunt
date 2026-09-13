@@ -741,3 +741,9 @@
   - | **Q7** | **NO — CONDITIONAL** — triager accepts only with valid-key POC showing internal fetch; spec-only = HOLD `reports/valid-bugs.md:324` |
   - **Verdict: HOLD — AUTH_HELPED, requires valid `x-gladia-key` + non-destructive canary POC** — *one-line: spec+RAG confirms fetch-by-design, proof gated on key* `lead-mimo.md:32`.
   - **VALID summary this cycle: 0 new VALID** (1 duplicate HOLD). Prior VALID remains npm duplicate awaiting vendor response `lead-human.md:4` (14-day follow-up due 2026-08-26).
+
+- 4 lead(s) marked VALID at 2026-09-13 01:29:13 UTC
+  - |3|PARTIAL|Supply-chain impersonation real (orphaned 404→irrevocable takeover) + `src/client.ts:307` key-in-URL credential hygiene hazard. **But** hazard only exploitable if `wss://api.gladia.io/v2/li
+  - |7|HOLD|Reasonable triager: **HOLD** for Gladia program; **VALID** for `npmjs.com/support` venue|
+  - |6|PASS Open redirect is valid class, but unproven reflection alone is `best-practice/weirdness` reject|
+  - |2|FAIL `GET /v2/pre-recorded→401`, `POST /v2/pre-recorded (no key)→401 144B NestJS` (`inventory/gladia.md:39`) → attacker is low-priv unauth; reachability requires valid `x-gladia-key` (`gate:3`)|
