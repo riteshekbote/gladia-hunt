@@ -772,3 +772,13 @@
   - | Q6 | YES SSRF valid class |
   - | Q7 | **NO unauthenticated** HOLD - triager requires valid-key POC bypass; key-gated by-design is expected not vuln `reports/valid-bugs.md:318` |
   - **Verdict: HOLD (AUTH_HELPED)** - one-line: design confirmed (`format:uri` no allowlist 7 webhooks `inventory/gladia.md:92`) proof gated on valid key.
+
+- 8 lead(s) marked VALID at 2026-09-13 19:03:54 UTC
+  - | Q5 Novel? | NO DUPLICATE `REPORTED 2026-08-12 riteshekbote@gmail.com->security@gladia.io` `lead-human.md:3` 10+ prior VALID `reports/valid-bugs.md:22` |
+  - **Verdict: VALID (DUPLICATE) npm Trust&Safety / HOLD Gladia program** - locked orphaned `dist-tag latest=0.1.3` repo+user `alexisbouchez` 404 irrevocable.
+  - | Q4 | NO requires `HUMAN GET /signin?redirect_to=https://evil.example.com` with valid `__sid` Google SSO + `curl -i --no-follow` capture `Location`; unauth 200 is SPA shell. CSP `0 form-action` `inve
+  - | Q5 | YES not prior VALID (always HOLD) |
+  - | Q6 | YES open redirect valid class |
+  - | Q4 | NO requires `POST -H x-gladia-key:<valid> -d {"audio_url":"http://<canary>"}` violates `scope.yml:39` |
+  - | Q6 | YES SSRF valid |
+  - | Q7 | NO HOLD without valid-key POC |
