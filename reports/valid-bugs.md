@@ -804,3 +804,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-14 07:13:21 UTC
   - Verdict: **HOLD** - primitive present, not submittable to Gladia until query-param auth proven. One-line: needs 1 valid `x-gladia-key` to test WSS query vs header.
+
+- 2 lead(s) marked VALID at 2026-09-14 14:19:09 UTC
+  - **Verdict: HOLD (Gladia venue) / VALID (npm venue) — one-line: Gladia-side claim unproven without query-param auth PoC; npm impersonation already reported, duplicate.**
+  - **Verdict: HOLD (AUTH_HELPED) — one-line: SSRF surface persists frozen 100+ cycles but key-gated, no bypass without valid x-gladia-key.**
