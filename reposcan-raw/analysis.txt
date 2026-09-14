@@ -1,42 +1,607 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-**STATIC TRIAGE — gladiaio/org + npm — 2026-08-16 23:5x UTC — DELTA 0**
+New scan delta has 3 hits flagged — triaging as low-priority session-closure calls, checking for credential exposure.
+[0m$ [0mls -R reposcan-raw/gladiaio/gladiaflow 2>&1 | head -n 100; echo "---"; cat reposcan-raw/gladiaio/gladiaflow/src/App.tsx 2>&1 | head -n 400
+reposcan-raw/gladiaio/gladiaflow:
+CONTRIBUTING.md
+LICENSE
+README.md
+SECURITY.md
+TRADEMARKS.md
+design
+index.html
+package-lock.json
+package.json
+public
+screenshots.html
+scripts
+src
+src-tauri
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
 
-Scan: `5655 files / 625 hits / 0 new hit lines` vs prior. Full breadth pass on inventory (`reposcan-raw` 625 hits sample below + `api.gladia.io` 125131B/14 paths/7 webhooks frozen, `app.gladia.io` signin 27448B frozen, `npm` dist-tag stable). No new high-value primitive (IDOR/BOLA, SSRF->169.254.169.254, JWT alg confusion, OAuth redirect_uri/state, mass-assign, money flow) in delta.
+reposcan-raw/gladiaio/gladiaflow/design:
+Gladiaflow.pen
 
-#### Classification — sampled hits (`reposcan-raw` excerpt)
+reposcan-raw/gladiaio/gladiaflow/public:
+Images
+assets
+fonts
+icons
 
-| Category | File:Line | Value (sha256/trunc) | Verdict |
+reposcan-raw/gladiaio/gladiaflow/public/Images:
+Logo_Gladia_flow.svg
+
+reposcan-raw/gladiaio/gladiaflow/public/assets:
+gladiaflow-banner.png
+
+reposcan-raw/gladiaio/gladiaflow/public/fonts:
+GeistMono-LICENSE.txt
+GeistMono-Regular.woff2
+Inter-LICENSE.txt
+Inter-Variable.woff2
+
+reposcan-raw/gladiaio/gladiaflow/public/icons:
+gladia-icon.svg
+gladia-logo-white.svg
+gladia-logo.png
+icon.png
+
+reposcan-raw/gladiaio/gladiaflow/scripts:
+capture-screenshots.mjs
+
+reposcan-raw/gladiaio/gladiaflow/src:
+App.tsx
+components
+gladia-tokens.css
+index.css
+lib
+main.tsx
+screenshots
+types.ts
+
+reposcan-raw/gladiaio/gladiaflow/src/components:
+ApiKeyField.tsx
+ApiKeyOnboardingView.tsx
+AppSettingsView.tsx
+ConfigResetDialog.test.tsx
+ConfigResetDialog.tsx
+CustomVocabularyView.tsx
+FinalizingSpinner.tsx
+GladiaFlowLogo.tsx
+GladiaIcon.tsx
+HistoryView.test.ts
+HistoryView.tsx
+HoldModeWarningToast.tsx
+HomeView.tsx
+InfoTooltip.tsx
+PermissionsView.tsx
+SettingsPageLayout.tsx
+SidebarNav.tsx
+SoundWaveIcon.tsx
+TranscriptionHistory.tsx
+TranscriptionSettingsView.tsx
+VocabularyEditorDialog.tsx
+VoiceWaveIndicator.tsx
+
+reposcan-raw/gladiaio/gladiaflow/src/lib:
+accessibilityPermission.test.ts
+accessibilityPermission.ts
+audioCue.ts
+configLoad.test.ts
+configLoad.ts
+customVocabulary.ts
+dictationStats.ts
+holdModeWarning.test.ts
+holdModeWarning.ts
+keyboardUtils.test.ts
+keyboardUtils.ts
+languages.ts
+messages.ts
+transcript.ts
+vocabularyEditor.test.ts
+vocabularyEditor.ts
+---
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import type {
+  BootstrapState,
+  AppStatus,
+  AppSettings,
+  CustomVocabEntry,
+  TranscriptionHistoryPage,
+  AudioDeviceInfo,
+  AudioDeviceSelection,
+  ActivationMode,
+} from "./types";
+import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  error as logError,
+  info as logInfo,
+  warn as logWarn,
+} from "@tauri-apps/plugin-log";
+import { sendNotification } from "@tauri-apps/plugin-notification";
+import { audioCue } from "./lib/audioCue";
+import { EUROPEAN_LANGUAGES } from "./lib/languages";
+import { countWords, buildDisplayTranscript } from "./lib/transcript";
+import {
+  captureKeyToken,
+  isModifier,
+  sortKeys,
+  modifierSideToken,
+  isSingleModifierToken,
+  formatHotkeyLabel,
+  formatKeyboardEventForLog,
+} from "./lib/keyboardUtils";
+import {
+  type DictationStats,
+  DEFAULT_DICTATION_STATS,
+  DICTATION_STATS_STORAGE_KEY,
+  getDictationComment,
+} from "./lib/dictationStats";
+import { pickFunnyHomeMessage } from "./lib/messages";
+import { DEFAULT_CUSTOM_VOCABULARY } from "./lib/customVocabulary";
+import {
+  type AccessibilityState,
+  isAccessibilityGranted,
+} from "./lib/accessibilityPermission";
+import {
+  SHORT_EMPTY_DICTATION_LIMIT,
+  updateHoldModeWarningStreak,
+} from "./lib/holdModeWarning";
+import { loadSavedApiKey, resetCorruptedConfig } from "./lib/configLoad";
+import { SidebarNav, type NavScreen } from "./components/SidebarNav";
+import { AppSettingsView } from "./components/AppSettingsView";
+import { TranscriptionSettingsView } from "./components/TranscriptionSettingsView";
+import { PermissionsView } from "./components/PermissionsView";
+import { ApiKeyOnboardingView } from "./components/ApiKeyOnboardingView";
+import { HomeView } from "./components/HomeView";
+import { CustomVocabularyView } from "./components/CustomVocabularyView";
+import { HistoryView } from "./components/HistoryView";
+import { HISTORY_PAGE_SIZE } from "./components/HistoryView";
+import { HoldModeWarningToast } from "./components/HoldModeWarningToast";
+import { ConfigResetDialog } from "./components/ConfigResetDialog";
+
+type Screen = NavScreen | "permissions" | "api-onboarding";
+
+let notificationPermissionRequest: Promise<boolean> | null = null;
+
+function ensureNotificationPermission(): Promise<boolean> {
+  if (notificationPermissionRequest) {
+    return notificationPermissionRequest;
+  }
+
+  notificationPermissionRequest = (async () => {
+    await logInfo(
+      "[notifications] checking native notification authorization",
+    ).catch(() => {});
+    const permissionGranted = await invoke<boolean>(
+      "request_notification_permission",
+    );
+    await (permissionGranted ? logInfo : logWarn)(
+      `[notifications] permission ${permissionGranted ? "granted" : "not granted"}`,
+    ).catch(() => {});
+    return permissionGranted;
+  })().finally(() => {
+    notificationPermissionRequest = null;
+  });
+
+  return notificationPermissionRequest;
+}
+
+async function showHoldModeDesktopNotification() {
+  const permissionGranted = await ensureNotificationPermission();
+  if (permissionGranted) {
+    sendNotification({
+      title: "Hold dictation mode is active",
+      body: "Keep the shortcut held while speaking, or switch to Toggle in App settings.",
+    });
+    await logInfo("[hold-mode-warning] desktop notification sent").catch(
+      () => {},
+    );
+  } else {
+    await logWarn(
+      "[hold-mode-warning] desktop notification permission not granted; in-app toast shown only",
+    ).catch(() => {});
+  }
+}
+
+function resolveScreen(
+  navScreen: NavScreen,
+  permissions: {
+    checked: boolean;
+    accessibilityState: AccessibilityState | null;
+    microphone: string | null;
+  },
+  hasApiKey: boolean,
+): Screen {
+  if (
+    permissions.checked &&
+    (!isAccessibilityGranted(permissions.accessibilityState) ||
+      permissions.microphone !== "authorized")
+  )
+    return "permissions";
+  if (!hasApiKey) return "api-onboarding";
+  return navScreen;
+}
+
+export default function App() {
+  const [bootstrap, setBootstrap] = useState<BootstrapState | null>(null);
+  const [status, setStatus] = useState<AppStatus>({
+    phase: "idle",
+    title: "Ready",
+    detail: "",
+  });
+  const [apiKey, setApiKey] = useState<string>("");
+  const [isApiKeyLocked, setIsApiKeyLocked] = useState(false);
+  const [hasSavedApiKey, setHasSavedApiKey] = useState(false);
+  const [isTestingApiKey, setIsTestingApiKey] = useState(false);
+  const [configLoadPending, setConfigLoadPending] = useState(true);
+  const [configLoadError, setConfigLoadError] = useState<string | null>(null);
+  const [configResetConfirmationOpen, setConfigResetConfirmationOpen] =
+    useState(false);
+  const [isResettingConfig, setIsResettingConfig] = useState(false);
+  const [configResetError, setConfigResetError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [navScreen, setNavScreen] = useState<NavScreen>("home");
+  const [settings, setSettings] = useState<AppSettings>({
+    apiKey: "",
+    languages: ["en"],
+    activationMode: "push-to-talk",
+    audioDevice: "",
+    audioDeviceSelection: { mode: "automatic" },
+    hotkey: "Fn",
+    codeSwitching: false,
+    copyToClipboard: false,
+    endpointing: 0.1,
+    customVocabulary: DEFAULT_CUSTOM_VOCABULARY,
+  });
+  const [audioDevices, setAudioDevices] = useState<AudioDeviceInfo[]>([]);
+  const [platform, setPlatform] = useState<string>("macos");
+  const [region, setRegion] = useState<string>("");
+  const [appVersion, setAppVersion] = useState<string>("");
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [activationDropdownOpen, setActivationDropdownOpen] = useState(false);
+  const [audioDeviceDropdownOpen, setAudioDeviceDropdownOpen] = useState(false);
+  const [dictationStats, setDictationStats] = useState<DictationStats>(
+    DEFAULT_DICTATION_STATS,
+  );
+  const [funnyHomeMessage, setFunnyHomeMessage] = useState<string>(() =>
+    pickFunnyHomeMessage(),
+  );
+  const [historyPageData, setHistoryPageData] =
+    useState<TranscriptionHistoryPage | null>(null);
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [historyPage, setHistoryPage] = useState(1);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [languageSearch, setLanguageSearch] = useState("");
+  const [permissions, setPermissions] = useState<{
+    accessibilityState: AccessibilityState | null;
+    microphone: string | null;
+    hotkeyError: string | null;
+    checked: boolean;
+  }>({
+    accessibilityState: null,
+    microphone: null,
+    hotkeyError: null,
+    checked: false,
+  });
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [settingsReady, setSettingsReady] = useState(false);
+  const [showHoldModeWarning, setShowHoldModeWarning] = useState(false);
+
+  const sessionInitialized = useRef(false);
+  const isInitializingRef = useRef(false);
+  const pendingStopRef = useRef(false);
+  /** Hotkey pressed while finalizing — restart as soon as processing clears. */
+  const pendingStartRef = useRef(false);
+  const isCapturingRef = useRef(false);
+  const justCapturedRef = useRef(false);
+  const languageSettingsLoaded = useRef(false);
+  const vocabularySettingsLoaded = useRef(false);
+  const endpointingLoaded = useRef(false);
+  const copyToClipboardLoaded = useRef(false);
+  const activationModeLoaded = useRef(false);
+  const audioDeviceSelectionLoaded = useRef(false);
+
+  const isRecordingRef = useRef(false);
+  const isProcessingRef = useRef(false);
+  const stopRequestedRef = useRef(false);
+  const stopFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const earlyAudioStopPromiseRef = useRef<Promise<string | null> | null>(null);
+  const earlyReleaseAtRef = useRef<number | null>(null);
+  const settingsRef = useRef(settings);
+  const permissionsRef = useRef(permissions);
+  const checkAllPermissionsRef = useRef<() => void>(() => {});
+  const permissionCheckInFlightRef = useRef<Promise<void> | null>(null);
+  const apiKeyRef = useRef(apiKey);
+  const refreshTranscriptionHistoryRef = useRef<() => Promise<void>>(
+    async () => {},
+  );
+  const latestTranscriptRef = useRef("");
+  const finalizedTranscriptRef = useRef("");
+  const partialTranscriptRef = useRef("");
+  const dictationStartTimeRef = useRef<number | null>(null);
+  const completedDictationDurationRef = useRef<number | null>(null);
+  const shortEmptyDictationStreakRef = useRef(0);
+  const audioReadyRef = useRef(false);
+  const activeCaptureIdRef = useRef<string | null>(null);
+  const audioReadyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const languageDropdownRef = useRef<HTMLDivElement | null>(null);
+  const activationDropdownRef = useRef<HTMLDivElement | null>(null);
+  const audioDeviceDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    ensureNotificationPermission().catch((error) => {
+      console.warn("Could not request notification permission:", error);
+      logWarn(`[notifications] permission request failed: ${error}`).catch(
+        () => {},
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
+  useEffect(() => {
+    const activity = isRecording
+      ? status.phase === "starting"
+        ? "starting"
+        : "recording"
+      : isProcessing
+        ? "finalizing"
+        : "idle";
+    invoke("set_tray_activity", { activity }).catch(console.error);
+  }, [isRecording, isProcessing, status.phase]);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+  useEffect(() => {
+    if (!languageSettingsLoaded.current) return;
+    invoke("save_language_settings", {
+      languages: settings.languages,
+      codeSwitching: settings.codeSwitching,
+    }).catch(console.error);
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.languages, settings.codeSwitching]);
+  useEffect(() => {
+    if (!vocabularySettingsLoaded.current) return;
+    invoke("save_custom_vocabulary", {
+      vocabulary: settings.customVocabulary,
+    }).catch(console.error);
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.customVocabulary]);
+  useEffect(() => {
+    if (!endpointingLoaded.current) return;
+    invoke("save_endpointing", { endpointing: settings.endpointing }).catch(
+      console.error,
+    );
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.endpointing]);
+  useEffect(() => {
+    if (!copyToClipboardLoaded.current) return;
+    invoke("save_copy_to_clipboard", {
+      enabled: settings.copyToClipboard,
+    }).catch(console.error);
+  }, [settings.copyToClipboard]);
+  useEffect(() => {
+    if (!activationModeLoaded.current) return;
+    invoke("save_activation_mode", { mode: settings.activationMode }).catch(
+      console.error,
+    );
+  }, [settings.activationMode]);
+  useEffect(() => {
+    if (!audioDeviceSelectionLoaded.current) return;
+    invoke("save_audio_device_selection", {
+      selection: settings.audioDeviceSelection,
+    }).catch(console.error);
+  }, [settings.audioDeviceSelection]);
+  useEffect(() => {
+    permissionsRef.current = permissions;
+  }, [permissions]);
+  useEffect(() => {
+    apiKeyRef.current = apiKey;
+  }, [apiKey]);
+
+  const clearStopFallbackTimer = () => {
+    if (stopFallbackTimerRef.current !== null) {
+      clearTimeout(stopFallbackTimerRef.current);
+      stopFallbackTimerRef.current = null;
+    }
+  };
+
+  const clearAudioReadyTimer = () => {
+    if (audioReadyTimeoutRef.current !== null) {
+      clearTimeout(audioReadyTimeoutRef.current);
+      audioReadyTimeoutRef.current = null;
+    }
+  };
+
+  const setRecordingState = (recording: boolean) => {
+    isRecordingRef.current = recording;
+    setIsRecording(recording);
+  };
+
+  const flushPendingStartRef = useRef<() => void>(() => {});
+
+  const setProcessingState = (processing: boolean) => {
+    isProcessingRef.current = processing;
+    setIsProcessing(processing);
+    if (!processing) {
+      // Defer so any in-flight session teardown in the same turn can finish first.
+      // flushPendingStart also refuses to run while the Gladia session is still
+      // live or a stop is in flight — see its guards.
+      queueMicrotask(() => flushPendingStartRef.current());
+    }
+  };
+
+  const refreshTranscriptionHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const pageData = await invoke<TranscriptionHistoryPage>(
+        "list_transcription_history",
+        {
+          query: historyQuery.trim() || null,
+          page: historyPage,
+          pageSize: HISTORY_PAGE_SIZE,
+        },
+      );
+      setHistoryPageData(pageData);
+    } catch (error) {
+      console.error("Failed to load transcription history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [historyQuery, historyPage]);
+
+  useEffect(() => {
+    refreshTranscriptionHistoryRef.current = refreshTranscriptionHistory;
+  }, [refreshTranscriptionHistory]);
+
+  useEffect(() => {
+    if (navScreen !== "history") return;
+    refreshTranscriptionHistory().catch(console.error);
+  }, [navScreen, refreshTranscriptionHistory]);
+
+  const handleHistoryQueryChange = useCallback((query: string) => {
+    setHistoryQuery(query);
+    setHistoryPage(1);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(DICTATION_STATS_STORAGE_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as Partial<DictationStats>;
+      const totalWords = Number.isFinite(parsed.totalWords)
+        ? Math.max(0, Number(parsed.totalWords))
+        : 0;
+      const totalSeconds = Number.isFinite(parsed.totalSeconds)
+        ? Math.max(0, Number(parsed.totalSeconds))
+        : 0;
+      setDictationStats({ totalWords, totalSeconds });
+    } catch (error) {
+      console.warn("Failed to load dictation stats:", error);
+[0m
+[0m$ [0mgrep -n "close_gladia_session\|apiKey\|x-gladia-key\|sk-\|gladia" reposcan-raw/gladiaio/gladiaflow/src/App.tsx | head -n 20; echo "---HASHVERIFY---"; sha256sum reposcan-raw/gladiaio/gladiaflow/src/App.tsx | head -n 1; echo "---CONTEXT 274/284/294 FULL---"; sed -n '260,310p' reposcan-raw/gladiaio/gladiaflow/src/App.tsx
+133:  const [apiKey, setApiKey] = useState<string>("");
+148:    apiKey: "",
+219:  const apiKeyRef = useRef(apiKey);
+274:      invoke("close_gladia_session").catch(console.error);
+284:      invoke("close_gladia_session").catch(console.error);
+294:      invoke("close_gladia_session").catch(console.error);
+319:    apiKeyRef.current = apiKey;
+320:  }, [apiKey]);
+461:    if (result.apiKey) {
+462:      setApiKey(result.apiKey);
+569:          apiKey: apiKey,
+580:        apiKeySet: !!apiKey,
+581:        ready: !!apiKey,
+587:  }, [apiKey, bootstrap, status]);
+665:            if (isRecordingRef.current && apiKeyRef.current.trim()) {
+668:                await invoke("close_gladia_session").catch(console.error);
+669:                await invoke("init_gladia_session", {
+670:                  apiKey: apiKeyRef.current.trim(),
+756:            await invoke("close_gladia_session").catch(console.error);
+803:            await invoke("close_gladia_session").catch(console.error);
+---HASHVERIFY---
+8d58cd3efbfd6f1071f11c3e70cbcf9e64546d2cab07125508871fa9c1afbae7  reposcan-raw/gladiaio/gladiaflow/src/App.tsx
+---CONTEXT 274/284/294 FULL---
+        : "idle";
+    invoke("set_tray_activity", { activity }).catch(console.error);
+  }, [isRecording, isProcessing, status.phase]);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+  useEffect(() => {
+    if (!languageSettingsLoaded.current) return;
+    invoke("save_language_settings", {
+      languages: settings.languages,
+      codeSwitching: settings.codeSwitching,
+    }).catch(console.error);
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.languages, settings.codeSwitching]);
+  useEffect(() => {
+    if (!vocabularySettingsLoaded.current) return;
+    invoke("save_custom_vocabulary", {
+      vocabulary: settings.customVocabulary,
+    }).catch(console.error);
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.customVocabulary]);
+  useEffect(() => {
+    if (!endpointingLoaded.current) return;
+    invoke("save_endpointing", { endpointing: settings.endpointing }).catch(
+      console.error,
+    );
+    if (sessionInitialized.current && !isRecordingRef.current) {
+      sessionInitialized.current = false;
+      invoke("close_gladia_session").catch(console.error);
+    }
+  }, [settings.endpointing]);
+  useEffect(() => {
+    if (!copyToClipboardLoaded.current) return;
+    invoke("save_copy_to_clipboard", {
+      enabled: settings.copyToClipboard,
+    }).catch(console.error);
+  }, [settings.copyToClipboard]);
+  useEffect(() => {
+    if (!activationModeLoaded.current) return;
+    invoke("save_activation_mode", { mode: settings.activationMode }).catch(
+      console.error,
+    );
+  }, [settings.activationMode]);
+  useEffect(() => {
+    if (!audioDeviceSelectionLoaded.current) return;
+[0m
+Triage `gladiaio` delta — 3 new hit lines (all `gladiaflow/src/App.tsx`):
+
+| Category | File:Line | sha256 | Notes |
 |---|---|---|---|
-| **REAL_SECRET** | — | — | *0 hits in delta; 0 new REAL_SECRET* |
-| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` masked placeholder | synthetic fixture |
-| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` | `apiKey: "secret-key"` sha256 `152…` | test fixture |
-| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21,27,34` | `gladiaflow` / `gladioflow` | unit test data |
-| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/lib/customVocabulary.ts:8-9` | `gladiaflow` | sample vocab |
-| **ENDPOINT_LEAK** | `gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | public prod endpoint (in-scope, expected) |
-| **ENDPOINT_LEAK** | `gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | public prod endpoint |
-| **ENDPOINT_LEAK** | `gladiaio/gladia-cli/.goreleaser.yaml:61` `install.sh:4` | `gladiaio/gladia-cli` | public repo ref |
-| **INTERESTING** | `npm: gladia@0.1.3` `reposcan-raw/gladiaio/skills` | `description:"Official"` vs repo `alexisbouchez/gladia.ts` 404 + user 404 | **ALREADY ACCEPTED_OTHER** — orphaned impersonator, dist-tag `latest=0.1.3`, shasum `cc96f84a…`, sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, `src/client.ts:306-308` `searchParams.append('x-gladia-key')→new WebSocket` diverges from `@gladiaio/sdk@1.1.0` POST `/v2/live` → `token=<uuid>` flow — no delta, report-ready |
-| **INTERESTING** | `gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21-22` | `registry.npmjs.org/@gladiaio/sdk` / `pypi.org/pypi/gladiaio-sdk` | public registry fetch, not secret |
+| **REAL_SECRET** | — | — | **0 hits** — no hardcoded credential/API key/token with signs of life |
+| **TEST_OR_EXAMPLE** | `gladiaflow/src/screenshots/Gallery.tsx:17` `apiKey: "sk-********"` | n/a masked placeholder | Screenshots mock, not live key |
+| | `gladiaflow/src/lib/configLoad.test.ts:26` `apiKey: "secret-key"` | n/a | unit test fixture |
+| **ENDPOINT_LEAK** | — | — | no new internal/dev/staging URL; `https://app.gladia.io/apikeys`, `.../transcriptions/live/...`, `https://docs.gladia.io/...` already baseline-public |
+| **INTERESTING** | `gladiaflow/src/App.tsx:274` `invoke("close_gladia_session")` | `2b4be4360f4ec5d9` | Tauri IPC session teardown on `languages/codeSwitching` change; same at `:284` (vocabulary), `:294` (endpointing) — duplicate |
+| | `gladiaflow/src/App.tsx:284` same | `2b4be4360f4ec5d9` | duplicate of 274 |
+| | `gladiaflow/src/App.tsx:294` same | `2b4be4360f4ec5d9` | duplicate of 274 |
 
-All other 600+ hits identical to baseline (`gladiaflow`, `gladia-3` preset, `support@gladia.io`, `tauri.conf` identifiers) — benign brand/config refs.
+**Delta detail** `gladiaflow/src/App.tsx:274,284,294`:
+- `reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274` / `284` / `294` — `invoke("close_gladia_session").catch(console.error)` inside `useEffect` guards (`if (!*Loaded.current) return; if (sessionInitialized.current && !isRecordingRef.current) {...}`). Request-level: no METHOD/path/params, local Tauri command only. Expected: client-side session reset. Actual: matches. No auth/session handling flaw, no IDOR, no cloud metadata, no secret material. Scanner keyword hit on `gladia`, not credential.
+- File sha256 `8d58cd3efbfd6f1071f11c3e70cbcf9e64546d2cab07125508871fa9c1afbae7` — confirms unchanged source.
+- SCAN SUMMARY `5655 files / 625 hits` — delta `3` = only this triplicate; `622` baseline hits all package-name/config references (`gladiaflow` name, `identifier io.gladia.gladiaflow`, `gladia-tokens.css`, etc.) — no new high-value primitive.
 
-#### Breadth → Depth top-3 anomalies (this cycle)
+**Verdict list:**
+- `gladiaflow/src/App.tsx:274` `2b4be4360f4ec5d9` — REPORT_CANDIDATE: **no** (benign IPC, duplicate)
+- `gladiaflow/src/App.tsx:284` `2b4be4360f4ec5d9` — REPORT_CANDIDATE: **no** (duplicate of 274)
+- `gladiaflow/src/App.tsx:294` `2b4be4360f4ec5d9` — REPORT_CANDIDATE: **no** (duplicate of 274)
+- Overall delta — REPORT_CANDIDATE: **no** — 0 real secrets. Prior ACCEPTED `npm gladia@0.1.3` orphaned impersonation (`sha256 3b23ec7d...7f2`) remains sole reportable; no chained lead (SSRF/OATH still AUTH_HELPED/HUMAN_ONLY, surface NO_DRIFT 100+ cycles). No live PROBE needed — passive triage complete.
 
-1. **api.gladia.io SSRF-by-design** — `api.gladia.io/openapi.json:audio_url` (plain string) / `video_url` / `CallbackConfigDto.url` (`format:uri`) + 7 `webhooks` → no scheme allowlist, FR/US egress per `GET /v1/models` 200/530B CORS `*` — **ACCEPTED SSRF AUTH_HELPED** (key-gated `POST /v2/pre-recorded` 401 NestJS `{"message":"no gladia key provided","request_id":"G-…"}`), no new bypass in delta.
-2. **app.gladia.io OATH reflection** — `GET /signin?redirect_to=https://evil.example.com` 200/27448B → `<form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com" method="post">`, CSP `base-uri 'self', object-src 'none', frame-src allowlist` **0 `form-action` directives** (grep-count 0) — **ACCEPTED OATH** alive, `redirect_to` NOT usable as OAuth `redirect_uri` (`FIXED https://app.gladia.io/auth/google/callback` PKCE S256 `code_challenge_method=S256` + random `state`, `client_id 352060113328-…21ha` verified 302→accounts.google.com) → **REJECTED OAUTH** code/state theft; `return-to` cookie `eyJ1cmwiOiIv…` unsigned base64url `{"url":"/"}` tamper→reset to `/` → **REJECTED AUTH** open-redirect; post-auth honoring remains `HUMAN_ONLY`.
-3. **npm supply-chain** — `gladia@0.1.3` orphaned impersonation (above) + `@gladiaio/sdk@1.1.0` / `gladiaio-sdk@1.0.5` / 19 org repos static — **ACCEPTED OTHER**, `reposcan 0 new hit lines` verifies no new adjacent squat (`gladiaio`, `gladia-sdk`, `@gladia/*` all 404 per 2026-08-08).
-
-No chained lead (open-redirect→OAuth code theft→ATO, XSS→session theft, IDOR→PII dump, SSRF→169.254.169.254→keys) provable passively on delta; all surfaces `NO_DRIFT` 100+ cycles.
-
-#### Verdict
-
-```
-REPORT_CANDIDATE: no — 0 new REAL_SECRET, 0 new ENDPOINT_LEAK, 0 new INTERESTING reportable in delta
-  - gladia@0.1.3 orphaned impersonation: REPORT_CANDIDATE yes (ALREADY ACCEPTED, evidence locked 10x npm pack reproductions, portal https://gladia.io/bug-bounty-report→Google Forms) — NO NEW ACTION this cycle
-  - api SSRF-by-design: REPORT_CANDIDATE no (AUTH_HELPED, needs authorized key for POC — passive complete)
-  - app redirect_to reflection: REPORT_CANDIDATE no (HUMAN_ONLY post-auth honoring, passive reflection alone insufficient per program rules)
-```
-
-[NEXT] PROBE — none; surface frozen `openapi 125680B(dynamic-example band)/14 paths/7 webhooks/1 server`, `/health 15B`, `/v1/models 530B`, `signin 27448B`, `npm latest=0.1.3/cc96f84a…` — per program conclusion further `GET/HEAD ≤1rps` adds no signal until `authorized x-gladia-key` (SSRF POC) or `HUMAN Google SSO` (post-auth redirect_to honoring test).
+[NEXT] PROBE: none — no high-value chained primitive surfaced in this delta; continue passive drift monitoring.
