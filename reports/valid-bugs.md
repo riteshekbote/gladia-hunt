@@ -808,3 +808,13 @@
 - 2 lead(s) marked VALID at 2026-09-14 14:19:09 UTC
   - **Verdict: HOLD (Gladia venue) / VALID (npm venue) — one-line: Gladia-side claim unproven without query-param auth PoC; npm impersonation already reported, duplicate.**
   - **Verdict: HOLD (AUTH_HELPED) — one-line: SSRF surface persists frozen 100+ cycles but key-gated, no bypass without valid x-gladia-key.**
+
+- 8 lead(s) marked VALID at 2026-09-14 19:29:46 UTC
+  - |Q5 Novel|❌ NO — `leads/lead-human.md:3` `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io`, 9+ prior `VALID` in `reports/valid-bugs.md:22`|❌ DUPLICATE|
+  - |Q7 Triager|✅ YES for **npm Trust&Safety**, HOLD for Gladia venue (`leads/lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=VALID` proven server-accepts)|SPLIT|
+  - **Verdict: HOLD (VALID DUPLICATE for npmjs.com/support, HOLD for Gladia program)** — one-line: locked 10+ repros, already reported awaiting vendor, Gladia-side key-in-URL is primitive not proven vuln 
+  - |Q4 ❌ NO — requires `HUMAN: GET /signin?redirect_to=https://evil.example.com` with valid Google SSO + `follow-redirects=false` capture `Location`|
+  - |Q5 YES (never VALID, always HOLD)|Q6 YES (open redirect valid class)|Q7 ❌ NO unauth — triager rejects `200` reflection without `302→evil`|
+  - **Verdict: HOLD (HUMAN_ONLY)** — needs authenticated session. `[NEXT] PROBE` (read-only after auth): `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` with `Cookie: __sid=<valid>
+  - |Q3 ✅ YES — metadata/internal read if true|Q4 ❌ NO — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` timing/erro
+  - |Q5 YES (hypothesis tracked, never proven)|Q6 YES (SSRF valid class)|Q7 CONDITIONAL — triager accepts only with `401` bypass or valid-key POC|
