@@ -801,3 +801,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-14 01:46:20 UTC
   - **Verdict this cycle: NO NEW VALID — HOLD (empty inventory).** No `Q1-Q7` row possible; prior standings carried forward per `leads/lead-human.md:1-9` + `triage/run-2026-09-01*`:
+
+- 1 lead(s) marked VALID at 2026-09-14 07:13:21 UTC
+  - Verdict: **HOLD** - primitive present, not submittable to Gladia until query-param auth proven. One-line: needs 1 valid `x-gladia-key` to test WSS query vs header.
