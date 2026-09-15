@@ -828,3 +828,12 @@
   - **VD-A Verdict: VALID @ npm Trust & Safety - NOT a Gladia program payout (registry policy $0).**
   - **VD-B Verdict: HOLD - Gladia-venue primitive present, Q3 FAIL pre-severity gate, needs 1 valid key WSS unlock.**
   - | **YES** `api.gladia.io HIGHEST` `scope.yml:6` | **NO** - `GET /v2/pre-recorded ->401 {"message":"no gladia key provided","request_id":"G-…"}` `probe-results.md:4` uniform `401` for `/v2/transcriptio
+
+- 7 lead(s) marked VALID at 2026-09-15 20:19:15 UTC
+  - | **Q5 Novel?** | **NO** — DUPLICATE. `leads/lead-human.md:3` REPORTED `2026-08-12 riteshekbote@gmail.com→security@gladia.io`, re-checked `2026-08-22` still live `latest=0.1.3`. Prior `VALID` 9+ cycle
+  - **Verdict: `HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia venue)` — one-line: locked orphaned impersonation + key-in-URL primitive passive-proven, already reported awaiting vendor, Gladia infr
+  - | **Q6** | **YES** — open redirect valid class |
+  - | **Q4** | **NO** — design visible via `GET /openapi.json 200/125680B 14 paths` but exploit needs `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://169.254.169.254/..."}` `leads/l
+  - | **Q6** | **YES** — SSRF valid class |
+  - | **Q7** | **NO** unauth — triager requires valid-key canary POC with error/timing oracle comparison `leads/lead-bigpickle.md:19`. |
+  - **Verdict: `HOLD (AUTH_HELPED)` — one-line: spec+RAG frozen `format:uri` no allowlist + 7 webhooks live, proof gated on valid `x-gladia-key` POST (no bypass in 100+ probes).**
