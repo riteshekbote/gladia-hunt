@@ -818,3 +818,7 @@
   - **Verdict: HOLD (HUMAN_ONLY)** — needs authenticated session. `[NEXT] PROBE` (read-only after auth): `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` with `Cookie: __sid=<valid>
   - |Q3 ✅ YES — metadata/internal read if true|Q4 ❌ NO — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` timing/erro
   - |Q5 YES (hypothesis tracked, never proven)|Q6 YES (SSRF valid class)|Q7 CONDITIONAL — triager accepts only with `401` bypass or valid-key POC|
+
+- 2 lead(s) marked VALID at 2026-09-15 11:56:14 UTC
+  - | 1 | **npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307` key-in-URL** `npmjs.com/package/gladia` | **FAIL (Gladia) / PASS (npm)** `scope.yml:6-13` asset is `api.gladia.io/app.gladia.io/
+  - | 3 | **api.gladia.io SSRF via `audio_url/video_url/callback_config.url` `format:uri` no scheme allowlist** `api.gladia.io/v2/pre-recorded:6` HIGHEST `scope.yml:6` | PASS HIGHEST | **FAIL** unauth: `G
