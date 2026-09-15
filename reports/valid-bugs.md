@@ -822,3 +822,9 @@
 - 2 lead(s) marked VALID at 2026-09-15 11:56:14 UTC
   - | 1 | **npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307` key-in-URL** `npmjs.com/package/gladia` | **FAIL (Gladia) / PASS (npm)** `scope.yml:6-13` asset is `api.gladia.io/app.gladia.io/
   - | 3 | **api.gladia.io SSRF via `audio_url/video_url/callback_config.url` `format:uri` no scheme allowlist** `api.gladia.io/v2/pre-recorded:6` HIGHEST `scope.yml:6` | PASS HIGHEST | **FAIL** unauth: `G
+
+- 4 lead(s) marked VALID at 2026-09-15 17:09:33 UTC
+  - | **B: Gladia program `api.gladia.io` / `gladia.io` as server-side bug** `scope.yml:6-13` | **NO** - vulnerable code not served by Gladia infra; root cause in `softwarecitadel` package `leads/lead-hum
+  - **VD-A Verdict: VALID @ npm Trust & Safety - NOT a Gladia program payout (registry policy $0).**
+  - **VD-B Verdict: HOLD - Gladia-venue primitive present, Q3 FAIL pre-severity gate, needs 1 valid key WSS unlock.**
+  - | **YES** `api.gladia.io HIGHEST` `scope.yml:6` | **NO** - `GET /v2/pre-recorded ->401 {"message":"no gladia key provided","request_id":"G-…"}` `probe-results.md:4` uniform `401` for `/v2/transcriptio
