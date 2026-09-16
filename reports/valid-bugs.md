@@ -837,3 +837,15 @@
   - | **Q6** | **YES** — SSRF valid class |
   - | **Q7** | **NO** unauth — triager requires valid-key canary POC with error/timing oracle comparison `leads/lead-bigpickle.md:19`. |
   - **Verdict: `HOLD (AUTH_HELPED)` — one-line: spec+RAG frozen `format:uri` no allowlist + 7 webhooks live, proof gated on valid `x-gladia-key` POST (no bypass in 100+ probes).**
+
+- 10 lead(s) marked VALID at 2026-09-16 17:09:51 UTC
+  - | Q5 novel? | **NO** `reports/valid-bugs.md:22` VALID 2026-08-07, `leads/lead-human.md:3` reported 2026-08-12 `riteshekbote@gmail.com→security@gladia.io` awaiting vendor — **DUPLICATE** |
+  - | Q7 triager accept? | **HOLD for Gladia / VALID for npm Trust&Safety** — same verdict `triage/run-2026-09-03-23:35.md` |
+  - **Verdict: HOLD (VALID DUPLICATE for npm) — one-line: already reported awaiting vendor, Gladia-side key leak conditional on WSS query-auth proof.**
+  - | Q5 | YES not prior VALID (always HOLD) |
+  - | Q6 | YES open redirect valid class |
+  - | Q2 | **NO unauth** — `GET/POST /v2/pre-recorded →401` `probe-results.md:4` uniform NestJS gate, `OPTIONS → ACAO:*` but no credentials `inventory/gladia.md:31`, no bypass 100+ cycles `leads/lead-mimo
+  - | Q4 | **NO** — design `format:uri` no allowlist + 7 webhooks `inventory/gladia.md:201` confirmed via `GET /openapi.json →200/125131B/14 paths`, but actual SSRF needs `POST /v2/pre-recorded -H x-gladi
+  - | Q5 | YES hypothesis tracked `reports/valid-bugs.md:13` but unproven |
+  - | Q6 | YES SSRF valid class |
+  - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed passive, proof gated on valid x-gladia-key POST, frozen surface 100+ cycles.**
