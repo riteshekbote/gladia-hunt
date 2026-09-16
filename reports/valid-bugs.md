@@ -849,3 +849,7 @@
   - | Q5 | YES hypothesis tracked `reports/valid-bugs.md:13` but unproven |
   - | Q6 | YES SSRF valid class |
   - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed passive, proof gated on valid x-gladia-key POST, frozen surface 100+ cycles.**
+
+- 2 lead(s) marked VALID at 2026-09-16 20:16:20 UTC
+  - - **VERDICT: HOLD — duplicate, under vendor review.** `leads/lead-human.md:13` Valid for `npm Trust & Safety` now, Gladia `HOLD` pending query-param auth proof. Do not re-report to Gladia.
+  - - **VERDICT: HOLD — AUTH_HELPED, needs valid `x-gladia-key` for POC; not submittable unauth.**
