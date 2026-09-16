@@ -853,3 +853,15 @@
 - 2 lead(s) marked VALID at 2026-09-16 20:16:20 UTC
   - - **VERDICT: HOLD — duplicate, under vendor review.** `leads/lead-human.md:13` Valid for `npm Trust & Safety` now, Gladia `HOLD` pending query-param auth proof. Do not re-report to Gladia.
   - - **VERDICT: HOLD — AUTH_HELPED, needs valid `x-gladia-key` for POC; not submittable unauth.**
+
+- 10 lead(s) marked VALID at 2026-09-16 23:03:21 UTC
+  - > LEADS batch `new-leads.txt:1` `triage-prompt.txt:28` = **0 leads this cycle** — no new 7-gate table to emit. Verdict: **NO NEW VALID — HOLD (empty batch)**. Below is triage of frozen inventory (3 to
+  - |Q4|GET/HEAD only?|YES| Passive proof complete: `curl -s https://registry.npmjs.org/gladia | jq .dist-tags,.maintainers` + `npm pack gladia@0.1.3; sha256=3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f7
+  - |Q5|Novel?|NO — DUPLICATE| Already **VALID** `2026-08-07 21:04` `reports/valid-bugs.md:5` re-reported 2026-08-12 `riteshekbote@gmail.com -> security@gladia.io` `leads/lead-human.md:3` 10+ independent 
+  - **Verdict: VALID (DUPLICATE) / HOLD for Gladia — VALID ACTIONABLE for npm venue**
+  - |Q5|Novel?|YES| Always HOLD, never VALID `reports/valid-bugs.md:1`|
+  - |Q6|Not rejected?|YES| Open redirect valid class|
+  - |Q4|GET/HEAD only?|NO| Requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` timing/error oracle — violates `scope.yml
+  - |Q5|Novel?|YES (unproven)| Tracked `reports/valid-bugs.md:17` PARKED 100+ cycles|
+  - |Q6|Not rejected?|YES| SSRF valid class|
+  - - **Q1 YES** HIGHEST, **Q2 NO** (all `GET /v2/transcription/{id}/file ->401` without key, UUID unguessable), **Q4 NO** (needs 2 keys + owned IDs or valid `x-gladia-key` to obtain `wss://api.gladia.io/
