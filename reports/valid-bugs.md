@@ -871,3 +871,16 @@
 
 - 1 lead(s) marked VALID at 2026-09-17 06:47:11 UTC
   - **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia venue)** — one-line: locked orphaned impersonation passive-proven, Gladia impact gated on 1 valid-key WSS query-auth proof, duplicate r
+
+- 11 lead(s) marked VALID at 2026-09-17 12:14:34 UTC
+  - No `LEADS:` payload this cycle — `new-leads.txt:1` empty, `triage-prompt.txt:28` empty batch. `probe-results.md` only shows passive `GET` probes. Verdict: **NO NEW VALID** for Gladia program. Persiste
+  - | Q1 Scope | **HOLD-SPLIT**: `scope.yml:26` lists `gladia` as `npm_packages: gladia` but official SDK is `@gladiaio/sdk:28`; registry itself is 3rd-party per `scope.yml:15`. `leads/lead-human.md:15` →
+  - | Q5 Novel | **NO-DUPLICATE**: `REPORTED 2026-08-12 riteshekbote@gmail.com→security@gladia.io` `leads/lead-human.md:3`, `reports/valid-bugs.md:1` 9+ prior `VALID`; re-file to Gladia = duplicate |
+  - | Q7 Triager | **HOLD for Gladia / VALID for npm** — reasonable Gladia triager rejects as `not our code` pending WSS proof; npm triager accepts |
+  - **Verdict: HOLD (VALID-DUPLICATE for npm venue)** — One-line: locked orphaned impersonation `dist-tag latest=0.1.3` `shasum cc96f84a…` `sha256 3b23ec7d...` `GitHub user+repo 404` `package.json Officia
+  - | Q4 | **PARTIAL**: GET proves reflection+CSP gap, **NO** for open-redirect exploit — requires `HUMAN_ONLY` authenticated `GET /signin?redirect_to=evil` with `Cookie: __sid=<valid>` + `follow-redirect
+  - | Q5 | **YES** not prior VALID (always HOLD) |
+  - | Q4 | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d '{"audio_url":"http://canary.<you>.oast.pro/file.mp3"}'` + error/timing oracle vs `http://169.254.169.254/latest/meta-data/` 
+  - | Q5 | **YES** hypothesis tracked `reports/valid-bugs.md:13` but unproven |
+  - | Q6 | **YES** SSRF valid class |
+  - | Q7 | **NO unauth** — triager requires `401 bypass` or valid-key POC |
