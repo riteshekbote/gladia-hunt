@@ -865,3 +865,6 @@
   - |Q5|Novel?|YES (unproven)| Tracked `reports/valid-bugs.md:17` PARKED 100+ cycles|
   - |Q6|Not rejected?|YES| SSRF valid class|
   - - **Q1 YES** HIGHEST, **Q2 NO** (all `GET /v2/transcription/{id}/file ->401` without key, UUID unguessable), **Q4 NO** (needs 2 keys + owned IDs or valid `x-gladia-key` to obtain `wss://api.gladia.io/
+
+- 1 lead(s) marked VALID at 2026-09-17 01:32:04 UTC
+  - Verdict: **VALID @ npmjs.com/support, HOLD @ Gladia** — `lead-human.md:15` Pre-Severity Gate #3 fail until `wss://api.gladia.io/v2/live?x-gladia-key=` proven accepted server-side. Minimal proof: `curl
