@@ -892,3 +892,7 @@
 - 2 lead(s) marked VALID at 2026-09-17 20:24:02 UTC
   - 1. **npm `gladia@0.1.3` impersonation + key-in-URL** `inventory/gladia.md:45` `leads/lead-human.md:15` — Q1 YES `scope.yml:26` `npm_packages:gladia` Medium; Q2 YES public unauth `registry.npmjs.org/gl
   - 3. **api.gladia.io SSRF via `audio_url/video_url/callback_url`** `inventory/gladia.md:92` — `GET /openapi.json` shows `InitTranscriptionRequest.audio_url format:uri` + `CallbackConfigDto.url format:ur
+
+- 2 lead(s) marked VALID at 2026-09-17 23:09:23 UTC
+  - **Verdict: VALID (DUPLICATE) — one-line: locked passive proof, already reported 2026-08-12, do not re-file to Gladia channel.**
+  - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed by spec+SDK verbatim forwarding, no 401 bypass in 100+ cycles, needs valid x-gladia-key + canary POC (do NOT test 169.254.169.254 without pro
