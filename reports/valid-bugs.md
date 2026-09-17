@@ -884,3 +884,7 @@
   - | Q5 | **YES** hypothesis tracked `reports/valid-bugs.md:13` but unproven |
   - | Q6 | **YES** SSRF valid class |
   - | Q7 | **NO unauth** — triager requires `401 bypass` or valid-key POC |
+
+- 2 lead(s) marked VALID at 2026-09-17 17:09:28 UTC
+  - **Verdict: HOLD for Gladia / VALID for npm registry (one-line: impersonation confirmed orphaned 404 `github.com/alexisbouchez/gladia.ts:404` `leads/lead-human.md:3-4` but root cause not in Gladia infr
+  - **Verdict: HOLD (one-line: spec surface alive but key-gated 401 across 100+ cycles, no bypass, requires valid key for POC — downgraded AUTH_HELPED).**
