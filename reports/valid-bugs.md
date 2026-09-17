@@ -868,3 +868,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-17 01:32:04 UTC
   - Verdict: **VALID @ npmjs.com/support, HOLD @ Gladia** — `lead-human.md:15` Pre-Severity Gate #3 fail until `wss://api.gladia.io/v2/live?x-gladia-key=` proven accepted server-side. Minimal proof: `curl
+
+- 1 lead(s) marked VALID at 2026-09-17 06:47:11 UTC
+  - **Verdict: HOLD (VALID DUPLICATE for npm venue / HOLD for Gladia venue)** — one-line: locked orphaned impersonation passive-proven, Gladia impact gated on 1 valid-key WSS query-auth proof, duplicate r
