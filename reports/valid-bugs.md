@@ -912,3 +912,7 @@
   - | Q4 | GET/HEAD only proof? | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` error/timing oracle; violates `scope.yml:35,39` `passive_first/no_data_
   - | Q6 | Not rejected? | **YES** SSRF valid class |
   - | Q7 | Triager accept unauth? | **NO** — needs `401` bypass or valid-key POC |
+
+- 2 lead(s) marked VALID at 2026-09-18 21:18:46 UTC
+  - | 1 | `npm gladia@0.1.3` orphaned impersonation + `x-gladia-key` in `wss://` query `leads/lead-mimo.md:5` | HOLD — `scope.yml:26` lists `gladia` but `scope.yml:10` defines official as `@gladiaio/sdk`;
+  - | 3 | `api.gladia.io` SSRF `audio_url/video_url/callback_config.url format:uri` no allowlist `leads/lead-mimo.md:23` | Yes HIGHEST `scope.yml:6` | No — key-gated `401` `probe-results.md:4` `inventory/
