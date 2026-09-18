@@ -899,3 +899,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-18 01:20:10 UTC
   - **Verdict: HOLD (Gladia venue) / VALID (npm venue)** - Reason: not a Gladia asset; Gladia-side vuln unproven without query-param auth POC; already reported, awaiting vendor.
+
+- 2 lead(s) marked VALID at 2026-09-18 06:05:39 UTC
+  - - **VERDICT: VALID (DUPLICATE) - HOLD for Gladia, ACTIONABLE for npm** - 1-line: locked orphaned impersonation passive-proven, already reported awaiting vendor, re-file = duplicate.
+  - - **VERDICT: HOLD (AUTH_HELPED)** - In-scope design confirmed (`spec+RAG` `knowledge/index.md:66`), proof gated on valid key. 1-line: fetch-by-design confirmed, auth gate blocks passive proof.
