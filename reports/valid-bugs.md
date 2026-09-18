@@ -896,3 +896,6 @@
 - 2 lead(s) marked VALID at 2026-09-17 23:09:23 UTC
   - **Verdict: VALID (DUPLICATE) — one-line: locked passive proof, already reported 2026-08-12, do not re-file to Gladia channel.**
   - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed by spec+SDK verbatim forwarding, no 401 bypass in 100+ cycles, needs valid x-gladia-key + canary POC (do NOT test 169.254.169.254 without pro
+
+- 1 lead(s) marked VALID at 2026-09-18 01:20:10 UTC
+  - **Verdict: HOLD (Gladia venue) / VALID (npm venue)** - Reason: not a Gladia asset; Gladia-side vuln unproven without query-param auth POC; already reported, awaiting vendor.
