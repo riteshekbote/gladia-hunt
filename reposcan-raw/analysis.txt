@@ -1,74 +1,1267 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Delta shows zero new hits — triaging the 629-hit corpus for secrets vs noise before chaining.
-[0m→ [0mRead reposcan-raw/gladiaio/gladia-cli/cmd/config.go
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx
-[0m→ [0mRead reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts
+Delta shows zero new secrets — running breadth pass to re-triage the frozen surface for a missed chain.
+[0m→ [0mRead .
+[0m→ [0mRead cands-gladiaio.txt
+[0m→ [0mRead scope.yml
+[0m→ [0mRead inventory
+[0m→ [0mRead inventory/gladia.md
+[0m→ [0mRead inventory/live-highvalue.txt
+[0m→ [0mRead probe-results.md
 [0m
-[0m$ [0mpython3 -c "import hashlib; print(hashlib.sha256(b'sk-********').hexdigest()); print(hashlib.sha256(b'secret-key').hexdigest()); print(hashlib.sha256(b'sk-example').hexdigest())"
+[0m$ [0mls -R reposcan-raw 2>/dev/null | head -n 100; echo "---"; cat reposcan-raw/gladiaio/sdk/README.md 2>/dev/null | head -n 100
+reposcan-raw:
+analysis.txt
+gladiaio
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+npm
+rag.txt
+
+reposcan-raw/gladiaio:
+compare-stt
+docs
+gladia-cli
+gladia-quiz-app
+gladia-samples
+gladiaflow
+n8n-nodes-gladia
+normalization
+num2words2
+realtime-multilingual-asr-router
+sdk
+skills
+vercel-ai
+
+reposcan-raw/gladiaio/compare-stt:
+LICENSE
+README.md
+docker-compose.yml
+eslint.config.mjs
+instrumentation-client.ts
+logos
+next.config.ts
+package-lock.json
+package.json
+postcss.config.mjs
+prisma
+prisma.config.ts
+public
+sentry.edge.config.ts
+sentry.server.config.ts
+src
+test-audio
+test-base-path-fetch.ts
+test-diff.ts
+test-match-token.ts
+test-providers.ts
+tsconfig.json
+
+reposcan-raw/gladiaio/compare-stt/logos:
+assemblyai.svg
+deepgram.svg
+gladia.svg
+speechmatics.svg
+
+reposcan-raw/gladiaio/compare-stt/prisma:
+migrations
+schema.prisma
+seed.ts
+
+reposcan-raw/gladiaio/compare-stt/prisma/migrations:
+20260311161230_init
+20260629000000_add_match_tokens
+migration_lock.toml
+
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260311161230_init:
+migration.sql
+
+reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260629000000_add_match_tokens:
+migration.sql
+
+reposcan-raw/gladiaio/compare-stt/public:
+globe.svg
+images
+logo.svg
+next.svg
+providers
+
+reposcan-raw/gladiaio/compare-stt/public/images:
+hero-badges
+
+reposcan-raw/gladiaio/compare-stt/public/images/hero-badges:
+laurel.png
+medal.png
+trophy.png
+
+reposcan-raw/gladiaio/compare-stt/public/providers:
+assemblyai.svg
+deepgram.svg
+elevenlabs.svg
+gladia.svg
+mistral.svg
+speechmatics.svg
+
+reposcan-raw/gladiaio/compare-stt/src:
+app
+components
+flags.ts
+instrumentation-client.ts
+instrumentation.ts
+lib
+---
+# Gladia SDK
+
+This monorepo contains the source code for the official Gladia SDKs and the code generator that powers them.
+
+| Package                                       | Description                             | Path                  |
+| --------------------------------------------- | --------------------------------------- | --------------------- |
+| [@gladiaio/sdk](packages/sdk-js/README.md)    | JavaScript / TypeScript SDK             | `packages/sdk-js`     |
+| [gladiaio-sdk](packages/sdk-python/README.md) | Python SDK                              | `packages/sdk-python` |
+| generator                                     | OpenAPI → SDK type generator (internal) | `packages/generator`  |
+
+You can also check out [our code samples](https://github.com/gladiaio/gladia-samples).
+
+## Repository architecture
+
+```
+├── packages/
+│   ├── generator/          # Fetches Gladia OpenAPI schema and generates types
+│   ├── sdk-js/             # JavaScript/TypeScript SDK (ESM, CJS, IIFE)
+│   └── sdk-python/         # Python SDK (sync + async)
+├── e2e/
+│   ├── e2e-node-esm/       # E2E tests — Node ESM
+│   ├── e2e-node-cjs/       # E2E tests — Node CJS
+│   ├── e2e-python/         # E2E tests — Python
+│   └── javascript-fixtures/
+├── tools/scripts/           # Release & publish automation
+└── .github/workflows/       # CI, release, publish pipelines
+```
+
+The repo is managed with [Nx](https://nx.dev) and uses **Bun** as the JavaScript package manager and **uv** for Python.
+
+### How the code generator works
+
+The generator (`packages/generator`) is central to this repo. It fetches the Gladia [OpenAPI schema](https://api.gladia.io/openapi.json) and produces typed definitions for each SDK:
+
+```
+OpenAPI schema (api.gladia.io/openapi.json)
+        │
+        ▼
+   generator
+    ├── Live V2
+    │   ├──▶ packages/sdk-js/src/v2/live/generated-types.ts
+    │   └──▶ packages/sdk-python/src/gladiaio_sdk/v2/live/generated_types.py
+    └── PreRecorded V2
+        ├──▶ packages/sdk-js/src/v2/prerecorded/generated-types.ts
+        └──▶ packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/generated_types.py
+```
+
+The generator extracts **Live V2** schemas (`StreamingRequest`, `InitStreamingResponse`, `CallbackLive*Message`, `WebhookLive*Payload`) and **PreRecorded V2** schemas (e.g. `PreRecordedV2InitTranscriptionRequest`, `PreRecordedV2Response`, upload/init types) and produces language-specific type definitions. Each language has its own generator class that extends `BaseGenerator` (`packages/generator/src/generators/base.ts`).
+
+## Getting started
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup instructions. The short version:
+
+```sh
+# Prerequisites: Node.js (LTS), Bun, uv
+bun install
+bun nx run-many -t sync
+
+# Verify everything works
+bun nx run-many -t build,test,format:check,lint:check,type:check
+```
+
+## Contributing
+
+### Commit convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by commitlint. Commits must follow the format:
+
+```
+<type>(optional scope): <description>
+```
+
+Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`.
+
+### Useful Nx commands
+
+```sh
+bun nx show projects                    # List all projects
+bun nx run sdk-js:test                  # Run a single target
+bun nx run-many -t test                 # Run a target across all projects
+bun nx run-many -t lint:write           # Auto-fix lint issues
+bun nx run-many -t format:write         # Auto-format code
+bun nx graph                            # Visualize project dependency graph
+```
+
+### CI checks
+
+Every pull request runs:
+
+- **build** — all packages compile successfully
+- **test** — unit and E2E tests pass
+- **format:check** — Prettier (JS/TS) and Ruff (Python) formatting
+- **lint:check** — ESLint (JS/TS) and Ruff (Python) linting
+- **type:check** — `tsc --noEmit` (JS/TS) and `pyright` (Python)
+- **version:check** — generated version files are committed
+- **commitlint** — commit messages follow the conventional format
+- **security** — dependency audit
+
+## How to add a feature to an existing SDK
+[0m
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mwc -l reposcan-raw/grep-hits.txt reposcan-raw/grep-hits.prev.txt reposcan-raw/grep-delta.txt 2>/dev/null; echo "---"; cat reposcan-raw/grep-delta.txt 2>/dev/null | head -n 200; echo "--- delta raw"; cat reposcan-raw/analysis.txt 2>/dev/null | tail -n 100
+61 reposcan-raw/grep-hits.txt
+   61 reposcan-raw/grep-hits.prev.txt
+    1 reposcan-raw/grep-delta.txt
+  123 total
+---
+DELTA: 0 new hit lines vs previous scan
+--- delta raw
+
+| Package                                       | Description                             | Path                  |
+| --------------------------------------------- | --------------------------------------- | --------------------- |
+| [@gladiaio/sdk](packages/sdk-js/README.md)    | JavaScript / TypeScript SDK             | `packages/sdk-js`     |
+| [gladiaio-sdk](packages/sdk-python/README.md) | Python SDK                              | `packages/sdk-python` |
+| generator                                     | OpenAPI → SDK type generator (internal) | `packages/generator`  |
+
+You can also check out [our code samples](https://github.com/gladiaio/gladia-samples).
+
+## Repository architecture
+
+```
+├── packages/
+│   ├── generator/          # Fetches Gladia OpenAPI schema and generates types
+│   ├── sdk-js/             # JavaScript/TypeScript SDK (ESM, CJS, IIFE)
+│   └── sdk-python/         # Python SDK (sync + async)
+├── e2e/
+│   ├── e2e-node-esm/       # E2E tests — Node ESM
+│   ├── e2e-node-cjs/       # E2E tests — Node CJS
+│   ├── e2e-python/         # E2E tests — Python
+│   └── javascript-fixtures/
+├── tools/scripts/           # Release & publish automation
+└── .github/workflows/       # CI, release, publish pipelines
+```
+
+The repo is managed with [Nx](https://nx.dev) and uses **Bun** as the JavaScript package manager and **uv** for Python.
+
+### How the code generator works
+
+The generator (`packages/generator`) is central to this repo. It fetches the Gladia [OpenAPI schema](https://api.gladia.io/openapi.json) and produces typed definitions for each SDK:
+
+```
+OpenAPI schema (api.gladia.io/openapi.json)
+        │
+        ▼
+   generator
+    ├── Live V2
+    │   ├──▶ packages/sdk-js/src/v2/live/generated-types.ts
+    │   └──▶ packages/sdk-python/src/gladiaio_sdk/v2/live/generated_types.py
+    └── PreRecorded V2
+        ├──▶ packages/sdk-js/src/v2/prerecorded/generated-types.ts
+        └──▶ packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/generated_types.py
+```
+
+The generator extracts **Live V2** schemas (`StreamingRequest`, `InitStreamingResponse`, `CallbackLive*Message`, `WebhookLive*Payload`) and **PreRecorded V2** schemas (e.g. `PreRecordedV2InitTranscriptionRequest`, `PreRecordedV2Response`, upload/init types) and produces language-specific type definitions. Each language has its own generator class that extends `BaseGenerator` (`packages/generator/src/generators/base.ts`).
+
+## Getting started
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup instructions. The short version:
+
+```sh
+# Prerequisites: Node.js (LTS), Bun, uv
+bun install
+bun nx run-many -t sync
+
+# Verify everything works
+bun nx run-many -t build,test,format:check,lint:check,type:check
+```
+
+## Contributing
+
+### Commit convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by commitlint. Commits must follow the format:
+
+```
+<type>(optional scope): <description>
+```
+
+Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`.
+
+### Useful Nx commands
+
+```sh
+bun nx show projects                    # List all projects
+bun nx run sdk-js:test                  # Run a single target
+bun nx run-many -t test                 # Run a target across all projects
+bun nx run-many -t lint:write           # Auto-fix lint issues
+bun nx run-many -t format:write         # Auto-format code
+bun nx graph                            # Visualize project dependency graph
+```
+
+### CI checks
+
+Every pull request runs:
+
+- **build** — all packages compile successfully
+- **test** — unit and E2E tests pass
+- **format:check** — Prettier (JS/TS) and Ruff (Python) formatting
+- **lint:check** — ESLint (JS/TS) and Ruff (Python) linting
+- **type:check** — `tsc --noEmit` (JS/TS) and `pyright` (Python)
+- **version:check** — generated version files are committed
+- **commitlint** — commit messages follow the conventional format
+- **security** — dependency audit
+
+## How to add a feature to an existing SDK
+[0m
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mgrep -r -n "apiKey\|api_key\|GLADIA_API_KEY\|sk-\|x-gladia-key\|gladia_key\|secret\|token" reposcan-raw --include="*.ts" --include="*.py" --include="*.go" --include="*.json" --include="*.md" | head -n 200
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.test.ts:67:  it("returns modifier tokens from code", () => {
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:8:      apiKey: null,
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:22:    const invokeApiKey = vi.fn(async () => "secret-key");
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26:      apiKey: "secret-key",
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:72:// Side-qualified single-modifier tokens, captured when the user binds a lone
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:73:// modifier (e.g. Right Command). Maps the browser KeyboardEvent.code → token,
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:74:// and each token → its base modifier for display/fallback.
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:97:/** Returns the side-qualified token for a modifier KeyboardEvent.code, else null. */
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:103:export function isSingleModifierToken(token: string): boolean {
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:104:  return token === "Fn" || token in SIDE_TOKEN_TO_BASE;
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:109:/** Modifier token from a physical KeyboardEvent.code (left/right collapsed). */
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:115: * Logical non-modifier key token, read from KeyboardEvent.key so it follows the
+reposcan-raw/gladiaio/gladiaflow/src/lib/keyboardUtils.ts:159:/** Modifier or logical key token for hotkey capture tracking. */
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.ts:9:  | { ok: true; apiKey: string | null }
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.ts:14:    invoke<string | null>("get_api_key"),
+reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.ts:17:    return { ok: true, apiKey: await invokeApiKey() };
+reposcan-raw/gladiaio/gladiaflow/src/types.ts:38:  apiKey: string;
+reposcan-raw/gladiaio/gladiaflow/src/types.ts:52:  apiKeySet: boolean;
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-live-transcription/references/recommended-params.md:233:const client = new GladiaClient({ apiKey: "...", region: "eu-west" });
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-using-cli/SKILL.md:19:**Prerequisites:** verify `gladia --version` succeeds and an API key is configured (`GLADIA_API_KEY`, `~/.gladia`, or `--gladia-key`).
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-using-cli/SKILL.md:49:export GLADIA_API_KEY=<API_KEY>
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-using-cli/SKILL.md:58:**Credential order:** `GLADIA_API_KEY` → `~/.gladia` → `--gladia-key` (first match wins)
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-troubleshooting/SKILL.md:38:- **Fix (SDK)**: Verify the key is passed via the `apiKey` (JS) / `api_key` (Python) constructor option, or set the `GLADIA_API_KEY` environment variable
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-troubleshooting/SKILL.md:39:- **Fix (raw REST)**: Verify the key is passed in the `x-gladia-key` header
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-troubleshooting/SKILL.md:221:- [ ] API key is valid and passed correctly (SDK constructor or `GLADIA_API_KEY` env var)
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/python.md:34:client = GladiaClient(api_key="YOUR_KEY")
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/python.md:50:    client = GladiaClient(api_key="YOUR_KEY")
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/javascript.md:34:  const client = new GladiaSDK.GladiaClient({ apiKey: "..." });
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/javascript.md:43:// Point the SDK at your backend proxy (no apiKey needed)
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/javascript.md:49:Your backend proxy adds the `x-gladia-key` header before forwarding to `api.gladia.io`.
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/client-config.md:14:  apiKey: "your-key",
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/references/client-config.md:57:| `apiKey`                | `string` | `GLADIA_API_KEY` env    | API key                    |
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md:83:  apiKey: "your-api-key", // or set GLADIA_API_KEY env var
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md:94:    api_key="your-api-key",      # or set GLADIA_API_KEY env var
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md:103:| `GLADIA_API_KEY` | API key for authentication | —                       |
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-sdk-integration/SKILL.md:155:Key client options: `apiKey`, `apiUrl`, `region`, `httpTimeout`, `httpRetry`, `wsRetry`, `wsTimeout`, `prerecordedTimeouts`, `liveTimeouts`.
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-documentation-auto/SKILL.md:35:Gladia is a speech-to-text (STT) API that transcribes audio and video files asynchronously (pre-recorded) or in real-time (live). It supports 100+ languages, speaker diarization, translation, and audio intelligence features like summarization, sentiment analysis, and entity recognition. Use the JavaScript/Python SDKs (`@gladiaio/sdk` or `gladiaio-sdk`), REST API endpoints, or the CLI (`gladia` command) to transcribe. Authentication uses the `x-gladia-key` header. Primary docs: https://docs.gladia.io
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-documentation-auto/SKILL.md:40:- Authentication: `x-gladia-key` header on all requests
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-documentation-auto/SKILL.md:204:1. **Set API key**: `gladia auth set YOUR_KEY` (or export `GLADIA_API_KEY`)
+reposcan-raw/gladiaio/skills/plugins/gladia/skills/gladia-documentation-auto/SKILL.md:219:- **API key in client code**: Never expose `x-gladia-key` in frontend code. Generate WebSocket URL on backend and pass only the URL to clients.
+reposcan-raw/gladiaio/skills/CONTRIBUTING.md:56:3. **Be concise** — agents load the full SKILL.md into context; every token counts
+reposcan-raw/gladiaio/normalization/normalization/languages/dutch/replacements.py:1:"""Single-token Flemish / colloquial → standard Dutch (canonical for WER)."""
+reposcan-raw/gladiaio/normalization/normalization/languages/english/number_normalizer.py:379:                    raise ValueError(f"Unexpected token: {current}")
+reposcan-raw/gladiaio/normalization/normalization/languages/english/number_normalizer.py:381:                raise ValueError(f"Unexpected token: {current}")
+reposcan-raw/gladiaio/normalization/normalization/languages/swedish/replacements.py:1:"""Single-token colloquial / spelling variants → standard Swedish (canonical for WER)."""
+reposcan-raw/gladiaio/normalization/normalization/languages/finnish/number_normalizer.py:82:    """Parse a single token like ``kaksikymmentäviisi`` → (25, consumed)."""
+reposcan-raw/gladiaio/normalization/normalization/languages/base/language_config.py:64:    adjacent to special tokens (e.g. 'dot' in IP addresses / versions).
+reposcan-raw/gladiaio/normalization/normalization/languages/base/language_config.py:84:    """When False, pure letter ALL-CAPS tokens (e.g. SMS) are not spaced into letters.
+reposcan-raw/gladiaio/normalization/normalization/languages/base/language_config.py:87:    English-style letter-by-letter expansion for CAPS-only tokens."""
+reposcan-raw/gladiaio/normalization/normalization/languages/danish/replacements.py:1:"""Single-token colloquial / spelling variants → standard Danish (canonical for WER)."""
+reposcan-raw/gladiaio/normalization/normalization/steps/word/apply_word_replacements.py:24:    Skips email tokens. Uses a cached Replacer keyed on the language code.
+reposcan-raw/gladiaio/normalization/normalization/steps/text/remove_standalone_currency_symbols.py:41:    """Remove ``symbol`` only when it forms its own token (not a prefix like ``kr`` in ``kronor``)."""
+reposcan-raw/gladiaio/normalization/normalization/steps/text/remove_standalone_currency_symbols.py:52:    whole tokens (``\\b...\\b``) and are skipped when a digit is nearby with
+reposcan-raw/gladiaio/normalization/normalization/steps/text/expand_alphanumeric_codes.py:21:    is False, pure letter ALL-CAPS tokens (e.g. SMS) are left intact for Nordic-style
+reposcan-raw/gladiaio/normalization/normalization/steps/text/placeholders.py:120:    Beyond the plain replace, it must also collapse "+ <digit>" → "+<digit>" (e.g. after casefold splits the token). RestoreStep only does plain string replacement.
+reposcan-raw/gladiaio/normalization/normalization/steps/text/placeholders.py:358:    Uses TextStep directly: the suffix is a token-embedded string (not a
+reposcan-raw/gladiaio/normalization/normalization/steps/text/placeholders.py:359:    standalone token), so removal requires a regex word-boundary match.
+reposcan-raw/gladiaio/normalization/normalization/steps/text/convert_roman_numerals_to_digits.py:52:                token = roman.upper()
+reposcan-raw/gladiaio/normalization/normalization/steps/text/convert_roman_numerals_to_digits.py:53:                text = re.sub(rf"\b{re.escape(token)}\b", arabic, text)
+reposcan-raw/gladiaio/normalization/normalization/steps/base/word_step.py:7:    """A transformation applied to a single word token."""
+reposcan-raw/gladiaio/normalization/normalization/pipeline/base.py:43:            if w  # drop empty tokens
+reposcan-raw/gladiaio/normalization/tests/unit/steps/text/remove_standalone_currency_symbols_test.py:27:def test_standalone_kr_token_removed_when_not_near_digits() -> None:
+reposcan-raw/gladiaio/normalization/docs/steps.md:103:is False, pure letter ALL-CAPS tokens (e.g. SMS) are left intact for Nordic-style
+reposcan-raw/gladiaio/normalization/docs/steps.md:306:Uses TextStep directly: the suffix is a token-embedded string (not a
+reposcan-raw/gladiaio/normalization/docs/steps.md:307:standalone token), so removal requires a regex word-boundary match.
+reposcan-raw/gladiaio/normalization/docs/steps.md:343:whole tokens (``\b...\b``) and are skipped when a digit is nearby with
+reposcan-raw/gladiaio/normalization/docs/steps.md:432:Beyond the plain replace, it must also collapse "+ <digit>" → "+<digit>" (e.g. after casefold splits the token). RestoreStep only does plain string replacement.
+reposcan-raw/gladiaio/normalization/docs/steps.md:460:Skips email tokens. Uses a cached Replacer keyed on the language code.
+reposcan-raw/gladiaio/normalization/docs/contributing-guide.md:10:2. **Word processing** — per-token transforms after splitting on spaces (replacements, filler removal, …)
+reposcan-raw/gladiaio/normalization/docs/contributing-guide.md:58:**`WordStep`** — use when your transformation operates on a single token in isolation, with no knowledge of neighboring words. This is the only base class for Stage 2 steps.
+reposcan-raw/gladiaio/normalization/docs/contributing-guide.md:80:**`ProtectStep`** — a specialization of `TextStep` for replacing a character with a placeholder token. Implement `_pattern`, which returns a compiled regex with **exactly two capture groups** (what comes before and after the character being replaced). The `__call__` is fixed: it applies the pattern as `\1{placeholder}\2`.
+reposcan-raw/gladiaio/normalization/docs/contributing-guide.md:108:Use `RestoreStep` when: restoration is a straight token swap with no surrounding whitespace to absorb and no additional logic needed.
+reposcan-raw/gladiaio/normalization/README.md:104:- **Stage 2 — Word processing**: Per-token transforms: word replacements, filler removal
+reposcan-raw/gladiaio/normalization/AGENTS.md:19:2. **Word processing** — per-token transformations after splitting on spaces (e.g. replacements, email detection)
+reposcan-raw/gladiaio/normalization/AGENTS.md:29:**word_steps** — individual tokens after splitting, no neighbor context.
+reposcan-raw/gladiaio/normalization/AGENTS.md:30:Skip special tokens (emails), apply single-word replacements (`vs` → `versus`), remove bracketed noise (`[inaudible]`).
+reposcan-raw/gladiaio/normalization/AGENTS.md:113:Any step that protects a character with a placeholder token must have a corresponding restore step. These must always be in `steps/text/placeholders.py`. The protect step must run in Stage 1 before `RemoveSymbolsStep`. The restore step must run in Stage 3. `pipeline.validate()` enforces this — do not bypass it. `loader.py` calls `validate()` automatically after constructing the pipeline.
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_codeswitch_e2e.py:59:            return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_codeswitch_e2e.py:63:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_codeswitch_e2e.py:72:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_codeswitch_e2e.py:139:                "asr_token_duration_tolerance": 0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_codeswitch_e2e.py:245:    assert final_fr.get("text") or final_fr.get("tokens")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_coordinator.py:28:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_coordinator.py:56:            return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_coordinator.py:60:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_coordinator.py:69:            tokens=result.tokens,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:63:            return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:66:            tokens=[self._text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:75:            tokens=result.tokens,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:103:            return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:107:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:116:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:174:        tokens=[SampleTokenTimestamp(text="keep", start_sample=500, end_sample=600)],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:181:        tokens=[SampleTokenTimestamp(text="remove", start_sample=1000, end_sample=1100)],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:212:        token_duration_tolerance=0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:241:        tokens=[SampleTokenTimestamp(text="remove", start_sample=1000, end_sample=1100)],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:272:        token_duration_tolerance=0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:289:                "asr_token_duration_tolerance": 0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:401:        token_duration_tolerance=0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/api/test_websocket.py:63:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/api/test_websocket.py:79:            tokens=["hello"],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/api/test_websocket.py:87:            tokens=["hello"],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/api/test_websocket.py:319:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:12:TOKEN_STEP_SIZE = 10  # Sample distance between tokens in test data
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:28:def _tokens(start_sample: int, count: int, step: int = TOKEN_STEP_SIZE) -> list[SampleTokenTimestamp]:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:29:    tokens: list[SampleTokenTimestamp] = []
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:33:        tokens.append(
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:41:    return tokens
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:51:        tokens=_tokens(0, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:58:        tokens=_tokens(300, 1),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:65:        tokens=_tokens(500, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:73:    assert result.removed_token_count == 3
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:86:        tokens=_tokens(0, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:93:        tokens=_tokens(200, 1),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:112:        tokens=_tokens(0, 1),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:119:        tokens=_tokens(400, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:128:    assert second.removed_token_count == 0
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:147:    assert result.removed_token_count == 0
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:160:        tokens=_tokens(0, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:167:        tokens=_tokens(100, 1),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:173:    assert result.removed_token_count == 0
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:186:        tokens=_tokens(0, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:193:        tokens=_tokens(100, 2),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_rollback.py:200:    assert result.removed_token_count == 2
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:169:    assert isinstance(result_one.tokens, list)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:171:    if result_one.tokens and result_one.timestamps:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:172:        assert len(result_one.tokens) == len(result_one.timestamps)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:175:    assert isinstance(result_two.tokens, list)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:177:    if result_two.tokens and result_two.timestamps:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_asr.py:178:        assert len(result_two.tokens) == len(result_two.timestamps)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_components.py:20:    for filename in ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt"):
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_components.py:34:    # Missing joiner.onnx and tokens.txt
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_components.py:54:        for filename in ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt"):
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_components.py:96:        for filename in ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt"):
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:28:        tokens=[TokenTimestamp(text="he", start=0.0, end=0.1)],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:35:        "tokens": [{"text": "he", "start": 0.0, "end": 0.1}],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:95:def test_token_timestamp_rejects_end_before_start() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:111:            tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:115:def test_token_timestamp_rejects_negative_start() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:151:def test_transcription_message_accepts_empty_tokens() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:154:    msg = TranscriptionMessage(text="hello", type="partial", language="en", timestamp=0.5, tokens=[])
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_messages.py:155:    assert msg.tokens == []
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_config.py:30:    assert settings.asr_token_duration_tolerance == 0.25
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_config.py:78:        Settings(asr_token_duration_tolerance=-0.1)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_config.py:79:    assert "asr_token_duration_tolerance must be >= 0.0" in str(exc.value)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_coordinator.py:33:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:70:def test_token_timestamp_and_transcription_chunk() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:71:    tokens = [
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:81:        tokens=tokens,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:84:    assert chunk.tokens == tokens
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:90:    tokens = [
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:100:        tokens=tokens,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:113:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:125:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:132:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:147:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:154:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:171:            tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:240:            tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:279:    token = TokenTimestamp(text="hello", start_sample=16000, end_sample=32000)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:280:    token_dict = token.to_seconds(sample_rate=16000)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:282:    assert token_dict["text"] == "hello"
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:283:    assert token_dict["start"] == 1.0
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:284:    assert token_dict["end"] == 2.0
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:292:        tokens=[token],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:300:    assert len(msg["tokens"]) == 1
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:329:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_session_state.py:347:        tokens=[],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:35:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:148:        return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:154:            tokens=[text],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:171:    """Tail injection prevents token truncation on finals."""
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:181:                "asr_token_duration_tolerance": 0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:230:                "asr_token_duration_tolerance": 0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:278:                "asr_token_duration_tolerance": 0.25,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:296:            return ASRStreamResult(text="", tokens=[], timestamps=[], is_final=False)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:303:                tokens=["test"],
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/unit/test_websocket_lifecycle.py:337:        assert all(t["end"] <= 0.001 for t in final_message["tokens"])
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:52:KROKO_FILES = ("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:55:# https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-small-ru-vosk-2025-08-16
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:56:RU_ZIPFORMER_REPO = "csukuangfj/sherpa-onnx-streaming-zipformer-small-ru-vosk-2025-08-16"
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:81:#   [u32 len][tokens bytes]
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:126:    tokens = read_block()
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:127:    return encoder, decoder, joiner, tokens
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:146:    encoder, decoder, joiner, tokens_bytes = _read_blocks(payload, endian=endian)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:152:    (out_dir / "tokens.txt").write_bytes(tokens_bytes)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/scripts/download_models.py:322:    print("   Format      : ONNX files on the Hub (encoder, decoder, joiner, tokens.txt)")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/README.md:57:ASR languages are discovered from `models/streaming_transducers/<chunk_size>/<lang>/` (each folder needs `encoder.onnx`, `decoder.onnx`, `joiner.onnx`, and `tokens.txt`).
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/README.md:96:| Russian Zipformer | Streaming ASR (`ru`, pass `--languages ru`) | [sherpa-onnx-streaming-zipformer-small-ru-vosk](https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-small-ru-vosk-2025-08-16) |
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/README.md:132:**This work:** 640 ms Zipformer chunks — [Kroko](https://huggingface.co/Banafo/Kroko-ASR) for `en/fr/es/de/it/pt/nl`, [Alphacephei `ru`](https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-small-ru-vosk-2025-08-16).
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:38:    asr_token_duration_tolerance: float = 0.25
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:83:    @field_validator("asr_token_duration_tolerance")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:85:    def _validate_asr_token_duration_tolerance(cls, value: float) -> float:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/config.py:87:            raise ValueError("asr_token_duration_tolerance must be >= 0.0")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:33:    tokens: list[str]
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:72:        tokens = _normalize_tokens(result_data.get("tokens"))
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:75:        return ASRStreamResult(text=text, tokens=tokens, timestamps=timestamps, is_final=is_final)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:110:        encoder_path, decoder_path, joiner_path, tokens_path = _validate_model_files(self.model_dir)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:113:            tokens=str(tokens_path),
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/asr/kroko.py:263:    required = ["encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt"]
+[0m
+[0m$ [0mcat reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx 2>/dev/null; echo "---"; cat reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts 2>/dev/null
+import React, { useRef, useState } from "react";
+import { SidebarNav, type NavScreen } from "../components/SidebarNav";
+import { PermissionsView } from "../components/PermissionsView";
+import { ApiKeyOnboardingView } from "../components/ApiKeyOnboardingView";
+import { HomeView } from "../components/HomeView";
+import { HistoryView } from "../components/HistoryView";
+import { CustomVocabularyView } from "../components/CustomVocabularyView";
+import { TranscriptionSettingsView } from "../components/TranscriptionSettingsView";
+import { AppSettingsView } from "../components/AppSettingsView";
+import { DEFAULT_CUSTOM_VOCABULARY } from "../lib/customVocabulary";
+import { DEFAULT_DICTATION_STATS } from "../lib/dictationStats";
+import { EUROPEAN_LANGUAGES } from "../lib/languages";
+import type { AppSettings, TranscriptionHistoryPage } from "../types";
+
+const noop = () => {};
+const MOCK_SETTINGS: AppSettings = {
+  apiKey: "sk-********",
+  languages: ["en", "fr"],
+  activationMode: "push-to-talk",
+  audioDevice: "",
+  audioDeviceSelection: { mode: "automatic" },
+  hotkey: "Fn",
+  codeSwitching: false,
+  copyToClipboard: false,
+  endpointing: 0.1,
+  customVocabulary: [
+    ...DEFAULT_CUSTOM_VOCABULARY,
+    {
+      value: "WebSocket",
+      intensity: 0.7,
+      pronunciations: [
+        "web socket",
+        "web-socket",
+        "websockit",
+        "web soket",
+        "double-u socket",
+        "web socket protocol",
+      ],
+    },
+    { value: "diarization", intensity: 0.7 },
+    { value: "endpointing", intensity: 0.55 },
+    { value: "SaaS", intensity: 0.65 },
+    { value: "Acme Incorporated", intensity: 0.5 },
+    { value: "Gladia API", intensity: 0.8 },
+  ],
+};
+
+const MOCK_HISTORY: TranscriptionHistoryPage = {
+  items: [
+    {
+      id: "1",
+      text: "GladiaFlow makes dictation feel effortless once permissions and your API key are set up.",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+    },
+    {
+      id: "2",
+      text: "Custom vocabulary helps with product names like GladiaFlow and internal acronyms.",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: "3",
+      text: "The fixed history footer keeps navigation controls in a predictable position while moving between pages.",
+      created_at: new Date(Date.now() - 172800000).toISOString(),
+    },
+    {
+      id: "4",
+      text: "Long transcription previews use two lines so every row remains the same height without introducing a scrollbar in the desktop window.",
+      created_at: new Date(Date.now() - 259200000).toISOString(),
+    },
+  ],
+  total: 84,
+  page: 1,
+  page_size: 4,
+};
+
+function AppShell({
+  id,
+  gate,
+  activeScreen = "home",
+  children,
+}: {
+  id: string;
+  gate?: boolean;
+  activeScreen?: NavScreen;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      data-screenshot={id}
+      className={`layout${gate ? " layout-gate" : ""}`}
+      style={{ width: 800, height: 600, overflow: "hidden" }}
+    >
+      {!gate && (
+        <SidebarNav activeScreen={activeScreen} onNavigate={noop as never} />
+      )}
+      <main className="main-content">
+        <section className="content">{children}</section>
+      </main>
+    </div>
+  );
+}
+
+function ScreenFrame({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="screenshot-frame-wrap">
+      <p className="screenshot-label">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+export function ScreenshotGallery() {
+  const [settings, setSettings] = useState<AppSettings>(MOCK_SETTINGS);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const activationDropdownRef = useRef<HTMLDivElement>(null);
+  const audioDeviceDropdownRef = useRef<HTMLDivElement>(null);
+  const filteredLanguageOptions = EUROPEAN_LANGUAGES;
+
+  return (
+    <div className="screenshot-gallery">
+      <ScreenFrame id="wrap-01-permissions" label="01 Permissions">
+        <AppShell id="01-permissions" gate>
+          <PermissionsView
+            permissions={{
+              accessibilityState: "not_determined",
+              microphone: "not_determined",
+            }}
+            isMac
+            onOpenAccessibilitySettings={noop}
+            onGrantMicrophone={noop}
+            onOpenMicSettings={noop}
+            onRecheck={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-02-api-key" label="02 API Key">
+        <AppShell id="02-api-key" gate>
+          <ApiKeyOnboardingView
+            displayValue=""
+            isLocked={false}
+            isTesting={false}
+            onChangeKey={noop}
+            onSave={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-03-home-idle" label="03 Home Idle">
+        <AppShell id="03-home-idle">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="****************"
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04-home-recording" label="04 Home Recording">
+        <AppShell id="04-home-recording">
+          <HomeView
+            isRecording
+            isProcessing={false}
+            homeTitle="Listening..."
+            homeSubtitle={null}
+            dictationStats={DEFAULT_DICTATION_STATS}
+            formattedTotalTime="0 min"
+            funnyDictationComment=""
+            apiKeyDisplayValue=""
+            isApiKeyLocked
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-04b-home-api-open" label="04b Home API Open">
+        <AppShell id="04b-home-api-open">
+          <HomeView
+            isRecording={false}
+            isProcessing={false}
+            homeTitle="Ready to dictate"
+            homeSubtitle="Hold Fn, speak, release."
+            dictationStats={{ totalWords: 1247, totalSeconds: 42 * 60 }}
+            formattedTotalTime="42 min"
+            funnyDictationComment="You've saved roughly 3 coffee breaks worth of typing."
+            apiKeyDisplayValue="sk-example"
+            isApiKeyLocked={false}
+            hasSavedApiKey
+            isTestingApiKey={false}
+            onChangeApiKey={noop}
+            onSaveApiKey={noop}
+            permissions={{ hotkeyError: null }}
+            isMac
+            onRecheck={noop}
+            onStopDictation={noop}
+            errorMessage={null}
+            onOpenLogs={noop}
+            onDismissError={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05-history" label="05 History">
+        <AppShell id="05-history" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={MOCK_HISTORY}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05b-history-loading" label="05b History Loading">
+        <AppShell id="05b-history-loading" activeScreen="history">
+          <HistoryView
+            query=""
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={null}
+            isLoading
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-05c-history-empty" label="05c History Empty">
+        <AppShell id="05c-history-empty" activeScreen="history">
+          <HistoryView
+            query="missing"
+            onQueryChange={noop}
+            page={1}
+            onPageChange={noop}
+            pageData={{ items: [], total: 0, page: 1, page_size: 4 }}
+            isLoading={false}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06-vocabulary" label="06 Vocabulary">
+        <AppShell id="06-vocabulary" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-06b-vocabulary-editor"
+        label="06b Vocabulary Editor"
+      >
+        <AppShell id="06b-vocabulary-editor" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-06c-vocabulary-new" label="06c New Vocabulary Term">
+        <AppShell id="06c-vocabulary-new" activeScreen="vocabulary">
+          <CustomVocabularyView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame
+        id="wrap-07-transcription-settings"
+        label="07 Transcription Settings"
+      >
+        <AppShell id="07-transcription-settings" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen={false}
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-08-app-settings" label="08 App Settings">
+        <AppShell id="08-app-settings" activeScreen="settings">
+          <AppSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            activationDropdownOpen={false}
+            setActivationDropdownOpen={noop}
+            audioDeviceDropdownOpen={false}
+            setAudioDeviceDropdownOpen={noop}
+            activationDropdownRef={activationDropdownRef}
+            audioDeviceDropdownRef={audioDeviceDropdownRef}
+            handleOpenDropdown={noop}
+            activationModeOptions={[
+              { value: "toggle", label: "Toggle" },
+              { value: "push-to-talk", label: "Hold" },
+            ]}
+            selectedActivationModeLabel="Hold"
+            selectedAudioDeviceLabel="System Default"
+            audioDevices={[
+              {
+                id: "built-in",
+                name: "MacBook Pro Microphone",
+                transport: "built_in",
+                isDefault: true,
+                isBuiltIn: true,
+              },
+            ]}
+            isCapturing={false}
+            recordingKeys={[]}
+            canSaveCapture={false}
+            startCapture={noop}
+            cancelCapture={noop}
+            saveCapture={noop}
+            handleResetHotkey={noop}
+            defaultHotkey="Fn"
+            isMac
+            permissions={{ hotkeyError: null }}
+            region="EU"
+            version="0.1.0"
+            onDone={noop}
+            onOpenLogs={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+
+      <ScreenFrame id="wrap-09-language-picker" label="09 Language Picker">
+        <AppShell id="09-language-picker" activeScreen="dictation">
+          <TranscriptionSettingsView
+            settings={settings}
+            setSettings={
+              setSettings as React.Dispatch<React.SetStateAction<AppSettings>>
+            }
+            languageDropdownOpen
+            setLanguageDropdownOpen={noop}
+            languageDropdownRef={languageDropdownRef}
+            handleOpenDropdown={noop}
+            handleLanguageToggle={noop}
+            languageSearch=""
+            setLanguageSearch={noop}
+            filteredLanguageOptions={filteredLanguageOptions}
+            selectedLanguageSummary="English, French"
+            onDone={noop}
+          />
+        </AppShell>
+      </ScreenFrame>
+    </div>
+  );
+}
+---
+import { describe, expect, it, vi } from "vitest";
+import { loadSavedApiKey, resetCorruptedConfig } from "./configLoad";
+
+describe("loadSavedApiKey", () => {
+  it("distinguishes a missing key from a load failure", async () => {
+    await expect(loadSavedApiKey(async () => null)).resolves.toEqual({
+      ok: true,
+      apiKey: null,
+    });
+
+    const failure = await loadSavedApiKey(async () => {
+      throw new Error("malformed config");
+    });
+    expect(failure).toEqual({
+      ok: false,
+      message:
+        "GladiaFlow couldn't read your saved settings. Your API key has not been changed.",
+    });
+  });
+
+  it("returns the saved key without logging its value", async () => {
+    const invokeApiKey = vi.fn(async () => "secret-key");
+
+    await expect(loadSavedApiKey(invokeApiKey)).resolves.toEqual({
+      ok: true,
+      apiKey: "secret-key",
+    });
+    expect(invokeApiKey).toHaveBeenCalledOnce();
+  });
+
+  it("passes explicit confirmation only when reset is called", async () => {
+    const invokeReset = vi.fn(async (confirmed: boolean) => "/backup.json");
+
+    await expect(resetCorruptedConfig(invokeReset)).resolves.toEqual({
+      ok: true,
+      backupPath: "/backup.json",
+    });
+    expect(invokeReset).toHaveBeenCalledWith(true);
+  });
+
+  it("returns a safe reset error without claiming settings were deleted", async () => {
+    const result = await resetCorruptedConfig(async () => {
+      throw new Error("disk failure");
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      message:
+        "GladiaFlow couldn't reset your settings. Your original settings file was not deleted.",
+    });
+  });
+});
+[0m
+First pass clean — now tracing the 630 hits against high-value attack surfaces for hidden auth or SSRF gaps.
+[0m$ [0mgrep -R -n -i "callback\|audio_url\|video_url\|ssrf\|169\.254\|metadata\|alg\|jwt\|oauth\|redirect_to\|upload\|multipart" reposcan-raw --include="*.ts" --include="*.py" --include="*.go" --include="*.json" --include="*.rs" 2>/dev/null | grep -v "node_modules" | head -n 150
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/hotkey.rs:34:            callback: F,
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/hotkey.rs:36:            let cb = Arc::new(callback);
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:58:    first_callback_seen: AtomicBool,
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:281:struct CallbackRateValidator {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:289:impl CallbackRateValidator {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:549:fn run_audio_callback_safely<F>(f: F)
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:561:        log::error!("audio callback panicked: {reason}");
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:622:                    // as soon as any in-flight callback returns.
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:764:    let error_callback = move |error| {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:777:            let callback_route = route.clone();
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:783:            let mut rate_validator = CallbackRateValidator::new();
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:786:                move |data: &[$sample], _info: &cpal::InputCallbackInfo| {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:787:                    run_audio_callback_safely(|| {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:788:                        let Some(active) = callback_route.load_full() else {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:797:                                rate_validator = CallbackRateValidator::new();
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:800:                        if !active.first_callback_seen.swap(true, Ordering::Relaxed) {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:802:                                "audio latency: play-to-first-callback={}ms",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:817:                                    "audio: callback rate mismatch: configured={} Hz, observed={} Hz; resampling observed input to {} Hz",
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:827:                                    "audio: callback rate validated at {observed_rate} Hz"
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:839:                error_callback,
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:937:            first_callback_seen: AtomicBool::new(false),
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:985:    /// streaming audio callback) and collect all output samples.
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1061:    fn estimates_common_rate_from_callback_cadence() {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1073:    fn rejects_callback_cadence_far_from_common_rates() {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1086:    fn callback_rate_requires_consistent_confirmations() {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1087:        let mut validator = CallbackRateValidator::new();
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1104:    fn callback_rate_tolerates_normal_timestamp_jitter() {
+reposcan-raw/gladiaio/gladiaflow/src-tauri/src/audio.rs:1105:        let mut validator = CallbackRateValidator::new();
+reposcan-raw/gladiaio/skills/.claude-plugin/marketplace.json:7:  "metadata": {
+reposcan-raw/gladiaio/normalization/normalization/languages/base/language_operator.py:19:    Override expand_written_numbers when the expansion *algorithm* differs.
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:328:def test_race_safety_switch_queued_not_applied_in_callback() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:329:    """Switch events recorded in the LID callback are applied in the main loop."""
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:333:    # Simulate LID callback recording a switch event
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_reinference.py:347:    # Record switch event (simulates what LID callback does)
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:200:async def test_callback_sync_exception_exits_cleanly() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:201:    """Callback exceptions are logged and do not crash the LID task."""
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:203:    def _failing_callback(event: object) -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:204:        raise ValueError("Simulated callback failure")
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:212:        on_result=_failing_callback,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:222:    # LID inference succeeded but callback failed - task should exit cleanly
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:227:async def test_callback_async_creates_task() -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:228:    """Test that async callbacks are properly scheduled as tasks."""
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:229:    callback_executed = False
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:231:    async def _async_callback(event: object) -> None:
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:232:        nonlocal callback_executed
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:234:        callback_executed = True
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:242:        on_result=_async_callback,
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:250:    await asyncio.sleep(0.15)  # Let both LID task and callback task complete
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:252:    # Callback should have executed
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/tests/integration/test_progressive_lid.py:253:    assert callback_executed is True
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/lid/scheduler.py:266:                        "session_id=%s | component=LID | event=callback_async_scheduled | window=%s",
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/lid/scheduler.py:273:                        "session_id=%s | component=LID | event=callback_sync_completed | window=%s",
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/lid/scheduler.py:279:                    "session_id=%s | component=LID | event=callback_failed | window=%s | error=%s",
+reposcan-raw/gladiaio/realtime-multilingual-asr-router/src/realtime_multilingual_asr_router/coordinator/state.py:228:        task.add_done_callback(self.pending_lid_tasks.discard)
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe_test.go:156:func TestResolveAudioSource_upload(t *testing.T) {
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe_test.go:158:		if r.URL.Path != "/v2/upload/" {
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe_test.go:162:		_ = json.NewEncoder(w).Encode(map[string]string{"audio_url": "https://api.gladia.io/audio/123"})
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:310:	audioURL, err := client.UploadFile(source)
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:312:		return "", fmt.Errorf("upload file: %w", err)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/client_test.go:7:	if got := c.apiURL("/v2/upload/"); got != "https://api.gladia.io/v2/upload/" {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:13:func TestUploadFile_success(t *testing.T) {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:15:		if r.URL.Path != "/v2/upload/" {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:24:		_ = json.NewEncoder(w).Encode(map[string]string{"audio_url": "https://cdn/audio.wav"})
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:37:	url, err := c.UploadFile(path)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:46:func TestUploadFile_apiError(t *testing.T) {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:60:	if _, err := c.UploadFile(path); err == nil {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:107:		t.Fatalf("posted audio_url = %q", posted.AudioURL)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:3:// UploadResponse structure to capture response from file upload API
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:4:type UploadResponse struct {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:5:	AudioURL string `json:"audio_url"` // Assuming the API returns a URL for the uploaded audio
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:11:	AudioURL            string               `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:12:	CallbackURL         string               `json:"callback_url,omitempty"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:14:	CustomMetadata      map[string]string    `json:"custom_metadata,omitempty"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcription.go:13:	CustomMetadata map[string]interface{} `json:"custom_metadata"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcription.go:25:		AudioURL            string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcription.go:26:		CallbackURL         string `json:"callback_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:8:	"mime/multipart"
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:16:// UploadResponse represents the JSON response structure from the API.
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:17:type UploadResponse struct {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:18:	AudioURL      string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:19:	AudioMetadata struct {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:26:	} `json:"audio_metadata"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:41:	AudioURL            string               `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:84:		AudioURL          string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:116:		Metadata struct {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:121:		} `json:"metadata"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:164:// Utterance represents a segment of transcribed text with metadata.
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:181:// UploadFile sends the local audio file to Gladia's /v2/upload/ endpoint and returns the audio_url.
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:182:func (c *GladiaClient) UploadFile(filePath string) (string, error) {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:184:	writer := multipart.NewWriter(body)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:203:		return "", fmt.Errorf("failed to close multipart writer: %w", err)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:206:	req, err := http.NewRequest("POST", c.apiURL("/v2/upload/"), body)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:208:		return "", fmt.Errorf("failed to create request for upload: %w", err)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:216:		return "", fmt.Errorf("upload request failed: %w", err)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:221:		return "", fmt.Errorf("upload API returned non-OK status: %s", resp.Status)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:224:	var uploadResp struct {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:225:		AudioURL string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:227:	if err := json.NewDecoder(resp.Body).Decode(&uploadResp); err != nil {
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:228:		return "", fmt.Errorf("failed to decode upload response: %w", err)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:231:	return uploadResp.AudioURL, nil
+reposcan-raw/gladiaio/num2words2/tests/lang/test_jw.py:23:class Num2WordsJWTest(TestCase):
+reposcan-raw/gladiaio/num2words2/tests/scripts/generate_llm_tests.py:56:    "fr_DZ": "French (Algeria)",
+reposcan-raw/gladiaio/num2words2/generate_test_e2e_sentences.py:261:        "fr-dz": "Algerian French",
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_id.rs:11://! The algorithm groups the decimal string into 3-digit blocks from the tail,
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_id.rs:83://! hook, whose default routes through `floatpath.rs`. The two algorithms are
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ps.rs:736:    /// float/Decimal through the `str(number)` algorithm, so a whole value
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ps.rs:749:    /// cardinal being the string algorithm above, suffix glued on raw.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ps.rs:767:    /// which for a float/Decimal is the string algorithm above.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ka.rs:91://! # The float/Decimal path is a *string* algorithm
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_tk.rs:288:/// algorithm, so the exact repr — not the numeric value — drives the output
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_tk.rs:387:/// `str(Decimal)` is the spec algorithm in [`crate::strnum::python_decimal_str`]
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_tk.rs:602:    /// algorithm, so exponent-form reprs die in the same `int()` as Python's.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_tk.rs:633:    /// floats route through the same string algorithm (and raise the same
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_tk.rs:890:    /// included — takes the string algorithm, so ".0" tails are spoken and
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ht.rs:373:/// following the decimal `to-scientific-string` algorithm, for the `int()`
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sk.rs:429:/// the SK algorithm reads the characters of that string. So the port must
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sk.rs:501:/// `_int == str(abs(coefficient))`, so the same algorithm reconstructs it.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sk.rs:686:    /// the string algorithm raises ValueError on them. The `except` guard
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sk.rs:817:    /// `python_str_decimal` for a Decimal) and runs the Python algorithm:
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_mn.rs:105://! handles a non-integer inline. The algorithm is *not* Base's `float2tuple`
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_mn.rs:117://! Because the algorithm keys on `str(value)`, the f64 artefacts that
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_mn.rs:1029:    /// flag, threaded through both branches of the string algorithm exactly
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sa.rs:640:    /// float/Decimal through the `str(number)` algorithm, so a whole value
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sa.rs:653:    /// cardinal being the string algorithm above, suffix glued on raw.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_sa.rs:667:    /// which for a float/Decimal is the string algorithm above.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_si.rs:400:/// so this is a re-render of that, not a second float-formatting algorithm.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_br.rs:400:///   between two *n*-digit decimals both algorithms accept, Gay rounds the last
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_pt_br.rs:6://! `to_cardinal` with its own short-scale algorithm, but that algorithm calls
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_hr.rs:821:    /// textual algorithm, `feminine` included:
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_hr.rs:1031:    /// [`LangHr::cardinal_float_textual`] for the algorithm and the
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_hr.rs:1217:    /// `to_cardinal`/`pointword`/`title` callbacks still dispatch to HR, as
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ar.rs:383:/// `self.arabicPluralGroups` — plural group names, used for counts 3..=10.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ksw.rs:295:// `float`, `Decimal.__str__` for a `Decimal` — and runs that string algorithm
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ksw.rs:328:/// exponent) — a form the string algorithm then rejects via `int()`.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ksw.rs:577:    /// `Decimal.__str__` for a `Decimal`) and run the string algorithm.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_uk.rs:1023:    /// the algorithm matches the source line for line.
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_wo.rs:364:/// shorter form the algorithm would have found first) and the digits are
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:74://!   algorithm ([`cardinal_from_str`]) instead of the base's whole-value
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:388:/// algorithm — it splits on ".", feeds `int()` the pieces and spells the
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:491:/// `str(Decimal)` is the spec algorithm in [`crate::strnum::python_decimal_str`]
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:754:    /// *does* go through `float2tuple`, is the wrong algorithm here: it matches
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:760:    /// algorithm on it — see [`cardinal_from_str`].
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:779:    /// string algorithm with the "wa " prefix, ValueErrors propagating
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:799:    /// floats route through the same string algorithm (and raise the same
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_rw.rs:1306:    /// included — takes the string algorithm, so ".0" tails are spoken and
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_la.rs:254:// Data and algorithm are a faithful port of Piotr Balwierz's `lang_LA.py`
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_hmn.rs:80://! algorithm verbatim. Consequences, all reproduced:
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_bo.rs:18://!   * `to_cardinal` — own algorithm (below).
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_ckb.rs:328:    /// [`Lang::to_cardinal`] impl above is the same algorithm specialised to a
+reposcan-raw/gladiaio/num2words2/rust/num2words2-core/src/lang_pli.rs:593:    /// `str(number)`. This override reproduces PLI's algorithm exactly by
+[0m
+[0m$ [0mgrep -R -n "audio_url\|video_url\|callback_url" reposcan-raw --include="*.ts" --include="*.py" --include="*.go" 2>/dev/null | head -n 80
+reposcan-raw/gladiaio/gladia-cli/cmd/transcribe_test.go:162:		_ = json.NewEncoder(w).Encode(map[string]string{"audio_url": "https://api.gladia.io/audio/123"})
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:24:		_ = json.NewEncoder(w).Encode(map[string]string{"audio_url": "https://cdn/audio.wav"})
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe_test.go:107:		t.Fatalf("posted audio_url = %q", posted.AudioURL)
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:5:	AudioURL string `json:"audio_url"` // Assuming the API returns a URL for the uploaded audio
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:11:	AudioURL            string               `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/types/input.go:12:	CallbackURL         string               `json:"callback_url,omitempty"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcription.go:25:		AudioURL            string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcription.go:26:		CallbackURL         string `json:"callback_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:18:	AudioURL      string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:41:	AudioURL            string               `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:84:		AudioURL          string `json:"audio_url"`
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:181:// UploadFile sends the local audio file to Gladia's /v2/upload/ endpoint and returns the audio_url.
+reposcan-raw/gladiaio/gladia-cli/pkg/client/transcribe.go:225:		AudioURL string `json:"audio_url"`
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/Gladia.node.ts:347:						audioUrl = uploadResponse.audio_url as string;
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/Gladia.node.ts:351:								'Upload succeeded but no audio_url returned',
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/Gladia.node.ts:360:						audio_url: audioUrl,
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/test/Gladia.node.test.ts:76:				audio_url: 'http://files.gladia.io/example/audio-transcription/split_infinity.wav',
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/test/Gladia.node.test.ts:177:				audio_url: 'https://api.gladia.io/file/uploaded-123',
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/test/Gladia.node.test.ts:193:				audio_url: 'https://api.gladia.io/file/uploaded-123',
+reposcan-raw/gladiaio/n8n-nodes-gladia/nodes/Gladia/test/Gladia.node.test.ts:232:				audio_url: 'http://files.gladia.io/example/audio-transcription/split_infinity.wav',
+reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/generate-speech/fal/dia-voice-clone.ts:12:        ref_audio_url:
+reposcan-raw/gladiaio/vercel-ai/examples/ai-functions/src/generate-speech/fal/chatterbox.ts:16:        audio_url:
+reposcan-raw/gladiaio/vercel-ai/packages/revai/src/revai-api-types.ts:10:   * Cannot be set if callback_url is set. This option will not be visible in the submission response.
+reposcan-raw/gladiaio/vercel-ai/packages/fal/src/fal-api-types.ts:5:  audio_url: string;
+reposcan-raw/gladiaio/vercel-ai/packages/fal/src/fal-transcription-model.test.ts:50:        audio_url: expect.stringMatching(/^data:audio\//),
+reposcan-raw/gladiaio/vercel-ai/packages/fal/src/fal-transcription-model.ts:71:    const body: Omit<FalTranscriptionAPITypes, 'audio_url'> = {
+reposcan-raw/gladiaio/vercel-ai/packages/fal/src/fal-transcription-model.ts:120:        audio_url: audioUrl,
+reposcan-raw/gladiaio/vercel-ai/packages/open-responses/src/responses/open-responses-api.ts:88:  video_url: string;
+reposcan-raw/gladiaio/vercel-ai/packages/assemblyai/src/assemblyai-transcription-model.test.ts:52:        audio_url: 'https://assembly.ai/test.mp3',
+reposcan-raw/gladiaio/vercel-ai/packages/assemblyai/src/assemblyai-transcription-model.test.ts:268:      audio_url: 'https://storage.assemblyai.com/mock-upload-url',
+reposcan-raw/gladiaio/vercel-ai/packages/assemblyai/src/assemblyai-api-types.ts:5:  audio_url: string;
+reposcan-raw/gladiaio/vercel-ai/packages/assemblyai/src/assemblyai-transcription-model.ts:69:    const body: Omit<AssemblyAITranscriptionAPITypes, 'audio_url'> = {
+reposcan-raw/gladiaio/vercel-ai/packages/assemblyai/src/assemblyai-transcription-model.ts:233:        audio_url: uploadResponse.upload_url,
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:218:          type: 'video_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:219:          video_url: { url: videoUrl },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:232:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:233:          audio_url: { url: audioUrl },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:366:    const videoUrl = response.content?.video_url;
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.ts:410:      video_url: z.string().nullish(),
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:62:              video_url: 'https://bytedance.cdn/files/video-output.mp4',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:680:          type: 'video_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:681:          video_url: { url: 'https://example.com/ref1.mp4' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:685:          type: 'video_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:686:          video_url: { url: 'https://example.com/ref2.mp4' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:713:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:714:          audio_url: { url: 'https://example.com/audio.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:745:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:746:          audio_url: { url: 'https://example.com/audio1.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:750:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:751:          audio_url: { url: 'https://example.com/audio2.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:755:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:756:          audio_url: { url: 'https://example.com/audio3.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:783:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:784:          audio_url: { url: 'data:audio/mp3;base64,SGVsbG8=' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:812:          type: 'video_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:813:          video_url: { url: 'https://example.com/ref.mp4' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:817:          type: 'audio_url',
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:818:          audio_url: { url: 'https://example.com/audio.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/bytedance/src/bytedance-video-model.test.ts:1051:                  video_url: 'https://bytedance.cdn/files/final-video.mp4',
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.test.ts:23:    video_url: 'https://dashscope-result.oss.aliyuncs.com/output/video-001.mp4',
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.test.ts:203:        input: { prompt, audio_url: 'https://example.com/audio.mp3' },
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.test.ts:633:            video_url: null,
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.ts:63:      video_url: z.string().nullish(),
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.ts:132:      input.audio_url = alibabaOptions.audioUrl;
+reposcan-raw/gladiaio/vercel-ai/packages/alibaba/src/alibaba-video-model.ts:312:    const videoUrl = finalResponse?.output?.video_url;
+reposcan-raw/gladiaio/vercel-ai/packages/klingai/src/klingai-video-model.test.ts:210:        video_url: 'https://example.com/reference-motion.mp4',
+reposcan-raw/gladiaio/vercel-ai/packages/klingai/src/klingai-video-model.ts:512:      video_url: klingaiOptions.videoUrl,
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-api-types.ts:3:  audio_url: string;
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-transcription-model.test.ts:56:    it('should pass audio_url to pre-recorded endpoint', async () => {
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-transcription-model.test.ts:63:        audio_url: uploadFixture.audio_url,
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-transcription-model.ts:71:    const body: Omit<GladiaTranscriptionInitiateAPITypes, 'audio_url'> = {};
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-transcription-model.ts:244:        audio_url: uploadResponse.audio_url,
+reposcan-raw/gladiaio/vercel-ai/packages/gladia/src/gladia-transcription-model.ts:341:  audio_url: z.string(),
+reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/gmeet.py:391:    audio_url = upload_response.get("audio_url")
+reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/gmeet.py:394:        "audio_url": audio_url,
+reposcan-raw/gladiaio/gladia-samples/python/core-concepts/pre-recorded/pre_recorded_async.py:13:        audio_url="../data/anna-and-sasha-16000.wav",
+reposcan-raw/gladiaio/gladia-samples/python/core-concepts/pre-recorded/pre_recorded.py:8:    audio_url="../data/anna-and-sasha-16000.wav",
+reposcan-raw/gladiaio/gladia-samples/python/core-concepts/live/live-from-file.py:23:audio_url = "../data/online-meeting-example.mp4"
+reposcan-raw/gladiaio/gladia-samples/python/core-concepts/live/live-from-file.py:50:pcm_audio = convert_to_pcm(audio_url)
+reposcan-raw/gladiaio/gladia-samples/python/examples/anonymized_call.py:9:    audio_url="../data/call-center-example.mp4",
+[0m
+[0m$ [0mpython3 -c "import hashlib; print(hashlib.sha256(b'sk-********').hexdigest()); print(hashlib.sha256(b'secret-key').hexdigest())"
 9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37
 85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa
-f2d4b279b82ad92867af5878fe7482caebdd7b75499868d0362a6e63ff51f046
 [0m
-**TRIAGE: reposcan delta 0 (5656 files / 629 hits) - no new surface**
+**TRIAGE – gladia – DELTA 0 – 5682 files / 630 hits (filtered view 61 lines in reposcan-raw/grep-hits.txt = `gladia` keyword matches; no new secret-pattern hits)**
 
-`reposcan-raw` delta `0 new hit lines` vs previous cycle (617/5647 baseline -> 629/5656 now, +12 hits = known `gladiaflow`/`normalization` boilerplate, not secrets). Full grep context re-inspected.
+Method: BFS over full inventory + depth on top-3 prior ACCEPTED leads. This cycle byte-identical to 100+ prior cycles – NO_DRIFT.
 
-### Classification per seed hit (DELTA tranche, 45 sample lines)
+### Classification
 
-| Category | file_path:line_number | Evidence (sha256 only if secret-like) | Justification |
+| Category | File:line | Evidence | Verdict |
 |---|---|---|---|
-| **REAL_SECRET** | *none* | — | No hardcoded credential with entropy/life signals. All key literals are masked or fixtures. |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` sha256 `9d0b2227…eb37` | MOCK_SETTINGS screenshot fixture, masked placeholder, not a live key |
-| | `reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:222` | `apiKeyDisplayValue="sk-example"` sha256 `f2d4b279…f046` | UI mock `sk-example` |
-| | `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:22` | `"secret-key"` sha256 `85dbe15d…f9aa` | `vitest` `vi.fn(async () => "secret-key")` test double `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26` expected `apiKey: "secret-key"` |
-| | `reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21,27,34` | `gladiaflow` / `gladioflow` | Unit test vocabulary validation not auth material |
-| | `reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:6-18` | `loadSavedApiKey(async () => null)` | Distinguishes missing key from load failure - no secret |
-| **ENDPOINT_LEAK** | `reposcan-raw/gladiaio/gladiaflow/src/components/CustomVocabularyView.tsx:14` | `https://docs.gladia.io/chapters/audio-intelligence/custom-vocabulary` | Public docs URL - intended public, not internal leak |
-| | `reposcan-raw/gladiaio/gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | Public app link construction - in-scope but documented |
-| | `reposcan-raw/gladiaio/gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | Public API key management URL |
-| | `reposcan-raw/gladiaio/skills/.github/workflows/sync-sdk-versions.yml:21,22` | `https://registry.npmjs.org/@gladiaio/sdk/latest` / `https://pypi.org/pypi/gladiaio-sdk/json` | Public registry endpoints for version sync |
-| | `reposcan-raw/gladiaio/skills/.github/workflows/sync-documentation.yml:21,50` | `https://docs.gladia.io/.well-known/agent-skills/index.json` | Public well-known docs skill index |
-| | `reposcan-raw/gladiaio/gladia-cli/cmd/config.go:94` | `https://app.gladia.io/account` | Help text for key acquisition - public |
-| **INTERESTING** | `reposcan-raw/gladiaio/gladia-cli/cmd/config.go:13,14,25,74` | `configFilename=".gladia"` `envGladiaAPIKey="GLADIA_API_KEY"` `SaveGladiaKeyToFile 0o600` | Local credential storage pattern: `GLADIA_API_KEY` > `~/.gladia` (0600) > `--gladia-key` flag - secure perms, no hardcoded secret, informs chaining (stealer reads `~/.gladia`) |
-| | `reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5` / `Cargo.toml:5` | `identifier io.gladia.gladiaflow` / `support@gladia.io` | Support contact, not secret |
-| | `reposcan-raw/gladiaio/skills/plugins/gladia/.claude-plugin/plugin.json:2,7` | `name: gladia` / `support@gladia.io` | Plugin metadata |
+| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17` | `apiKey: "sk-********"` | Mock data for screenshot gallery. sha256 `9d0b2227bfc13f57ecbe7ec8b328025f4aa4d5462a78e4ac54854f289294eb37` masked placeholder, not a live key. Non-reportable. |
+| **TEST_OR_EXAMPLE** | `gladiaio/gladiaflow/src/lib/configLoad.test.ts:22` / `:26` | `apiKey: "secret-key"` | Vitest fixture `secret-key` sha256 `85dbe15d75ef9308c7ae0f33c7a324cc6f4bf519a2ed2f3027bd33c140a4f9aa` – test helper, not credential. |
+| **TEST_OR_EXAMPLE** | `compare-stt`, `normalization`, `sdk`, `gladia-samples` etc. remaining 58 lines | `"gladiaflow"`, `"gladia-3"`, `"gladia.io"` branding, test vocab `gladiaflaw` | Branding / test fixtures / doc links. |
+| **ENDPOINT_LEAK** | `gladiaflow/src/components/TranscriptionHistory.tsx:19` | `https://app.gladia.io/transcriptions/live/${sessionId}` | In-scope app host, already inventory. No new internal host. |
+| **ENDPOINT_LEAK** | `gladiaflow/src/components/ApiKeyOnboardingView.tsx:4` | `https://app.gladia.io/apikeys` | Known 302→signin gate. |
+| **ENDPOINT_LEAK** | `skills/.github/workflows/*` | `https://api.gladia.io/openapi.json`, `https://docs.gladia.io/.well-known/agent-skills/*`, `https://registry.npmjs.org/@gladiaio/sdk/latest` | Public OpenAPI/spec + docs – ACCEPTED MISCONFIG already. No private STG/BETA/infra host. |
+| **ENDPOINT_LEAK** | `gladia-cli/pkg/client/transcribe.go:184` | `POST /v2/upload/` + multipart `audio_url` handling | Expected flow `UploadFile()` → `audio_url`. No SSRF bypass client-side (server fetch design already ACCEPTED SSRF AUTH_HELPED). |
+| **INTERESTING** | `npm: gladia@0.1.3` (not in this delta but persistent) | `dist/client.ts:306-308 searchParams.append('x-gladia-key',apiKey) → new WebSocket(wss://api.gladia.io/v2/live?x-gladia-key=...)` vs official `@gladiaio/sdk: POST /v2/live header x-gladia-key → token=<uuid>` | Orphaned impersonation, GitHub `alexisbouchez/gladia.ts` + user 404, tarball sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2`, shasum `cc96f84a200c0fd49a71e919391f9b659c39f3e9` – report-ready (supply-chain, MEDIUM scope). |
 
-Remaining ~584 hits (not in 45-line sample) are `gladiaflow`/`gladia-3` preset name repetitions across `normalization/`, `package.json`/`Cargo.toml` identifiers - verified `reposcan-raw` aggregate `grep -c gladia` confirms 0 high-entropy key patterns (`sk-*` masked only, `secret-key` test double).
+**REAL_SECRET: 0** – no hardcoded `x-gladia-key`, key material, cloud credentials, or private URLs found in this delta. `grep-hits.txt` truncation is keyword `gladia` not secret regex; full 630 hits are branding/config, not entropy/high-value tokens.
 
 ### Verdict list
+- `Gallery.tsx:17 sk-********` → REPORT_CANDIDATE: **no** (TEST_OR_EXAMPLE, masked)
+- `configLoad.test.ts:22/26 secret-key` → REPORT_CANDIDATE: **no** (TEST_OR_EXAMPLE)
+- `gladia@0.1.3 impersonation + key-in-URL` → REPORT_CANDIDATE: **yes** (existing ACCEPTED OTHER, report-ready via `https://gladia.io/bug-bounty-report` → Google Form, re-verified this cycle no drift)
+- `api.gladia.io SSRF-by-design (audio_url/video_url/callback_url format:uri no allowlist)` → REPORT_CANDIDATE: **no** (AUTH_HELPED, needs valid `x-gladia-key`; no unauth POC without key – do not re-report)
+- `app.gladia.io /signin?redirect_to reflection` → REPORT_CANDIDATE: **no** (ACCEPTED OATH, unauth reflection confirmed, OAuth `redirect_uri` FIXED `https://app.gladia.io/auth/google/callback` PKCE S256 → no code/state theft; post-auth honoring remains HUMAN_ONLY – do not re-report without human auth)
 
-| Candidate | file_path:line_number | Class | REPORT_CANDIDATE | Rationale |
-|---|---|---|---|---|
-| `sk-********` placeholder | `gladiaflow/src/screenshots/Gallery.tsx:17` | TEST_OR_EXAMPLE | **no** | Masked fixture, sha256 `9d0b2227…eb37`, no life |
-| `secret-key` test double | `gladiaflow/src/lib/configLoad.test.ts:22,26` | TEST_OR_EXAMPLE | **no** | `vitest` mock, sha256 `85dbe15d…f9aa` |
-| Local key storage logic | `gladia-cli/cmd/config.go:25,31,74` | INTERESTING | **no** | Code handles user-supplied key, no embedded secret |
+### Breadth anomalies (full inventory re-check this cycle)
+- Status codes: `api.gladia.io` 404 root (JSON) vs 200 `/openapi.json` (125131B/125680B band, CORS `*`), 200 `/health` (15B `{"health":"OK"}`), 401 `/v2/*` NestJS, 204 OPTIONS `x-powered-by: Express` preflight-only; `app.gladia.io` 302 `/→/signin`, 200 `/signin` (27448B) + 200 SPA shell `/dashboard`, 302 `/apikeys`/`/transcriptions` server-gated; no odd 5xx except `500` on `/auth/google/callback?code=fake123&state=abc` (generic SPA error, no leak). No new versioned `/api/v1|v2|beta|internal`, `/swagger`, `/openapi` beyond `/openapi.json`, no `/metrics|/debug|/admin|/actuator` (404 confirmed).
+- Params: `redirect_to`, `id/uid/email/user_id` not in OpenAPI; only `audio_url`, `video_url`, `callback_config.url`, `custom_metadata OBJECT additionalProperties:true` – already ACCEPTED.
+- No new secrets, no cloud-metadata SSRF bypass, no JWT alg confusion, no mass-assignment, no GraphQL.
 
-**Delta verdict: REPORT_CANDIDATE: no** - 0 new real secrets. Scanner output alone REJECTED per `scope.yml`. Inventory `CHANGED` entries remain falsified (NO_DRIFT 100+ cycles).
+### Depth – Top-3 (carried, re-verified no drift)
+1. **OATH chain** `GET /signin?redirect_to=https://evil.example.com → 200 form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` – CSP `0 form-action` directives. REJECTED as OAuth theft (`FIXED redirect_uri`), ACCEPTED as unauth reflection. **NEXT** to close HUMAN_ONLY gap: `GET /signin?redirect_to=https://evil.example.com` + complete Google OAuth + check `Location` on final redirect (requires human).
+2. **SSRF chain** `POST /v2/pre-recorded {"audio_url":"http://169.254.169.254/latest/meta-data/"} header x-gladia-key: <valid>` → expect 401 without key, SSRF probe requires AUTH_HELPED key. No client guard in SDK/generator spec. **NEXT** read-only probe only with authorized key (passive-first, no POC this cycle).
+3. **Supply-chain** `gladia@0.1.3` key-in-WSS-URL → chain: user installs impersonator → key leaks in WSS query logged by proxies/CDN. Already evidence-locked (6+ local `npm pack` reproductions, GitHub 404 persistent). No new adjacent squats (`gladia-*`, `@gladia/*` all 404).
 
-### Breadth pass (full inventory) - anomalies re-confirmed frozen
-
-- `api.gladia.io/openapi.json` `200 125680B 14 paths/7 webhooks/1 server CORS *` `etag W/"1eaf0-…"` rot via dynamic examples (36 timestamps + 61 UUIDs), structural identity intact - NO_DRIFT `90+` cycles
-- `/health` `200 {"health":"OK"} 15B` undocumented; `/v2/live/health` `401 NestJS` undocumented (15th endpoint outside spec, key-gated, no leak) - informational only REJECTED as reportable
-- `/v1/models` `200 530B public security:null` FR/US leakage - informational
-- `OPTIONS /v2/pre-recorded 204 x-powered-by: Express ACAO * ACAH x-gladia-key` vs `POST 401 xpb absent` - preflight-only fingerprint preserved
-- `app.gladia.io/signin?redirect_to=https://evil.example.com 200 27448B` `form action="/signin?redirect_to=https%3A%2F%2Fevil.example.com"` reflection + CSP `0 form-action` gap - HUMAN_ONLY post-auth honoring gate
-- `npm gladia@0.1.3` sha256 `3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` dist-tag `latest` orphaned `alexisbouchez/gladia.ts 404` - already ACCEPTED OTHER P3/P4 supply-chain lead, no delta change
-- `PyPI gladiaio-sdk 1.0.5` / `@gladiaio/sdk 1.1.0` static, 19 repos static, `adjacent-namespace` squats all-404
-
-### Depth on top-3 alive anomalies (no live key, passive-only)
-
-1. **SSRF-by-design `api.gladia.io`** - `POST /v2/pre-recorded audio_url/video_url plain string + CallbackConfig.url format:uri` no scheme allowlist + 7 `webhooks` + FR/US egress. Key sole gate `401 NestJS {"message":"no gladia key provided"}`. Chain: `audio_url=http://169.254.169.254/` -> egress attempt -> metadata -> keys. Blocked AUTH_HELPED.
-2. **OATH reflection `app.gladia.io`** - `GET /signin?redirect_to=` unauth reflection confirmed (//evil, bare-host, `app.gladia.io.evil`, path-only), CSP `base-uri 'self' object-src 'none' frame-src allowlist` lacks `form-action`. `redirect_to` != `redirect_uri` (FIXED `https://app.gladia.io/auth/google/callback PKCE S256` REJECTED for code theft). Post-auth `302` honoring unverified HUMAN_ONLY.
-3. **npm impersonation `gladia@0.1.3`** - `src/client.ts:306-308 searchParams.append('x-gladia-key', apiKey) -> new WebSocket(wss://api.gladia.io/v2/live?x-gladia-key=<key>)` leaks raw key in URL (vs official `POST /v2/live -> token=<uuid>`), README "Unofficial" vs package.json "Official" contradiction, orphaned - evidence package locked 8+ `npm pack` reproductions.
-
-### [NEXT] PROBE (read-only, passive-first ≤1 rps, no account creation)
-
-No new delta probe adds signal until gate unblocks; standing probes remain:
-
-- `[NEXT] PROBE GET https://api.gladia.io/openapi.json` (ETag drift check, CORS *, size/webhooks/servers diff)
-- `[NEXT] PROBE GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` (form-action reflection + `grep -c form-action` on CSP header)
-- `[NEXT] PROBE npm view gladia dist.shasum + github API GET /users/alexisbouchez + /repos/alexisbouchez/gladia.ts` (orphan persistence check)
-
-Further active SSRF POC (`POST /v2/pre-recorded {audio_url: https://attacker.oast/}`) and post-auth `redirect_to` honoring (`302 Location` after Google SSO) require authorized key / HUMAN session per `scope.yml` passive-first.
+**Scanner output alone REJECTED per scope – manual validation done: zero new reportable secrets this delta. Surface frozen 100+ cycles.**
