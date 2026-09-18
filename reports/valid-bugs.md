@@ -916,3 +916,7 @@
 - 2 lead(s) marked VALID at 2026-09-18 21:18:46 UTC
   - | 1 | `npm gladia@0.1.3` orphaned impersonation + `x-gladia-key` in `wss://` query `leads/lead-mimo.md:5` | HOLD — `scope.yml:26` lists `gladia` but `scope.yml:10` defines official as `@gladiaio/sdk`;
   - | 3 | `api.gladia.io` SSRF `audio_url/video_url/callback_config.url format:uri` no allowlist `leads/lead-mimo.md:23` | Yes HIGHEST `scope.yml:6` | No — key-gated `401` `probe-results.md:4` `inventory/
+
+- 2 lead(s) marked VALID at 2026-09-18 23:24:26 UTC
+  - | `npm registry` MEDIUM | `registry.npmjs.org/gladia` `200` `probe-results.md:294` / `gladia@0.1.3.tgz` `probe-results.md:294` / `api.github.com/repos/alexisbouchez/gladia.ts` `404` `probe-results.md:
+  - 3. `npm gladia@0.1.3` `GET registry.npmjs.org/gladia ->200` + `GET api.github.com/repos/alexisbouchez/gladia.ts ->404` — Already triaged `leads/lead-human.md:14` **VERDICT MATRIX: npm venue VALID (pol
