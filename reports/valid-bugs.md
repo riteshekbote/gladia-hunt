@@ -903,3 +903,12 @@
 - 2 lead(s) marked VALID at 2026-09-18 06:05:39 UTC
   - - **VERDICT: VALID (DUPLICATE) - HOLD for Gladia, ACTIONABLE for npm** - 1-line: locked orphaned impersonation passive-proven, already reported awaiting vendor, re-file = duplicate.
   - - **VERDICT: HOLD (AUTH_HELPED)** - In-scope design confirmed (`spec+RAG` `knowledge/index.md:66`), proof gated on valid key. 1-line: fetch-by-design confirmed, auth gate blocks passive proof.
+
+- 7 lead(s) marked VALID at 2026-09-18 15:14:19 UTC
+  - | Q7 | Triager accept? | **SPLIT** — **VALID for npm Trust&Safety**, **HOLD/DUPLICATE for Gladia program** `leads/lead-human.md:15` |
+  - **Verdict: VALID (DUPLICATE) / HOLD for Gladia venue — one-line: orphaned impersonation locked 10+ reproductions, key-in-URL primitive present, already reported awaiting vendor (prevents re-report).**
+  - | Q6 | Not rejected? | **YES** open redirect valid class |
+  - | Q2 | Attacker reachable unauth/low-priv? | **PARTIAL/NO** — unauth `401 "no gladia key provided"` 100+ cycles, requires valid `x-gladia-key` low-priv trial key |
+  - | Q4 | GET/HEAD only proof? | **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` error/timing oracle; violates `scope.yml:35,39` `passive_first/no_data_
+  - | Q6 | Not rejected? | **YES** SSRF valid class |
+  - | Q7 | Triager accept unauth? | **NO** — needs `401` bypass or valid-key POC |
