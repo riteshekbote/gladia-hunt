@@ -924,3 +924,8 @@
 - 2 lead(s) marked VALID at 2026-09-19 01:22:31 UTC
   - **Verdict: HOLD (VALID DUPLICATE for npm venue; HOLD for Gladia venue)** — One-line: impersonation proven passively but already reported; Gladia-side credential-exposure chain unproven (needs `wss://a
   - **Verdict: HOLD (AUTH_HELPED)** — One-line: SSRF-by-design surface persists but is key-gated 401; no unauth primitive, needs valid key to prove no server-side SSRF guard.
+
+- 3 lead(s) marked VALID at 2026-09-19 11:12:54 UTC
+  - **VERDICT: HOLD (not VALID)** - one-line: reflected `redirect_to` into form action with `0 CSP form-action` is real but OAuth `redirect_uri` FIXED blocks chain; post-auth honoring unproven needs HUMAN
+  - | Q4 | **NO** Cannot prove SSRF without invasive `POST` with valid key `scope.yml:39 no_data_modification` blocks. GET only shows 401. | |
+  - **VERDICT: HOLD (AUTH_HELPED, not VALID unauth)**
