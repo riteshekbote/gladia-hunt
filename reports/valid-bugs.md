@@ -960,3 +960,8 @@
   - ### BATCH VERDICT: **NO NEW LEADS → NO NEW VALID**
   - | **1** | `npm gladia@0.1.3` orphaned impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key', this.apiKey) → new WebSocket(wss://...)` `inventory/gladia.md:316,336` | **YES** `sco
   - | **3** | `api.gladia.io SSRF audio_url/video_url/CallbackConfigDto.url format:uri no allowlist` 7 webhooks `inventory/gladia.md:92,98,317` + `FR/US egress` `inventory/gladia.md:93` | YES HIGHEST `sco
+
+- 3 lead(s) marked VALID at 2026-09-19 23:40:09 UTC
+  - **Verdict this cycle: `HOLD` — NO NEW VALID.** Prior validated state (`reports/valid-bugs.md:22`, `knowledge/index.md:28`, `leads/lead-mimo.md:5`) unchanged:
+  - | G | `gladia@0.1.3` orphaned impersonation + `src/client.ts:307` `wsUrl.searchParams.append('x-gladia-key')` `registry.npmjs.org/gladia ->200` | `npm_packages: gladia` `scope.yml:28` MEDIUM | YES | Y
+  - | SSR | `audio_url/video_url/CallbackConfigDto.url format:uri` no allowlist `inventory/gladia.md:98` `api.gladia.io/openapi.json ->200 125131B 14 paths` | `api.gladia.io` HIGHEST | YES | PARTIAL 401 `
