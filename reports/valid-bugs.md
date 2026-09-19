@@ -940,3 +940,23 @@
 
 - 1 lead(s) marked VALID at 2026-09-19 19:38:02 UTC
   - * **Verdict: HOLD -> VALID as informational `OTHER` only if program accepts `gladia` monitor package as in-scope.** One-line: passive-verified orphaned impersonation + key-in-URL, but requires human s
+
+- 18 lead(s) marked VALID at 2026-09-19 21:48:57 UTC
+  - - **Verdict: VALID (DUPLICATE) — one-line: locked passive proof, already reported 2026-08-12, do not re-file to Gladia channel.**
+  - - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed by spec+SDK verbatim forwarding, no 401 bypass in 100+ cycles, needs valid x-gladia-key + canary POC (do NOT test 169.254.169.254 without p
+  - - **Verdict: HOLD (Gladia venue) / VALID (npm venue)** - Reason: not a Gladia asset; Gladia-side vuln unproven without query-param auth POC; already reported, awaiting vendor.
+  - - - **VERDICT: VALID (DUPLICATE) - HOLD for Gladia, ACTIONABLE for npm** - 1-line: locked orphaned impersonation passive-proven, already reported awaiting vendor, re-file = duplicate.
+  - - - **VERDICT: HOLD (AUTH_HELPED)** - In-scope design confirmed (`spec+RAG` `knowledge/index.md:66`), proof gated on valid key. 1-line: fetch-by-design confirmed, auth gate blocks passive proof.
+  - - **Verdict: VALID (DUPLICATE) / HOLD for Gladia venue — one-line: orphaned impersonation locked 10+ reproductions, key-in-URL primitive present, already reported awaiting vendor (prevents re-report).
+  - - 3. `npm gladia@0.1.3` `GET registry.npmjs.org/gladia ->200` + `GET api.github.com/repos/alexisbouchez/gladia.ts ->404` — Already triaged `leads/lead-human.md:14` **VERDICT MATRIX: npm venue VALID (p
+  - - **Verdict: HOLD (VALID DUPLICATE for npm venue; HOLD for Gladia venue)** — One-line: impersonation proven passively but already reported; Gladia-side credential-exposure chain unproven (needs `wss:/
+  - - **Verdict: HOLD (AUTH_HELPED)** — One-line: SSRF-by-design surface persists but is key-gated 401; no unauth primitive, needs valid key to prove no server-side SSRF guard.
+  - - **VERDICT: HOLD (not VALID)** - one-line: reflected `redirect_to` into form action with `0 CSP form-action` is real but OAuth `redirect_uri` FIXED blocks chain; post-auth honoring unproven needs HUM
+  - - **VERDICT: HOLD (AUTH_HELPED, not VALID unauth)**
+  - - **Verdict: HOLD (VALID DUPLICATE) - one-line: locked orphaned impersonation, already reported awaiting vendor, Gladia-venue HOLD until 1 valid-key WSS proof**
+  - - **Verdict: HOLD AUTH_HELPED - one-line: design confirmed (`format:uri` no allowlist, 7 webhooks), proof gated on valid x-gladia-key, no bypass in 100+ cycles**
+  - - - **Verdict: HOLD (VALID DUPLICATE)** - one-line: locked orphaned impersonation + key-in-URL primitive `10+ pack sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` already repo
+  - - * **Verdict: HOLD -> VALID as informational `OTHER` only if program accepts `gladia` monitor package as in-scope.** One-line: passive-verified orphaned impersonation + key-in-URL, but requires human
+  - ### BATCH VERDICT: **NO NEW LEADS → NO NEW VALID**
+  - | **1** | `npm gladia@0.1.3` orphaned impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key', this.apiKey) → new WebSocket(wss://...)` `inventory/gladia.md:316,336` | **YES** `sco
+  - | **3** | `api.gladia.io SSRF audio_url/video_url/CallbackConfigDto.url format:uri no allowlist` 7 webhooks `inventory/gladia.md:92,98,317` + `FR/US egress` `inventory/gladia.md:93` | YES HIGHEST `sco
