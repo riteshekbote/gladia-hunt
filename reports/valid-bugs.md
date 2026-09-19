@@ -920,3 +920,7 @@
 - 2 lead(s) marked VALID at 2026-09-18 23:24:26 UTC
   - | `npm registry` MEDIUM | `registry.npmjs.org/gladia` `200` `probe-results.md:294` / `gladia@0.1.3.tgz` `probe-results.md:294` / `api.github.com/repos/alexisbouchez/gladia.ts` `404` `probe-results.md:
   - 3. `npm gladia@0.1.3` `GET registry.npmjs.org/gladia ->200` + `GET api.github.com/repos/alexisbouchez/gladia.ts ->404` — Already triaged `leads/lead-human.md:14` **VERDICT MATRIX: npm venue VALID (pol
+
+- 2 lead(s) marked VALID at 2026-09-19 01:22:31 UTC
+  - **Verdict: HOLD (VALID DUPLICATE for npm venue; HOLD for Gladia venue)** — One-line: impersonation proven passively but already reported; Gladia-side credential-exposure chain unproven (needs `wss://a
+  - **Verdict: HOLD (AUTH_HELPED)** — One-line: SSRF-by-design surface persists but is key-gated 401; no unauth primitive, needs valid key to prove no server-side SSRF guard.
