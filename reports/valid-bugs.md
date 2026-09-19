@@ -929,3 +929,7 @@
   - **VERDICT: HOLD (not VALID)** - one-line: reflected `redirect_to` into form action with `0 CSP form-action` is real but OAuth `redirect_uri` FIXED blocks chain; post-auth honoring unproven needs HUMAN
   - | Q4 | **NO** Cannot prove SSRF without invasive `POST` with valid key `scope.yml:39 no_data_modification` blocks. GET only shows 401. | |
   - **VERDICT: HOLD (AUTH_HELPED, not VALID unauth)**
+
+- 2 lead(s) marked VALID at 2026-09-19 14:32:38 UTC
+  - **Verdict: HOLD (VALID DUPLICATE) - one-line: locked orphaned impersonation, already reported awaiting vendor, Gladia-venue HOLD until 1 valid-key WSS proof**
+  - **Verdict: HOLD AUTH_HELPED - one-line: design confirmed (`format:uri` no allowlist, 7 webhooks), proof gated on valid x-gladia-key, no bypass in 100+ cycles**
