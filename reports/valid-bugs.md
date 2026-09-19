@@ -933,3 +933,7 @@
 - 2 lead(s) marked VALID at 2026-09-19 14:32:38 UTC
   - **Verdict: HOLD (VALID DUPLICATE) - one-line: locked orphaned impersonation, already reported awaiting vendor, Gladia-venue HOLD until 1 valid-key WSS proof**
   - **Verdict: HOLD AUTH_HELPED - one-line: design confirmed (`format:uri` no allowlist, 7 webhooks), proof gated on valid x-gladia-key, no bypass in 100+ cycles**
+
+- 2 lead(s) marked VALID at 2026-09-19 17:30:08 UTC
+  - Validated `triage-prompt.txt:28` `new-leads.txt:1` - **0 leads in current batch** = **NO NEW VALID**. Below is gate for the 3 live tracker hypotheses from `leads/lead-mimo.md:1` `leads/lead-human.md:1
+  - - **Verdict: HOLD (VALID DUPLICATE)** - one-line: locked orphaned impersonation + key-in-URL primitive `10+ pack sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` already report
