@@ -937,3 +937,6 @@
 - 2 lead(s) marked VALID at 2026-09-19 17:30:08 UTC
   - Validated `triage-prompt.txt:28` `new-leads.txt:1` - **0 leads in current batch** = **NO NEW VALID**. Below is gate for the 3 live tracker hypotheses from `leads/lead-mimo.md:1` `leads/lead-human.md:1
   - - **Verdict: HOLD (VALID DUPLICATE)** - one-line: locked orphaned impersonation + key-in-URL primitive `10+ pack sha256 3b23ec7d7a763abc04c52db232d157a982fd3bd969c9f703af3eecad5fa802f2` already report
+
+- 1 lead(s) marked VALID at 2026-09-19 19:38:02 UTC
+  - * **Verdict: HOLD -> VALID as informational `OTHER` only if program accepts `gladia` monitor package as in-scope.** One-line: passive-verified orphaned impersonation + key-in-URL, but requires human s
