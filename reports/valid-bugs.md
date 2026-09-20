@@ -970,3 +970,16 @@
   - **Verdict**: **HOLD** for Gladia program (Pre-Severity Gate #3 fail `lead-human.md:15`); **VALID** for **npm registry** impersonation policy case.
   - | Q2 | NO unauthenticated: `GET/POST /v2/pre-recorded` → `401 NestJS` `probe-results.md:229`; requires valid `x-gladia-key` (`AUTH_HELPED` `leads/lead-mimo.md:29`). CORS `access-control-allow-origin:*
   - | Q4 | NO. Spec review + `GET /openapi.json` proves surface `format:uri` no allowlist, but SSRF exploit needs `POST /v2/pre-recorded {"audio_url":"http://169.254.169.254/latest/meta-data/"}` with vali
+
+- 11 lead(s) marked VALID at 2026-09-20 12:30:17 UTC
+  - | Q5 Novel | **NO** — reported `2026-08-12 riteshekbote@gmail.com→security@gladia.io` `leads/lead-human.md:3` 10+ `reports/valid-bugs.md:238` VALID cycles — **DUPLICATE** |
+  - | Q7 Triager accept | **SPLIT** — npm Trust&Safety **ACCEPTS**, Gladia program triager **HOLDS** (`leads/lead-human.md:15` Q3 FAIL until `wss://api.gladia.io/v2/live?x-gladia-key=<valid>` proven serve
+  - **Verdict: VALID (DUPLICATE) for npm venue / HOLD for Gladia program** — one-line: locked orphaned impersonation 10+ repros, already reported 2026-08-12 awaiting vendor `leads/lead-human.md:3-4`
+  - | Q5 YES not prior VALID, always HOLD |
+  - | Q6 YES open redirect valid class, not auto-rejected |
+  - | Q2 **PARTIAL** key-gated `GET /v2/pre-recorded ->401` `probe-results.md:4` `GET /v2/pre-recorded ->401` uniform; reachable only with valid `x-gladia-key` (low-priv trial via `app.gladia.io` `scope.y
+  - | Q4 **NO** — requires `POST /v2/pre-recorded -H x-gladia-key:<valid> -d {"audio_url":"http://canary"}` vs `http://169.254.169.254/latest/meta-data/` error/timing oracle `leads/lead-mimo.md:29` not GE
+  - | Q6 YES SSRF valid class |
+  - | Q7 CONDITIONAL — accepts only with `401`-bypass or `valid-key POC` |
+  - **Verdict: HOLD (AUTH_HELPED)** — one-line: design confirmed via public `GET /openapi.json 14 paths` `inventory/gladia.md:28` + SDK verbatim forward, proof gated on valid key. `scope.yml:42` manual_va
+  - **Valid-bugs total: 1 VALID (duplicate, npm venue) + 2 HOLD (auth/helped). No new VALID this cycle per `reports/valid-bugs.md:418`.**
