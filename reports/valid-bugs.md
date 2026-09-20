@@ -983,3 +983,8 @@
   - | Q7 CONDITIONAL — accepts only with `401`-bypass or `valid-key POC` |
   - **Verdict: HOLD (AUTH_HELPED)** — one-line: design confirmed via public `GET /openapi.json 14 paths` `inventory/gladia.md:28` + SDK verbatim forward, proof gated on valid key. `scope.yml:42` manual_va
   - **Valid-bugs total: 1 VALID (duplicate, npm venue) + 2 HOLD (auth/helped). No new VALID this cycle per `reports/valid-bugs.md:418`.**
+
+- 3 lead(s) marked VALID at 2026-09-20 16:32:39 UTC
+  - | **L1 npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')` leaks key in `wss://` URL** `inventory/gladia.md:20` | **YES** `scope.yml:25-27` lists 
+  - | **L3 `api.gladia.io SSRF-by-design audio_url/video_url/callback_config.url 169.254.169.254` ** `POST /v2/pre-recorded` `inventory/gladia.md:91-93` | YES `api.gladia.io:HIGHEST` | **NO** `GET /v2/pre
+  - **VALID detail only for L1 npm venue**
