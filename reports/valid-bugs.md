@@ -988,3 +988,10 @@
   - | **L1 npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')` leaks key in `wss://` URL** `inventory/gladia.md:20` | **YES** `scope.yml:25-27` lists 
   - | **L3 `api.gladia.io SSRF-by-design audio_url/video_url/callback_config.url 169.254.169.254` ** `POST /v2/pre-recorded` `inventory/gladia.md:91-93` | YES `api.gladia.io:HIGHEST` | **NO** `GET /v2/pre
   - **VALID detail only for L1 npm venue**
+
+- 5 lead(s) marked VALID at 2026-09-20 19:07:01 UTC
+  - **Verdict: HOLD (Gladia program) / VALID (npm registry venue — DUPLICATE, already reported).** One-line: locked orphaned impersonation + key-in-URL primitive verified passive across 10+ repros, alread
+  - **Verdict: HOLD** — 200 alone insufficient; needs body/Location confirmation. `[NEXT] PROBE` `GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` + `curl -sS -D - | grep -i "action\
+  - **Verdict: HOLD (AUTH_HELPED)** — design confirmed, proof blocked on valid key.
+  - | 1 `gladia@0.1.3` | npm registry | HOLD(Gladia)/VALID(DUP npm) | Already reported 2026-08-12, Gladia impact conditional on WSS query-auth proof |
+  - | 3 SSRF `audio_url` | `api.gladia.io` HIGHEST | HOLD | Key-gated 401, needs valid key POST |
