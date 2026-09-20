@@ -995,3 +995,6 @@
   - **Verdict: HOLD (AUTH_HELPED)** — design confirmed, proof blocked on valid key.
   - | 1 `gladia@0.1.3` | npm registry | HOLD(Gladia)/VALID(DUP npm) | Already reported 2026-08-12, Gladia impact conditional on WSS query-auth proof |
   - | 3 SSRF `audio_url` | `api.gladia.io` HIGHEST | HOLD | Key-gated 401, needs valid key POST |
+
+- 1 lead(s) marked VALID at 2026-09-20 21:39:18 UTC
+  - Verdict: **HOLD — NO NEW VALID** (empty batch). No `VALID` to report; no CVSS/channel assignment.
