@@ -1002,3 +1002,6 @@
 - 2 lead(s) marked VALID at 2026-09-20 23:37:03 UTC
   - - **Verdict: HOLD (Gladia venue) / VALID (npm venue)** - Impersonation pending server-side key-in-URL proof. Minimal proof already done: `curl -s https://registry.npmjs.org/gladia | jq .dist["0.1.3"].
   - - **Verdict: HOLD** - potential open redirect if post-auth honors. `[NEXT] PROBE HUMAN_ONLY: GET https://app.gladia.io/signin?redirect_to=https://evil.example.com` with valid `__sid` session after Goo
+
+- 1 lead(s) marked VALID at 2026-09-21 01:45:38 UTC
+  - **Verdict: HOLD for Gladia, VALID for npm** — one-line: impersonation+credential hygiene real but Gladia-venue requires query-param auth proof.
