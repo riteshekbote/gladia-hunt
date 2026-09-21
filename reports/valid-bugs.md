@@ -1009,3 +1009,6 @@
 - 2 lead(s) marked VALID at 2026-09-21 07:16:51 UTC
   - |Q2|PARTIAL - attacker needs valid `x-gladia-key` (`401` everywhere); low-priv unauth NO|
   - |Q6|YES valid class|
+
+- 1 lead(s) marked VALID at 2026-09-21 14:22:27 UTC
+  - **VERDICT: HOLD (Gladia venue) / VALID (npm venue) — one-line: orphaned impersonation locked passive but Gladia-side key-leak requires proof `wss://api.gladia.io/v2/live?x-gladia-key=` is accepted; np
