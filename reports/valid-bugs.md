@@ -1005,3 +1005,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-21 01:45:38 UTC
   - **Verdict: HOLD for Gladia, VALID for npm** — one-line: impersonation+credential hygiene real but Gladia-venue requires query-param auth proof.
+
+- 2 lead(s) marked VALID at 2026-09-21 07:16:51 UTC
+  - |Q2|PARTIAL - attacker needs valid `x-gladia-key` (`401` everywhere); low-priv unauth NO|
+  - |Q6|YES valid class|
