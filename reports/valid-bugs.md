@@ -1012,3 +1012,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-21 14:22:27 UTC
   - **VERDICT: HOLD (Gladia venue) / VALID (npm venue) — one-line: orphaned impersonation locked passive but Gladia-side key-leak requires proof `wss://api.gladia.io/v2/live?x-gladia-key=` is accepted; np
+
+- 2 lead(s) marked VALID at 2026-09-21 19:37:01 UTC
+  - | Q2 | Reachable unauth/low-priv? — **NO** — `401 no gladia key provided` `probe-results.md:4` on all v2. Requires valid `x-gladia-key`. |
+  - **Verdict: HOLD (AUTH_HELPED) — one-line: key-gated SSRF-by-design surface persists, no unauth bypass, needs valid key PoC.**
