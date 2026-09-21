@@ -1016,3 +1016,6 @@
 - 2 lead(s) marked VALID at 2026-09-21 19:37:01 UTC
   - | Q2 | Reachable unauth/low-priv? — **NO** — `401 no gladia key provided` `probe-results.md:4` on all v2. Requires valid `x-gladia-key`. |
   - **Verdict: HOLD (AUTH_HELPED) — one-line: key-gated SSRF-by-design surface persists, no unauth bypass, needs valid key PoC.**
+
+- 1 lead(s) marked VALID at 2026-09-21 22:52:11 UTC
+  - **Verdict: HOLD (Gladia venue) / VALID (npm venue, OOS).** One-line: **Gladia program HOLD — orphaned impersonation locked, but `key-in-URL → Gladia vuln` unproven; npm impersonation VALID at npm.**
