@@ -1037,3 +1037,8 @@
 - 2 lead(s) marked VALID at 2026-09-22 20:16:17 UTC
   - **Verdict: VALID (DUPLICATE) for npm venue / HOLD for Gladia program — one-line: locked orphaned impersonation passive-proven, Gladia infra impact conditional on WSS query-auth POC, already reported a
   - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed (`format:uri` no scheme allowlist, 7 webhooks) but 401-gated, no bypass 100+ cycles, needs valid key POC.**
+
+- 3 lead(s) marked VALID at 2026-09-22 23:03:28 UTC
+  - | 1 | Orphaned `npm gladia@0.1.3` impersonates Official SDK + leaks `x-gladia-key` in `wss://` URL `leads/lead-mimo.md:7` `leads/lead-human.md:39` | `npmjs.com/package/gladia` `scope.yml:26` `inventor
+  - | 2 | `app.gladia.io /signin redirect_to` form-action reflection `0 CSP form-action directives` `leads/lead-mimo.md:14` | `app.gladia.io/signin` HIGH `scope.yml:9` | **HOLD** need HUMAN_ONLY post-auth
+  - | 3 | SSRF-by-design `audio_url/video_url/callback_config.url format:uri` no scheme allowlist `leads/lead-mimo.md:24` | `api.gladia.io/v2/pre-recorded` `scope.yml:7` HIGHEST | **HOLD** `AUTH_HELPED` c
