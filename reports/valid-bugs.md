@@ -1019,3 +1019,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-21 22:52:11 UTC
   - **Verdict: HOLD (Gladia venue) / VALID (npm venue, OOS).** One-line: **Gladia program HOLD — orphaned impersonation locked, but `key-in-URL → Gladia vuln` unproven; npm impersonation VALID at npm.**
+
+- 1 lead(s) marked VALID at 2026-09-22 01:21:33 UTC
+  - - **Verdict: HOLD for Gladia program (one-line: primitive present in third-party package, server-side key-in-URL acceptance unproven); VALID for npm Trust & Safety**
