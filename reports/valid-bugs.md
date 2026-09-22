@@ -1033,3 +1033,7 @@
 - 2 lead(s) marked VALID at 2026-09-22 17:05:17 UTC
   - 1.  **npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307 searchParams.append('x-gladia-key')`** — Q1 NO (asset is `npmjs.com/package/gladia` — not in `scope.yml:25-29` official `@gladiaio/
   - 2.  **app.gladia.io `/signin?redirect_to` open redirect** — Q1 YES `app.gladia.io` HIGH, Q2 YES, Q3 MAYBE (phishing IF honored post-auth), Q4 NO — 200 alone does NOT prove `Location: https://evil.exam
+
+- 2 lead(s) marked VALID at 2026-09-22 20:16:17 UTC
+  - **Verdict: VALID (DUPLICATE) for npm venue / HOLD for Gladia program — one-line: locked orphaned impersonation passive-proven, Gladia infra impact conditional on WSS query-auth POC, already reported a
+  - **Verdict: HOLD (AUTH_HELPED) — one-line: design confirmed (`format:uri` no scheme allowlist, 7 webhooks) but 401-gated, no bypass 100+ cycles, needs valid key POC.**
