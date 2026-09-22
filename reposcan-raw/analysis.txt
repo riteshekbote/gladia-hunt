@@ -1,17 +1,22 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Triaging the frozen 5k+ file scan — hunting for breakout high-value flaws beyond the 100-cycle noise.
+Delta flat — no new high-value primitives in this scan. Triaging 652 hits against 100+ frozen cycles to separate test fixtures from live secrets.
 [0m→ [0mRead .
-[0m→ [0mRead inventory
-[0m→ [0mRead reposcan-raw
+[0m→ [0mRead cands-gladiaio.txt
 [0m→ [0mRead scope.yml
-[0m→ [0mRead reposcan-raw/grep-hits.txt
-[0m→ [0mRead reposcan-raw/analysis.txt
-[0m→ [0mRead reposcan-raw/grep-delta.txt
-[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead repos-gladiaio.json
 [0m
-[0m$ [0mls -R reposcan-raw/gladiaio 2>&1 | head -n 200
+[0m$ [0mls -R reposcan-raw 2>/dev/null | head -n 200; echo "---"; wc -l reposcan-raw/gladiaio/*/* 2>/dev/null | tail
+reposcan-raw:
+analysis.txt
+gladiaio
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+npm
+rag.txt
+
 reposcan-raw/gladiaio:
 compare-stt
 docs
@@ -203,52 +208,36 @@ env.ts
 leaderboard-articles.ts
 leaderboard-data.ts
 match-token.ts
-pending-audio.ts
-providers
-providers.ts
-rate-limit.ts
-site.ts
-tracking.ts
-transcribe.ts
-upload-count.ts
+---
+      0 reposcan-raw/gladiaio/vercel-ai/packages
+  42681 reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml
+     11 reposcan-raw/gladiaio/vercel-ai/pnpm-workspace.yaml
+      0 reposcan-raw/gladiaio/vercel-ai/skills
+     12 reposcan-raw/gladiaio/vercel-ai/socket.yaml
+      0 reposcan-raw/gladiaio/vercel-ai/tools
+    206 reposcan-raw/gladiaio/vercel-ai/tsconfig.json
+     80 reposcan-raw/gladiaio/vercel-ai/tsconfig.with-examples.json
+    110 reposcan-raw/gladiaio/vercel-ai/turbo.json
+ 105330 total
 [0m
-[0m$ [0mwc -l reposcan-raw/grep-hits.txt reposcan-raw/grep-hits.prev.txt 2>&1; cat reposcan-raw/grep-hits.prev.txt 2>&1 | head -n 20
-61 reposcan-raw/grep-hits.txt
-   61 reposcan-raw/grep-hits.prev.txt
-  122 total
-SCAN SUMMARY: 5688 code/config files scanned, 652 hits
-reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.dev.conf.json:3: "identifier": "io.gladia.gladiaflow.dev",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/tauri.conf.json:5: "identifier": "io.gladia.gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:2: name = "gladiaflow"
-reposcan-raw/gladiaio/gladiaflow/src-tauri/Cargo.toml:5: authors = ["Gladia <support@gladia.io>"]
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:274: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:284: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/App.tsx:294: invoke("close_gladia_session").catch(console.error);
-reposcan-raw/gladiaio/gladiaflow/src/main.tsx:4: import "./gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/Gallery.tsx:17: apiKey: "sk-********",
-reposcan-raw/gladiaio/gladiaflow/src/screenshots/main.tsx:3: import "../gladia-tokens.css";
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:21: expect(validateVocabularyTerm(entries, " gladiaflow ", null)).toBe(
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:27: expect(validateVocabularyTerm(entries, "gladiaflow", 0)).toBeNull();
-reposcan-raw/gladiaio/gladiaflow/src/lib/vocabularyEditor.test.ts:34: normalizePronunciationCandidate(["gladioflow"], " gladiaflaw "),
-reposcan-raw/gladiaio/gladiaflow/src/lib/configLoad.test.ts:26: apiKey: "secret-key",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:8: value: "gladiaflow",
-reposcan-raw/gladiaio/gladiaflow/src/lib/customVocabulary.ts:9: pronunciations: ["gladioflow", "gladiaflaw"],
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m✗ [0mRead knowledge/README.md failed
+[91m[1mError: [0mFile not found: /home/runner/work/gladia-hunt/gladia-hunt/knowledge/README.md
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/grep-hits.prev.txt
+First pass shows only test placeholders — now verifying the full 652-hit corpus for any live credentials.
 [0m
-[0m$ [0mcat reposcan-raw/grep-hits.prev.txt | wc -l; cat reposcan-raw/grep-hits.txt | tail -n +2 | wc -l; diff -u reposcan-raw/grep-hits.prev.txt reposcan-raw/grep-hits.txt | head -n 100
+[0m$ [0mcat reposcan-raw/grep-hits.txt | wc -l; cat reposcan-raw/grep-hits.prev.txt | wc -l; ls -lh reposcan-raw/*.txt; head -n 100 reposcan-raw/grep-hits.txt
 61
-60
-[0m
-[0m$ [0mcat reposcan-raw/grep-hits.prev.txt | sort > /tmp/prev; cat reposcan-raw/grep-hits.txt | tail -n +2 | sort > /tmp/curr; diff /tmp/prev /tmp/curr
-1d0
-< SCAN SUMMARY: 5688 code/config files scanned, 652 hits
-[0m
-[0m$ [0mcat reposcan-raw/grep-hits.txt | tail -n +2 | head -n 100
-echo "---NPM---"
-ls -l reposcan-raw/npm/ 2>&1
-cat reposcan-raw/npm/*.txt 2>&1 | head -n 200
+61
+-rw-r--r-- 1 runner runner 4.9K Sep 22 17:36 reposcan-raw/analysis.txt
+-rw-r--r-- 1 runner runner   40 Sep 22 17:35 reposcan-raw/grep-delta.txt
+-rw-r--r-- 1 runner runner 6.4K Sep 22 17:35 reposcan-raw/grep-hits.prev.txt
+-rw-r--r-- 1 runner runner 6.4K Sep 22 17:35 reposcan-raw/grep-hits.txt
+-rw-r--r-- 1 runner runner 409K Sep 22 17:35 reposcan-raw/rag.txt
+SCAN SUMMARY: 5688 code/config files scanned, 652 hits
 reposcan-raw/gladiaio/gladiaflow/package.json:2: "name": "gladiaflow",
 reposcan-raw/gladiaio/gladiaflow/package-lock.json:2: "name": "gladiaflow",
 reposcan-raw/gladiaio/gladiaflow/package-lock.json:8: "name": "gladiaflow",
@@ -309,929 +298,326 @@ reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:8: gladia "github.com/gladiaio
 reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:12: func PrintTXTTranscription(response gladia.TranscriptionResult) {
 reposcan-raw/gladiaio/gladia-cli/cmd/formatter.go:16: func PrintTXTDiarizedTranscription(response gladia.TranscriptionResult) {
 reposcan-raw/gladiaio/gladia-cli/cmd/transcribe.go:8: gladia "github.com/gladiaio/gladia-cli/pkg/client"
----NPM---
-total 88
--rw-r--r-- 1 runner runner 68121 Sep 22 12:50 _gladiaio_sdk.json
--rw-r--r-- 1 runner runner 19076 Sep 22 12:50 gladia.json
-cat: 'reposcan-raw/npm/*.txt': No such file or directory
 [0m
-[0m$ [0mls -l reposcan-raw/ 2>&1
-cat reposcan-raw/npm/gladia.json | python3 -m json.tool 2>&1 | head -n 150
-total 456
--rw-r--r--  1 runner runner  13384 Sep 22 12:51 analysis.txt
-drwxr-xr-x 15 runner runner   4096 Sep 22 12:50 gladiaio
--rw-r--r--  1 runner runner     40 Sep 22 12:51 grep-delta.txt
--rw-r--r--  1 runner runner   6482 Sep 22 12:50 grep-hits.prev.txt
--rw-r--r--  1 runner runner   6482 Sep 22 12:51 grep-hits.txt
-drwxr-xr-x  2 runner runner   4096 Sep 22 12:50 npm
--rw-r--r--  1 runner runner 418000 Sep 22 12:51 rag.txt
-{
-    "_id": "gladia",
-    "_rev": "4-d0214ef116ff0426b738c29cf2a97cf1",
-    "name": "gladia",
-    "dist-tags": {
-        "latest": "0.1.3"
-    },
-    "versions": {
-        "0.1.0": {
-            "name": "gladia",
-            "version": "0.1.0",
-            "keywords": [
-                "gladia",
-                "speech-to-text",
-                "transcription",
-                "audio",
-                "video",
-                "ai",
-                "typescript",
-                "sdk"
-            ],
-            "author": {
-                "name": "Alexis Bouchez"
-            },
-            "license": "MIT",
-            "_id": "gladia@0.1.0",
-            "maintainers": [
-                {
-                    "name": "softwarecitadel",
-                    "email": "softwarecitadel@gmail.com"
-                }
-            ],
-            "homepage": "https://github.com/alexisbouchez/gladia.ts#readme",
-            "bugs": {
-                "url": "https://github.com/alexisbouchez/gladia.ts/issues"
-            },
-            "dist": {
-                "shasum": "5360e039097085f4b67e9b485e80565e15d5b593",
-                "tarball": "https://registry.npmjs.org/gladia/-/gladia-0.1.0.tgz",
-                "fileCount": 16,
-                "integrity": "sha512-EMrh74YcCKsult2u6MREZBHOA/nlC/kxPkhuQa2Dif50EWhJWPHGknLjgqVz2dvLPk9OPKwJAceRisUpQTHNBQ==",
-                "signatures": [
-                    {
-                        "sig": "MEQCIFhJTfnAP8lljiVTyxhE/HXkH4T/8iF6IFwt2MxqiAdIAiBKoat2DAkUQUh2Go8mCmtmX1v2dZL8+0NHRqtt6Dt3/g==",
-                        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
-                    }
-                ],
-                "unpackedSize": 223071
-            },
-            "main": "dist/index.js",
-            "husky": {
-                "hooks": {
-                    "pre-commit": "tsdx lint"
-                }
-            },
-            "types": "dist/index.d.ts",
-            "module": "dist/gladia.esm.js",
-            "engines": {
-                "node": ">=14"
-            },
-            "gitHead": "b0958572e5ecd45465d846ff35dc291f4429716e",
-            "scripts": {
-                "lint": "tsdx lint",
-                "size": "size-limit",
-                "test": "tsdx test",
-                "build": "tsdx build",
-                "start": "tsdx watch",
-                "analyze": "size-limit --why",
-                "example": "ts-node examples/youtube.ts",
-                "prepare": "tsdx build"
-            },
-            "_npmUser": {
-                "name": "softwarecitadel",
-                "email": "softwarecitadel@gmail.com"
-            },
-            "prettier": {
-                "semi": true,
-                "printWidth": 80,
-                "singleQuote": true,
-                "trailingComma": "es5"
-            },
-            "repository": {
-                "url": "git+https://github.com/alexisbouchez/gladia.ts.git",
-                "type": "git"
-            },
-            "size-limit": [
-                {
-                    "path": "dist/gladia.cjs.production.min.js",
-                    "limit": "10 KB"
-                },
-                {
-                    "path": "dist/gladia.esm.js",
-                    "limit": "10 KB"
-                }
-            ],
-            "_npmVersion": "10.8.2",
-            "description": "Official TypeScript SDK for Gladia - State-of-the-art Speech to Text API",
-            "directories": {},
-            "_nodeVersion": "20.19.0",
-            "_hasShrinkwrap": false,
-            "devDependencies": {
-                "tsdx": "^0.14.1",
-                "husky": "^9.1.7",
-                "tslib": "^2.8.1",
-                "ts-node": "^10.9.2",
-                "size-limit": "^11.2.0",
-                "typescript": "^5.8.2",
-                "@types/node": "^20.11.24",
-                "@size-limit/preset-small-lib": "^11.2.0"
-            },
-            "peerDependencies": {},
-            "_npmOperationalInternal": {
-                "tmp": "tmp/gladia_0.1.0_1743182409873_0.7256629399240493",
-                "host": "s3://npm-registry-packages-npm-production"
-            }
-        },
-        "0.1.1": {
-            "name": "gladia",
-            "version": "0.1.1",
-            "keywords": [
-                "gladia",
-                "speech-to-text",
-                "transcription",
-                "audio",
-                "video",
-                "ai",
-                "typescript",
-                "sdk"
-            ],
-            "author": {
-                "name": "Alexis Bouchez"
-            },
-            "license": "MIT",
-            "_id": "gladia@0.1.1",
-            "maintainers": [
-                {
-                    "name": "softwarecitadel",
-                    "email": "softwarecitadel@gmail.com"
-                }
-            ],
-            "homepage": "https://github.com/alexisbouchez/gladia.ts#readme",
-            "bugs": {
-                "url": "https://github.com/alexisbouchez/gladia.ts/issues"
-            },
-            "dist": {
-                "shasum": "86a6fced9e78c072aa361d8e1e03ffd3c4509f1f",
-                "tarball": "https://registry.npmjs.org/gladia/-/gladia-0.1.1.tgz",
-                "fileCount": 16,
-                "integrity": "sha512-GrSx7GpT1LgLr1t2pa8A/ly7288pfWzGMSERD6aGYrVGCiQDL5AHM21by/OquMcyiAvvkgAQZDasjkwOZdk0JA==",
-                "signatures": [
-[0m
-[0m$ [0mcat reposcan-raw/grep-hits.txt | tail -n +2 | wc -l
-# Need full hits - maybe grep-hits.txt only shows 60, but scan says 652 hits. Look for hidden full scan file
-ls -la reposcan-raw/ 2>&1
-cat reposcan-raw/analysis.txt 2>&1
-find reposcan-raw -type f -exec wc -l {} \;
-...output truncated...
+[0m$ [0mcat reposcan-raw/grep-hits.txt | head -n 1; # get scan summary
+grep -c "gladia" reposcan-raw/grep-hits.txt
+# there is discrepancy 652 vs 61 lines - maybe grep pattern counts multiple hits per file but only unique? Check raw scanner script
+ls -la scripts/
+cat scripts/*.sh 2>/dev/null | head -n 200
+cat scripts/*.py 2>/dev/null | head -n 300
+SCAN SUMMARY: 5688 code/config files scanned, 652 hits
+60
+total 28
+drwxr-xr-x  2 runner runner  4096 Sep 22 17:34 .
+drwxr-xr-x 11 runner runner  4096 Sep 22 17:35 ..
+-rw-r--r--  1 runner runner 17327 Sep 22 17:34 sync-issues.py
+import os, re, hashlib
+from difflib import SequenceMatcher
+from pathlib import Path
+from github import Github
 
-Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_0c92c168c001I0f1BTxKIT434C
+REPO = os.environ["GITHUB_REPOSITORY"]
+TOKEN = os.environ["GITHUB_TOKEN"]
+GLOB = os.environ.get("LEAD_GLOB", "leads/lead-*.md")
+TARGET = os.environ.get("TARGET_NAME", "hunt")
+MODEL_FROM_FILENAME = os.environ.get("MODEL_FROM_FILENAME", "0") == "1"
 
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/release-policy-opa-provenance.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/funny-hairs-act.md
-11 reposcan-raw/gladiaio/vercel-ai/.changeset/google-no-args-streaming-tool-call.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/azjeb-lylmk-htihq.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/eight-windows-warn.md
-21 reposcan-raw/gladiaio/vercel-ai/.changeset/policy-opa-package.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/neat-cats-sip.md
-7 reposcan-raw/gladiaio/vercel-ai/.changeset/sharp-cows-exist.md
-6 reposcan-raw/gladiaio/vercel-ai/.changeset/cool-windows-tell.md
-8 reposcan-raw/gladiaio/vercel-ai/.changeset/yellow-crabs-mate.md
-7 reposcan-raw/gladiaio/vercel-ai/.changeset/sixty-ties-shave.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/giant-garlics-roll.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/google-modality-token-details.md
-5 reposcan-raw/gladiaio/vercel-ai/.changeset/selfish-paws-fetch.md
-60 reposcan-raw/gladiaio/vercel-ai/.changeset/smart-eggs-yawn.md
-17 reposcan-raw/gladiaio/vercel-ai/.changeset/nine-starfishes-relax.md
-7 reposcan-raw/gladiaio/vercel-ai/.changeset/clever-pots-rhyme.md
-11 reposcan-raw/gladiaio/vercel-ai/pnpm-workspace.yaml
-307 reposcan-raw/gladiaio/vercel-ai/AGENTS.md
-5138 reposcan-raw/gladiaio/vercel-ai/assets/hero.gif
-206 reposcan-raw/gladiaio/vercel-ai/tsconfig.json
-23 reposcan-raw/gladiaio/vercel-ai/.github/workflows/assign-team-pull-request.yml
-30 reposcan-raw/gladiaio/vercel-ai/.github/workflows/auto-merge-release-prs.yml
-116 reposcan-raw/gladiaio/vercel-ai/.github/workflows/release.yml
-41 reposcan-raw/gladiaio/vercel-ai/.github/workflows/slack-workflow-failure-notification.yml
-261 reposcan-raw/gladiaio/vercel-ai/.github/workflows/update-model-settings.yml
-505 reposcan-raw/gladiaio/vercel-ai/.github/workflows/ci.yml
-40 reposcan-raw/gladiaio/vercel-ai/.github/workflows/verify-changesets.yml
-33 reposcan-raw/gladiaio/vercel-ai/.github/workflows/ai-provider-api-changes.yml
-339 reposcan-raw/gladiaio/vercel-ai/.github/workflows/actions/verify-changesets/test.js
-154 reposcan-raw/gladiaio/vercel-ai/.github/workflows/actions/verify-changesets/index.js
-8 reposcan-raw/gladiaio/vercel-ai/.github/workflows/actions/verify-changesets/package.json
-52 reposcan-raw/gladiaio/vercel-ai/.github/workflows/ai-provider-models.yml
-683 reposcan-raw/gladiaio/vercel-ai/.github/workflows/backport.yml
-38 reposcan-raw/gladiaio/vercel-ai/.github/workflows/slack-team-review-notification.yml
-9 reposcan-raw/gladiaio/vercel-ai/.github/SECURITY.md
-53 reposcan-raw/gladiaio/vercel-ai/.github/renovate.json5
-51 reposcan-raw/gladiaio/vercel-ai/.github/pull_request_template.md
-50 reposcan-raw/gladiaio/vercel-ai/.github/scripts/cleanup-examples-changesets.mjs
-7 reposcan-raw/gladiaio/vercel-ai/.github/scripts/notify-released/package.json
-253 reposcan-raw/gladiaio/vercel-ai/.github/scripts/notify-released/index.mjs
-244 reposcan-raw/gladiaio/vercel-ai/.github/konsistent.json
-35 reposcan-raw/gladiaio/vercel-ai/.github/ISSUE_TEMPLATE/1.support_request.yml
-5 reposcan-raw/gladiaio/vercel-ai/.github/ISSUE_TEMPLATE/config.yml
-19 reposcan-raw/gladiaio/vercel-ai/.github/DISCUSSION_TEMPLATE/help.yml
-19 reposcan-raw/gladiaio/vercel-ai/.github/DISCUSSION_TEMPLATE/ideas-feedback.yml
-19 reposcan-raw/gladiaio/vercel-ai/.github/DISCUSSION_TEMPLATE/show-and-tell.yml
-14 reposcan-raw/gladiaio/vercel-ai/.github/DISCUSSION_TEMPLATE/polls.yml
-67 reposcan-raw/gladiaio/vercel-ai/.github/tigent.yml
-12 reposcan-raw/gladiaio/vercel-ai/LICENSE
-13 reposcan-raw/gladiaio/docs/.git/hooks/pre-merge-commit.sample
-78 reposcan-raw/gladiaio/docs/.git/hooks/push-to-checkout.sample
-15 reposcan-raw/gladiaio/docs/.git/hooks/applypatch-msg.sample
-53 reposcan-raw/gladiaio/docs/.git/hooks/pre-push.sample
-49 reposcan-raw/gladiaio/docs/.git/hooks/pre-commit.sample
-14 reposcan-raw/gladiaio/docs/.git/hooks/pre-applypatch.sample
-24 reposcan-raw/gladiaio/docs/.git/hooks/pre-receive.sample
-8 reposcan-raw/gladiaio/docs/.git/hooks/post-update.sample
-168 reposcan-raw/gladiaio/docs/.git/hooks/fsmonitor-watchman.sample
-77 reposcan-raw/gladiaio/docs/.git/hooks/sendemail-validate.sample
-128 reposcan-raw/gladiaio/docs/.git/hooks/update.sample
-74 reposcan-raw/gladiaio/docs/.git/hooks/commit-msg.sample
-42 reposcan-raw/gladiaio/docs/.git/hooks/prepare-commit-msg.sample
-169 reposcan-raw/gladiaio/docs/.git/hooks/pre-rebase.sample
-1 reposcan-raw/gladiaio/docs/.git/logs/HEAD
-1 reposcan-raw/gladiaio/docs/.git/logs/refs/heads/main
-1 reposcan-raw/gladiaio/docs/.git/logs/refs/remotes/origin/HEAD
-6 reposcan-raw/gladiaio/docs/.git/info/exclude
-66 reposcan-raw/gladiaio/docs/.git/index
-1 reposcan-raw/gladiaio/docs/.git/HEAD
-11 reposcan-raw/gladiaio/docs/.git/config
-2 reposcan-raw/gladiaio/docs/.git/packed-refs
-1 reposcan-raw/gladiaio/docs/.git/shallow
-1 reposcan-raw/gladiaio/docs/.git/description
-1 reposcan-raw/gladiaio/docs/.git/refs/heads/main
-1 reposcan-raw/gladiaio/docs/.git/refs/remotes/origin/HEAD
-22 reposcan-raw/gladiaio/docs/.git/objects/pack/pack-bb2014bafc6b09393c6d5cd3c50f5810bc7794e8.idx
-1 reposcan-raw/gladiaio/docs/.git/objects/pack/pack-bb2014bafc6b09393c6d5cd3c50f5810bc7794e8.rev
-18367 reposcan-raw/gladiaio/docs/.git/objects/pack/pack-bb2014bafc6b09393c6d5cd3c50f5810bc7794e8.pack
-2 reposcan-raw/gladiaio/docs/api-transcription-v1-deprecated/post-videotextvideo-transcription.mdx
-2 reposcan-raw/gladiaio/docs/api-transcription-v1-deprecated/post-audiotextaudio-transcription.mdx
-16 reposcan-raw/gladiaio/docs/snippets/stt-cards.mdx
-11 reposcan-raw/gladiaio/docs/snippets/custom-vocabulary-vs-spelling.mdx
-17 reposcan-raw/gladiaio/docs/snippets/setup-account.mdx
-47 reposcan-raw/gladiaio/docs/snippets/getting-started-playground.mdx
-73 reposcan-raw/gladiaio/docs/snippets/get-transcription-result.mdx
-5 reposcan-raw/gladiaio/docs/snippets/why-post-to-open-websocket.mdx
-6 reposcan-raw/gladiaio/docs/snippets/partials-tip.mdx
-16 reposcan-raw/gladiaio/docs/snippets/choose-model.mdx
-125 reposcan-raw/gladiaio/docs/snippets/integrations-cards.mdx
-25 reposcan-raw/gladiaio/docs/snippets/samples.mdx
-5 reposcan-raw/gladiaio/docs/snippets/recommended-params/diarization-vs-multichannel.mdx
-44 reposcan-raw/gladiaio/docs/snippets/recommended-params/language-detection.mdx
-56 reposcan-raw/gladiaio/docs/snippets/recommended-params/custom-vocabulary.mdx
-28 reposcan-raw/gladiaio/docs/snippets/recommended-params/code-switching.mdx
-3 reposcan-raw/gladiaio/docs/snippets/badges/n8n.mdx
-3 reposcan-raw/gladiaio/docs/snippets/badges/live.mdx
-3 reposcan-raw/gladiaio/docs/snippets/badges/prerecorded.mdx
-75 reposcan-raw/gladiaio/docs/api-reference/callbacks/large-language-model.mdx
-5 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/get-audio.mdx
-8 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/init.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/list.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/get.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/delete.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/callback/success.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/callback/error.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/webhook/success.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/webhook/error.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/pre-recorded/webhook/created.mdx
-5 reposcan-raw/gladiaio/docs/api-reference/v2/live/get-audio.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/websocket.mdx
-11 reposcan-raw/gladiaio/docs/api-reference/v2/live/init.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/list.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/speech-start.mdx
-6 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/post-transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/translation.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/post-summarization.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/post-final-transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/end-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/post-chapterization.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/speech-end.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/end-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/named-entity-recognition.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/start-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/stop-recording-ack.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/start-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/sentiment-analysis.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/message/audio-chunk-ack.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/get.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/delete.mdx
-35 reposcan-raw/gladiaio/docs/api-reference/v2/live/action/audio-chunk.mdx
-13 reposcan-raw/gladiaio/docs/api-reference/v2/live/action/stop-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/speech-start.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/post-transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/translation.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/post-summarization.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/post-final-transcript.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/end-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/post-chapterization.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/speech-end.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/end-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/named-entity-recognition.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/start-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/stop-recording-ack.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/start-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/sentiment-analysis.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/callback/audio-chunk-ack.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/webhook/end-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/webhook/end-recording.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/webhook/start-session.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/live/webhook/start-recording.mdx
-5 reposcan-raw/gladiaio/docs/api-reference/v2/upload/audio-file.mdx
-5 reposcan-raw/gladiaio/docs/api-reference/v2/transcription/get-audio.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/transcription/init.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/transcription/list.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/transcription/get.mdx
-4 reposcan-raw/gladiaio/docs/api-reference/v2/transcription/delete.mdx
-26 reposcan-raw/gladiaio/docs/api-reference/authentication.mdx
-17 reposcan-raw/gladiaio/docs/api-reference/index.mdx
-11 reposcan-raw/gladiaio/docs/.editorconfig
-2 reposcan-raw/gladiaio/docs/.gitignore
-1159 reposcan-raw/gladiaio/docs/asyncapi.yaml
-35 reposcan-raw/gladiaio/docs/README.md
-624 reposcan-raw/gladiaio/docs/docs.json
-389 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/quickstart.mdx
-29 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/features/enhanced-punctuation.mdx
-18 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/features/name-consistency.mdx
-32 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/features/word-level-timestamps.mdx
-110 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/features/index.mdx
-126 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/recommended-parameters.mdx
-92 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/audio-intelligence.mdx
-302 reposcan-raw/gladiaio/docs/chapters/pre-recorded-stt/migration-from-v1.mdx
-13 reposcan-raw/gladiaio/docs/chapters/how-to-use-gladia/playground.mdx
-205 reposcan-raw/gladiaio/docs/chapters/how-to-use-gladia/sdk.mdx
-64 reposcan-raw/gladiaio/docs/chapters/how-to-use-gladia/benchmarking.mdx
-165 reposcan-raw/gladiaio/docs/chapters/how-to-use-gladia/cli.mdx
-54 reposcan-raw/gladiaio/docs/chapters/how-to-use-gladia/gladia-flow.mdx
-73 reposcan-raw/gladiaio/docs/chapters/introduction/why-use-gladia.mdx
-181 reposcan-raw/gladiaio/docs/chapters/introduction/models.mdx
-63 reposcan-raw/gladiaio/docs/chapters/introduction/index.mdx
-68 reposcan-raw/gladiaio/docs/chapters/introduction/getting-started.mdx
-113 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/custom-spelling.mdx
-216 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/translation.mdx
-431 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/structured-data-extraction.mdx
-60 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/subtitles.mdx
-94 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/chapterization.mdx
-51 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/custom-metadata.mdx
-119 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/custom-vocabulary.mdx
-181 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/named-entity-recognition.mdx
-43 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/sentences.mdx
-146 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/audio-to-llm.mdx
-122 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/sentiment-analysis.mdx
-76 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/index.mdx
-208 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/pii-redaction.mdx
-60 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/speaker-diarization.mdx
-75 reposcan-raw/gladiaio/docs/chapters/audio-intelligence/summarization.mdx
-355 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/health records.mdx
-18 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/questions.mdx
-23 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/date time entities.mdx
-112 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/facilities.mdx
-20 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/geopolitical entities.mdx
-176 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/money entities.mdx
-11 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/products.mdx
-28 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/documents.mdx
-29 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/organizations.mdx
-23 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/events.mdx
-224 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/hotel bookings.mdx
-39 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/payment card industry.mdx
-18 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/non geopolitical entities.mdx
-25 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/appointments.mdx
-21 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/vehicles.mdx
-43 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/addresses.mdx
-13 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/speakers.mdx
-19 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/trading actions.mdx
-264 reposcan-raw/gladiaio/docs/chapters/structured-data-extraction/pages/persons.mdx
-173 reposcan-raw/gladiaio/docs/chapters/developer-tools/gladia-cli.mdx
-43 reposcan-raw/gladiaio/docs/chapters/limits-and-specifications/multiple-channels.mdx
-55 reposcan-raw/gladiaio/docs/chapters/limits-and-specifications/data-retention.mdx
-49 reposcan-raw/gladiaio/docs/chapters/limits-and-specifications/concurrency.mdx
-113 reposcan-raw/gladiaio/docs/chapters/limits-and-specifications/supported-formats.mdx
-695 reposcan-raw/gladiaio/docs/chapters/live-stt/quickstart.mdx
-41 reposcan-raw/gladiaio/docs/chapters/live-stt/features/partial-transcripts.mdx
-60 reposcan-raw/gladiaio/docs/chapters/live-stt/features/index.mdx
-47 reposcan-raw/gladiaio/docs/chapters/live-stt/features/endpointing.mdx
-112 reposcan-raw/gladiaio/docs/chapters/live-stt/recommended-parameters.mdx
-57 reposcan-raw/gladiaio/docs/chapters/live-stt/audio-intelligence.mdx
-476 reposcan-raw/gladiaio/docs/chapters/live-stt/migration-from-v1.mdx
-47 reposcan-raw/gladiaio/docs/chapters/integrations/livekit.mdx
-87 reposcan-raw/gladiaio/docs/chapters/integrations/n8n.mdx
-42 reposcan-raw/gladiaio/docs/chapters/integrations/zapier.mdx
-47 reposcan-raw/gladiaio/docs/chapters/integrations/pipecat.mdx
-123 reposcan-raw/gladiaio/docs/chapters/integrations/attendee.mdx
-121 reposcan-raw/gladiaio/docs/chapters/integrations/meeting-baas.mdx
-42 reposcan-raw/gladiaio/docs/chapters/integrations/composio.mdx
-42 reposcan-raw/gladiaio/docs/chapters/integrations/make.mdx
-3 reposcan-raw/gladiaio/docs/chapters/integrations/vapi.mdx
-49 reposcan-raw/gladiaio/docs/chapters/integrations/recall.mdx
-42 reposcan-raw/gladiaio/docs/chapters/integrations/videosdk.mdx
-7 reposcan-raw/gladiaio/docs/chapters/integrations/index.mdx
-51 reposcan-raw/gladiaio/docs/chapters/integrations/twilio.mdx
-343 reposcan-raw/gladiaio/docs/chapters/migrations/from-assembly.mdx
-292 reposcan-raw/gladiaio/docs/chapters/migrations/from-deepgram.mdx
-121 reposcan-raw/gladiaio/docs/chapters/language/supported-languages.mdx
-56 reposcan-raw/gladiaio/docs/chapters/language/language-detection.mdx
-42 reposcan-raw/gladiaio/docs/chapters/language/code-switching.mdx
-1001 reposcan-raw/gladiaio/docs/assets/dark-banner.png
-161 reposcan-raw/gladiaio/docs/assets/icons/hero-dark.svg
-12 reposcan-raw/gladiaio/docs/assets/icons/favicon.svg
-155 reposcan-raw/gladiaio/docs/assets/icons/hero-light.svg
-4 reposcan-raw/gladiaio/docs/assets/images/logos/text-white.svg
-4 reposcan-raw/gladiaio/docs/assets/images/logos/text-black.svg
-4 reposcan-raw/gladiaio/docs/assets/images/logos/black-bg-white-icon.svg
-1497 reposcan-raw/gladiaio/docs/assets/images/playground-2.png
-3558 reposcan-raw/gladiaio/docs/assets/images/download_history.png
-729 reposcan-raw/gladiaio/docs/assets/images/playground-3.png
-70 reposcan-raw/gladiaio/docs/assets/images/gladiaflow-home.png
-1925 reposcan-raw/gladiaio/docs/assets/images/transcription_history_menu.png
-93 reposcan-raw/gladiaio/docs/assets/images/attendee-add-gladia-credentials.png
-1548 reposcan-raw/gladiaio/docs/assets/images/download_history2.png
-550 reposcan-raw/gladiaio/docs/assets/images/account-api-keys.png
-1532 reposcan-raw/gladiaio/docs/assets/images/background/lightbackground.png
-1348 reposcan-raw/gladiaio/docs/assets/images/integrations/recall-ai-dashboard.png
-1019 reposcan-raw/gladiaio/docs/assets/images/playground-4.png
-675 reposcan-raw/gladiaio/docs/assets/images/gladia-cover.png
-779 reposcan-raw/gladiaio/docs/assets/images/webhooks-1.png
-849 reposcan-raw/gladiaio/docs/assets/images/playground-3-old.png
-2550 reposcan-raw/gladiaio/docs/assets/images/playground-1.png
-760 reposcan-raw/gladiaio/docs/assets/images/attendee-gladia-credentials.png
-1117 reposcan-raw/gladiaio/docs/assets/light-banner.png
-30 reposcan-raw/gladiaio/docs/style.css
-16 reposcan-raw/gladiaio/docs/.github/workflows/mintlify.yml
-21 reposcan-raw/gladiaio/docs/LICENSE
-3 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-push
-13 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-merge-commit.sample
-3 reposcan-raw/gladiaio/gladia-samples/.git/hooks/post-commit
-78 reposcan-raw/gladiaio/gladia-samples/.git/hooks/push-to-checkout.sample
-15 reposcan-raw/gladiaio/gladia-samples/.git/hooks/applypatch-msg.sample
-53 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-push.sample
-49 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-commit.sample
-14 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-applypatch.sample
-24 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-receive.sample
-3 reposcan-raw/gladiaio/gladia-samples/.git/hooks/post-merge
-8 reposcan-raw/gladiaio/gladia-samples/.git/hooks/post-update.sample
-168 reposcan-raw/gladiaio/gladia-samples/.git/hooks/fsmonitor-watchman.sample
-77 reposcan-raw/gladiaio/gladia-samples/.git/hooks/sendemail-validate.sample
-128 reposcan-raw/gladiaio/gladia-samples/.git/hooks/update.sample
-74 reposcan-raw/gladiaio/gladia-samples/.git/hooks/commit-msg.sample
-42 reposcan-raw/gladiaio/gladia-samples/.git/hooks/prepare-commit-msg.sample
-3 reposcan-raw/gladiaio/gladia-samples/.git/hooks/post-checkout
-169 reposcan-raw/gladiaio/gladia-samples/.git/hooks/pre-rebase.sample
-1 reposcan-raw/gladiaio/gladia-samples/.git/logs/HEAD
-1 reposcan-raw/gladiaio/gladia-samples/.git/logs/refs/heads/main
-1 reposcan-raw/gladiaio/gladia-samples/.git/logs/refs/remotes/origin/HEAD
-6 reposcan-raw/gladiaio/gladia-samples/.git/info/exclude
-41 reposcan-raw/gladiaio/gladia-samples/.git/index
-1 reposcan-raw/gladiaio/gladia-samples/.git/HEAD
-13 reposcan-raw/gladiaio/gladia-samples/.git/config
-2 reposcan-raw/gladiaio/gladia-samples/.git/packed-refs
-19126 reposcan-raw/gladiaio/gladia-samples/.git/lfs/objects/82/b8/82b82d072845b41fd4a2b22bd1b2dbf65f6e063a26a7b057ff49a6c23e6cd998
-1 reposcan-raw/gladiaio/gladia-samples/.git/shallow
-1 reposcan-raw/gladiaio/gladia-samples/.git/description
-1 reposcan-raw/gladiaio/gladia-samples/.git/refs/heads/main
-1 reposcan-raw/gladiaio/gladia-samples/.git/refs/remotes/origin/HEAD
-81878 reposcan-raw/gladiaio/gladia-samples/.git/objects/pack/pack-11b978d951b04f076505ab43fe86d485569f75a4.pack
-1 reposcan-raw/gladiaio/gladia-samples/.git/objects/pack/pack-11b978d951b04f076505ab43fe86d485569f75a4.rev
-21 reposcan-raw/gladiaio/gladia-samples/.git/objects/pack/pack-11b978d951b04f076505ab43fe86d485569f75a4.idx
-6 reposcan-raw/gladiaio/gladia-samples/.vscode/settings.json
-33372 reposcan-raw/gladiaio/gladia-samples/data/call-center-example.mp4
-47357 reposcan-raw/gladiaio/gladia-samples/data/online-meeting-example.mp4
-19126 reposcan-raw/gladiaio/gladia-samples/data/anna-and-sasha-16000.wav
-9 reposcan-raw/gladiaio/gladia-samples/javascript/core-concepts/pre-recorded/pre-recorded.js
-56 reposcan-raw/gladiaio/gladia-samples/javascript/core-concepts/live/live-from-file.js
-175 reposcan-raw/gladiaio/gladia-samples/javascript/core-concepts/live/live-helpers.js
-48 reposcan-raw/gladiaio/gladia-samples/javascript/core-concepts/live/live-from-microphone.js
-16 reposcan-raw/gladiaio/gladia-samples/javascript/env.js
-44 reposcan-raw/gladiaio/gladia-samples/javascript/examples/youtube-translation.js
-17 reposcan-raw/gladiaio/gladia-samples/javascript/examples/anonymized-call.js
-26 reposcan-raw/gladiaio/gladia-samples/javascript/examples/call-sentiment-analysis.js
-10 reposcan-raw/gladiaio/gladia-samples/javascript/examples/meeting-summary.js
-36 reposcan-raw/gladiaio/gladia-samples/javascript/package.json
-737 reposcan-raw/gladiaio/gladia-samples/javascript/package-lock.json
-35 reposcan-raw/gladiaio/gladia-samples/javascript/README.md
-9 reposcan-raw/gladiaio/gladia-samples/typescript/core-concepts/pre-recorded/pre-recorded.ts
-55 reposcan-raw/gladiaio/gladia-samples/typescript/core-concepts/live/live-from-file.ts
-48 reposcan-raw/gladiaio/gladia-samples/typescript/core-concepts/live/live-from-microphone.ts
-195 reposcan-raw/gladiaio/gladia-samples/typescript/core-concepts/live/live_helpers.ts
-18 reposcan-raw/gladiaio/gladia-samples/typescript/env.ts
-42 reposcan-raw/gladiaio/gladia-samples/typescript/examples/youtube-translation.ts
-15 reposcan-raw/gladiaio/gladia-samples/typescript/examples/anonymized-call.ts
-14 reposcan-raw/gladiaio/gladia-samples/typescript/examples/meeting-summary.ts
-44 reposcan-raw/gladiaio/gladia-samples/typescript/examples/call-sentiment-analysis.ts
-16 reposcan-raw/gladiaio/gladia-samples/typescript/interface.d.ts
-41 reposcan-raw/gladiaio/gladia-samples/typescript/package.json
-1300 reposcan-raw/gladiaio/gladia-samples/typescript/package-lock.json
-35 reposcan-raw/gladiaio/gladia-samples/typescript/README.md
-26 reposcan-raw/gladiaio/gladia-samples/typescript/tsconfig.json
-11 reposcan-raw/gladiaio/gladia-samples/.prettierrc
-75 reposcan-raw/gladiaio/gladia-samples/CONTRIBUTING.md
-65 reposcan-raw/gladiaio/gladia-samples/scripts/validate-sample-layout.sh
-5 reposcan-raw/gladiaio/gladia-samples/.gitattributes
-146 reposcan-raw/gladiaio/gladia-samples/.gitignore
-47 reposcan-raw/gladiaio/gladia-samples/README.md
-9 reposcan-raw/gladiaio/gladia-samples/integrations-examples/pipecat-bot/pyproject.toml
-1 reposcan-raw/gladiaio/gladia-samples/integrations-examples/pipecat-bot/.env.example
-114 reposcan-raw/gladiaio/gladia-samples/integrations-examples/pipecat-bot/main.py
-2305 reposcan-raw/gladiaio/gladia-samples/integrations-examples/pipecat-bot/uv.lock
-53 reposcan-raw/gladiaio/gladia-samples/integrations-examples/pipecat-bot/README.md
-10 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/pyproject.toml
-4 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/.env.example
-67 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/main.py
-1576 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/uv.lock
-101 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/README.md
-39 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/agent-loading.png
-144 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/key-details.png
-187 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/playground-connection.png
-246 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/project-api-keys.png
-92 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/new-project.png
-714 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/playground.png
-52 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/transcription.png
-140 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/key-details-2.png
-48 reposcan-raw/gladiaio/gladia-samples/integrations-examples/livekit-agent/img/agent-connected.png
-74 reposcan-raw/gladiaio/gladia-samples/integrations-examples/discord/gladia.js
-110 reposcan-raw/gladiaio/gladia-samples/integrations-examples/discord/index.js
-18 reposcan-raw/gladiaio/gladia-samples/integrations-examples/discord/package.json
-708 reposcan-raw/gladiaio/gladia-samples/integrations-examples/discord/package-lock.json
-29 reposcan-raw/gladiaio/gladia-samples/integrations-examples/discord/README.md
-568 reposcan-raw/gladiaio/gladia-samples/integrations-examples/OBS/subtitles-with-chromakey.html
-68 reposcan-raw/gladiaio/gladia-samples/integrations-examples/OBS/README.md
-15 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/pyproject.toml
-0 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/build.sh
-53 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/ssh_config
-9 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/pulseaudio.conf
-107 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/Dockerfile
-442 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/uv.lock
-1 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/entrypoint.sh
-29 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/README.md
-435 reposcan-raw/gladiaio/gladia-samples/integrations-examples/gmeet-bot/gmeet.py
-3 reposcan-raw/gladiaio/gladia-samples/integrations-examples/twilio/.env.example
-20 reposcan-raw/gladiaio/gladia-samples/integrations-examples/twilio/package.json
-1491 reposcan-raw/gladiaio/gladia-samples/integrations-examples/twilio/package-lock.json
-122 reposcan-raw/gladiaio/gladia-samples/integrations-examples/twilio/app.js
-51 reposcan-raw/gladiaio/gladia-samples/integrations-examples/twilio/README.md
-75 reposcan-raw/gladiaio/gladia-samples/.github/workflows/validate-samples.yml
-77 reposcan-raw/gladiaio/gladia-samples/.github/dependabot.yml
-26 reposcan-raw/gladiaio/gladia-samples/python/core-concepts/pre-recorded/pre_recorded_async.py
-17 reposcan-raw/gladiaio/gladia-samples/python/core-concepts/pre-recorded/pre_recorded.py
-111 reposcan-raw/gladiaio/gladia-samples/python/core-concepts/live/live-from-microphone.py
-113 reposcan-raw/gladiaio/gladia-samples/python/core-concepts/live/live-from-file.py
-41 reposcan-raw/gladiaio/gladia-samples/python/pyproject.toml
-1 reposcan-raw/gladiaio/gladia-samples/python/.env.example
-20 reposcan-raw/gladiaio/gladia-samples/python/examples/anonymized_call.py
-40 reposcan-raw/gladiaio/gladia-samples/python/examples/youtube_translation.py
-35 reposcan-raw/gladiaio/gladia-samples/python/examples/call_sentiment_analysis.py
-13 reposcan-raw/gladiaio/gladia-samples/python/examples/meeting_summary.py
-447 reposcan-raw/gladiaio/gladia-samples/python/uv.lock
-37 reposcan-raw/gladiaio/gladia-samples/python/README.md
-4 reposcan-raw/gladiaio/sdk/.npmrc
-3 reposcan-raw/gladiaio/sdk/.git/hooks/pre-push
-13 reposcan-raw/gladiaio/sdk/.git/hooks/pre-merge-commit.sample
-3 reposcan-raw/gladiaio/sdk/.git/hooks/post-commit
-78 reposcan-raw/gladiaio/sdk/.git/hooks/push-to-checkout.sample
-15 reposcan-raw/gladiaio/sdk/.git/hooks/applypatch-msg.sample
-53 reposcan-raw/gladiaio/sdk/.git/hooks/pre-push.sample
-49 reposcan-raw/gladiaio/sdk/.git/hooks/pre-commit.sample
-14 reposcan-raw/gladiaio/sdk/.git/hooks/pre-applypatch.sample
-24 reposcan-raw/gladiaio/sdk/.git/hooks/pre-receive.sample
-3 reposcan-raw/gladiaio/sdk/.git/hooks/post-merge
-8 reposcan-raw/gladiaio/sdk/.git/hooks/post-update.sample
-168 reposcan-raw/gladiaio/sdk/.git/hooks/fsmonitor-watchman.sample
-77 reposcan-raw/gladiaio/sdk/.git/hooks/sendemail-validate.sample
-128 reposcan-raw/gladiaio/sdk/.git/hooks/update.sample
-74 reposcan-raw/gladiaio/sdk/.git/hooks/commit-msg.sample
-42 reposcan-raw/gladiaio/sdk/.git/hooks/prepare-commit-msg.sample
-3 reposcan-raw/gladiaio/sdk/.git/hooks/post-checkout
-169 reposcan-raw/gladiaio/sdk/.git/hooks/pre-rebase.sample
-1 reposcan-raw/gladiaio/sdk/.git/logs/HEAD
-1 reposcan-raw/gladiaio/sdk/.git/logs/refs/heads/main
-1 reposcan-raw/gladiaio/sdk/.git/logs/refs/remotes/origin/HEAD
-6 reposcan-raw/gladiaio/sdk/.git/info/exclude
-67 reposcan-raw/gladiaio/sdk/.git/index
-1 reposcan-raw/gladiaio/sdk/.git/HEAD
-13 reposcan-raw/gladiaio/sdk/.git/config
-2 reposcan-raw/gladiaio/sdk/.git/packed-refs
-19126 reposcan-raw/gladiaio/sdk/.git/lfs/objects/82/b8/82b82d072845b41fd4a2b22bd1b2dbf65f6e063a26a7b057ff49a6c23e6cd998
-243 reposcan-raw/gladiaio/sdk/.git/lfs/objects/89/89/898949ef52252cf45a1532e49e8738a6044cd37915891702f444fe2b08ed00b4
-1 reposcan-raw/gladiaio/sdk/.git/shallow
-1 reposcan-raw/gladiaio/sdk/.git/description
-1 reposcan-raw/gladiaio/sdk/.git/refs/heads/main
-1 reposcan-raw/gladiaio/sdk/.git/refs/remotes/origin/HEAD
-1 reposcan-raw/gladiaio/sdk/.git/objects/pack/pack-71291a197c4502d2a56aa4c2e85d2d1adc94a90b.rev
-972 reposcan-raw/gladiaio/sdk/.git/objects/pack/pack-71291a197c4502d2a56aa4c2e85d2d1adc94a90b.pack
-11 reposcan-raw/gladiaio/sdk/.git/objects/pack/pack-71291a197c4502d2a56aa4c2e85d2d1adc94a90b.idx
-14 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/vitest.config.ts
-24 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/package.json
-25 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/project.json
-4 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/README.md
-121 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_session.test.ts
-225 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/prerecorded_v2_async.test.ts
-119 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/test/live_v2_job_management.test.ts
-7 reposcan-raw/gladiaio/sdk/e2e/e2e-node-esm/tsconfig.json
-12 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/tsdown.config.ts
-30 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/package.json
-17 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/project.json
-3 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/README.md
-91 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/src/index.ts
-4 reposcan-raw/gladiaio/sdk/e2e/javascript-fixtures/tsconfig.json
-14 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/vitest.config.mjs
-16 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/package.json
-24 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/project.json
-4 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/README.md
-119 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_job_management.test.cjs
-255 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/prerecorded_v2_async.test.cjs
-120 reposcan-raw/gladiaio/sdk/e2e/e2e-node-cjs/test/live_v2_session.test.cjs
-36 reposcan-raw/gladiaio/sdk/e2e/e2e-python/pyproject.toml
-173 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_session.py
-1 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/__init__.py
-143 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_job_management.py
-271 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_prerecorded_v2_async.py
-102 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/helpers.py
-152 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/test_live_v2_async_session.py
-1 reposcan-raw/gladiaio/sdk/e2e/e2e-python/tests/conftest.py
-98 reposcan-raw/gladiaio/sdk/e2e/e2e-python/project.json
-0 reposcan-raw/gladiaio/sdk/e2e/e2e-python/.python-version
-467 reposcan-raw/gladiaio/sdk/e2e/e2e-python/uv.lock
-4 reposcan-raw/gladiaio/sdk/e2e/e2e-python/README.md
-0 reposcan-raw/gladiaio/sdk/e2e/e2e-python/src/.gitkeep
-4 reposcan-raw/gladiaio/sdk/audit-ci.jsonc
-71 reposcan-raw/gladiaio/sdk/tools/scripts/release.mjs
-39 reposcan-raw/gladiaio/sdk/tools/scripts/publish.mjs
-39 reposcan-raw/gladiaio/sdk/.vscode/sdk.code-workspace
-11 reposcan-raw/gladiaio/sdk/.vscode/settings.json
-8 reposcan-raw/gladiaio/sdk/.vscode/mcp.json
-42 reposcan-raw/gladiaio/sdk/.cursor/rules/nx-rules.mdc
-2 reposcan-raw/gladiaio/sdk/.cursor/mcp.json
-243 reposcan-raw/gladiaio/sdk/data/short_split_infinity_16k.wav
-19126 reposcan-raw/gladiaio/sdk/data/anna-and-sasha-16000.wav
-8 reposcan-raw/gladiaio/sdk/.prettierrc
-1 reposcan-raw/gladiaio/sdk/vitest.workspace.mjs
-10 reposcan-raw/gladiaio/sdk/commitlint.config.cts
-44 reposcan-raw/gladiaio/sdk/package.json
-7 reposcan-raw/gladiaio/sdk/.editorconfig
-1850 reposcan-raw/gladiaio/sdk/bun.lock
-117 reposcan-raw/gladiaio/sdk/CONTRIBUTING.md
-58 reposcan-raw/gladiaio/sdk/eslint.config.mjs
-5 reposcan-raw/gladiaio/sdk/.gitattributes
-45 reposcan-raw/gladiaio/sdk/packages/sdk-python/pyproject.toml
-114 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/test_client.py
-209 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_websocket_client.py
-193 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_http_client_redirect.py
-41 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_helper.py
-274 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/network/test_async_http_client.py
-1 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/__init__.py
-185 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/live/test_live_list.py
-247 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/live/test_connect_session.py
-85 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/live/test_generated_types.py
-71 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/core/test_build_list_endpoint.py
-194 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/v2/prerecorded/test_prerecorded_list.py
-1 reposcan-raw/gladiaio/sdk/packages/sdk-python/tests/conftest.py
-59 reposcan-raw/gladiaio/sdk/packages/sdk-python/CHANGELOG.md
-34 reposcan-raw/gladiaio/sdk/packages/sdk-python/scripts/write-version.mjs
-121 reposcan-raw/gladiaio/sdk/packages/sdk-python/project.json
-0 reposcan-raw/gladiaio/sdk/packages/sdk-python/.python-version
-422 reposcan-raw/gladiaio/sdk/packages/sdk-python/uv.lock
-228 reposcan-raw/gladiaio/sdk/packages/sdk-python/README.md
-217 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client.py
-664 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/network/http_client.py
-26 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/network/__init__.py
-46 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/network/helper.py
-353 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/network/websocket_client.py
-52 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/__init__.py
-2 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/version.py
-127 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/client_options.py
-137 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/client.py
-286 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/session.py
-440 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/_helpers.py
-39 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/types.py
-143 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/async_client.py
-1371 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/generated_types.py
-244 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/live/async_session.py
-87 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/core.py
-344 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/client.py
-23 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/__init__.py
-191 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/core.py
-345 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/async_client.py
-1004 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/v2/prerecorded/generated_types.py
-0 reposcan-raw/gladiaio/sdk/packages/sdk-python/src/gladiaio_sdk/py.typed
-22 reposcan-raw/gladiaio/sdk/packages/sdk-js/tsconfig.spec.json
-22 reposcan-raw/gladiaio/sdk/packages/sdk-js/vitest.config.ts
-142 reposcan-raw/gladiaio/sdk/packages/sdk-js/CHANGELOG.md
-28 reposcan-raw/gladiaio/sdk/packages/sdk-js/tsdown.config.ts
-53 reposcan-raw/gladiaio/sdk/packages/sdk-js/package.json
-52 reposcan-raw/gladiaio/sdk/packages/sdk-js/scripts/write-version.mjs
-40 reposcan-raw/gladiaio/sdk/packages/sdk-js/project.json
-177 reposcan-raw/gladiaio/sdk/packages/sdk-js/README.md
-37 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/internal_types.ts
-75 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.test.ts
-422 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.ts
-82 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/iso-ws.ts
-30 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/iso-fetch.ts
-793 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/wsClient.test.ts
-292 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/wsClient.ts
-130 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.redirect.test.ts
-1 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/types.ts
-430 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/network/httpClient.test.ts
-5 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/index.ts
-140 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/client.ts
-62 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/helpers.ts
-4 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/index.ts
-427 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/session.ts
-105 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/client.list.test.ts
-129 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/client.ts
-207 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/session.test.ts
-16 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/types.ts
-107 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/client.start-session.test.ts
-1134 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/live/generated-types.ts
-2 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/index.ts
-95 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/client.list.test.ts
-329 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/client.ts
-908 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/prerecorded/generated-types.ts
-61 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/build-list-url.ts
-68 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/v2/build-list-url.test.ts
-2 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/version.ts
-184 reposcan-raw/gladiaio/sdk/packages/sdk-js/src/types.ts
-27 reposcan-raw/gladiaio/sdk/packages/sdk-js/tsconfig.json
-26 reposcan-raw/gladiaio/sdk/packages/generator/package.json
-24 reposcan-raw/gladiaio/sdk/packages/generator/project.json
-3 reposcan-raw/gladiaio/sdk/packages/generator/README.md
-187 reposcan-raw/gladiaio/sdk/packages/generator/src/generators/base.ts
-222 reposcan-raw/gladiaio/sdk/packages/generator/src/generators/typescript.ts
-505 reposcan-raw/gladiaio/sdk/packages/generator/src/generators/python.ts
-249 reposcan-raw/gladiaio/sdk/packages/generator/src/helpers.ts
-224 reposcan-raw/gladiaio/sdk/packages/generator/src/generator.ts
-30 reposcan-raw/gladiaio/sdk/packages/generator/src/cli.ts
-34 reposcan-raw/gladiaio/sdk/packages/generator/src/schema-fetcher.ts
-65 reposcan-raw/gladiaio/sdk/packages/generator/src/types.ts
-7 reposcan-raw/gladiaio/sdk/packages/generator/tsconfig.json
-13 reposcan-raw/gladiaio/sdk/.gitignore
-137 reposcan-raw/gladiaio/sdk/nx.json
-248 reposcan-raw/gladiaio/sdk/README.md
-4 reposcan-raw/gladiaio/sdk/.prettierignore
-1 reposcan-raw/gladiaio/sdk/bunfig.toml
-107 reposcan-raw/gladiaio/sdk/.github/workflows/release.yml
-72 reposcan-raw/gladiaio/sdk/.github/workflows/publish.yml
-108 reposcan-raw/gladiaio/sdk/.github/workflows/ci.yml
-57 reposcan-raw/gladiaio/sdk/.github/workflows/update-openapi-types.yml
-21 reposcan-raw/gladiaio/sdk/LICENSE
-14 reposcan-raw/gladiaio/compare-stt/logos/assemblyai.svg
-12 reposcan-raw/gladiaio/compare-stt/logos/gladia.svg
-12 reposcan-raw/gladiaio/compare-stt/logos/speechmatics.svg
-2 reposcan-raw/gladiaio/compare-stt/logos/deepgram.svg
-13 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-merge-commit.sample
-78 reposcan-raw/gladiaio/compare-stt/.git/hooks/push-to-checkout.sample
-15 reposcan-raw/gladiaio/compare-stt/.git/hooks/applypatch-msg.sample
-53 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-push.sample
-49 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-commit.sample
-14 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-applypatch.sample
-24 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-receive.sample
-8 reposcan-raw/gladiaio/compare-stt/.git/hooks/post-update.sample
-168 reposcan-raw/gladiaio/compare-stt/.git/hooks/fsmonitor-watchman.sample
-77 reposcan-raw/gladiaio/compare-stt/.git/hooks/sendemail-validate.sample
-128 reposcan-raw/gladiaio/compare-stt/.git/hooks/update.sample
-74 reposcan-raw/gladiaio/compare-stt/.git/hooks/commit-msg.sample
-42 reposcan-raw/gladiaio/compare-stt/.git/hooks/prepare-commit-msg.sample
-169 reposcan-raw/gladiaio/compare-stt/.git/hooks/pre-rebase.sample
-1 reposcan-raw/gladiaio/compare-stt/.git/logs/HEAD
-1 reposcan-raw/gladiaio/compare-stt/.git/logs/refs/heads/main
-1 reposcan-raw/gladiaio/compare-stt/.git/logs/refs/remotes/origin/HEAD
-6 reposcan-raw/gladiaio/compare-stt/.git/info/exclude
-52 reposcan-raw/gladiaio/compare-stt/.git/index
-1 reposcan-raw/gladiaio/compare-stt/.git/HEAD
-11 reposcan-raw/gladiaio/compare-stt/.git/config
-2 reposcan-raw/gladiaio/compare-stt/.git/packed-refs
-1 reposcan-raw/gladiaio/compare-stt/.git/shallow
-1 reposcan-raw/gladiaio/compare-stt/.git/description
-1 reposcan-raw/gladiaio/compare-stt/.git/refs/heads/main
-1 reposcan-raw/gladiaio/compare-stt/.git/refs/remotes/origin/HEAD
-16 reposcan-raw/gladiaio/compare-stt/.git/objects/pack/pack-025787eaba1d19ce9089e7b1777324813d506864.idx
-3515 reposcan-raw/gladiaio/compare-stt/.git/objects/pack/pack-025787eaba1d19ce9089e7b1777324813d506864.pack
-1 reposcan-raw/gladiaio/compare-stt/.git/objects/pack/pack-025787eaba1d19ce9089e7b1777324813d506864.rev
-176 reposcan-raw/gladiaio/compare-stt/test-diff.ts
-20 reposcan-raw/gladiaio/compare-stt/sentry.edge.config.ts
-10 reposcan-raw/gladiaio/compare-stt/prisma.config.ts
-20 reposcan-raw/gladiaio/compare-stt/.env.example
-15 reposcan-raw/gladiaio/compare-stt/.cursor/rules/deploy.mdc
-11 reposcan-raw/gladiaio/compare-stt/.cursor/rules/testing.mdc
-19 reposcan-raw/gladiaio/compare-stt/sentry.server.config.ts
-199 reposcan-raw/gladiaio/compare-stt/test-match-token.ts
-114 reposcan-raw/gladiaio/compare-stt/next.config.ts
-65 reposcan-raw/gladiaio/compare-stt/test-base-path-fetch.ts
-12 reposcan-raw/gladiaio/compare-stt/instrumentation-client.ts
-15 reposcan-raw/gladiaio/compare-stt/docker-compose.yml
-87 reposcan-raw/gladiaio/compare-stt/test-providers.ts
-53 reposcan-raw/gladiaio/compare-stt/package.json
-11093 reposcan-raw/gladiaio/compare-stt/package-lock.json
-3 reposcan-raw/gladiaio/compare-stt/prisma/migrations/migration_lock.toml
-14 reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260629000000_add_match_tokens/migration.sql
-48 reposcan-raw/gladiaio/compare-stt/prisma/migrations/20260311161230_init/migration.sql
-62 reposcan-raw/gladiaio/compare-stt/prisma/seed.ts
-59 reposcan-raw/gladiaio/compare-stt/prisma/schema.prisma
-21 reposcan-raw/gladiaio/compare-stt/eslint.config.mjs
-52 reposcan-raw/gladiaio/compare-stt/.gitignore
-0 reposcan-raw/gladiaio/compare-stt/public/globe.svg
-14 reposcan-raw/gladiaio/compare-stt/public/providers/assemblyai.svg
-12 reposcan-raw/gladiaio/compare-stt/public/providers/gladia.svg
-12 reposcan-raw/gladiaio/compare-stt/public/providers/speechmatics.svg
-14 reposcan-raw/gladiaio/compare-stt/public/providers/elevenlabs.svg
-17 reposcan-raw/gladiaio/compare-stt/public/providers/mistral.svg
-2 reposcan-raw/gladiaio/compare-stt/public/providers/deepgram.svg
-0 reposcan-raw/gladiaio/compare-stt/public/next.svg
-16 reposcan-raw/gladiaio/compare-stt/public/logo.svg
-373 reposcan-raw/gladiaio/compare-stt/public/images/hero-badges/medal.png
-424 reposcan-raw/gladiaio/compare-stt/public/images/hero-badges/trophy.png
-406 reposcan-raw/gladiaio/compare-stt/public/images/hero-badges/laurel.png
-59 reposcan-raw/gladiaio/compare-stt/README.md
-82 reposcan-raw/gladiaio/compare-stt/src/lib/elo.ts
-12 reposcan-raw/gladiaio/compare-stt/src/lib/tracking.ts
-53 reposcan-raw/gladiaio/compare-stt/src/lib/providers/elevenlabs.ts
-76 reposcan-raw/gladiaio/compare-stt/src/lib/providers/speechmatics.ts
-118 reposcan-raw/gladiaio/compare-stt/src/lib/providers/gladia.ts
-53 reposcan-raw/gladiaio/compare-stt/src/lib/providers/mistral.ts
-54 reposcan-raw/gladiaio/compare-stt/src/lib/providers/deepgram.ts
-40 reposcan-raw/gladiaio/compare-stt/src/lib/providers/assemblyai.ts
-59 reposcan-raw/gladiaio/compare-stt/src/lib/encode-wav.ts
-14 reposcan-raw/gladiaio/compare-stt/src/lib/upload-count.ts
-11 reposcan-raw/gladiaio/compare-stt/src/lib/env.ts
-87 reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-data.ts
-171 reposcan-raw/gladiaio/compare-stt/src/lib/transcribe.ts
-34 reposcan-raw/gladiaio/compare-stt/src/lib/base-path-fetch.ts
-15 reposcan-raw/gladiaio/compare-stt/src/lib/db.ts
-139 reposcan-raw/gladiaio/compare-stt/src/lib/diff.ts
-20 reposcan-raw/gladiaio/compare-stt/src/lib/providers.ts
-507 reposcan-raw/gladiaio/compare-stt/src/lib/leaderboard-articles.ts
-20 reposcan-raw/gladiaio/compare-stt/src/lib/site.ts
-55 reposcan-raw/gladiaio/compare-stt/src/lib/rate-limit.ts
-90 reposcan-raw/gladiaio/compare-stt/src/lib/match-token.ts
-6 reposcan-raw/gladiaio/compare-stt/src/lib/elo-confidence.ts
-11 reposcan-raw/gladiaio/compare-stt/src/lib/pending-audio.ts
-31 reposcan-raw/gladiaio/compare-stt/src/instrumentation-client.ts
-13 reposcan-raw/gladiaio/compare-stt/src/instrumentation.ts
-27 reposcan-raw/gladiaio/compare-stt/src/app/global-error.tsx
-60 reposcan-raw/gladiaio/compare-stt/src/app/page.tsx
-49 reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/page.tsx
-7 reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-articles-loader.tsx
-257 reposcan-raw/gladiaio/compare-stt/src/app/leaderboard/leaderboard-client.tsx
-201 reposcan-raw/gladiaio/compare-stt/src/app/terms/page.tsx
-25 reposcan-raw/gladiaio/compare-stt/src/app/sitemap.ts
-184 reposcan-raw/gladiaio/compare-stt/src/app/about/page.tsx
-30 reposcan-raw/gladiaio/compare-stt/src/app/favicon.ico
-535 reposcan-raw/gladiaio/compare-stt/src/app/methodology/page.tsx
-12 reposcan-raw/gladiaio/compare-stt/src/app/robots.ts
-18 reposcan-raw/gladiaio/compare-stt/src/app/api/leaderboard/route.ts
-50 reposcan-raw/gladiaio/compare-stt/src/app/api/session/[id]/stats/route.ts
-74 reposcan-raw/gladiaio/compare-stt/src/app/api/upload/route.ts
-156 reposcan-raw/gladiaio/compare-stt/src/app/api/vote/route.ts
-167 reposcan-raw/gladiaio/compare-stt/src/app/api/transcribe/route.ts
-7 reposcan-raw/gladiaio/compare-stt/src/app/.well-known/vercel/flags/route.ts
-302 reposcan-raw/gladiaio/compare-stt/src/app/globals.css
-97 reposcan-raw/gladiaio/compare-stt/src/app/layout.tsx
-234 reposcan-raw/gladiaio/compare-stt/src/scripts/purge-fraudulent-votes.ts
-15 reposcan-raw/gladiaio/compare-stt/src/flags.ts
-70 reposcan-raw/gladiaio/compare-stt/src/components/hero-provider-logos.tsx
-208 reposcan-raw/gladiaio/compare-stt/src/components/audio-recorder.tsx
-244 reposcan-raw/gladiaio/compare-stt/src/components/audio-input-picker.tsx
-219 reposcan-raw/gladiaio/compare-stt/src/components/leaderboard-articles-section.tsx
-108 reposcan-raw/gladiaio/compare-stt/src/components/glass-icon-button.tsx
-219 reposcan-raw/gladiaio/compare-stt/src/components/audio-uploader.tsx
-219 reposcan-raw/gladiaio/compare-stt/src/components/navbar.tsx
-133 reposcan-raw/gladiaio/compare-stt/src/components/session-summary.tsx
-548 reposcan-raw/gladiaio/compare-stt/src/components/arena-page.tsx
-100 reposcan-raw/gladiaio/compare-stt/src/components/home-seo-section.tsx
-74 reposcan-raw/gladiaio/compare-stt/src/components/leaderboard-news-bubble.tsx
-26 reposcan-raw/gladiaio/compare-stt/src/components/tracking/base-path-fetch-fix.tsx
-73 reposcan-raw/gladiaio/compare-stt/src/components/tracking/gladia-analytics.tsx
-73 reposcan-raw/gladiaio/compare-stt/src/components/tracking/page-view-tracker.tsx
-133 reposcan-raw/gladiaio/compare-stt/src/components/vote-buttons.tsx
-159 reposcan-raw/gladiaio/compare-stt/src/components/audio-player.tsx
-74 reposcan-raw/gladiaio/compare-stt/src/components/collapsible-text.tsx
-74 reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-static-table.tsx
-110 reposcan-raw/gladiaio/compare-stt/src/components/seo/about-faq.tsx
-68 reposcan-raw/gladiaio/compare-stt/src/components/seo/leaderboard-dataset-schema.tsx
-57 reposcan-raw/gladiaio/compare-stt/src/components/secondary-button.tsx
-403 reposcan-raw/gladiaio/compare-stt/src/components/transcript-card.tsx
-279 reposcan-raw/gladiaio/compare-stt/src/components/leaderboard-table.tsx
-7 reposcan-raw/gladiaio/compare-stt/postcss.config.mjs
-34 reposcan-raw/gladiaio/compare-stt/tsconfig.json
-1803 reposcan-raw/gladiaio/compare-stt/test-audio/046_conversational.wav
-2308 reposcan-raw/gladiaio/compare-stt/test-audio/047_conversational.wav
-21 reposcan-raw/gladiaio/compare-stt/LICENSE
-0 reposcan-raw/npm/_gladiaio_sdk.json
-0 reposcan-raw/npm/gladia.json
-1601 reposcan-raw/rag.txt
-1 reposcan-raw/grep-delta.txt
-61 reposcan-raw/grep-hits.prev.txt
-61 reposcan-raw/grep-hits.txt
-478 reposcan-raw/analysis.txt
+STOP = re.compile(r'^\[(HYP|PARKED|FINAL|NEXT|LEARN|RISK|NEW|CHANGED|PRIO)\]')
+KV = re.compile(r'^([a-z_]+):\s*(.*)$', re.I)
+
+TITLE_SIM_THRESHOLD = float(os.environ.get("TITLE_SIM_THRESHOLD", "0.82"))
+COARSE_SIM_THRESHOLD = float(os.environ.get("COARSE_SIM_THRESHOLD", "0.55"))
+
+
+def split_inline(title):
+    """Extract inline attributes from a single-line lead of the form:
+    [HYP] Title: confidence 96, class MISCONFIG, verify_steps ..., asset https://...
+    Attribute matches are removed; the title is cut at the first attribute."""
+    attrs = {}
+    pats = [
+        (r'confidence\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'conf\s*(?:=|:|\s+)\s*(\d{1,3})', 'confidence', None),
+        (r'\((\d{2,3})\)\s*[:;]', 'confidence', None),
+        (r'class\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'class', str.upper),
+        (r'asset\s*(?:=|:|\s+)\s*(https?://[^\s,;]+|/[^\s,;]+)', 'asset', None),
+        (r'severity\s*(?:=|:|\s+)\s*([A-Za-z]+)', 'severity', None),
+        (r'testability\s*(?:=|:|\s+)\s*([A-Za-z_]+)', 'testability', str.upper),
+        (r'verify[_\s]steps\s*(?:=|:|\s+)\s*([^\n|]+)', 'verify_steps', None),
+        (r'impact\s*(?:=|:|\s+)\s*([^\n|]+)', 'impact', None),
+        (r'reasoning\s*(?:=|:|\s+)\s*([^\n|]+)', 'reasoning', None),
+    ]
+    cut = None
+    for pat, key, transform in pats:
+        m = re.search(pat, title, re.I)
+        if m:
+            v = m.group(1).strip()
+            if transform:
+                v = transform(v)
+            if key not in attrs:
+                attrs[key] = v
+            cut = m.start() if cut is None else min(cut, m.start())
+    if cut is not None:
+        t = title[:cut]
+    else:
+        t = title
+    t = re.sub(r'^\s*[:,\s-]+\s*', '', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+    return t, attrs
+
+
+def parse_blocks(text, model):
+    blocks, lines, i = [], text.splitlines(), 0
+    while i < len(lines):
+        m = re.match(r'^\[HYP\]\s*(.*)$', lines[i].strip())
+        if not m:
+            i += 1
+            continue
+        raw_title = m.group(1).strip()
+        b = {"title": raw_title, "model": model}
+        j = i + 1
+        while j < len(lines):
+            l = lines[j].strip()
+            if not l or STOP.match(l):
+                break
+            kv = KV.match(l)
+            if kv:
+                b[kv.group(1).lower()] = kv.group(2).strip()
+            j += 1
+        if "<" not in str(raw_title):
+            if not any(k in b for k in ('class', 'asset', 'confidence', 'reasoning', 'verify_steps')):
+                clean, attrs = split_inline(raw_title)
+                b['title'] = clean
+                for k, v in attrs.items():
+                    b.setdefault(k.lower(), v)
+            blocks.append(b)
+        i = j
+    return blocks
+
+
+def norm_asset(a):
+    a = (a or "").strip().lower().strip("`")
+    a = re.sub(r'^((get|post|put|patch|delete|head|options)s?)[/,\s]+', '', a, flags=re.I)
+    a = re.sub(r'\s*\(.*?\)', ' ', a)
+    a = re.sub(r'[{}[\],].*$', '', a)
+    a = re.sub(r'\s+', ' ', a).strip()
+    return a[:120]
+
+
+def coarse_target(a):
+    """Bare scheme+host+path of an asset (drops credentials, queries, parens)."""
+    a = (a or "").strip().lower()
+    a = re.sub(r'^`+|`+$', '', a)
+    a = re.sub(r'^\[(get|post|put|patch|delete|head|options)s?\][\s,]+', '', a)
+    m = re.match(r'^(?:https?://)?([^/\s()]+)(/[^\s()]*)?', a)
+    if not m:
+        return ""
+    host, path = m.group(1), m.group(2) or ""
+    host = re.sub(r'^www\.', '', host)
+    path = path.rstrip('/')
+    return host + path if path and path != "/" else host
+
+def norm_title(t):
+    t = re.sub(r'^\[\d+%\]\s*', '', t or "")
+    t = re.sub(r'[^a-z0-9]+', ' ', t.lower()).strip()
+    return t
+
+
+def fingerprint(b):
+    a = norm_asset(b.get("asset", ""))
+    c = (b.get("class", "OTHER") or "OTHER").strip().lower()[:20]
+    if a:
+        return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    # no asset -> include normalized title so distinct leads get distinct fps
+    t = norm_title(b.get("title", ""))
+    return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
+
+
+def issue_fingerprint(iss):
+    """Return the canonical fingerprint for an existing issue.
+
+    The stored <!-- fingerprint:xxx --> comment is the single source of
+    truth: it was computed from the original lead and is stable across
+    runs. Only fall back to recomputing from the body for issues created
+    before the comment existed."""
+    body = iss.body or ""
+    m = re.search(r'<!-- fingerprint:([0-9a-f]{12}) -->', body)
+    if m:
+        return m.group(1)
+    m = re.search(r'^## Target\n`(.*)`', body, re.M)
+    if not m:
+        return None
+    mc = re.search(r'^## Class\n(.*)$', body, re.M)
+    a = norm_asset(m.group(1))
+    c = (mc.group(1).strip().lower()[:20] if mc else "other")
+    if a:
+        return hashlib.md5(f"{a}|{c}".encode()).hexdigest()[:12]
+    mt = re.search(r'^## Title\n(.*)$', body, re.M)
+    t = norm_title(mt.group(1) if mt else "")
+    return hashlib.md5(f"{t}|{c}".encode()).hexdigest()[:12]
+
+
+def ensure_label(repo, name):
+    color = {"pending": "d4c5f9", "false-positive": "7057ff", "verified": "0e8a16",
+             "reported": "fbca04", "duplicate": "b60205",
+             "high-confidence": "1d76db", "bug-bounty": "5319e7",
+             "ai-hypothesis": "c5def5"}.get(name, "c2e0c6")
+    try:
+        repo.get_label(name)
+    except Exception:
+        repo.create_label(name, color)
+        print("label created:", name)
+
+
+def best_title_match(block, issues, by_title_index):
+    """Fuzzy-match a drifted no-asset lead against open issues.
+
+    Returns the issue whose normalized title is most similar to the
+    block title (same class, above TITLE_SIM_THRESHOLD), or None."""
+    bt = norm_title(block.get("title", ""))
+    if not bt:
+        return None
+    bc = (block.get("class", "OTHER") or "OTHER").strip().lower()[:20]
+    best, best_ratio = None, 0.0
+    for iss in issues:
+        i_class = "other"
+        mc = re.search(r'^## Class\n(.*)$', iss.body or "", re.M)
+        if mc:
+            i_class = mc.group(1).strip().lower()[:20]
+        if i_class != bc:
+            continue
+        it = norm_title(iss.title)
+        if not it:
+            continue
+        r = SequenceMatcher(None, bt, it).ratio()
+        if r > best_ratio:
+            best, best_ratio = iss, r
+    if best and best_ratio >= TITLE_SIM_THRESHOLD:
+        return best
+    return None
+
+
+def coarse_match(b, all_issues):
+    """Same target+class and similar title (>= COARSE_SIM_THRESHOLD) ->
+    treat as the same finding, even if the stored issue is closed."""
+    bt = norm_title(b.get("title", ""))
+    if not bt:
+        return None
+    ctarget = coarse_target(b.get("asset", ""))
+    if not ctarget:
+        return None
+    bc = (b.get("class", "OTHER") or "OTHER").strip().lower()[:20]
+    best, best_ratio = None, 0.0
+    for iss in all_issues:
+        m = re.search(r'^## Target\n`(.*)`', iss.body or "", re.M)
+        if not m:
+            continue
+        if coarse_target(m.group(1)) != ctarget:
+            continue
+        mc = re.search(r'^## Class\n(.*)$', iss.body or "", re.M)
+        i_class = (mc.group(1).strip().lower()[:20] if mc else "other")
+        if i_class != bc:
+            continue
+        r = SequenceMatcher(None, bt, norm_title(iss.title)).ratio()
+        if r > best_ratio:
+            best, best_ratio = iss, r
+    if best and best_ratio >= COARSE_SIM_THRESHOLD:
+        return best
+    return None
+
+def main():
+    g = Github(TOKEN)
+    repo = g.get_repo(REPO)
+    files = sorted(Path(".").glob(GLOB))
+    print(f"processing {len(files)} files: {GLOB}")
+    blocks = []
+    for f in files:
+        text = f.read_text(errors="ignore")
+        mh = re.search(r'\(model\s+(\w+)\)', text)
+        model = mh.group(1) if mh else ("unknown")
+        if model == "unknown" and MODEL_FROM_FILENAME:
+            mf = re.match(r'(\w+)', f.name)
+            model = mf.group(1) if mf else "unknown"
+        blocks += parse_blocks(text, model)
+    print("hypothesis blocks:", len(blocks))
+
+
+    def _conf(b):
+        v = b.get("confidence", 0) or 0
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            try:
+                return int(float(v))
+            except (ValueError, TypeError):
+                return 0
+
+    confs = sorted({_conf(b) // 10 * 10 for b in blocks})
+    models = sorted({b["model"] for b in blocks})
+    all_labels = ["bug-bounty", "ai-hypothesis", "pending", "false-positive", TARGET] \
+        + [f"model-{m}" for m in models] + [f"confidence-{c}" for c in confs]
+    for l in all_labels:
+        ensure_label(repo, l)
+
+    try:
+        existing = list(repo.get_issues(state="all", labels=["bug-bounty"]))
+    except Exception:
+        existing = list(repo.get_issues(state="all"))
+    by_fp = {}
+    for i in existing:
+        fp = issue_fingerprint(i)
+        if fp:
+            by_fp.setdefault(fp, []).append(i)
+    open_issues = [i for i in existing if i.state == "open"]
+    closed_issues = [i for i in existing if i.state != "open"]
+    print("existing issues:", len(existing), "open:", len(open_issues))
+
+    # in-run dedup: same fingerprint multiple times in this batch -> keep first
+    seen_fp = set()
+    uniq_blocks = []
+    for b in blocks:
+        fp = fingerprint(b)
+        if fp not in seen_fp:
+            seen_fp.add(fp)
+            uniq_blocks.append(b)
+    if len(uniq_blocks) != len(blocks):
+        print(f"in-run dedup: {len(blocks)} -> {len(uniq_blocks)}")
+
+    created = updated = 0
+    fuzzy_matched = 0
+    for b in uniq_blocks:
+        conf = _conf(b)
+        fp = fingerprint(b)
+        title = f"[{conf}%] {b['title'][:90]}"
+        labels = ["bug-bounty", "ai-hypothesis", "pending", TARGET,
+                  f"model-{b['model']}", f"confidence-{conf//10*10}"] \
+            + (["high-confidence"] if conf >= 80 else [])
+        body = (f"<!-- fingerprint:{fp} -->\n\n"
+                f"## Title\n{b.get('title','')}\n\n"
+                f"## Target\n`{b.get('asset','?')}`\n\n"
+                f"## Class\n{b.get('class','OTHER')}\n\n"
+                f"## Confidence\n{conf}/100\n\n"
+                f"## Reasoning\n{b.get('reasoning','')}\n\n"
+                f"## Evidence needed\n{b.get('evidence_needed','')}\n\n"
+                f"## Verify steps\n{b.get('verify_steps','')}\n\n"
+                f"## Impact\n{b.get('impact','')}\n\n"
+                f"## Testability\n{b.get('testability','')}\n\n"
+                f"_model: {b['model']} · auto-synced from {GLOB}_")
+        if fp in by_fp:
+            iss = by_fp[fp][0]
+            cur = {l.name for l in iss.labels}
+            new = set(labels) | cur
+            if new != cur:
+                iss.edit(labels=list(new))
+                updated += 1
+        else:
+            # no exact fingerprint match: try fuzzy title match against
 [0m
-[0m$ [0mcat scripts/*.sh 2>&1 | head -n 300
-ls -l scripts/ 2>&1
-cat: 'scripts/*.sh': No such file or directory
-total 20
--rw-r--r-- 1 runner runner 17327 Sep 22 12:50 sync-issues.py
-[0m
-[0m→ [0mRead scripts/sync-issues.py
 [93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mls -R reposcan-raw/gladiaio  2>&1 | head -n 50
-# The grep-hits seems to show only 60 hits but summary says 652. Means scanner truncated? Let's check scripts for scanning
-cat /tmp/opencode-tool-output* 2>&1 | head -n 100 failed
+[0m✗ [0mfind reposcan-raw -type f -name "*.txt" -exec ls -lh {} \;
+cat reposcan-raw/npm/* 2>/dev/null | head -n 100
+ls reposcan-raw/npm/
+cat /tmp/*.log 2>/dev/null | head
+echo "--- grep pattern ---"
+find . -name "*.yml" -o -name "*.yaml" | xargs grep -l "scan" 2>/dev/null | head
+cat .github/workflows/*.yml 2>/dev/null | head -n 300 failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
