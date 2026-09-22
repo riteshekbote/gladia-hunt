@@ -1029,3 +1029,7 @@
 - 2 lead(s) marked VALID at 2026-09-22 11:56:01 UTC
   - Verdict: **HOLD (Gladia) / VALID (npm registry)** — reason: orphaned 404/repo+user + description Official/Unofficial contradiction verified, key-in-URL primitive present but server acceptance unproven
   - Verdict: **HOLD (AUTH_HELPED)** — reason: key-gated SSRF surface persists but no bypass in 100 cycles `lead-mimo.md:32`. CVSS if proven: 8.2 HIGH `AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N`. Proof: `POST /v
+
+- 2 lead(s) marked VALID at 2026-09-22 17:05:17 UTC
+  - 1.  **npm `gladia@0.1.3` orphaned impersonation + `src/client.ts:307 searchParams.append('x-gladia-key')`** — Q1 NO (asset is `npmjs.com/package/gladia` — not in `scope.yml:25-29` official `@gladiaio/
+  - 2.  **app.gladia.io `/signin?redirect_to` open redirect** — Q1 YES `app.gladia.io` HIGH, Q2 YES, Q3 MAYBE (phishing IF honored post-auth), Q4 NO — 200 alone does NOT prove `Location: https://evil.exam
