@@ -1025,3 +1025,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-22 06:24:00 UTC
   - **Verdict: HOLD (PARKED AUTH_HELPED) - key-gated by design, no bypass across 100+ cycles** - one-line: SSRF schema exists but unauthenticated probe is 401, requires valid key to prove.
+
+- 2 lead(s) marked VALID at 2026-09-22 11:56:01 UTC
+  - Verdict: **HOLD (Gladia) / VALID (npm registry)** — reason: orphaned 404/repo+user + description Official/Unofficial contradiction verified, key-in-URL primitive present but server acceptance unproven
+  - Verdict: **HOLD (AUTH_HELPED)** — reason: key-gated SSRF surface persists but no bypass in 100 cycles `lead-mimo.md:32`. CVSS if proven: 8.2 HIGH `AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N`. Proof: `POST /v
