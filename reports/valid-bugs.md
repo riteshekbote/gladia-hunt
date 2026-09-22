@@ -1022,3 +1022,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-22 01:21:33 UTC
   - - **Verdict: HOLD for Gladia program (one-line: primitive present in third-party package, server-side key-in-URL acceptance unproven); VALID for npm Trust & Safety**
+
+- 1 lead(s) marked VALID at 2026-09-22 06:24:00 UTC
+  - **Verdict: HOLD (PARKED AUTH_HELPED) - key-gated by design, no bypass across 100+ cycles** - one-line: SSRF schema exists but unauthenticated probe is 401, requires valid key to prove.
