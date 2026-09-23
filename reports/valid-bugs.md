@@ -1042,3 +1042,6 @@
   - | 1 | Orphaned `npm gladia@0.1.3` impersonates Official SDK + leaks `x-gladia-key` in `wss://` URL `leads/lead-mimo.md:7` `leads/lead-human.md:39` | `npmjs.com/package/gladia` `scope.yml:26` `inventor
   - | 2 | `app.gladia.io /signin redirect_to` form-action reflection `0 CSP form-action directives` `leads/lead-mimo.md:14` | `app.gladia.io/signin` HIGH `scope.yml:9` | **HOLD** need HUMAN_ONLY post-auth
   - | 3 | SSRF-by-design `audio_url/video_url/callback_config.url format:uri` no scheme allowlist `leads/lead-mimo.md:24` | `api.gladia.io/v2/pre-recorded` `scope.yml:7` HIGHEST | **HOLD** `AUTH_HELPED` c
+
+- 1 lead(s) marked VALID at 2026-09-23 01:35:09 UTC
+  - **Verdict: HOLD for Gladia / VALID for npm venue** - `Q1 FAIL as Gladia vuln, Q3 conditional`. `lead-human.md:15` retraction applies: if `wss://api.gladia.io/v2/live?x-gladia-key=<KEY>` REJECTED, then
