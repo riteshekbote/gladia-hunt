@@ -1050,3 +1050,6 @@
   - | **Q7 Triager accept?** | **SPLIT** — `VALID` at **npm registry** (policy/impersonation), **HOLD** at **Gladia program** (needs WS query-param acceptance proof per `lead-human.md:15-21`). |
   - **Verdict: HOLD (SPLIT)** — `VALID` for `npmjs.com/support` abuse, `HOLD` for `gladia.io/bug-bounty-report`. Reason: duplicate + Gladia-venue impact gated on `wss://api.gladia.io/v2/live?x-gladia-key=
   - | **Q2 Reachable?** | **NO** — `GET /v2/pre-recorded -> 401` `probe-results.md`, `POST` without `x-gladia-key` → `401` uniform gate `inventory/gladia.md:30`. Requires `PR:L` (valid API key, trial or p
+
+- 1 lead(s) marked VALID at 2026-09-23 12:20:28 UTC
+  - **No new VALID.** Only prior VALID remains duplicate: `npm gladia@0.1.3 impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')`` `inventory/gladia.md:32,316` — `registry.npmjs.or
