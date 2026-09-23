@@ -1073,3 +1073,6 @@
   - |Q1|❌ **NO strict** — `scope.yml:10` scopes `Official SDKs (npm @gladiaio/sdk, PyPI gladiaio-sdk)` MEDIUM; `gladia` is third-party package `softwarecitadel@gmail.com` / repo `alexisbouchez/gladia.ts` 
   - |Q7|❌ NO strict triager rejects as bounty; lenient triager accepts as `VALID DUPLICATE` for takedown|
   - | SSRF audio_url | `api.gladia.io` | **HOLD** AUTH_HELPED | Q2/Q4 needs valid key POST |
+
+- 1 lead(s) marked VALID at 2026-09-23 23:14:37 UTC
+  - **Verdict: NO LEADS TO GATE — NO NEW VALID.** `triage/run-2026-09-02-21:09.md` precedent: empty batch = HOLD.
