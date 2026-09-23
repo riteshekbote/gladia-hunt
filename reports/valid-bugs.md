@@ -1053,3 +1053,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-23 12:20:28 UTC
   - **No new VALID.** Only prior VALID remains duplicate: `npm gladia@0.1.3 impersonation + `src/client.ts:307 wsUrl.searchParams.append('x-gladia-key')`` `inventory/gladia.md:32,316` — `registry.npmjs.or
+
+- 2 lead(s) marked VALID at 2026-09-23 17:16:42 UTC
+  - - **Verdict: VALID (DUPLICATE)** — already reported, do-not-redo `leads/lead-human.md:9`.
+  - | `registry.npmjs.org/gladia` | 200 | VALID (DUPLICATE) | Supply-chain squat, already reported |
