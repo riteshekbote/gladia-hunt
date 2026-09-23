@@ -1057,3 +1057,19 @@
 - 2 lead(s) marked VALID at 2026-09-23 17:16:42 UTC
   - - **Verdict: VALID (DUPLICATE)** — already reported, do-not-redo `leads/lead-human.md:9`.
   - | `registry.npmjs.org/gladia` | 200 | VALID (DUPLICATE) | Supply-chain squat, already reported |
+
+- 14 lead(s) marked VALID at 2026-09-23 20:31:33 UTC
+  - | Q2 | ⚠️ PARTIAL | Endpoints are key-gated (401 without x-gladia-key); need valid key to reach fetch logic |
+  - | Q4 | ❌ NO | Verify steps require `POST` with valid x-gladia-key + canary/metadata URLs — not GET/HEAD only |
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact, but cannot be proven with passive GET/HEAD only. Requires AUTH_HELPED testing: valid API key + POST with canary/metadata URLs to det
+  - | Q2 | ⚠️ PARTIAL | Endpoints are key-gated (401 without key); need valid key + cross-user resource to test |
+  - | Q4 | ❌ NO | Cannot prove without valid API key + owned resource IDs to test cross-account access |
+  - **Verdict: HOLD** — In-scope (HIGHEST asset), real security impact (cross-account data access), but requires AUTH_HELPED testing: valid API key + owned transcription ID + attempt to access another use
+  - | Q2 | ⚠️ PARTIAL | Token-in-URL design is visible in public OpenAPI spec, but actual token generation requires valid API key |
+  - ### Verdict: **VALID (DUPLICATE)** — Already reported. Verified supply-chain squat with credential-leak code pattern. Not novel.
+  - | G | registry.npmjs.org/gladia → 200 | VALID (DUPLICATE) | Already reported; supply-chain impersonation |
+  - |Q2 Reachable|❌ NO unauth → `GET 401 {"message":"no gladia key provided"}` `probe-results.md:18` uniform NestJS `scope.yml:40` `x-gladia-key` gate; needs `PR:L` valid key (trial account) `no_account_c
+  - |Q6|✅ PASS open redirect valid class (not info disclosure/best practice)|
+  - |Q1|❌ **NO strict** — `scope.yml:10` scopes `Official SDKs (npm @gladiaio/sdk, PyPI gladiaio-sdk)` MEDIUM; `gladia` is third-party package `softwarecitadel@gmail.com` / repo `alexisbouchez/gladia.ts` 
+  - |Q7|❌ NO strict triager rejects as bounty; lenient triager accepts as `VALID DUPLICATE` for takedown|
+  - | SSRF audio_url | `api.gladia.io` | **HOLD** AUTH_HELPED | Q2/Q4 needs valid key POST |
