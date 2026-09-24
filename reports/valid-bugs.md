@@ -1082,3 +1082,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-24 06:49:31 UTC
   - Verdict summary: **0 new VALID this cycle. 1 VALID DUPLICATE parked (npm). 2 HOLD (open redirect HUMAN_ONLY, SSRF AUTH_HELPED).**
+
+- 1 lead(s) marked VALID at 2026-09-24 17:22:39 UTC
+  - - **Verdict: HOLD (SPLIT)** - `HOLD-Gladia` `VALID-NPM`
