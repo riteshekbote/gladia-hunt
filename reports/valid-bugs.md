@@ -1076,3 +1076,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-23 23:14:37 UTC
   - **Verdict: NO LEADS TO GATE — NO NEW VALID.** `triage/run-2026-09-02-21:09.md` precedent: empty batch = HOLD.
+
+- 1 lead(s) marked VALID at 2026-09-24 01:30:47 UTC
+  - **Verdict: HOLD (Gladia program) / VALID (npm registry policy)**
