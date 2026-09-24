@@ -1088,3 +1088,7 @@
 
 - 1 lead(s) marked VALID at 2026-09-24 20:36:48 UTC
   - **Verdict: VALID** — one-liner: orphaned impersonator at `latest` leaks `x-gladia-key` in query.
+
+- 2 lead(s) marked VALID at 2026-09-24 23:34:53 UTC
+  - Q1 YES HIGH `scope.yml:9`, Q2 YES 200 public, Q3 **UNPROVEN** — 200 ≠ 302, no `Location: evil` — `OAuth redirect_uri FIXED` + `return-to` tamper-reset REJECTED `inventory/gladia.md:43` blocks code the
+  - Q1 YES HIGHEST `scope.yml:7`, Q2 **NO** — key-gated `401` on all probes `probe-results.md:4`, no bypass in 100+ cycles `inventory/gladia.md:203`, Q3 YES if auth bypass existed (`169.254.169.254` chain
