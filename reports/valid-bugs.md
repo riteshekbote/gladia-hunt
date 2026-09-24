@@ -1085,3 +1085,6 @@
 
 - 1 lead(s) marked VALID at 2026-09-24 17:22:39 UTC
   - - **Verdict: HOLD (SPLIT)** - `HOLD-Gladia` `VALID-NPM`
+
+- 1 lead(s) marked VALID at 2026-09-24 20:36:48 UTC
+  - **Verdict: VALID** — one-liner: orphaned impersonator at `latest` leaks `x-gladia-key` in query.
