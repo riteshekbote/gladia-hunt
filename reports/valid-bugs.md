@@ -1092,3 +1092,15 @@
 - 2 lead(s) marked VALID at 2026-09-24 23:34:53 UTC
   - Q1 YES HIGH `scope.yml:9`, Q2 YES 200 public, Q3 **UNPROVEN** — 200 ≠ 302, no `Location: evil` — `OAuth redirect_uri FIXED` + `return-to` tamper-reset REJECTED `inventory/gladia.md:43` blocks code the
   - Q1 YES HIGHEST `scope.yml:7`, Q2 **NO** — key-gated `401` on all probes `probe-results.md:4`, no bypass in 100+ cycles `inventory/gladia.md:203`, Q3 YES if auth bypass existed (`169.254.169.254` chain
+
+- 10 lead(s) marked VALID at 2026-09-25 01:59:23 UTC
+  - | Q3 Real impact | **SPLIT** — npm venue YES: supply-chain impersonation (`package.json` "Official" vs `README.md:3` "Unofficial" `leads/lead-human.md:5`) + raw key in `src/client.ts:307` `wsUrl.searc
+  - | Q5 Novel | **NO — DUPLICATE** Already reported `2026-08-12 riteshekbote@gmail.com -> security@gladia.io` `leads/lead-human.md:3` + 9+ prior `VALID` in `reports/valid-bugs.md:22`. Re-file to same cha
+  - | Q6 Not always-rejected `scope.yml:42` | YES — impersonation+credential handling is valid class, not public-info/best-practice |
+  - **Verdict: HOLD (`VALID DUPLICATE` for npm venue, `HOLD` for Gladia program)** — one-line: locked 10+ `npm pack` repros, orphaned irrevocable `404/404`, key-in-URL primitive proven, already reported a
+  - | Q5 | YES — not prior VALID |
+  - | Q6 | YES — open redirect valid class |
+  - | Q2 | **PARTIAL/NO** — `GET https://api.gladia.io/v2/pre-recorded ->401 {"message":"no gladia key provided"}` `probe-results.md:4` + `POST /v2/pre-recorded (no key) ->401 NestJS` `inventory/gladia.md
+  - | Q4 | **NO** — `scope.yml:35,39` `passive_first`+`no_data_modification`. Spec `openapi.json:125kb 14 paths` `format:uri` confirms *design* only. Proof needs `POST https://api.gladia.io/v2/pre-recorde
+  - | Q5 | YES — hypothesis tracked `reports/valid-bugs.md:17` unproven |
+  - | Q6 | YES — SSRF valid class |
