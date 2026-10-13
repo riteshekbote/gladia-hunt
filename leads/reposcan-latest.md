@@ -1,7 +1,7 @@
 
-===== REPOSCAN 2026-10-13 08:30:45 UTC =====
+===== REPOSCAN 2026-10-13 16:28:37 UTC =====
 ## Grep hits:
-SCAN SUMMARY: 5694 code/config files scanned, 654 hits
+SCAN SUMMARY: 5694 code/config files scanned, 657 hits
 reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml:289: '@ai-sdk/gladia':
 reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml:291: version: link:../../packages/gladia
 reposcan-raw/gladiaio/vercel-ai/pnpm-lock.yaml:2368: packages/gladia:
@@ -47,6 +47,6 @@ reposcan-raw/gladiaio/vercel-ai/packages/togetherai/src/togetherai-provider.test
   "name": "UnknownError",
   "data": {
     "message": "Unexpected server error. Check server logs for details.",
-    "ref": "err_51c37ce4"
+    "ref": "err_6d9edbb1"
   }
 }
